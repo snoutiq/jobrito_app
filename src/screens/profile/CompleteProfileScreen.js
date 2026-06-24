@@ -46,7 +46,7 @@ export default function CompleteProfileScreen({ navigation }) {
               <Ionicons name="arrow-back" size={24} color="#111" />
             </TouchableOpacity>
 
-            <Text style={styles.title}>{t("completeProfile")}</Text>
+            <Text style={styles.title}>{t("completeProfileTitle")}</Text>
 
             <TouchableOpacity>
               <Text style={styles.skip}>{t("skip")}</Text>
@@ -223,7 +223,10 @@ function CategoryStep({ next, t }) {
       </Text>
 
       {jobs.map((item) => (
-        <Option key={item} title={item} />
+        <Option
+          key={item}
+          title={t("completeProfile.category." + item.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+        />
       ))}
 
       <TouchableOpacity style={styles.button} onPress={next}>
@@ -243,11 +246,11 @@ function SuccessStep({ t }) {
       />
 
       <Text style={styles.successTitle}>
-        {t("completeProfile.success")}
+        {t("completeProfile.successTitle")}
       </Text>
 
       <Text style={styles.successText}>
-        {t("completeProfile.success.subTitle")}
+        {t("completeProfile.successSubTitle")}
       </Text>
 
       <TouchableOpacity style={styles.button}>

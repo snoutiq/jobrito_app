@@ -15,7 +15,9 @@ export default function ProfileScreen({ navigation }) {
   const { profile, activeRole } = useSelector((state) => state.user);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const initials = (profile?.name || t("guest"))
+  const displayName = profile?.name === "Guest User" || !profile?.name ? t("guest") : profile.name;
+
+  const initials = displayName
     .split(" ")
     .map((part) => part[0])
     .slice(0, 2)
@@ -23,6 +25,8 @@ export default function ProfileScreen({ navigation }) {
     .toUpperCase();
 
   const completion = profile?.completionPercentage || 85;
+
+  const normalizedRole = activeRole ? activeRole.toLowerCase().replace(" ", "") : "jobseeker";
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -40,8 +44,8 @@ export default function ProfileScreen({ navigation }) {
     dispatch(resetUser());
   };
 
-  const handleStubAction = (label) => {
-    Alert.alert(label, t("profile.stubMessage"));
+  const handleStubAction = (titleKey) => {
+    Alert.alert(t(titleKey), t("profile.stubMessage"));
   };
 
   const menuItems = [
@@ -92,7 +96,7 @@ export default function ProfileScreen({ navigation }) {
       subtitle: t("profile.menu.settingsSubtitle"),
       icon: "settings-outline",
       color: colors.text,
-      onPress: () => handleStubAction("Settings"),
+      onPress: () => handleStubAction("profile.stubTitleSettings"),
     },
     {
       label: t("profile.menu.language"),
@@ -120,16 +124,16 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="pencil" size={12} color="#fff" />
           </View>
         </View>
-        {profile?.name && <Text style={styles.name}>{profile?.name}</Text>}
+        <Text style={styles.name}>{displayName}</Text>
         {profile?.phone && <Text style={styles.phone}>{profile?.phone}</Text>}
-        {profile?.role && <Text style={styles.role}>{t("profile.activeRole")}: {activeRole}</Text>}
+        {profile?.role && <Text style={styles.role}>{t("profile.activeRole")}: {t("roleSelection." + normalizedRole)}</Text>}
 
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressLabel}>
               {t("profile.profileComplete", { completion })}
             </Text>
-            <Pressable onPress={() => handleStubAction("Finish Profile")}>
+            <Pressable onPress={() => handleStubAction("profile.stubTitleFinish")}>
               <Text style={styles.progressAction}>{t("profile.finishNow")}</Text>
             </Pressable>
           </View>
@@ -186,7 +190,7 @@ export default function ProfileScreen({ navigation }) {
       </Pressable>
 
       <View style={styles.footer}>
-        <Text style={styles.footerFrom}>from</Text>
+        <Text style={styles.footerFrom}>{t("profile.from")}</Text>
         <Text style={styles.footerBrand}>HOSPITALITY CO.</Text>
         <Text style={styles.footerVersion}>JobConnect v4.2.1-stable</Text>
       </View>
@@ -210,7 +214,7 @@ export default function ProfileScreen({ navigation }) {
                 color={colors.danger}
               />
             </View>
-            <Text style={styles.modalTitle}>{t("logout")}?</Text>
+            <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle")}</Text>
             <Text style={styles.modalText}>
               {t("profile.logoutConfirm")}
             </Text>

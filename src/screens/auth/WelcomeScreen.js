@@ -11,9 +11,9 @@ const heroImage =
 export default function WelcomeScreen({navigation }) {
 
   const handleNext = async () => {
-  await setSeenOnboarding();
-  navigation.navigate("Language");
-};
+    await setSeenOnboarding();
+    navigation.navigate("IntroLanguage");
+  };
 
   return (
     <ScreenWrapper scroll={false} style={{ backgroundColor: colors.background }} contentStyle={styles.container}>

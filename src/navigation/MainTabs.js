@@ -100,7 +100,7 @@ function Tabs() {
         component={ProfileScreen}
         options={{
           headerShown: true,
-          title: t("profile"),
+          title: t("profileTab"),
           headerTitleAlign: "center",
           headerTitleStyle: { fontWeight: "800" },
         }}
@@ -184,7 +184,7 @@ function EmployerTabs() {
         component={ProfileScreen}
         options={{
           headerShown: true,
-          title: t("profile"),
+          title: t("profileTab"),
           headerTitleAlign: "center",
           headerTitleStyle: { fontWeight: "800" },
         }}
@@ -233,7 +233,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: t("profile") }}
+        options={{ title: t("profileTab") }}
       />
       <Stack.Screen
         name="JobDetails"

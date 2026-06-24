@@ -9,6 +9,57 @@
   "logout": "Logout",
   "cancel": "Cancel",
   "continue": "Continue",
+  "guest": "Guest User",
+  "language": "Language",
+  "profileTab": "Profile",
+  "completeProfileTitle": "Complete Profile",
+  "skip": "Skip",
+  "step": "Step {{current}} of {{total}}",
+  "proTip": "Pro Tip",
+  "uploadPhoto": "Upload Photo",
+  "takePhoto": "Take Photo",
+  "maybeLater": "Maybe Later",
+  "fullName": "Full Name",
+  "enterFullName": "Enter your full name",
+  "selectGender": "Select Gender",
+  "male": "Male",
+  "female": "Female",
+  "other": "Other",
+  "saveAndContinue": "Save & Continue",
+  "selectYearsOfExperience": "Select years of experience",
+  "typeCurrentEmployer": "Type your current or last employer",
+  "fullTimeJob": "Full-time Job",
+  "partTimeJob": "Part-time Job",
+  "contractWork": "Contract Work",
+  "freelanceProjects": "Freelance Projects",
+  "overseas": "Overseas",
+  "both": "Both",
+  "returnToCommunityFeed": "Return to Community Feed",
+  "completeProfile": {
+    "photo": {
+      "heading": "Add a Profile Photo",
+      "subHeading": "A professional photo helps you stand out to employers and get hired faster.",
+      "tip": "Use a clear, friendly photo with good lighting. Avoid filters or group photos."
+    },
+    "experience": {
+      "question1": "How many years of experience do you have in hospitality?",
+      "question2": "Where did you work last (or where do you work now)?",
+      "question3": "What job type are you looking for?"
+    },
+    "location": {
+      "heading": "Where would you like to work?"
+    },
+    "category": {
+      "heading": "Which department fits your experience?",
+      "kitchenproduction": "Kitchen Production",
+      "restaurantoperations": "Restaurant Operations",
+      "cafebeverage": "Cafe & Beverage",
+      "qsrfastfood": "QSR & Fast Food",
+      "cateringbanquet": "Catering & Banquet"
+    },
+    "successTitle": "Profile Completed!",
+    "successSubTitle": "Your profile has been successfully set up. You can now start applying for jobs."
+  },
 
   "roleSelection": {
     "title": "Choose your role",
@@ -41,7 +92,29 @@
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email Address",
-    "submitButton": "Submit"
+    "submitButton": "Submit",
+    "activeRole": "Active Role",
+    "profileComplete": "Profile Complete {{completion}}%",
+    "finishNow": "Finish Now",
+    "signOut": "Sign out of your account",
+    "logoutConfirm": "Are you sure you want to log out of JobConnect?",
+    "menu": {
+      "personalInfo": "Personal Information",
+      "personalInfoSubtitle": "Manage your contact details and address",
+      "myApplications": "My Applications",
+      "myApplicationsSubtitle": "Track your job applications",
+      "myPostedJobs": "My Posted Jobs",
+      "myPostedJobsSubtitle": "Manage job postings and candidates",
+      "settings": "Settings",
+      "settingsSubtitle": "App preferences and notifications",
+      "language": "Language",
+      "languageSubtitle": "Change application language"
+    },
+    "stubMessage": "This feature is coming soon!",
+    "stubTitleFinish": "Finish Profile",
+    "stubTitleSettings": "Settings",
+    "from": "from",
+    "logoutConfirmTitle": "Logout?"
   },
   "login": {
     "title": "Login",

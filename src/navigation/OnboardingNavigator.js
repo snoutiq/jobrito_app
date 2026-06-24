@@ -13,7 +13,7 @@ export default function OnboardingNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen name="Language" component={IntroLanguageScreen} />
+      <Stack.Screen name="IntroLanguage" component={IntroLanguageScreen} />
       <Stack.Screen name="Role" component={RoleSelectionScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />
