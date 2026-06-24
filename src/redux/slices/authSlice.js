@@ -1,0 +1,155 @@
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import i18n from "../../i18n";
+import {
+  requestOtp as requestOtpApi,
+  updateBasicProfile as updateBasicProfileApi,
+  verifyOtp as verifyOtpApi,
+} from "../../services/authApi";
+import { setStoredLanguage, setToken } from "../../services/storage";
+
+export const requestOtp = createAsyncThunk(
+  "auth/requestOtp",
+  async ({ phone, role }, { rejectWithValue }) => {
+    try {
+      return await requestOtpApi(phone, role);
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to request OTP");
+    }
+  },
+);
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async ({ phone, otp, role }, { rejectWithValue }) => {
+    try {
+      const result = await verifyOtpApi(phone, otp, role);
+      if (!result?.success) {
+        return rejectWithValue(result?.message || "OTP verification failed");
+      }
+
+      const payload = result?.data || result;
+      const token = payload?.token;
+      const user = payload?.user || null;
+      if (token) {
+        await setToken(token);
+      } // NOTE: language selection is handled separately in onboarding/profile flows
+      return {
+        token,
+        user,
+      };
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to verify OTP");
+    }
+  },
+);
+
+export const updateBasicProfile = createAsyncThunk(
+  "auth/updateBasicProfile",
+  async (data, { rejectWithValue }) => {
+    try {
+      const result = await updateBasicProfileApi(data);
+      if (result?.token) {
+        await setToken(result.token);
+      }
+      return result;
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to update profile");
+    }
+  },
+);
+
+const initialState = {
+  token: null,
+  user: null,
+  phone: "",
+  role: "",
+  otpRequested: false,
+  otpVerified: false,
+  loading: false,
+  error: null,
+  success: false,
+  sessionResetKey: 0,
+};
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    setTokenState: (state, action) => {
+      state.token = action.payload;
+    },
+    setPhone: (state, action) => {
+      state.phone = action.payload;
+    },
+    logout: (state) => {
+      state.token = null;
+      state.phone = "";
+      state.otpRequested = false;
+      state.otpVerified = false;
+      state.loading = false;
+      state.error = null;
+      state.success = false;
+      state.sessionResetKey += 1;
+    },
+    clearAuthStatus: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.success = false;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(requestOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(requestOtp.fulfilled, (state, action) => {
+        state.loading = false;
+        state.otpRequested = true;
+        state.phone = action.meta.arg.phone;
+        state.role = action.meta.arg.role;
+        state.success = true;
+      })
+      .addCase(requestOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(verifyOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(verifyOtp.fulfilled, (state, action) => {
+        state.loading = false;
+        state.otpVerified = true;
+        state.phone = action.meta.arg.phone;
+        state.role = action.meta.arg.role;
+        state.token = action.payload?.token || null;
+        state.user = action.payload?.user || null;
+        state.success = true;
+      })
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateBasicProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(updateBasicProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload?.token || state.token;
+        state.success = true;
+      })
+      .addCase(updateBasicProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
+});
+
+export const { setTokenState, setPhone, logout, clearAuthStatus } =
+  authSlice.actions;
+export default authSlice.reducer;

@@ -1,0 +1,94 @@
+import React, { useEffect } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import ScreenWrapper from "../../components/common/ScreenWrapper";
+import DashboardStatCard from "../../components/cards/DashboardStatCard";
+import StatusBadge from "../../components/common/StatusBadge";
+import colors from "../../constants/colors";
+import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import AppButton from "../../components/buttons/AppButton";
+
+export default function EmployerDashboardScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const { stats, submittedJobs } = useSelector((state) => state.employer);
+
+  useEffect(() => {
+    dispatch(fetchEmployerDashboard());
+  }, [dispatch]);
+
+  return (
+    <ScreenWrapper>
+      <View style={styles.header}>
+        <Text style={styles.title}>Employer Dashboard</Text>
+        <Text style={styles.subtitle}>Review job submissions and applicant progress.</Text>
+      </View>
+
+      <View style={styles.statsGrid}>
+        {stats.map((stat) => (
+          <DashboardStatCard key={stat.label} label={stat.label} value={stat.value} />
+        ))}
+      </View>
+
+      <View style={{ gap: 12 }}>
+        {submittedJobs.map((job) => (
+          <View key={job.id} style={styles.card}>
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.jobTitle}>{job.title}</Text>
+                <Text style={styles.meta}>{job.location}</Text>
+              </View>
+              <StatusBadge status={job.status} />
+            </View>
+            <Text style={styles.meta}>Applicants: {job.applicants}</Text>
+            <AppButton
+              title="View Applicants"
+              onPress={() => navigation.navigate("ApplicantList", { jobId: job.id, jobTitle: job.title })}
+            />
+          </View>
+        ))}
+      </View>
+    </ScreenWrapper>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    gap: 6,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 26,
+    fontWeight: "900",
+  },
+  subtitle: {
+    color: colors.mutedText,
+    fontSize: 14,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 12,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  jobTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  meta: {
+    color: colors.mutedText,
+    fontSize: 13,
+  },
+});
