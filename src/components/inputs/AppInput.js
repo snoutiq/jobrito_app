@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 
 export default function AppInput({
@@ -14,13 +15,15 @@ export default function AppInput({
   containerStyle,
   inputStyle,
 }) {
+  const { t } = useTranslation();
+
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={styles.label}>{t(label)}</Text> : null}
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ? t(placeholder) : undefined}
         placeholderTextColor={colors.mutedText}
         keyboardType={keyboardType}
         multiline={multiline}

@@ -258,7 +258,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Language"
         component={LanguageScreen}
-        options={{ title: "Language" }}
+        options={{ title: t("language") }}
       />
       <Stack.Screen
         name="PersonalInformation"

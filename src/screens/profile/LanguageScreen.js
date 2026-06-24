@@ -6,7 +6,7 @@ import colors from "../../constants/colors";
 import { getStoredLanguage, setStoredLanguage } from "../../services/storage";
 
 export default function LanguageScreen() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState("en");
 
   useEffect(() => {
@@ -38,12 +38,12 @@ export default function LanguageScreen() {
     {
       key: "en",
       label: "English",
-      subtitle: "Use the app in English",
+      subtitle: t("languageScreen.subtitleEn"),
     },
     {
       key: "hi",
-      label: "\u0939\u093f\u0902\u0926\u0940",
-      subtitle: "\u090f\u092a \u0915\u094b \u0939\u093f\u0902\u0926\u0940 \u092e\u0947\u0902 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902",
+      label: "हिन्दी",
+      subtitle: t("languageScreen.subtitleHi"),
     },
   ];
 
@@ -55,9 +55,9 @@ export default function LanguageScreen() {
     >
 
       <View style={styles.card}>
-        <Text style={styles.title}>Select Language</Text>
+        <Text style={styles.title}>{t("languageScreen.title")}</Text>
         <Text style={styles.description}>
-          Only English and Hindi are available for now.
+          {t("languageScreen.description")}
         </Text>
 
         <View style={styles.buttonList}>

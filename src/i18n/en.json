@@ -198,9 +198,41 @@
     "title": "Select your preferred language",
     "subtitle": "Please select your preferred language. You can change this later.",
     "continue": "Continue",
-      "introLanguage": "Select your preferred language",
-    "languageSelectionDescription": "Please select your preferred language. You can change this later."
-
-  }
+    "introLanguage": "Select your preferred language",
+    "languageSelectionDescription": "Please select your preferred language. You can change this later.",
+    "subtitleEn": "System Default",
+    "subtitleHi": "Use the app in Hindi"
+  },
+  "languageScreen": {
+    "title": "Select Language",
+    "description": "Only English and Hindi are available for now.",
+    "subtitleEn": "Use the app in English",
+    "subtitleHi": "Use the app in Hindi"
+  },
+  "personalInformation": "Personal Information",
+  "Full Name": "Full Name",
+  "Enter full name": "Enter full name",
+  "Email Address": "Email Address",
+  "Enter email address": "Enter email address",
+  "City": "City",
+  "Enter city": "Enter city",
+  "Current Employer": "Current Employer",
+  "Enter current employer": "Enter current employer",
+  "Years of Experience": "Years of Experience",
+  "This can be connected to a picker later.": "This can be connected to a picker later.",
+  "Enter years of experience": "Enter years of experience",
+  "Preferred Role": "Preferred Role",
+  "Enter preferred role": "Enter preferred role",
+  "Skills": "Skills",
+  "Add Skill": "Add Skill",
+  "Skill": "Skill",
+  "Enter skill": "Enter skill",
+  "Add": "Add",
+  "Save Profile": "Save Profile",
+  "Update profile photo": "Update profile photo",
+  "Choose where you want to pick the image from.": "Choose where you want to pick the image from.",
+  "Camera": "Camera",
+  "Gallery": "Gallery",
+  "Cancel": "Cancel"
   
 }

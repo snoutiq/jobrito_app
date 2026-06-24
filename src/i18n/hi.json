@@ -203,6 +203,46 @@
     "languageSelectionDescription": "कृपया अपनी पसंदीदा भाषा चुनें। आप इसे बाद में बदल सकते हैं।",
     "languageSelectionTitle": "भाषा चयन",
     "languageSelectionSubtitle": "कृपया अपनी पसंदीदा भाषा चुनें। आप इसे बाद में बदल सकते हैं।"
-  }
+  },
+  "introLanguage": {
+    "title": "अपनी पसंदीदा भाषा चुनें",
+    "subtitle": "कृपया अपनी पसंदीदा भाषा चुनें। आप इसे बाद में बदल सकते हैं।",
+    "continue": "जारी रखें",
+    "introLanguage": "अपनी पसंदीदा भाषा चुनें",
+    "languageSelectionDescription": "कृपया अपनी पसंदीदा भाषा चुनें। आप इसे बाद में बदल सकते हैं।",
+    "subtitleEn": "सिस्टम डिफ़ॉल्ट",
+    "subtitleHi": "एप को हिन्दी में उपयोग करें"
+  },
+  "languageScreen": {
+    "title": "भाषा चुनें",
+    "description": "अभी केवल अंग्रेजी और हिंदी उपलब्ध हैं।",
+    "subtitleEn": "अंग्रेजी में ऐप का उपयोग करें",
+    "subtitleHi": "एप को हिन्दी में उपयोग करें"
+  },
+  "personalInformation": "व्यक्तिगत जानकारी",
+  "Full Name": "पूरा नाम",
+  "Enter full name": "पूरा नाम दर्ज करें",
+  "Email Address": "ईमेल पता",
+  "Enter email address": "ईमेल पता दर्ज करें",
+  "City": "शहर",
+  "Enter city": "शहर का नाम दर्ज करें",
+  "Current Employer": "वर्तमान नियोक्ता",
+  "Enter current employer": "वर्तमान नियोक्ता का नाम दर्ज करें",
+  "Years of Experience": "अनुभव के वर्ष",
+  "This can be connected to a picker later.": "इसे बाद में पिकर से जोड़ा जा सकता है।",
+  "Enter years of experience": "अनुभव के वर्ष दर्ज करें",
+  "Preferred Role": "पसंदीदा भूमिका",
+  "Enter preferred role": "पसंदीदा भूमिका दर्ज करें",
+  "Skills": "कौशल",
+  "Add Skill": "कौशल जोड़ें",
+  "Skill": "कौशल",
+  "Enter skill": "कौशल दर्ज करें",
+  "Add": "जोड़ें",
+  "Save Profile": "प्रोफ़ाइल सहेजें",
+  "Update profile photo": "प्रोफ़ाइल फ़ोटो अपडेट करें",
+  "Choose where you want to pick the image from.": "चुनें कि आप छवि कहाँ से लेना चाहते हैं।",
+  "Camera": "कैमरा",
+  "Gallery": "गैलरी",
+  "Cancel": "रद्द करें"
 
 }

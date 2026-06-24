@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppInput from "../../components/inputs/AppInput";
@@ -8,6 +9,7 @@ import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 
 export default function PersonalInformationScreen() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -151,13 +153,13 @@ export default function PersonalInformationScreen() {
         />
 
         <View style={styles.selectField}>
-          <Text style={styles.selectLabel}>Years of Experience</Text>
+          <Text style={styles.selectLabel}>{t("Years of Experience")}</Text>
           <Pressable
             style={styles.selectBox}
             onPress={() =>
               Alert.alert(
-                "Years of Experience",
-                "This can be connected to a picker later."
+                t("Years of Experience"),
+                t("This can be connected to a picker later.")
               )
             }
           >
@@ -167,7 +169,7 @@ export default function PersonalInformationScreen() {
                 !form.yearsOfExperience && styles.placeholderText,
               ]}
             >
-              {form.yearsOfExperience || "Enter years of experience"}
+              {form.yearsOfExperience || t("Enter years of experience")}
             </Text>
             <Ionicons name="chevron-down" size={18} color={colors.mutedText} />
           </Pressable>
@@ -181,10 +183,10 @@ export default function PersonalInformationScreen() {
         />
 
         <View style={styles.skillsHeader}>
-          <Text style={styles.selectLabel}>Skills</Text>
+          <Text style={styles.selectLabel}>{t("Skills")}</Text>
           <Pressable onPress={handleAddSkill} style={styles.addSkillButton}>
             <Ionicons name="add" size={14} color={colors.primary} />
-            <Text style={styles.addSkillText}>Add Skill</Text>
+            <Text style={styles.addSkillText}>{t("Add Skill")}</Text>
           </Pressable>
         </View>
 
@@ -198,7 +200,7 @@ export default function PersonalInformationScreen() {
               containerStyle={styles.skillInput}
             />
             <Pressable onPress={confirmAddSkill} style={styles.skillAddButton}>
-              <Text style={styles.skillAddText}>Add</Text>
+              <Text style={styles.skillAddText}>{t("Add")}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -218,7 +220,7 @@ export default function PersonalInformationScreen() {
           </View>
         ) : null}
 
-        <AppButton title="Save Profile" onPress={handleSave} />
+        <AppButton title={t("Save Profile")} onPress={handleSave} />
       </View>
 
       <Modal
@@ -230,22 +232,22 @@ export default function PersonalInformationScreen() {
         <View style={styles.modalOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={closeImageModal} />
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Update profile photo</Text>
-            <Text style={styles.modalText}>Choose where you want to pick the image from.</Text>
+            <Text style={styles.modalTitle}>{t("Update profile photo")}</Text>
+            <Text style={styles.modalText}>{t("Choose where you want to pick the image from.")}</Text>
 
             <View style={styles.modalActions}>
               <Pressable onPress={pickFromCamera} style={[styles.modalButton, styles.modalPrimaryButton]}>
                 <Ionicons name="camera" size={18} color={colors.white} />
-                <Text style={styles.modalPrimaryText}>Camera</Text>
+                <Text style={styles.modalPrimaryText}>{t("Camera")}</Text>
               </Pressable>
               <Pressable onPress={pickFromGallery} style={[styles.modalButton, styles.modalSecondaryButton]}>
                 <Ionicons name="images" size={18} color={colors.primary} />
-                <Text style={styles.modalSecondaryText}>Gallery</Text>
+                <Text style={styles.modalSecondaryText}>{t("Gallery")}</Text>
               </Pressable>
             </View>
 
             <Pressable onPress={closeImageModal} style={styles.modalCloseButton}>
-              <Text style={styles.modalCloseText}>Cancel</Text>
+              <Text style={styles.modalCloseText}>{t("Cancel")}</Text>
             </Pressable>
           </View>
         </View>
