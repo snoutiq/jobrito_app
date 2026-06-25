@@ -3,46 +3,49 @@ import apiClient from "./apiClient";
 const sampleJobs = [
   {
     id: "job-1",
-    title: "Front Office Associate",
-    employer: "Sunrise Hotels",
+    title: "Continental Chef Required",
+    employer: "Grand Hyatt Dubai",
     category: "India Jobs",
-    location: "Jaipur, India",
-    salary: "INR 18,000 - 24,000",
-    experience: "1-2 years",
+    location: "Dubai, UAE",
+    salary: "AED 3500 + Housing",
+    experience: "2 Years",
     openings: 4,
-    description: "Guest handling, check-in support, and hospitality service coordination.",
+    description: "Looking for professional and experienced chef to join our team.",
     postedDate: "2026-05-27",
     type: "India Jobs",
+    is_pinned: false,
   },
   {
     id: "job-2",
-    title: "Chef de Partie",
-    employer: "Dubai Bay Resort",
+    title: "Pastry Chef Required",
+    employer: "Bombay Cafe",
     category: "Overseas Jobs",
-    location: "Dubai, UAE",
-    salary: "AED 4,500 - 6,000",
-    experience: "3-5 years",
+    location: "Bandra, Mumbai",
+    salary: "INR 35000 + Housing",
+    experience: "2 Years",
     openings: 2,
-    description: "Support the kitchen team and maintain high culinary standards.",
+    description: "Looking for experienced baker/chef to join our team.",
     postedDate: "2026-05-24",
     type: "Overseas Jobs",
+    is_pinned: true,
   },
   {
     id: "job-3",
-    title: "Room Attendant Training",
-    employer: "Hospitality Skill Hub",
+    title: "Kitchen Helpers (Riyadh)",
+    employer: "Global Talent Overseas",
     category: "Training Opportunities",
-    location: "Pune, India",
-    salary: "Stipend Available",
-    experience: "Fresher",
+    location: "Riyadh",
+    salary: "Free Visa & Flights",
+    experience: "Any",
     openings: 20,
-    description: "Structured training program for entry-level hospitality professionals.",
+    description: "Bulk hiring for mega-event hospitality project. Free Visa & Flights.",
     postedDate: "2026-05-21",
     type: "Training Opportunities",
+    is_pinned: false,
   },
   {
     id: "job-4",
-    title: "Referral: Banquet Supervisor",
+    title: "Banquet Supervisor",
     employer: "Elite Events Group",
     category: "Referral Opportunities",
     location: "Delhi, India",
@@ -52,6 +55,7 @@ const sampleJobs = [
     description: "Trusted referral opening for banquet operations and team coordination.",
     postedDate: "2026-05-19",
     type: "Referral Opportunities",
+    is_pinned: false,
   },
   {
     id: "job-5",
@@ -65,6 +69,7 @@ const sampleJobs = [
     description: "Short-term community job post for kitchen and service support.",
     postedDate: "2026-05-18",
     type: "Community Job Posts",
+    is_pinned: false,
   },
 ];
 
@@ -84,13 +89,15 @@ export const getFeedJobs = async (filter) => {
   }
 };
 
-export const applyToJob = async (jobId) => {
+export const applyToJob = async (jobId, preferredCallTime) => {
   try {
-    const response = await apiClient.post(`/jobs/${jobId}/apply`);
+    const response = await apiClient.post(`/jobs/${jobId}/apply`, {
+      preferred_call_time: preferredCallTime,
+    });
     return response.data;
   } catch (error) {
     // fallback: simulate successful apply for offline/dev
-    return { success: true, message: "Applied (offline)" };
+    return { success: true, message: "Applied (offline)", preferred_call_time: preferredCallTime };
   }
 };
 

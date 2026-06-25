@@ -21,6 +21,9 @@ import EmployerDashboardScreen from "../screens/employer/EmployerDashboardScreen
 import CompleteProfileScreen from "../screens/profile/CompleteProfileScreen";
 import EmployerHomeScreen from "../screens/home/EmployerHomeScreen";
 import ChefHomeScreen from "../screens/home/ChefHomeScreen";
+import EmployerCompleteProfileScreen from "../screens/employer/EmployerCompleteProfileScreen";
+import MyJobsScreen from "../screens/employer/MyJobsScreen";
+import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -292,6 +295,36 @@ export default function MainTabs() {
   const isEmployer = activeRole === ROLES.EMPLOYER || activeRole === "employer";
   const isChef = activeRole === ROLES.CHEF || activeRole === "chef";
 
+  const employerOnboardingCompleted = useSelector(
+    (state) => state.user.profile?.employerOnboardingCompleted
+  );
+
+  if (isEmployer && !employerOnboardingCompleted) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="EmployerCompleteProfile"
+          component={EmployerCompleteProfileScreen}
+        />
+      </Stack.Navigator>
+    );
+  }
+
+  const chefOnboardingCompleted = useSelector(
+    (state) => state.user.profile?.chefOnboardingCompleted
+  );
+
+  if (isChef && !chefOnboardingCompleted) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="ChefCompleteProfile"
+          component={ChefCompleteProfileScreen}
+        />
+      </Stack.Navigator>
+    );
+  }
+
   if (isJobSeeker) {
     return <HomeOnlyStack key={activeRole ?? "job_seeker"} />;
   }
@@ -352,9 +385,23 @@ export default function MainTabs() {
         component={EmployerDashboardScreen}
         options={{ title: t("employerDashboard") }}
       />
-      <Stack.Screen
+          <Stack.Screen
         name="CompleteProfileScreen"
         component={CompleteProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="MyJobs"
+        component={MyJobsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="ChefCompleteProfile"
+        component={ChefCompleteProfileScreen}
         options={{
           headerShown: false,
         }}

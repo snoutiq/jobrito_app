@@ -8,6 +8,8 @@ const KEYS = {
   seenOnboarding: "@jobconnect/seen_onboarding",
   seenIntro: "@jobconnect/seen_intro",
   seenRoleSelection: "@jobconnect/seen_role_selection",
+  employerOnboardingCompleted: "@jobconnect/employer_onboarding_completed",
+  chefOnboardingCompleted: "@jobconnect/chef_onboarding_completed",
 };
 
 export const getToken = () => AsyncStorage.getItem(KEYS.token);
@@ -46,6 +48,20 @@ export const setSeenRoleSelection = () =>
 export const removeSeenRoleSelection = () =>
   AsyncStorage.removeItem(KEYS.seenRoleSelection);
 
+export const getEmployerOnboardingCompleted = () =>
+  AsyncStorage.getItem(KEYS.employerOnboardingCompleted);
+export const setEmployerOnboardingCompleted = () =>
+  AsyncStorage.setItem(KEYS.employerOnboardingCompleted, "true");
+export const removeEmployerOnboardingCompleted = () =>
+  AsyncStorage.removeItem(KEYS.employerOnboardingCompleted);
+
+export const getChefOnboardingCompleted = () =>
+  AsyncStorage.getItem(KEYS.chefOnboardingCompleted);
+export const setChefOnboardingCompleted = () =>
+  AsyncStorage.setItem(KEYS.chefOnboardingCompleted, "true");
+export const removeChefOnboardingCompleted = () =>
+  AsyncStorage.removeItem(KEYS.chefOnboardingCompleted);
+
 export const clearAuthStorage = async () => {
   await AsyncStorage.multiRemove([
     KEYS.token,
@@ -55,6 +71,8 @@ export const clearAuthStorage = async () => {
     KEYS.seenOnboarding,
     KEYS.seenIntro,
     KEYS.seenRoleSelection,
+    KEYS.employerOnboardingCompleted,
+    KEYS.chefOnboardingCompleted,
   ]);
 };
 

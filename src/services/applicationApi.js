@@ -20,9 +20,11 @@ const sampleHistory = [
   },
 ];
 
-export const applyJob = async (jobId) => {
+export const applyJob = async (jobId, preferredCallTime) => {
   try {
-    const response = await apiClient.post(`/jobs/${jobId}/apply`);
+    const response = await apiClient.post(`/jobs/${jobId}/apply`, {
+      preferred_call_time: preferredCallTime,
+    });
     return response.data;
   } catch (error) {
     const job = sampleFeedJobs.find((item) => item.id === jobId) || sampleFeedJobs[0];
@@ -35,6 +37,7 @@ export const applyJob = async (jobId) => {
         employer: job.employer,
         appliedOn: new Date().toISOString().slice(0, 10),
         status: "New",
+        preferred_call_time: preferredCallTime,
       },
     };
   }

@@ -3,9 +3,9 @@ import { applyJob as applyJobApi, getApplicationHistory as getApplicationHistory
 
 export const applyJob = createAsyncThunk(
   "application/applyJob",
-  async (jobId, { rejectWithValue }) => {
+  async ({ jobId, preferredCallTime }, { rejectWithValue }) => {
     try {
-      return await applyJobApi(jobId);
+      return await applyJobApi(jobId, preferredCallTime);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to apply for job");
     }

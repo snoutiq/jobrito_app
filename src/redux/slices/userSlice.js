@@ -40,6 +40,8 @@ const initialState = {
     name: "Guest User",
     role: ROLES.JOB_SEEKER,
     completionPercentage: 60,
+    employerOnboardingCompleted: false,
+    chefOnboardingCompleted: false,
   },
   activeRole: ROLES.JOB_SEEKER,
   loading: false,

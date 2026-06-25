@@ -1,14 +1,381 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import colors from "../../constants/colors";
 
-export default function EmployerHomeScreen() {
-  const { t } = useTranslation();
+const PRIMARY_GREEN = "#22C55E";
+
+export default function EmployerHomeScreen({ navigation }) {
+  const profile = useSelector((state) => state.user.profile);
+
+  const businessName = profile?.businessName || "Grand Hyatt Dubai";
+  const contactName = profile?.contactName || "Sarah Jenkins";
+
+  const handleSupportPress = () => {
+    Alert.alert("Customer Support", "Connecting you to JobRito support team...");
+  };
+
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-        {t("employerHomeScreen")}
-      </Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Image
+            source={{ uri: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop&q=60" }}
+            style={styles.avatar}
+          />
+          <View style={styles.headerInfo}>
+            <Text style={styles.businessName}>{businessName}</Text>
+            <Text style={styles.contactText}>Contact: {contactName}</Text>
+          </View>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => Alert.alert("Notifications", "You have no new notifications.")}>
+            <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+            <View style={styles.notifBadge} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate("Profile")}>
+            <Ionicons name="settings-outline" size={22} color="#1E293B" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Dashboard</Text>
+
+        {/* Card: All Talent Applicants Received */}
+        <View style={styles.mainStatsCard}>
+          <View style={styles.statsCardHeader}>
+            <View>
+              <Text style={styles.statsCardLabel}>ALL TALENT APPLICANTS RECEIVED</Text>
+              <Text style={styles.statsCardValue}>28</Text>
+            </View>
+            <View style={[styles.statsIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
+              <Ionicons name="people" size={24} color={PRIMARY_GREEN} />
+            </View>
+          </View>
+
+          <View style={styles.statsSubRow}>
+            <View style={styles.subStatItem}>
+              <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>12</Text>
+              <Text style={styles.subStatLabel}>Shortlisted</Text>
+            </View>
+            <View style={styles.verticalDivider} />
+            <View style={styles.subStatItem}>
+              <Text style={[styles.subStatValue, { color: "#EF4444" }]}>8</Text>
+              <Text style={styles.subStatLabel}>Rejected</Text>
+            </View>
+            <View style={styles.verticalDivider} />
+            <View style={styles.subStatItem}>
+              <Text style={[styles.subStatValue, { color: "#1E293B" }]}>5</Text>
+              <Text style={styles.subStatLabel}>Contacted</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Row of small stats */}
+        <View style={styles.smallStatsRow}>
+          <View style={styles.smallStatCard}>
+            <View style={[styles.smallStatIconBox, { backgroundColor: "#FEF3C7" }]}>
+              <Ionicons name="hourglass-outline" size={20} color="#D97706" />
+            </View>
+            <View>
+              <Text style={styles.smallStatLabel}>Pending</Text>
+              <Text style={styles.smallStatValue}>1</Text>
+            </View>
+          </View>
+
+          <View style={styles.smallStatCard}>
+            <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
+              <Ionicons name="briefcase-outline" size={20} color="#3B82F6" />
+            </View>
+            <View>
+              <Text style={styles.smallStatLabel}>Active Jobs</Text>
+              <Text style={styles.smallStatValue}>4</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>Actions</Text>
+
+        {/* Action List */}
+        <View style={styles.actionsContainer}>
+          {/* Post Job Action */}
+          <TouchableOpacity
+            style={styles.actionItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("Post Job")}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
+              <Ionicons name="add-circle" size={26} color={PRIMARY_GREEN} />
+            </View>
+            <View style={styles.actionDetails}>
+              <Text style={styles.actionTitle}>Post Job</Text>
+              <Text style={styles.actionSubtitle}>Create a new opening for your team</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* My Jobs Action */}
+          <TouchableOpacity
+            style={styles.actionItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("MyJobs")}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: "#F1F5F9" }]}>
+              <Ionicons name="briefcase" size={22} color="#64748B" />
+            </View>
+            <View style={styles.actionDetails}>
+              <Text style={styles.actionTitle}>My Jobs</Text>
+              <Text style={styles.actionSubtitle}>Edit or close existing job postings</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Floating Support Button */}
+      <TouchableOpacity
+        style={[styles.supportFab, { backgroundColor: PRIMARY_GREEN }]}
+        activeOpacity={0.8}
+        onPress={handleSupportPress}
+      >
+        <Ionicons name="headset-outline" size={24} color="#fff" />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  businessName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 2,
+  },
+  contactText: {
+    fontSize: 12,
+    color: "#64748B",
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    position: "relative",
+  },
+  notifBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444",
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 80,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    marginBottom: 16,
+  },
+  mainStatsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.01,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  statsCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  statsCardLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  statsCardValue: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+  statsIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statsSubRow: {
+    flexDirection: "row",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 10,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  subStatItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  subStatValue: {
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  subStatLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  verticalDivider: {
+    width: 1,
+    backgroundColor: "#E2E8F0",
+  },
+  smallStatsRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  smallStatCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: 12,
+  },
+  smallStatIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  smallStatLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "700",
+    marginBottom: 1,
+  },
+  smallStatValue: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  actionsContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    overflow: "hidden",
+  },
+  actionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  actionIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  actionDetails: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 2,
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+  },
+  supportFab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+});

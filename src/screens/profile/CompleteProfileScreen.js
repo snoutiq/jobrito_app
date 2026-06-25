@@ -3,13 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+//   SafeAreaView,
   TouchableOpacity,
   TextInput,
   ScrollView,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const PRIMARY = "#22C55E";
 

@@ -36,9 +36,9 @@ export const submitCommunityJob = createAsyncThunk(
 
 export const applyJob = createAsyncThunk(
   "job/applyJob",
-  async (jobId, { rejectWithValue }) => {
+  async ({ jobId, preferredCallTime }, { rejectWithValue }) => {
     try {
-      return await applyToJobApi(jobId);
+      return await applyToJobApi(jobId, preferredCallTime);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to apply to job");
     }
