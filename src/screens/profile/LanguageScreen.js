@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { getStoredLanguage, setStoredLanguage } from "../../services/storage";
+import { updateUserLanguage } from "../../redux/slices/userSlice";
 
 export default function LanguageScreen() {
+  const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState("en");
 
@@ -18,7 +21,7 @@ export default function LanguageScreen() {
         return;
       }
       const language = storedLanguage || i18n.language || "en";
-      setSelectedLanguage(language.startsWith("hi") ? "hi" : "en");
+      setSelectedLanguage(language);
     };
 
     loadLanguage();
@@ -32,20 +35,42 @@ export default function LanguageScreen() {
     setSelectedLanguage(language);
     await i18n.changeLanguage(language);
     await setStoredLanguage(language);
+    dispatch(updateUserLanguage(language)); // Sync with backend
   };
 
   const languageButtons = [
     {
       key: "en",
       label: "English",
-      subtitle: t("languageScreen.subtitleEn"),
+      subtitle: "Use the app in English",
     },
     {
       key: "hi",
       label: "हिन्दी",
-      subtitle: t("languageScreen.subtitleHi"),
+      subtitle: "हिंदी में ऐप का उपयोग करें",
     },
+    // {
+    //   key: "mr",
+    //   label: "मराठी",
+    //   subtitle: "मराठी मध्ये ॲप वापरा",
+    // },
+    // {
+    //   key: "ar_AE",
+    //   label: "العربية (UAE)",
+    //   subtitle: "استخدم التطبيق بالعربية (Dubai)",
+    // },
+    // {
+    //   key: "ar_SA",
+    //   label: "العربية (KSA)",
+    //   subtitle: "استخدم التطبيق بالعربية (KSA)",
+    // },
+    // {
+    //   key: "en_EU",
+    //   label: "English (Europe)",
+    //   subtitle: "Use the app in European English",
+    // },
   ];
+
 
   return (
     <ScreenWrapper

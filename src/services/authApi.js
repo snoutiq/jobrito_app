@@ -78,12 +78,15 @@ export const requestOtp = async (phone, role) => {
 //   }
 // };
 
-export const verifyOtp = async (phone, otp, role) => {
+export const verifyOtp = async (phone, otp, role, language) => {
+  console.log( phone, otp, role, language ,"ankit3");
+  
   try {
     const response = await apiClient.post("/verify-otp", toFormUrlEncoded({
       mobile_number: phone,
       login_role: ROLE_API_MAP[role],
       otp,
+      selected_language: language,
     }), {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

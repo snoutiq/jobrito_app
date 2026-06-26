@@ -20,9 +20,9 @@ export const requestOtp = createAsyncThunk(
 
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
-  async ({ phone, otp, role }, { rejectWithValue }) => {
+  async ({ phone, otp, role, language }, { rejectWithValue }) => {
     try {
-      const result = await verifyOtpApi(phone, otp, role);
+      const result = await verifyOtpApi(phone, otp, role, language);
       if (!result?.success) {
         return rejectWithValue(result?.message || "OTP verification failed");
       }

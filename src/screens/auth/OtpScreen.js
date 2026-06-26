@@ -12,7 +12,7 @@ import { verifyOtp } from "../../redux/slices/authSlice";
 const OTP_LENGTH = 4;
 
 export default function OtpScreen({ navigation, route }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { loading, phone: storedPhone } = useSelector((state) => state.auth);
   const [otp, setOtp] = useState("");
@@ -25,7 +25,7 @@ export default function OtpScreen({ navigation, route }) {
       return;
     }
 
-    const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role }));
+    const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role, language: i18n.language }));
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
       return;

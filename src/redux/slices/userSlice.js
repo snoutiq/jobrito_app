@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getProfile as getProfileApi, switchRole as switchRoleApi, updateProfile as updateProfileApi } from "../../services/profileApi";
+import { getProfile as getProfileApi, switchRole as switchRoleApi, updateProfile as updateProfileApi, updateLanguagePreference } from "../../services/profileApi";
 import { ROLES } from "../../constants/roles";
 
 export const fetchProfile = createAsyncThunk(
@@ -35,13 +35,24 @@ export const switchUserRole = createAsyncThunk(
   }
 );
 
+export const updateUserLanguage = createAsyncThunk(
+  "user/updateLanguage",
+  async (language, { rejectWithValue }) => {
+    try {
+      const response = await updateLanguagePreference(language);
+      return response; // Can be used to update state if needed
+    } catch (error) {
+      return rejectWithValue(error.toString());
+    }
+  }
+);
+
 const initialState = {
   profile: {
     name: "Guest User",
     role: ROLES.JOB_SEEKER,
     completionPercentage: 60,
     employerOnboardingCompleted: false,
-    chefOnboardingCompleted: false,
   },
   activeRole: ROLES.JOB_SEEKER,
   loading: false,
@@ -116,7 +127,16 @@ const userSlice = createSlice({
       .addCase(switchUserRole.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+      // Handle language update
+      .addCase(updateUserLanguage.fulfilled, (state, action) => {
+        // Language preference synced with backend.
+        console.log("Language preference synced with backend.");
+      })
+      .addCase(updateUserLanguage.rejected, (state, action) => {
+        console.error("Failed to sync language preference:", action.payload);
+      })
+      ;
   },
 });
 
