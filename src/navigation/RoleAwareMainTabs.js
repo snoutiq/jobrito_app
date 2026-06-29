@@ -17,6 +17,7 @@ import RoleSwitcherScreen from "../screens/profile/RoleSwitcherScreen";
 import LanguageScreen from "../screens/profile/LanguageScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
 import EmployerDashboardScreen from "../screens/employer/EmployerDashboardScreen";
+import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -163,6 +164,20 @@ function HomeOnlyStack() {
         name="EmployerDashboard"
         component={EmployerDashboardScreen}
         options={{ title: "Employer Dashboard" }}
+      />
+      <Stack.Screen
+        name="Applications"
+        component={ApplicationHistoryScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="SavedJobs"
+        component={SavedJobsScreen}
+        options={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );

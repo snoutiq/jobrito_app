@@ -71,6 +71,13 @@ export default function ProfileScreen({ navigation }) {
       onPress: () => navigation.navigate("Applications"),
     },
     {
+      label: t("profile.menu.savedJobs"),
+      subtitle: t("profile.menu.savedJobsSubtitle"),
+      icon: "star-outline",
+      color: colors.text,
+      onPress: () => navigation.navigate("SavedJobs"),
+    },
+    {
       label: t("profile.menu.myPostedJobs"),
       subtitle: t("profile.menu.myPostedJobsSubtitle"),
       icon: "briefcase-outline",

@@ -24,6 +24,7 @@ import ChefHomeScreen from "../screens/home/ChefHomeScreen";
 import EmployerCompleteProfileScreen from "../screens/employer/EmployerCompleteProfileScreen";
 import MyJobsScreen from "../screens/employer/MyJobsScreen";
 import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
+import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -276,6 +277,20 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="CompleteProfileScreen"
         component={CompleteProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Applications"
+        component={ApplicationHistoryScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="SavedJobs"
+        component={SavedJobsScreen}
         options={{
           headerShown: false,
         }}

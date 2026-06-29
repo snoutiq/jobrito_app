@@ -11,6 +11,11 @@ const palette = {
   Pending: { bg: "#F8FAFC", fg: colors.mutedText },
   Approved: { bg: "#DCFCE7", fg: "#15803D" },
   "Pending Approval": { bg: "#FEF3C7", fg: "#B45309" },
+  "UNDER REVIEW": { bg: "#FEF3C7", fg: "#B45309" },
+  "SHORTLISTED": { bg: "#DCFCE7", fg: "#15803D" },
+  "CONTACTED": { bg: "#E0F2FE", fg: "#0369A1" },
+  "DECISION PENDING": { bg: "#F1F5F9", fg: "#475569" },
+  "JOB CLOSED": { bg: "#FEE2E2", fg: "#B91C1C" },
 };
 
 export default function StatusBadge({ status }) {

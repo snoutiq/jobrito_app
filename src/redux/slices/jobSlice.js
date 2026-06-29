@@ -1,5 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getFeedJobs as getFeedJobsApi, getJobDetails as getJobDetailsApi, submitCommunityJob as submitCommunityJobApi, applyToJob as applyToJobApi } from "../../services/jobApi";
+import {
+  getFeedJobs as getFeedJobsApi,
+  getJobDetails as getJobDetailsApi,
+  submitCommunityJob as submitCommunityJobApi,
+  applyToJob as applyToJobApi,
+  getSavedJobs as getSavedJobsApi,
+} from "../../services/jobApi";
 
 export const fetchFeedJobs = createAsyncThunk(
   "job/fetchFeedJobs",
@@ -8,6 +14,17 @@ export const fetchFeedJobs = createAsyncThunk(
       return await getFeedJobsApi(filter);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch jobs");
+    }
+  }
+);
+
+export const fetchSavedJobs = createAsyncThunk(
+  "job/fetchSavedJobs",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getSavedJobsApi();
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to fetch saved jobs");
     }
   }
 );
@@ -47,6 +64,7 @@ export const applyJob = createAsyncThunk(
 
 const initialState = {
   feedJobs: [],
+  savedJobs: [],
   jobDetails: null,
   communityJobResult: null,
   loading: false,
@@ -79,6 +97,20 @@ const jobSlice = createSlice({
         state.success = true;
       })
       .addCase(fetchFeedJobs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchSavedJobs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(fetchSavedJobs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.savedJobs = action.payload?.jobs || [];
+        state.success = true;
+      })
+      .addCase(fetchSavedJobs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
