@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
+import CallbackModal from "../../components/common/CallbackModal";
 
 const requirements = [
   "Proven experience as a Pastry Chef in a 5-star hotel or Michelin-starred restaurant.",
@@ -34,9 +35,10 @@ const formatPostedTime = (postedDate) => {
 
 export default function JobDetailsScreen({ route }) {
   const dispatch = useDispatch();
-  const { jobDetails, loading } = useSelector((state) => state.job);
+  const { jobDetails, loading, applyingJobId } = useSelector((state) => state.job);
   const applyLoading = useSelector((state) => state.application.loading);
   const jobId = route?.params?.jobId;
+  const [showCallModal, setShowCallModal] = useState(false);
 
   const job = useMemo(() => {
     if (!jobDetails || jobDetails.id !== jobId) {
@@ -51,29 +53,21 @@ export default function JobDetailsScreen({ route }) {
     }
   }, [dispatch, jobId]);
 
-  const handleApply = async () => {
-    if (!jobId) return;
-    const result = await dispatch(applyJob(jobId));
-    if (applyJob.fulfilled.match(result)) {
-      Alert.alert("Application submitted", "Your application is now marked as New.");
-    }
-  };
-
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `${job?.title || "Job"} at ${job?.employer || "JobConnect"}`,
+        message: `${job?.title || "Job"} at ${job?.company || "JobConnect"}`,
       });
     } catch (error) {
       Alert.alert("Unable to share", "Please try again.");
     }
   };
 
-  const title = job?.title || "The Grand Patisserie";
-  const employer = job?.employer || "Senior Pastry Chef";
-  const location = job?.location || "Mayfair, London";
-  const salary = job?.salary || "$45K - £62K/yr";
-  const experience = job?.experience || "5+ years";
+  const title = job?.title;
+  const company = job?.company;
+  const location = job?.location;
+  const salary = job?.salary;
+  const experience = job?.experience;
   const postedTime = formatPostedTime(job?.postedDate);
 
   if (!job) {
@@ -84,6 +78,9 @@ export default function JobDetailsScreen({ route }) {
     );
   }
 
+  const isApplied = job?.applied || false;
+  const isApplying = applyingJobId === job?.id || applyLoading;
+
   return (
     <ScreenWrapper contentStyle={styles.page}>
       <View style={styles.heroCard}>
@@ -93,10 +90,10 @@ export default function JobDetailsScreen({ route }) {
           </View>
           <View style={styles.heroTextBlock}>
             <View style={styles.titleRow}>
-              <Text style={styles.companyTitle}>{title}</Text>
+              <Text style={styles.companyTitle}>{company}</Text>
               <Ionicons name="checkmark-circle" size={14} color={colors.success} />
             </View>
-            <Text style={styles.positionTitle}>{employer}</Text>
+            <Text style={styles.positionTitle}>{title}</Text>
             <View style={styles.tagRow}>
               <View style={[styles.tag, styles.tagUrgent]}>
                 <Text style={styles.tagUrgentText}>Urgent Hiring</Text>
@@ -151,10 +148,7 @@ export default function JobDetailsScreen({ route }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About the Role</Text>
         <Text style={styles.bodyText}>
-          We are seeking a creative and experienced Senior Pastry Chef to lead our
-          dessert department. You will be responsible for designing menus,
-          managing a skilled team of pastry cooks, and ensuring high standards and
-          quality in presentation and taste.
+          {job?.description}
         </Text>
       </View>
 
@@ -200,7 +194,7 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.mapPin}>
               <Ionicons name="location" size={18} color={colors.white} />
             </View>
-            <Text style={styles.mapText}>Mayfair, London</Text>
+            <Text style={styles.mapText}>{location}</Text>
           </View>
         </View>
       </View>
@@ -209,15 +203,33 @@ export default function JobDetailsScreen({ route }) {
 
       <View style={styles.bottomBar}>
         <AppButton
-          title="Apply Now"
-          onPress={handleApply}
-          loading={loading || applyLoading}
-          style={styles.applyButton}
+          title={isApplied ? "✓ Applied" : "Apply Now"}
+          onPress={() => setShowCallModal(true)}
+          loading={isApplying}
+          disabled={isApplied || isApplying}
+          style={[
+            styles.applyButton,
+            isApplied && { backgroundColor: "#94A3B8" }
+          ]}
         />
         <Pressable onPress={handleShare} style={styles.chatButton}>
           <Ionicons name="share-social-outline" size={18} color={colors.primary} />
         </Pressable>
       </View>
+
+      <CallbackModal
+        visible={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        onConfirm={async (timeSlot) => {
+          try {
+            await dispatch(applyJob({ jobId: job.id, preferredCallTime: timeSlot })).unwrap();
+            return true;
+          } catch (err) {
+            Alert.alert("Application Error", err || "Failed to apply to job");
+            return false;
+          }
+        }}
+      />
     </ScreenWrapper>
   );
 }

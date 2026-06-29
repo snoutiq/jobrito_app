@@ -10,6 +10,7 @@ import {
   Clipboard,
   Pressable,
   Share,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,31 +19,22 @@ import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { fetchFeedJobs } from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
+import CallbackModal from "../../components/common/CallbackModal";
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   
-  const { feedJobs } = useSelector((state) => state.job);
-  const [activePage, setActivePage] = useState(1);
+  const { feedJobs, applyingJobId } = useSelector((state) => state.job);
+  const [activeFilter, setActiveFilter] = useState("all");
 
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("morning");
 
-  // Favorites, applied, copy link states (local UI feedback overlays)
+  // Favorites, copy link states (local UI feedback overlays)
   const [favorites, setFavorites] = useState({});
-  const [appliedJobs, setAppliedJobs] = useState({});
   const [copiedJobId, setCopiedJobId] = useState(null);
-
-  const timeSlots = [
-    { id: "morning", label: "Morning: 9 AM - 12 PM", icon: "sunny-outline" },
-    { id: "afternoon", label: "Afternoon: 12 PM - 3 PM", icon: "sunny" },
-    { id: "late_afternoon", label: "Late Afternoon: 3 PM - 6 PM", icon: "partly-sunny-outline" },
-    { id: "evening", label: "Evening: 6 PM - 9 PM", icon: "moon-outline" },
-  ];
 
   // Set original header configuration (DO NOT touch this header layout)
   useLayoutEffect(() => {
@@ -69,8 +61,8 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   useEffect(() => {
-    dispatch(fetchFeedJobs("All"));
-  }, [dispatch]);
+    dispatch(fetchFeedJobs(activeFilter));
+  }, [dispatch, activeFilter]);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -84,35 +76,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleApplyPress = (job) => {
     setSelectedJob(job);
-    setSelectedTimeSlot("morning"); // Reset default
     setShowCallModal(true);
-  };
-
-  const handleConfirmTime = async () => {
-    if (!selectedJob) return;
-    
-    // Dispatch apply to backend with preferred call time slot
-    dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: selectedTimeSlot }));
-    
-    // Mark as locally applied
-    setAppliedJobs((prev) => ({ ...prev, [selectedJob.id]: true }));
-    
-    setShowCallModal(false);
-    setShowSuccessModal(true);
-  };
-
-  const handleSkipTime = () => {
-    if (!selectedJob) return;
-
-    // Dispatch apply with "not_specified" preference
-    dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: "not_specified" }));
-    
-    // Mark as locally applied
-    setAppliedJobs((prev) => ({ ...prev, [selectedJob.id]: true }));
-    
-    setSelectedTimeSlot("not_specified");
-    setShowCallModal(false);
-    setShowSuccessModal(true);
   };
 
   const copyToClipboard = (jobId) => {
@@ -135,10 +99,24 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const getSlotLabel = (slotId) => {
-    if (slotId === "not_specified") return "your preferred time";
-    const slot = timeSlots.find((s) => s.id === slotId);
-    return slot ? slot.label : "your preferred time";
+  const filters = [
+    { label: t("filters.all", "All"), value: "all" },
+    { label: t("filters.india", "India Jobs"), value: "india" },
+    { label: t("filters.overseas", "Overseas Jobs"), value: "overseas" },
+    { label: t("filters.training", "Training Opportunities"), value: "training" },
+    { label: t("filters.referral", "Referral Opportunities"), value: "referral" },
+    { label: t("filters.community", "Community Job Posts"), value: "community" },
+  ];
+
+  const formatPostedTime = (postedDate) => {
+    if (!postedDate) return "Today";
+    const posted = new Date(postedDate);
+    if (Number.isNaN(posted.getTime())) return "Today";
+    const diffMs = Date.now() - posted.getTime();
+    const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 day ago";
+    return `${diffDays} days ago`;
   };
 
   return (
@@ -147,17 +125,17 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#15803D" style={styles.pinIcon} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
-          {[1, 2, 3, 4, 5].map((num) => {
-            const isSelected = activePage === num;
+          {filters.map((f) => {
+            const isSelected = activeFilter === f.value;
             return (
               <TouchableOpacity
-                key={num}
+                key={f.value}
                 style={[styles.filterPill, isSelected && styles.filterPillSelected]}
-                onPress={() => setActivePage(num)}
+                onPress={() => setActiveFilter(f.value)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterPillText, isSelected && styles.filterPillTextSelected]}>
-                  {num}
+                  {f.label}
                 </Text>
               </TouchableOpacity>
             );
@@ -170,13 +148,14 @@ export default function HomeScreen({ navigation }) {
 
         {feedJobs.map((job) => {
           const isFav = favorites[job.id] || false;
-          const isApplied = appliedJobs[job.id] || false;
+          const isApplied = job.applied || false;
+          const isApplying = applyingJobId === job.id;
           const isCopied = copiedJobId === job.id;
           const isPinned = job.is_pinned || false;
 
           // Grand Hyatt and Global Talent are "Apply" jobs. Bombay Cafe is "Call & Share" referral.
-          const isReferral = job.type === "Referral Opportunities" || job.employer === "Bombay Cafe";
-          const hasMultipleActions = job.employer === "Global Talent Overseas" || job.id === "job-3";
+          const isReferral = job.category === "referral";
+          const hasMultipleActions = job.category === "overseas";
 
           return (
             <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard]}>
@@ -193,7 +172,7 @@ export default function HomeScreen({ navigation }) {
                   {isReferral ? (
                     <Text style={styles.referralHeader}>Referral Job Post</Text>
                   ) : (
-                    <Text style={styles.employerName}>{job.employer}</Text>
+                    <Text style={styles.employerName}>{job.company}</Text>
                   )}
                   <Text style={styles.jobTitle}>{job.title}</Text>
                 </View>
@@ -226,7 +205,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.twoActionsRow}>
                   <TouchableOpacity
                     style={styles.actionBtnLight}
-                    onPress={() => handleCall(job.employer)}
+                    onPress={() => handleCall(job.company)}
                     activeOpacity={0.7}
                   >
                     <Ionicons name="call" size={16} color="#15803D" style={{ marginRight: 6 }} />
@@ -235,7 +214,7 @@ export default function HomeScreen({ navigation }) {
 
                   <TouchableOpacity
                     style={styles.actionBtnLight}
-                    onPress={() => handleShare(job.title, job.employer)}
+                    onPress={() => handleShare(job.title, job.company)}
                     activeOpacity={0.7}
                   >
                     <Ionicons name="share-social" size={16} color="#15803D" style={{ marginRight: 6 }} />
@@ -260,12 +239,17 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.actionsRow}>
                     <TouchableOpacity
                       style={[styles.applyBtn, isApplied && styles.appliedBtn]}
-                      onPress={() => (isApplied ? null : handleApplyPress(job))}
+                      onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
+                      disabled={isApplied || isApplying}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                        {isApplied ? "Applied" : "Apply Now"}
-                      </Text>
+                      {isApplying ? (
+                        <ActivityIndicator size="small" color="#15803D" />
+                      ) : (
+                        <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
+                          {isApplied ? "✓ Applied" : "Apply Now"}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                     
                     <TouchableOpacity
@@ -284,7 +268,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={[styles.twoActionsRow, { marginTop: 10 }]}>
                     <TouchableOpacity
                       style={[styles.actionBtnLight, { backgroundColor: "#F1F5F9", borderColor: "#E2E8F0" }]}
-                      onPress={() => handleCall(job.employer)}
+                      onPress={() => handleCall(job.company)}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="call" size={16} color="#475569" style={{ marginRight: 6 }} />
@@ -293,7 +277,7 @@ export default function HomeScreen({ navigation }) {
 
                     <TouchableOpacity
                       style={[styles.actionBtnLight, { backgroundColor: "#F1F5F9", borderColor: "#E2E8F0" }]}
-                      onPress={() => handleShare(job.title, job.employer)}
+                      onPress={() => handleShare(job.title, job.company)}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="share-social" size={16} color="#475569" style={{ marginRight: 6 }} />
@@ -307,12 +291,17 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.actionsRow}>
                     <TouchableOpacity
                       style={[styles.applyBtn, isApplied && styles.appliedBtn]}
-                      onPress={() => (isApplied ? null : handleApplyPress(job))}
+                      onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
+                      disabled={isApplied || isApplying}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                        {isApplied ? "Applied" : "Apply Now"}
-                      </Text>
+                      {isApplying ? (
+                        <ActivityIndicator size="small" color="#15803D" />
+                      ) : (
+                        <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
+                          {isApplied ? "✓ Applied" : "Apply Now"}
+                        </Text>
+                      )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -337,128 +326,45 @@ export default function HomeScreen({ navigation }) {
                 </View>
               )}
 
-              <Text style={styles.timeText}>09:42 AM</Text>
+              {/* <Text style={styles.timeText}>{formatPostedTime(job.postedDate)}</Text> */}
             </View>
           );
         })}
 
         {/* Bottom Informational Updates Banner */}
-        <View style={styles.bottomBanner}>
+        {/* <View style={styles.bottomBanner}>
           <Ionicons name="sync" size={18} color="#0284C7" style={{ marginRight: 10 }} />
           <Text style={styles.bottomBannerText}>
             Keep checking the feed regularly for new updates
           </Text>
-        </View>
+        </View> */}
       </ScrollView>
 
       {/* Floating Action Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.fab}
         onPress={() => Alert.alert("Create Post", "Write a new job alert or community post.")}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
-      {/* MODAL 1: CALLBACK TIME PREFERENCE DIALOG */}
-      <Modal
+      <CallbackModal
         visible={showCallModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowCallModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>When should we call you?</Text>
-            <Text style={styles.modalSubtitle}>
-              Select a time range that works best for a quick recruiter callback.
-            </Text>
-
-            {/* Time Slot Radio List */}
-            <View style={styles.slotsList}>
-              {timeSlots.map((slot) => {
-                const isSelected = selectedTimeSlot === slot.id;
-                return (
-                  <TouchableOpacity
-                    key={slot.id}
-                    style={[styles.slotItem, isSelected && styles.slotItemSelected]}
-                    onPress={() => setSelectedTimeSlot(slot.id)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.slotLeft}>
-                      <Ionicons
-                        name={slot.icon}
-                        size={18}
-                        color={isSelected ? "#15803D" : "#64748B"}
-                        style={{ marginRight: 10 }}
-                      />
-                      <Text style={[styles.slotLabelText, isSelected && styles.slotLabelTextSelected]}>
-                        {slot.label}
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name={isSelected ? "radio-button-on" : "radio-button-off"}
-                      size={20}
-                      color={isSelected ? "#22C55E" : "#CBD5E1"}
-                    />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Confirm time buttons */}
-            <TouchableOpacity
-              style={styles.modalConfirmBtn}
-              onPress={handleConfirmTime}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalConfirmBtnText}>Confirm Time</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalSkipBtn}
-              onPress={handleSkipTime}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalSkipBtnText}>Not now</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* MODAL 2: SUCCESS FEEDBACK OVERLAY */}
-      <Modal
-        visible={showSuccessModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { alignItems: "center", paddingVertical: 28 }]}>
-            <View style={styles.successIconCircle}>
-              <Ionicons name="checkmark-circle" size={64} color="#22C55E" />
-            </View>
-            
-            <Text style={[styles.modalTitle, { textAlign: "center", marginBottom: 8 }]}>
-              Applied Successfully!
-            </Text>
-            <Text style={[styles.modalSubtitle, { textAlign: "center", marginBottom: 20 }]}>
-              Your application has been submitted. The recruiter will contact you during {"\n"}
-              <Text style={{ fontWeight: "700", color: "#1E293B" }}>
-                {getSlotLabel(selectedTimeSlot)}
-              </Text>.
-            </Text>
-
-            <TouchableOpacity
-              style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
-              onPress={() => setShowSuccessModal(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalConfirmBtnText}>Got it</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowCallModal(false)}
+        onConfirm={async (timeSlot) => {
+          if (selectedJob) {
+            try {
+              await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              return true;
+            } catch (err) {
+              Alert.alert("Application Error", err || "Failed to apply to job");
+              return false;
+            }
+          }
+          return false;
+        }}
+      />
     </ScreenWrapper>
   );
 }
@@ -518,7 +424,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterPill: {
-    width: 32,
+    paddingHorizontal: 12,
     height: 32,
     borderRadius: 16,
     backgroundColor: "#F1F5F9",
@@ -567,9 +473,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
     position: "relative",
@@ -598,7 +504,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 10,
+    marginBottom: 6,
   },
   employerName: {
     fontSize: 13,
@@ -623,9 +529,9 @@ const styles = StyleSheet.create({
   detailsBlock: {
     backgroundColor: "#F8FAFC",
     borderRadius: 8,
-    padding: 10,
-    marginVertical: 10,
-    gap: 6,
+    padding: 8,
+    marginVertical: 6,
+    gap: 4,
   },
   detailItem: {
     flexDirection: "row",
@@ -640,27 +546,27 @@ const styles = StyleSheet.create({
   jobDescription: {
     fontSize: 13,
     color: "#475569",
-    lineHeight: 18,
-    marginBottom: 12,
+    lineHeight: 16,
+    marginBottom: 8,
   },
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   applyBtn: {
     flex: 1,
     backgroundColor: "#E8F5E9",
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#C8E6C9",
   },
   appliedBtn: {
-    backgroundColor: "#C8E6C9",
-    borderColor: "#A5D6A7",
+    backgroundColor: "#E2E8F0",
+    borderColor: "#CBD5E1",
   },
   applyBtnText: {
     fontSize: 13,
@@ -668,7 +574,7 @@ const styles = StyleSheet.create({
     color: "#15803D",
   },
   appliedBtnText: {
-    color: "#1E293B",
+    color: "#64748B",
   },
   twoActionsRow: {
     flexDirection: "row",
@@ -682,7 +588,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#E8F5E9",
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: "#C8E6C9",
   },
@@ -716,7 +622,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#94A3B8",
     textAlign: "right",
-    marginTop: 8,
+    marginTop: 4,
   },
   bottomBanner: {
     flexDirection: "row",

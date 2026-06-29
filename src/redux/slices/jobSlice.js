@@ -50,6 +50,7 @@ const initialState = {
   jobDetails: null,
   communityJobResult: null,
   loading: false,
+  applyingJobId: null,
   error: null,
   success: false,
 };
@@ -112,18 +113,89 @@ const jobSlice = createSlice({
 
     // apply job handlers
     builder
-      .addCase(applyJob.pending, (state) => {
+      .addCase("application/applyJob/pending", (state, action) => {
         state.loading = true;
+        const arg = action.meta.arg;
+        state.applyingJobId = typeof arg === "string" ? arg : arg?.jobId;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase("application/applyJob/fulfilled", (state, action) => {
+        state.loading = false;
+        state.applyingJobId = null;
+        state.success = true;
+        const arg = action.meta.arg;
+        const jobId = typeof arg === "string" ? arg : arg?.jobId;
+        const job = state.feedJobs.find((j) => j.id === jobId);
+        if (job) {
+          job.applied = true;
+        }
+        if (state.jobDetails && state.jobDetails.id === jobId) {
+          state.jobDetails.applied = true;
+        }
+      })
+      .addCase("application/applyJob/rejected", (state, action) => {
+        state.loading = false;
+        state.applyingJobId = null;
+        state.error = action.payload;
+        const errorMsg = action.payload;
+        if (
+          typeof errorMsg === "string" &&
+          (errorMsg.toLowerCase().includes("already applied") ||
+            errorMsg.toLowerCase().includes("already_applied"))
+        ) {
+          const arg = action.meta.arg;
+          const jobId = typeof arg === "string" ? arg : arg?.jobId;
+          const job = state.feedJobs.find((j) => j.id === jobId);
+          if (job) {
+            job.applied = true;
+          }
+          if (state.jobDetails && state.jobDetails.id === jobId) {
+            state.jobDetails.applied = true;
+          }
+        }
+      })
+      .addCase(applyJob.pending, (state, action) => {
+        state.loading = true;
+        const arg = action.meta.arg;
+        state.applyingJobId = typeof arg === "string" ? arg : arg?.jobId;
         state.error = null;
         state.success = false;
       })
       .addCase(applyJob.fulfilled, (state, action) => {
         state.loading = false;
+        state.applyingJobId = null;
         state.success = true;
+        const arg = action.meta.arg;
+        const jobId = typeof arg === "string" ? arg : arg?.jobId;
+        const job = state.feedJobs.find((j) => j.id === jobId);
+        if (job) {
+          job.applied = true;
+        }
+        if (state.jobDetails && state.jobDetails.id === jobId) {
+          state.jobDetails.applied = true;
+        }
       })
       .addCase(applyJob.rejected, (state, action) => {
         state.loading = false;
+        state.applyingJobId = null;
         state.error = action.payload;
+        const errorMsg = action.payload;
+        if (
+          typeof errorMsg === "string" &&
+          (errorMsg.toLowerCase().includes("already applied") ||
+            errorMsg.toLowerCase().includes("already_applied"))
+        ) {
+          const arg = action.meta.arg;
+          const jobId = typeof arg === "string" ? arg : arg?.jobId;
+          const job = state.feedJobs.find((j) => j.id === jobId);
+          if (job) {
+            job.applied = true;
+          }
+          if (state.jobDetails && state.jobDetails.id === jobId) {
+            state.jobDetails.applied = true;
+          }
+        }
       });
   },
 });

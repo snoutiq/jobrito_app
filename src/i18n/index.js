@@ -3,6 +3,8 @@ import { initReactI18next } from "react-i18next";
 import { getStoredLanguage } from "../services/storage";
 import en from "./en.json";
 import hi from "./hi.json";
+import mr from "./mr.json";
+import ar from "./ar.json";
 
 const initializeI18n = async () => {
   if (i18n.isInitialized) {
@@ -21,6 +23,10 @@ const initializeI18n = async () => {
     resources: {
       en: { translation: en },
       hi: { translation: hi },
+      mr: { translation: mr },
+      ar_AE: { translation: ar },
+      ar_SA: { translation: ar },
+      en_EU: { translation: en },
     },
   });
 };

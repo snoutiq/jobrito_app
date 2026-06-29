@@ -284,5 +284,13 @@
     "whatHappensNextBody": "Our community moderators will review your culinary certifications and work history within the next 24-48 hours. Once approved, you will receive a notification and your profile will be visible to potential employers in the network.",
     "returnToFeed": "Return to Community Feed",
     "viewProfileDraft": "View My Profile Draft"
+  },
+  "filters": {
+    "all": "All",
+    "india": "India Jobs",
+    "overseas": "Overseas Jobs",
+    "training": "Training Opportunities",
+    "referral": "Referral Opportunities",
+    "community": "Community Job Posts"
   }
 }

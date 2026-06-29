@@ -49,26 +49,26 @@ export default function LanguageScreen() {
       label: "हिन्दी",
       subtitle: "हिंदी में ऐप का उपयोग करें",
     },
-    // {
-    //   key: "mr",
-    //   label: "मराठी",
-    //   subtitle: "मराठी मध्ये ॲप वापरा",
-    // },
-    // {
-    //   key: "ar_AE",
-    //   label: "العربية (UAE)",
-    //   subtitle: "استخدم التطبيق بالعربية (Dubai)",
-    // },
-    // {
-    //   key: "ar_SA",
-    //   label: "العربية (KSA)",
-    //   subtitle: "استخدم التطبيق بالعربية (KSA)",
-    // },
-    // {
-    //   key: "en_EU",
-    //   label: "English (Europe)",
-    //   subtitle: "Use the app in European English",
-    // },
+    {
+      key: "mr",
+      label: "मराठी",
+      subtitle: "मराठी मध्ये ॲप वापरा",
+    },
+    {
+      key: "ar_AE",
+      label: "العربية (UAE)",
+      subtitle: "استخدم التطبيق بالعربية (Dubai)",
+    },
+    {
+      key: "ar_SA",
+      label: "العربية (KSA)",
+      subtitle: "استخدم التطبيق بالعربية (KSA)",
+    },
+    {
+      key: "en_EU",
+      label: "English (Europe)",
+      subtitle: "Use the app in European English",
+    },
   ];
 
 
