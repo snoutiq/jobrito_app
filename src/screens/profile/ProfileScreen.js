@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Modal, Pressable, StyleSheet, Text, View, Image } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -124,7 +124,14 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.avatarWrap}>
           <View style={styles.avatarRing}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
+              {profile?.profile_photo_path ? (
+                <Image
+                  source={{ uri: profile.profile_photo_path }}
+                  style={{ width: "100%", height: "100%", borderRadius: 35 }}
+                />
+              ) : (
+                <Text style={styles.avatarText}>{initials}</Text>
+              )}
             </View>
           </View>
           <View style={styles.avatarBadge}>
@@ -133,6 +140,8 @@ export default function ProfileScreen({ navigation }) {
         </View>
         <Text style={styles.name}>{displayName}</Text>
         {profile?.phone && <Text style={styles.phone}>{profile?.phone}</Text>}
+        {profile?.email && <Text style={styles.emailText}>{profile?.email}</Text>}
+        {profile?.city && <Text style={styles.cityText}>📍 {profile?.city}</Text>}
         {profile?.role && <Text style={styles.role}>{t("profile.activeRole")}: {t("roleSelection." + normalizedRole)}</Text>}
 
         <View style={styles.progressCard}>
@@ -318,6 +327,18 @@ const styles = StyleSheet.create({
   phone: {
     color: colors.primary,
     fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  emailText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  cityText: {
+    color: colors.mutedText,
+    fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
   },

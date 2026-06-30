@@ -16,6 +16,9 @@ apiClient.interceptors.request.use(
     const token = await getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - Token: ${token.substring(0, 15)}...`);
+    } else {
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - NO TOKEN`);
     }
     return config;
   },
@@ -39,6 +42,13 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
+    console.error("[API Error Response]", {
+      url: error?.config?.url,
+      status: error?.response?.status || error?.status,
+      data: error?.response?.data,
+      message: error?.message,
+    });
+
     if (error?.status === 401 || error?.response?.status === 401) {
       try {
         await removeToken();

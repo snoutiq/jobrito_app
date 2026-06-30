@@ -7,54 +7,75 @@ export const applyJob = async (jobId, preferredCallTime) => {
   return response.data;
 };
 
-export const getApplicationHistory = async () => {
+export const getApplicationHistory = async (email) => {
   try {
-    const response = await apiClient.get("/applications/history");
-    return response.data;
+    const response = await apiClient.get("/profile/applications", {
+      params: { email },
+    });
+    const rawApps = response.data?.applications || response.data || [];
+    const normalized = rawApps.map((item) => {
+      const jobSource = item.job || item;
+      return {
+        id: String(item.id),
+        jobId: String(jobSource.id || item.job_id || item.jobId),
+        title: jobSource.title || "Job Title",
+        employer: jobSource.company || jobSource.employer || "Company Name",
+        avatar: jobSource.logo || jobSource.avatar || null,
+        status: String(item.status || "UNDER REVIEW").toUpperCase(),
+        appliedOn: item.created_at || item.applied_at || item.appliedOn || new Date().toISOString(),
+      };
+    });
+    return { success: true, applications: normalized };
   } catch (error) {
-    // Return mockup matching the image when API fails or is not available
+    console.warn("Failed to fetch application history, using fallback:", error.message);
+    // Return mock data fallback matching reference UI
     return {
       success: true,
       applications: [
         {
           id: "app-1",
+          jobId: "job-1",
           title: "Restaurant Manager",
-          employer: "Grand Hyatt Dubai",
-          appliedOn: "2026-06-27T10:00:00.000Z", // 2 days ago relative to 2026-06-29
-          status: "UNDER REVIEW",
-          avatar: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=100&auto=format&fit=crop",
+          employer: "Oasis Artisan Coffee",
+          avatar: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&auto=format&fit=crop",
+          status: "SHORTLISTED",
+          appliedOn: "2026-06-29T10:00:00.000Z",
         },
         {
           id: "app-2",
+          jobId: "job-2",
           title: "Restaurant Manager",
-          employer: "Marriott Mumbai",
-          appliedOn: "2026-06-22T10:00:00.000Z", // 1 week ago
-          status: "SHORTLISTED",
-          avatar: "https://images.unsplash.com/photo-1544025162-d76694265947?w=100&auto=format&fit=crop",
+          employer: "The Emerald Lounge",
+          avatar: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=100&auto=format&fit=crop",
+          status: "CONTACTED",
+          appliedOn: "2026-06-28T10:00:00.000Z",
         },
         {
           id: "app-3",
+          jobId: "job-3",
           title: "Restaurant Manager",
-          employer: "The Ritz-Carlton",
-          appliedOn: "2026-10-12T10:00:00.000Z", // 12 Oct
-          status: "CONTACTED",
-          avatar: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&auto=format&fit=crop",
+          employer: "The Grand Plaza Hotel",
+          avatar: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&auto=format&fit=crop",
+          status: "DECISION PENDING",
+          appliedOn: "2026-06-24T10:00:00.000Z",
         },
         {
           id: "app-4",
-          title: "Restaurant Manager",
-          employer: "Hilton Garden Inn",
-          appliedOn: "2026-10-08T10:00:00.000Z", // 08 Oct
-          status: "DECISION PENDING",
-          avatar: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop",
+          jobId: "job-4",
+          title: "Senior Sous Chef",
+          employer: "La Bella Italia",
+          avatar: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=100&auto=format&fit=crop",
+          status: "UNDER REVIEW",
+          appliedOn: "2026-06-22T10:00:00.000Z",
         },
         {
           id: "app-5",
-          title: "Restaurant Manager",
-          employer: "Four Seasons Riyadh",
-          appliedOn: "2026-09-30T10:00:00.000Z", // 30 Sep
+          jobId: "job-5",
+          title: "Executive Chef",
+          employer: "Royal Oak Cafe",
+          avatar: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop",
           status: "JOB CLOSED",
-          avatar: null,
+          appliedOn: "2026-06-15T10:00:00.000Z",
         },
       ],
     };

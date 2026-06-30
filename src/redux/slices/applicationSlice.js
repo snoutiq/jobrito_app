@@ -22,9 +22,9 @@ export const applyJob = createAsyncThunk(
 
 export const fetchApplicationHistory = createAsyncThunk(
   "application/fetchApplicationHistory",
-  async (_, { rejectWithValue }) => {
+  async (email, { rejectWithValue }) => {
     try {
-      return await getApplicationHistoryApi();
+      return await getApplicationHistoryApi(email);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch application history");
     }

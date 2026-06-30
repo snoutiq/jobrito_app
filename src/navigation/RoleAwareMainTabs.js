@@ -74,10 +74,7 @@ function Tabs() {
         name="Post Job"
         component={PostJobScreen}
         options={{
-          headerShown: true,
-          title: "Post Job",
-          headerTitleAlign: "center",
-          headerTitleStyle: { fontWeight: "800" },
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -175,6 +172,13 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="SavedJobs"
         component={SavedJobsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Post Job"
+        component={PostJobScreen}
         options={{
           headerShown: false,
         }}

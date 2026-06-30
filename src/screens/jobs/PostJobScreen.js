@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   ScrollView,
@@ -11,66 +10,113 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { submitCommunityJob } from "../../redux/slices/jobSlice";
 import colors from "../../constants/colors";
 
 const PRIMARY_GREEN = "#22C55E";
+const { width } = Dimensions.get("window");
 
 export default function PostJobScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
 
-  const [step, setStep] = useState(1); // 1: Form, 2: Review, 3: Success
+  const [step, setStep] = useState(1); // 1: Business Info, 2: Job Details, 3: Contact & Review, 4: Success
 
-  // Form State
+  // Step 1: Business Basics
+  const [businessName, setBusinessName] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+
+  // Step 2: Job Details
   const [region, setRegion] = useState("India");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
   const [salaryRange, setSalaryRange] = useState("");
-  const [experience, setExperience] = useState("Entry Level");
   const [openPositions, setOpenPositions] = useState("1");
+  const [experience, setExperience] = useState("Mid-Level (3-5 years)");
   const [jobDescription, setJobDescription] = useState("");
 
   const [showExpDropdown, setShowExpDropdown] = useState(false);
   const [activeField, setActiveField] = useState(null);
 
+  // Step 3: Contact & Review
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+
   const regions = ["India", "KSA", "Dubai", "Europe"];
-  const experienceOptions = ["Entry Level", "1-3 Years", "3-5 Years", "5+ Years"];
+  const experienceOptions = [
+    "Entry Level (0-2 years)",
+    "Mid-Level (3-5 years)",
+    "Senior (5+ years)",
+  ];
 
-  const handleNext = () => {
-    if (!jobTitle.trim()) {
-      Alert.alert("Error", "Please enter a Job Title.");
-      return;
+  // Autofill fields from user profile if available
+  useEffect(() => {
+    if (profile) {
+      setBusinessName(profile.businessName || profile.company || "");
+      setContactPerson(profile.name || profile.full_name || profile.contactName || "");
+      setContactPhone(profile.phone || profile.mobile_number || profile.contactPhone || "");
+      setContactEmail(profile.email || profile.contactEmail || "");
     }
-    if (!location.trim()) {
-      Alert.alert("Error", "Please enter a Job Location.");
-      return;
-    }
-    if (!salaryRange.trim()) {
-      Alert.alert("Error", "Please enter a Salary Range.");
-      return;
-    }
-    if (!openPositions.trim() || isNaN(openPositions)) {
-      Alert.alert("Error", "Please enter a valid number of Open Positions.");
-      return;
-    }
-    if (!jobDescription.trim()) {
-      Alert.alert("Error", "Please enter a Job Description.");
-      return;
-    }
+  }, [profile]);
 
+  const handleNextStep1 = () => {
+    if (!businessName.trim()) {
+      Alert.alert(t("error"), t("employerOnboarding.businessNameRequired"));
+      return;
+    }
+    if (!contactPerson.trim()) {
+      Alert.alert(t("error"), t("employerOnboarding.contactNameRequired"));
+      return;
+    }
     setStep(2);
   };
 
+  const handleNextStep2 = () => {
+    if (!jobTitle.trim()) {
+      Alert.alert(t("error"), t("postJob.jobTitleRequired", "Please enter a Job Title."));
+      return;
+    }
+    if (!location.trim()) {
+      Alert.alert(t("error"), t("postJob.locationRequired", "Please enter a Job Location."));
+      return;
+    }
+    if (!salaryRange.trim()) {
+      Alert.alert(t("error"), t("postJob.salaryRequired", "Please enter a Salary Range."));
+      return;
+    }
+    if (!openPositions.trim() || isNaN(openPositions)) {
+      Alert.alert(t("error"), t("postJob.openPositionsRequired", "Please enter a valid number of Open Positions."));
+      return;
+    }
+    if (!jobDescription.trim()) {
+      Alert.alert(t("error"), t("postJob.descriptionRequired", "Please enter a Job Description."));
+      return;
+    }
+    setStep(3);
+  };
+
   const handleSubmitJob = async () => {
+    if (!contactPhone.trim()) {
+      Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
+      return;
+    }
+    if (!contactEmail.trim()) {
+      Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
+      return;
+    }
+
     const jobData = {
-      employerName: profile?.businessName || "Grand Hyatt Dubai",
-      contactPerson: profile?.contactName || "Sarah Jenkins",
-      contactNumber: profile?.contactPhone || "+91 923456789",
-      email: profile?.contactEmail || "careers@hiring.com",
+      employerName: businessName,
+      contactPerson: contactPerson,
+      contactNumber: contactPhone,
+      email: contactEmail,
       jobTitle,
       jobCategory: profile?.segment || "Hospitality & Service",
       city: location,
@@ -81,152 +127,365 @@ export default function PostJobScreen({ navigation }) {
       region,
     };
 
-    const result = await dispatch(submitCommunityJob(jobData));
-    if (submitCommunityJob.fulfilled.match(result)) {
-      setStep(3);
-    } else {
-      Alert.alert("Error", "Failed to submit job posting. Please try again.");
+    try {
+      const result = await dispatch(submitCommunityJob(jobData));
+      if (submitCommunityJob.fulfilled.match(result)) {
+        setStep(4);
+      } else {
+        Alert.alert(t("error"), t("postJob.submitFailed", "Failed to submit job posting. Please try again."));
+      }
+    } catch (err) {
+      Alert.alert(t("error"), err.message || t("postJob.errorOccurred", "Something went wrong."));
     }
+  };
+
+  const handleSaveAsDraft = () => {
+    Alert.alert(
+      t("postJob.saveDraft", "Save as Draft"),
+      t("postJob.draftSavedSuccess", "Your job post draft has been saved successfully."),
+      [{ text: "OK" }]
+    );
   };
 
   const handleReset = () => {
     setJobTitle("");
     setLocation("");
     setSalaryRange("");
-    setExperience("Entry Level");
+    setExperience("Mid-Level (3-5 years)");
     setOpenPositions("1");
     setJobDescription("");
     setRegion("India");
     setStep(1);
   };
 
+  const renderProgress = () => {
+    let percentage = "0%";
+    let title = "";
+    if (step === 1) {
+      percentage = "33%";
+      title = t("step", { current: 1, total: 3 });
+    } else if (step === 2) {
+      percentage = "66%";
+      title = t("step", { current: 2, total: 3 });
+    } else if (step === 3) {
+      percentage = "100%";
+      title = t("step", { current: 3, total: 3 });
+    }
+
+    return (
+      <View style={styles.progressContainer}>
+        <View style={styles.progressTextRow}>
+          <Text style={styles.progressStepText}>{title}</Text>
+          {step === 2 && <Text style={styles.progressPercentText}>66% {t("completeProfile.complete", "Complete")}</Text>}
+          {step === 3 && <Text style={styles.progressPercentText}>100%</Text>}
+        </View>
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarFill, { width: percentage }]} />
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        {/* Header */}
+    <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        {/* Custom Header */}
         <View style={styles.header}>
-          {step === 1 ? (
-            <View style={styles.headerRow}>
-              <Image
-                source={{ uri: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop&q=60" }}
-                style={styles.avatar}
-              />
-              <Text style={styles.headerTitle}>Post New Job</Text>
-              <TouchableOpacity onPress={() => Alert.alert("Notifications", "You have no new notifications.")}>
-                <Ionicons name="notifications-outline" size={22} color="#1E293B" />
-              </TouchableOpacity>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => {
+                if (step > 1 && step < 4) {
+                  setStep(step - 1);
+                } else {
+                  navigation.goBack();
+                }
+              }}
+              style={styles.backBtn}
+            >
+              <Ionicons name="arrow-back" size={24} color="#15803D" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("postJob.title")}</Text>
+            <View style={styles.headerRight}>
+              {step === 2 && (
+                <TouchableOpacity style={styles.headerIcon}>
+                  <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+                </TouchableOpacity>
+              )}
+              {profile?.profile_photo_path ? (
+                <Image
+                  source={{ uri: profile.profile_photo_path }}
+                  style={styles.headerAvatar}
+                />
+              ) : (
+                <View style={styles.headerAvatarFallback}>
+                  <Ionicons name="person-outline" size={16} color="#64748B" />
+                </View>
+              )}
             </View>
-          ) : (
-            <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => setStep(step - 1)}>
-                <Ionicons name="close" size={24} color="#1E293B" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Post a Job</Text>
-              <Text style={styles.draftText}>Draft</Text>
-            </View>
-          )}
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* STEP 1: FORM ENTRY */}
+        {step < 4 && renderProgress()}
+
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* STEP 1: BUSINESS BASICS */}
           {step === 1 && (
             <View style={styles.stepContainer}>
               {/* Info Card */}
               <View style={styles.infoBox}>
-                <Text style={styles.infoBoxText}>
-                  Fill in the details below to find the best talent for your venue. Your post will be visible once approved.
-                </Text>
+                <Ionicons
+                  name="information-circle"
+                  size={26}
+                  color={PRIMARY_GREEN}
+                  style={styles.infoBoxIcon}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoBoxText}>
+                    {t("postJob.businessBasics")}
+                  </Text>
+                  <Text style={styles.infoBoxTime}>10:04 AM</Text>
+                </View>
               </View>
 
-              {/* Title Section */}
-              <View style={styles.sectionHeader}>
-                <Ionicons name="business-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitle}>Post a job (Free)</Text>
+              {/* Business Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("postJob.businessName")}</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    activeField === "businessName" && styles.inputWrapperActive,
+                  ]}
+                >
+                  <TextInput
+                    value={businessName}
+                    onChangeText={setBusinessName}
+                    placeholder={t("postJob.businessNamePlaceholder")}
+                    placeholderTextColor="#94A3B8"
+                    style={styles.textInput}
+                    onFocus={() => setActiveField("businessName")}
+                    onBlur={() => setActiveField(null)}
+                  />
+                </View>
               </View>
 
-              {/* Select Region */}
-              <Text style={styles.inputLabel}>Select Region</Text>
+              {/* Contact Person Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("postJob.contactPerson")}</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    activeField === "contactPerson" && styles.inputWrapperActive,
+                  ]}
+                >
+                  <TextInput
+                    value={contactPerson}
+                    onChangeText={setContactPerson}
+                    placeholder={t("postJob.contactPersonPlaceholder")}
+                    placeholderTextColor="#94A3B8"
+                    style={styles.textInput}
+                    onFocus={() => setActiveField("contactPerson")}
+                    onBlur={() => setActiveField(null)}
+                  />
+                </View>
+              </View>
+
+              {/* Image Card Overlay Illustration */}
+              <View style={styles.imageCard}>
+                <Image
+                  source={{
+                    uri: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&auto=format&fit=crop",
+                  }}
+                  style={styles.imageCardBackground}
+                />
+                <View style={styles.imageCardOverlay} />
+                <View style={styles.imageCardContent}>
+                  <Text style={styles.imageCardStepLabel}>{t("step", { current: 1, total: 3 })}</Text>
+                  <Text style={styles.imageCardTitleLabel}>{t("postJob.identityTrust")}</Text>
+                </View>
+              </View>
+
+              {/* Floating Help Button */}
+              <TouchableOpacity
+                style={styles.fab}
+                onPress={() =>
+                  Alert.alert("Help", t("postJob.supportMessage", "Need assistance? Please contact support@jobconnect.com"))
+                }
+                activeOpacity={0.8}
+              >
+                <Ionicons name="help-circle-outline" size={26} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              {/* Footer actions */}
+              <View style={[styles.footerContainer, { marginTop: 40 }]}>
+                <TouchableOpacity
+                  style={styles.primaryNextBtn}
+                  activeOpacity={0.8}
+                  onPress={handleNextStep1}
+                >
+                  <Text style={styles.primaryNextBtnText}>{t("postJob.next")}</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveDraftLink}
+                  onPress={handleSaveAsDraft}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.saveDraftLinkText}>{t("postJob.saveDraft")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 2: JOB DETAILS */}
+          {step === 2 && (
+            <View style={styles.stepContainer}>
+              {/* Target Region Label */}
+              <Text style={styles.inputLabel}>{t("postJob.targetRegion")}</Text>
               <View style={styles.regionRow}>
                 {regions.map((r) => {
                   const isActive = region === r;
                   return (
                     <TouchableOpacity
                       key={r}
-                      style={[styles.regionChip, isActive && { backgroundColor: PRIMARY_GREEN, borderColor: PRIMARY_GREEN }]}
+                      style={[
+                        styles.regionChip,
+                        isActive && styles.regionChipActive,
+                      ]}
                       onPress={() => setRegion(r)}
+                      activeOpacity={0.7}
                     >
-                      <Text style={[styles.regionChipText, isActive && { color: "#fff" }]}>{r}</Text>
+                      <Text
+                        style={[
+                          styles.regionChipText,
+                          isActive && styles.regionChipTextActive,
+                        ]}
+                      >
+                        {r}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              {/* Job Information Header */}
-              <View style={[styles.sectionHeader, { marginTop: 24, marginBottom: 14 }]}>
-                <Ionicons name="document-text-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitle}>Job Information</Text>
-              </View>
-
-              {/* Job Title */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Job Title</Text>
-                <View style={[styles.inputWrapper, activeField === "jobTitle" && styles.inputWrapperActive]}>
-                  <TextInput
-                    value={jobTitle}
-                    onChangeText={setJobTitle}
-                    placeholder="e.g. Senior Barista"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.textInput}
-                    onFocus={() => setActiveField("jobTitle")}
-                    onBlur={() => setActiveField(null)}
-                  />
+              {/* Fields Card */}
+              <View style={styles.fieldsCard}>
+                {/* Job Title */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>{t("postJob.jobTitle")}</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "jobTitle" && styles.inputWrapperActive,
+                    ]}
+                  >
+                    <TextInput
+                      value={jobTitle}
+                      onChangeText={setJobTitle}
+                      placeholder={t("postJob.jobTitlePlaceholder")}
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveField("jobTitle")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
                 </View>
-              </View>
 
-              {/* Location */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Location</Text>
-                <View style={[styles.inputWrapper, activeField === "location" && styles.inputWrapperActive]}>
-                  <Ionicons name="location-outline" size={18} color="#64748B" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={location}
-                    onChangeText={setLocation}
-                    placeholder="City, Area"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.textInput}
-                    onFocus={() => setActiveField("location")}
-                    onBlur={() => setActiveField(null)}
-                  />
+                {/* Location */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>{t("postJob.location")}</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "location" && styles.inputWrapperActive,
+                    ]}
+                  >
+                    <Ionicons
+                      name="location-outline"
+                      size={18}
+                      color="#64748B"
+                      style={{ marginRight: 8 }}
+                    />
+                    <TextInput
+                      value={location}
+                      onChangeText={setLocation}
+                      placeholder={t("postJob.locationPlaceholder")}
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveField("location")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
                 </View>
-              </View>
 
-              {/* Salary Range */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Salary Range</Text>
-                <View style={[styles.inputWrapper, activeField === "salaryRange" && styles.inputWrapperActive]}>
-                  <TextInput
-                    value={salaryRange}
-                    onChangeText={setSalaryRange}
-                    placeholder="e.g. £12 - £15 /hr"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.textInput}
-                    onFocus={() => setActiveField("salaryRange")}
-                    onBlur={() => setActiveField(null)}
-                  />
+                {/* Salary & Positions Row */}
+                <View style={styles.inlineRow}>
+                  <View style={{ flex: 1.1, marginRight: 8 }}>
+                    <Text style={styles.inputLabel}>{t("postJob.salaryRange")}</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        activeField === "salaryRange" && styles.inputWrapperActive,
+                      ]}
+                    >
+                      <TextInput
+                        value={salaryRange}
+                        onChangeText={setSalaryRange}
+                        placeholder={t("postJob.salaryPlaceholder")}
+                        placeholderTextColor="#94A3B8"
+                        style={styles.textInput}
+                        onFocus={() => setActiveField("salaryRange")}
+                        onBlur={() => setActiveField(null)}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={{ flex: 0.9, marginLeft: 8 }}>
+                    <Text style={styles.inputLabel}>{t("postJob.openPositions")}</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        activeField === "openPositions" && styles.inputWrapperActive,
+                      ]}
+                    >
+                      <TextInput
+                        value={openPositions}
+                        onChangeText={setOpenPositions}
+                        placeholder="1"
+                        placeholderTextColor="#94A3B8"
+                        keyboardType="number-pad"
+                        style={styles.textInput}
+                        onFocus={() => setActiveField("openPositions")}
+                        onBlur={() => setActiveField(null)}
+                      />
+                    </View>
+                  </View>
                 </View>
-              </View>
 
-              {/* Experience & Open Positions (Inline Row) */}
-              <View style={styles.inlineRow}>
-                {/* Experience */}
-                <View style={[styles.inputGroup, { flex: 1.2, marginRight: 10 }]}>
-                  <Text style={styles.inputLabel}>Experience</Text>
+                {/* Experience Dropdown */}
+                <View style={[styles.inputGroup, { marginTop: 14 }]}>
+                  <Text style={styles.inputLabel}>{t("postJob.experienceRequired")}</Text>
                   <TouchableOpacity
-                    style={[styles.inputWrapper, showExpDropdown && styles.inputWrapperActive]}
+                    style={[
+                      styles.inputWrapper,
+                      showExpDropdown && styles.inputWrapperActive,
+                    ]}
                     onPress={() => setShowExpDropdown(!showExpDropdown)}
+                    activeOpacity={0.8}
                   >
                     <Text style={styles.textInput}>{experience}</Text>
-                    <Ionicons name={showExpDropdown ? "chevron-up" : "chevron-down"} size={18} color="#64748B" />
+                    <Ionicons
+                      name={showExpDropdown ? "chevron-up" : "chevron-down"}
+                      size={18}
+                      color="#64748B"
+                    />
                   </TouchableOpacity>
 
                   {showExpDropdown && (
@@ -240,210 +499,262 @@ export default function PostJobScreen({ navigation }) {
                             setShowExpDropdown(false);
                           }}
                         >
-                          <Text style={[styles.dropdownItemText, experience === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              experience === opt && {
+                                color: PRIMARY_GREEN,
+                                fontWeight: "700",
+                              },
+                            ]}
+                          >
                             {opt}
                           </Text>
+                          {experience === opt && (
+                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
+                          )}
                         </TouchableOpacity>
                       ))}
                     </View>
                   )}
                 </View>
 
-                {/* Open Positions */}
-                <View style={[styles.inputGroup, { flex: 0.8, marginLeft: 10 }]}>
-                  <Text style={styles.inputLabel}>Open Positions</Text>
-                  <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive]}>
+                {/* Job Description */}
+                <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                  <Text style={styles.inputLabel}>{t("postJob.jobDescription")}</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      styles.multilineWrapper,
+                      activeField === "jobDescription" && styles.inputWrapperActive,
+                    ]}
+                  >
                     <TextInput
-                      value={openPositions}
-                      onChangeText={setOpenPositions}
-                      keyboardType="number-pad"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("openPositions")}
+                      value={jobDescription}
+                      onChangeText={setJobDescription}
+                      placeholder={t("postJob.jobDescriptionPlaceholder")}
+                      placeholderTextColor="#94A3B8"
+                      multiline
+                      numberOfLines={5}
+                      style={[styles.textInput, styles.multilineInput]}
+                      onFocus={() => setActiveField("jobDescription")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
                 </View>
               </View>
 
-              {/* Job Description */}
-              <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                <Text style={styles.inputLabel}>Job Description</Text>
-                <View style={[styles.inputWrapper, styles.multilineWrapper, activeField === "jobDescription" && styles.inputWrapperActive]}>
+              {/* Lightbulb Tip Card */}
+              <View style={styles.tipBox}>
+                <Ionicons
+                  name="bulb-outline"
+                  size={20}
+                  color={PRIMARY_GREEN}
+                  style={styles.tipBoxIcon}
+                />
+                <Text style={styles.tipBoxText}>
+                  {t("postJob.tipText")}
+                </Text>
+              </View>
+
+              {/* Footer step 2 */}
+              <View style={styles.footerRowStep2}>
+                <TouchableOpacity
+                  style={styles.saveDraftLink}
+                  onPress={handleSaveAsDraft}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.saveDraftLinkText}>{t("postJob.saveDraft")}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.primaryNextBtnSmall}
+                  activeOpacity={0.8}
+                  onPress={handleNextStep2}
+                >
+                  <Text style={styles.primaryNextBtnText}>{t("postJob.next")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 3: CONTACT & REVIEW */}
+          {step === 3 && (
+            <View style={styles.stepContainer}>
+              {/* Top Banner Card */}
+              <View style={styles.step3Banner}>
+                <Text style={styles.step3BannerText}>
+                  {t("postJob.contactInfoBanner")}
+                </Text>
+              </View>
+
+              {/* Phone Number */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("postJob.phoneNumber")}</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    activeField === "contactPhone" && styles.inputWrapperActive,
+                  ]}
+                >
+                  <Ionicons
+                    name="call-outline"
+                    size={18}
+                    color="#64748B"
+                    style={{ marginRight: 8 }}
+                  />
                   <TextInput
-                    value={jobDescription}
-                    onChangeText={setJobDescription}
-                    placeholder="Describe the role, responsibilities, and perks..."
+                    value={contactPhone}
+                    onChangeText={setContactPhone}
+                    placeholder={t("postJob.phonePlaceholder")}
                     placeholderTextColor="#94A3B8"
-                    multiline
-                    numberOfLines={6}
-                    style={[styles.textInput, styles.multilineInput]}
-                    onFocus={() => setActiveField("jobDescription")}
+                    keyboardType="phone-pad"
+                    style={styles.textInput}
+                    onFocus={() => setActiveField("contactPhone")}
+                    onBlur={() => setActiveField(null)}
+                  />
+                </View>
+                <Text style={styles.phoneCaption}>
+                  {t("postJob.phoneCaption")}
+                </Text>
+              </View>
+
+              {/* Email Address */}
+              <View style={[styles.inputGroup, { marginTop: 4 }]}>
+                <Text style={styles.inputLabel}>{t("postJob.emailAddress")}</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    activeField === "contactEmail" && styles.inputWrapperActive,
+                  ]}
+                >
+                  <Ionicons
+                    name="mail-outline"
+                    size={18}
+                    color="#64748B"
+                    style={{ marginRight: 8 }}
+                  />
+                  <TextInput
+                    value={contactEmail}
+                    onChangeText={setContactEmail}
+                    placeholder={t("postJob.emailPlaceholder")}
+                    placeholderTextColor="#94A3B8"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    style={styles.textInput}
+                    onFocus={() => setActiveField("contactEmail")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
               </View>
 
-              {/* Submit for Approval Button */}
-              <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8} onPress={handleNext}>
-                <Text style={styles.submitBtnText}>Submit For Approval</Text>
-              </TouchableOpacity>
+              {/* Quick Review Header */}
+              <Text style={styles.reviewHeader}>{t("postJob.quickReview")}</Text>
+
+              {/* Review Card: Position */}
+              <View style={styles.reviewCardItem}>
+                <View style={styles.reviewIconContainer}>
+                  <Ionicons name="restaurant" size={20} color={PRIMARY_GREEN} />
+                </View>
+                <View style={styles.reviewTextContainer}>
+                  <Text style={styles.reviewCardLabel}>{t("postJob.positionLabel")}</Text>
+                  <Text style={styles.reviewCardValue}>
+                    {jobTitle.trim() || "Senior Head Chef"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Review Cards Row (Location & Salary) */}
+              <View style={styles.reviewCardRow}>
+                <View style={[styles.reviewCardItem, { flex: 1, marginRight: 8 }]}>
+                  <View style={styles.reviewTextContainer}>
+                    <Text style={styles.reviewCardLabel}>{t("postJob.locationLabel")}</Text>
+                    <Text style={styles.reviewCardValue} numberOfLines={1}>
+                      {location.trim() || "London, UK"}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.reviewCardItem, { flex: 1, marginLeft: 8 }]}>
+                  <View style={styles.reviewTextContainer}>
+                    <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel")}</Text>
+                    <Text style={styles.reviewCardValue} numberOfLines={1}>
+                      {salaryRange.trim() || "£45k - £55k"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Footer step 3 */}
+              <View style={[styles.footerContainer, { marginTop: 36 }]}>
+                <TouchableOpacity
+                  style={styles.primaryNextBtn}
+                  activeOpacity={0.8}
+                  onPress={handleSubmitJob}
+                >
+                  <Text style={styles.primaryNextBtnText}>{t("postJob.submitApproval")}</Text>
+                  <Ionicons
+                    name="paper-plane-outline"
+                    size={16}
+                    color="#FFFFFF"
+                    style={{ marginLeft: 6 }}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveDraftLink}
+                  onPress={() => {
+                    handleReset();
+                    navigation.navigate("Home");
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.saveDraftLinkText}>{t("postJob.returnFeed")}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
-          {/* STEP 2: REVIEW & POST */}
-          {step === 2 && (
-            <View style={styles.stepContainer}>
-              {/* Progress Tracker Banner */}
-              <View style={styles.reviewHeaderBanner}>
-                <Text style={styles.reviewStepLabel}>STEP 2 OF 2: CONTACT & REVIEW</Text>
-                <Text style={[styles.reviewCompleteLabel, { color: PRIMARY_GREEN }]}>100% Complete</Text>
-              </View>
-              <View style={styles.reviewProgressBg}>
-                <View style={[styles.reviewProgressFill, { backgroundColor: PRIMARY_GREEN }]} />
-              </View>
-
-              <Text style={styles.stepTitle}>Review & Post</Text>
-
-              {/* Card 1: Job Details */}
-              <View style={styles.reviewCard}>
-                <View style={styles.cardHeaderRow}>
-                  <Text style={styles.cardHeaderTitle}>
-                    <Ionicons name="briefcase-outline" size={16} color="#64748B" /> Job Details
-                  </Text>
-                  <TouchableOpacity onPress={() => setStep(1)} style={styles.editLink}>
-                    <Text style={[styles.editLinkText, { color: PRIMARY_GREEN }]}>Edit</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Details Grid */}
-                <View style={styles.gridContainer}>
-                  <View style={styles.gridRow}>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Category</Text>
-                      <Text style={styles.gridValue}>{profile?.segment || "Hospitality & Service"}</Text>
-                    </View>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Position Title</Text>
-                      <Text style={styles.gridValue}>{jobTitle}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.gridRow}>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Location</Text>
-                      <Text style={styles.gridValue}>{location}</Text>
-                    </View>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Openings</Text>
-                      <Text style={styles.gridValue}>{openPositions} Positions</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.gridRow}>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Salary Range</Text>
-                      <Text style={styles.gridValue}>{salaryRange}</Text>
-                    </View>
-                    <View style={styles.gridCol}>
-                      <Text style={styles.gridLabel}>Experience</Text>
-                      <Text style={styles.gridValue}>{experience}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.cardDivider} />
-                <Text style={styles.gridLabel}>Job Description</Text>
-                <Text style={styles.reviewDescText}>{jobDescription}</Text>
-              </View>
-
-              {/* Card 2: Business Contact */}
-              <View style={styles.reviewCard}>
-                <View style={styles.cardHeaderRow}>
-                  <Text style={styles.cardHeaderTitle}>
-                    <Ionicons name="business-outline" size={16} color="#64748B" /> Business Contact
-                  </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.editLink}>
-                    <Text style={[styles.editLinkText, { color: PRIMARY_GREEN }]}>Edit</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Avatar Banner */}
-                <View style={styles.contactAvatarRow}>
-                  <View style={[styles.letterAvatar, { backgroundColor: PRIMARY_GREEN }]}>
-                    <Text style={styles.letterAvatarText}>
-                      {(profile?.businessName || "G").charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={styles.contactBusinessName}>{profile?.businessName || "Grand Hyatt Dubai"}</Text>
-                    <Text style={styles.contactBusinessSegment}>{profile?.segment || "Hospitality Group"}</Text>
-                  </View>
-                </View>
-
-                {/* Details List */}
-                <View style={styles.contactDetailsList}>
-                  <View style={styles.contactDetailItem}>
-                    <Ionicons name="person-outline" size={16} color="#64748B" style={styles.contactDetailIcon} />
-                    <Text style={styles.contactDetailText}>
-                      {profile?.contactName || "Sarah Jenkins"} ({profile?.relationship || "HR Manager"})
-                    </Text>
-                  </View>
-                  <View style={styles.contactDetailItem}>
-                    <Ionicons name="call-outline" size={16} color="#64748B" style={styles.contactDetailIcon} />
-                    <Text style={styles.contactDetailText}>{profile?.contactPhone || "+91 923456789"}</Text>
-                  </View>
-                  <View style={styles.contactDetailItem}>
-                    <Ionicons name="mail-outline" size={16} color="#64748B" style={styles.contactDetailIcon} />
-                    <Text style={styles.contactDetailText}>{profile?.contactEmail || "careers@hiring.com"}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Info Disclaimer */}
-              <View style={styles.disclaimerCard}>
-                <Ionicons name="information-circle-outline" size={20} color="#64748B" style={{ marginRight: 10, marginTop: 2 }} />
-                <Text style={styles.disclaimerText}>
-                  Your job post will be visible to our community of 500+ hospitality professionals. By submitting, you agree to our terms of service and professional community guidelines.
-                </Text>
-              </View>
-
-              {/* Submit Job Button */}
-              <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8} onPress={handleSubmitJob}>
-                <Text style={styles.submitBtnText}>Submit Job </Text>
-                <Ionicons name="send" size={16} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* STEP 3: SUCCESS */}
-          {step === 3 && (
+          {/* STEP 4: SUCCESS */}
+          {step === 4 && (
             <View style={[styles.stepContainer, { alignItems: "center", paddingTop: 40 }]}>
-              {/* Checkmark Circle Illustration */}
+              {/* Checkmark circle illustration */}
               <View style={styles.successIconOuter}>
-                <View style={[styles.successIconInner, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-                  <View style={[styles.successIconCore, { backgroundColor: PRIMARY_GREEN }]}>
-                    <Ionicons name="checkmark" size={56} color="#fff" />
+                <View style={styles.successIconInner}>
+                  <View style={styles.successIconCore}>
+                    <Ionicons name="checkmark" size={56} color="#FFFFFF" />
                   </View>
                 </View>
               </View>
 
-              <Text style={styles.successTitle}>🎉 Job Submitted Successfully</Text>
+              <Text style={styles.successTitle}>🎉 {t("postJob.successTitle")}</Text>
 
-              {/* Submission Status Box */}
+              {/* Submission description card */}
               <View style={styles.successInfoCard}>
-                <Ionicons name="shield-checkmark-outline" size={24} color="#64748B" style={{ marginRight: 12 }} />
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={24}
+                  color="#64748B"
+                  style={{ marginRight: 12 }}
+                />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.successInfoTitle}>Your job has been submitted for admin review.</Text>
+                  <Text style={styles.successInfoTitle}>
+                    {t("postJob.successTitle")}
+                  </Text>
                   <Text style={styles.successInfoText}>
-                    Once approved, it will be published in the community feed and notifications will be sent to matched staff.
+                    {t("postJob.successMessage")}
                   </Text>
                 </View>
               </View>
 
-              {/* Action Buttons */}
+              {/* Success Action Buttons */}
               <View style={{ width: "100%", gap: 14, marginTop: 40 }}>
-                <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8} onPress={handleReset}>
-                  <Text style={styles.submitBtnText}>Post a new job</Text>
+                <TouchableOpacity
+                  style={styles.primaryNextBtn}
+                  activeOpacity={0.8}
+                  onPress={handleReset}
+                >
+                  <Text style={styles.primaryNextBtnText}>{t("postJob.postNew")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -454,7 +765,7 @@ export default function PostJobScreen({ navigation }) {
                     navigation.navigate("Home");
                   }}
                 >
-                  <Text style={styles.dashboardLinkText}>Go to Dashboard</Text>
+                  <Text style={styles.dashboardLinkText}>{t("postJob.goDashboard")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -480,100 +791,132 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  avatar: {
+  backBtn: {
+    padding: 4,
+    marginRight: 10,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerIcon: {
+    padding: 4,
+  },
+  headerAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1E293B",
+  headerAvatarFallback: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  draftText: {
-    fontSize: 14,
+  progressContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    paddingTop: 8,
+    borderBottomWidth: 1,
+    borderColor: "#EEF2F7",
+  },
+  progressTextRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  progressStepText: {
+    fontSize: 12,
     fontWeight: "700",
     color: "#64748B",
   },
+  progressPercentText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#15803D",
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 99,
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 99,
+  },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 20,
     flexGrow: 1,
   },
   stepContainer: {
     flex: 1,
   },
   infoBox: {
+    flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#E2E8F0",
     marginBottom: 20,
+    alignItems: "flex-start",
+  },
+  infoBoxIcon: {
+    marginRight: 12,
+    marginTop: 2,
   },
   infoBoxText: {
     fontSize: 13,
     color: "#475569",
     lineHeight: 18,
   },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 8,
-  },
-  regionRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  regionChip: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 99,
-    paddingVertical: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  regionChipText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#64748B",
+  infoBoxTime: {
+    fontSize: 10,
+    color: "#94A3B8",
+    marginTop: 6,
+    fontWeight: "600",
   },
   inputGroup: {
     marginBottom: 16,
   },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#475569",
+    marginBottom: 8,
+  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#CBD5E1",
     borderRadius: 12,
     minHeight: 50,
     paddingHorizontal: 14,
-    position: "relative",
   },
   inputWrapperActive: {
     borderColor: PRIMARY_GREEN,
     borderWidth: 1.5,
+    backgroundColor: "#FFFFFF",
   },
   textInput: {
     flex: 1,
@@ -581,8 +924,118 @@ const styles = StyleSheet.create({
     fontSize: 15,
     paddingVertical: 8,
   },
-  inputIconLeft: {
-    marginRight: 10,
+  imageCard: {
+    width: "100%",
+    height: 160,
+    borderRadius: 16,
+    overflow: "hidden",
+    marginTop: 10,
+    position: "relative",
+  },
+  imageCardBackground: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  imageCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
+  },
+  imageCardContent: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+  },
+  imageCardStepLabel: {
+    color: "#F1F5F9",
+    fontSize: 11,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  imageCardTitleLabel: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  fab: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    bottom: 90,
+    right: 0,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  footerContainer: {
+    width: "100%",
+    alignItems: "center",
+    gap: 12,
+  },
+  primaryNextBtn: {
+    width: "100%",
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 12,
+    minHeight: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  primaryNextBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  saveDraftLink: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+  },
+  saveDraftLinkText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0A7B32",
+  },
+  regionRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  regionChip: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  regionChipActive: {
+    borderColor: PRIMARY_GREEN,
+    backgroundColor: "#F2FBF5",
+  },
+  regionChipText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  regionChipTextActive: {
+    color: "#15803D",
+  },
+  fieldsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 16,
+    marginBottom: 16,
   },
   inlineRow: {
     flexDirection: "row",
@@ -605,6 +1058,9 @@ const styles = StyleSheet.create({
     top: 74,
   },
   dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -620,206 +1076,137 @@ const styles = StyleSheet.create({
   },
   multilineInput: {
     textAlignVertical: "top",
-    minHeight: 100,
+    minHeight: 80,
   },
-  submitBtn: {
-    backgroundColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    minHeight: 52,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-    gap: 8,
-    shadowColor: PRIMARY_GREEN,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  submitBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  reviewHeaderBanner: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  reviewStepLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#64748B",
-  },
-  reviewCompleteLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  reviewProgressBg: {
-    height: 4,
-    backgroundColor: "#E2E8F0",
-    borderRadius: 99,
-    marginBottom: 20,
-  },
-  reviewProgressFill: {
-    height: "100%",
-    width: "100%",
-    borderRadius: 99,
-  },
-  stepTitle: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: "#0F172A",
-    marginBottom: 16,
-  },
-  reviewCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    padding: 16,
-    marginBottom: 16,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  cardHeaderTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#0F172A",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  editLink: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-  },
-  editLinkText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  gridContainer: {
-    gap: 12,
-  },
-  gridRow: {
-    flexDirection: "row",
-  },
-  gridCol: {
-    flex: 1,
-  },
-  gridLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#94A3B8",
-    marginBottom: 4,
-  },
-  gridValue: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: "#F1F5F9",
-    marginVertical: 14,
-  },
-  reviewDescText: {
-    fontSize: 13,
-    color: "#475569",
-    lineHeight: 18,
-  },
-  contactAvatarRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  letterAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  letterAvatarText: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-  contactBusinessName: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginBottom: 2,
-  },
-  contactBusinessSegment: {
-    fontSize: 11,
-    color: "#64748B",
-  },
-  contactDetailsList: {
-    gap: 10,
-  },
-  contactDetailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  contactDetailIcon: {
-    marginRight: 10,
-  },
-  contactDetailText: {
-    fontSize: 13,
-    color: "#475569",
-  },
-  disclaimerCard: {
+  tipBox: {
     flexDirection: "row",
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    borderRadius: 12,
     padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
-  disclaimerText: {
+  tipBoxIcon: {
+    marginRight: 10,
+    marginTop: 2,
+  },
+  tipBoxText: {
     flex: 1,
+    fontSize: 12,
+    color: "#475569",
+    lineHeight: 18,
+  },
+  footerRowStep2: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  primaryNextBtnSmall: {
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 12,
+    minHeight: 46,
+    width: 120,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  step3Banner: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 14,
+    marginBottom: 20,
+  },
+  step3BannerText: {
+    fontSize: 13,
+    color: "#475569",
+    lineHeight: 19,
+  },
+  phoneCaption: {
     fontSize: 11,
+    color: "#94A3B8",
+    marginTop: 6,
+    marginLeft: 2,
+  },
+  reviewHeader: {
+    fontSize: 11,
+    fontWeight: "800",
     color: "#64748B",
-    lineHeight: 16,
+    marginTop: 20,
+    marginBottom: 10,
+    letterSpacing: 1,
+  },
+  reviewCardItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  reviewIconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#E2FBE9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  reviewTextContainer: {
+    flex: 1,
+  },
+  reviewCardLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#94A3B8",
+    marginBottom: 2,
+  },
+  reviewCardValue: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1E293B",
+  },
+  reviewCardRow: {
+    flexDirection: "row",
   },
   successIconOuter: {
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 24,
   },
   successIconInner: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#E2FBE9",
     alignItems: "center",
     justifyContent: "center",
   },
   successIconCore: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    backgroundColor: PRIMARY_GREEN,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: PRIMARY_GREEN,
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
   successTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "900",
     color: "#0F172A",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   successInfoCard: {
     flexDirection: "row",
@@ -832,15 +1219,15 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   successInfoTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "800",
     color: "#1E293B",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   successInfoText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#64748B",
-    lineHeight: 18,
+    lineHeight: 16,
   },
   dashboardLink: {
     alignSelf: "center",
@@ -848,8 +1235,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   dashboardLinkText: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#64748B",
   },
 });

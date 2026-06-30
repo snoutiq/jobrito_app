@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -15,7 +15,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import EmptyState from "../../components/common/EmptyState";
 import colors from "../../constants/colors";
-import { fetchSavedJobs } from "../../redux/slices/jobSlice";
+import { fetchSavedJobs, toggleSaveJob } from "../../redux/slices/jobSlice";
+import CallbackModal from "../../components/common/CallbackModal";
+import { applyJob, fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 
 const formatSavedTime = (savedAt) => {
   if (!savedAt) return "Saved recently";
@@ -40,12 +42,24 @@ export default function SavedJobsScreen({ navigation }) {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   
-  const { savedJobs, loading } = useSelector((state) => state.job);
+  const { savedJobs, feedJobs, loading } = useSelector((state) => state.job);
   const { profile } = useSelector((state) => state.user);
+  const { history: applicationHistory } = useSelector((state) => state.application);
+
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
     dispatch(fetchSavedJobs());
-  }, [dispatch]);
+    if (profile?.email) {
+      dispatch(fetchApplicationHistory(profile.email));
+    }
+  }, [dispatch, profile?.email]);
+
+  const handleApplyPress = (job) => {
+    setSelectedJob(job);
+    setShowCallModal(true);
+  };
 
   const handleUnsave = (jobId, jobTitle) => {
     Alert.alert(
@@ -56,9 +70,13 @@ export default function SavedJobsScreen({ navigation }) {
         {
           text: "Remove",
           style: "destructive",
-          onPress: () => {
-            // In a real app we would dispatch unsave job API action here
-            Alert.alert("Removed", "Job removed from saved list.");
+          onPress: async () => {
+            try {
+              await dispatch(toggleSaveJob(jobId)).unwrap();
+              Alert.alert("Removed", "Job removed from saved list.");
+            } catch (error) {
+              Alert.alert("Error", error || "Failed to remove job.");
+            }
           },
         },
       ]
@@ -74,6 +92,9 @@ export default function SavedJobsScreen({ navigation }) {
     .toUpperCase();
 
   const renderItem = ({ item }) => {
+    const isAppliedInFeed = feedJobs.some((j) => String(j.id) === String(item.id) && j.applied);
+    const isAppliedInHistory = (applicationHistory || []).some((app) => String(app.jobId) === String(item.id));
+    const isApplied = item.applied || isAppliedInFeed || isAppliedInHistory || false;
     return (
       <View style={styles.card}>
         <Pressable
@@ -121,11 +142,12 @@ export default function SavedJobsScreen({ navigation }) {
             {/* Footer Row: Apply & Time */}
             <View style={styles.cardFooter}>
               <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate("JobDetails", { jobId: item.id });
-                }}
+                onPress={() => handleApplyPress(item)}
+                disabled={isApplied}
               >
-                <Text style={styles.applyBtnText}>Apply Now</Text>
+                <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
+                  {isApplied ? "✓ Applied" : "Apply Now"}
+                </Text>
               </TouchableOpacity>
               <Text style={styles.timeText}>{formatSavedTime(item.savedAt)}</Text>
             </View>
@@ -144,16 +166,15 @@ export default function SavedJobsScreen({ navigation }) {
   };
 
   return (
-    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container}>
+    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container} contentStyle={{ padding: 0 }}>
       {/* Custom Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={26} color="#0A7B32" />
+            <Ionicons name="arrow-back" size={24} color="#15803D" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Saved Jobs</Text>
         </View>
-        
       </View>
 
       {/* Summary Info Bar */}
@@ -185,6 +206,23 @@ export default function SavedJobsScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
         />
       </View>
+
+      <CallbackModal
+        visible={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        onConfirm={async (timeSlot) => {
+          if (selectedJob) {
+            try {
+              await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              return true;
+            } catch (err) {
+              Alert.alert("Application Error", err || "Failed to apply to job");
+              return false;
+            }
+          }
+          return false;
+        }}
+      />
     </ScreenWrapper>
   );
 }
@@ -199,23 +237,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#E2E8F0",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   backBtn: {
     padding: 4,
+    marginRight: 10,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#0A7B32", // green title matching image
+    color: "#0F172A",
   },
   profileAvatar: {
     width: 38,
@@ -319,6 +357,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#0A7B32", // green apply button matching image
+  },
+  appliedBtnText: {
+    color: "#94A3B8",
   },
   timeText: {
     fontSize: 12,

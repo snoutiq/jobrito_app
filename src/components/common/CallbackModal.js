@@ -33,6 +33,16 @@ export default function CallbackModal({
     }
   }, [visible]);
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+    // Delay resetting step to select so it doesn't flicker during fade out
+    setTimeout(() => {
+      setStep("select");
+    }, 300);
+  };
+
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
@@ -58,7 +68,7 @@ export default function CallbackModal({
       visible={visible}
       transparent={true}
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.modalOverlay}>
         {step === "select" ? (
@@ -116,7 +126,7 @@ export default function CallbackModal({
 
             <TouchableOpacity
               style={[styles.modalSkipBtn, isSubmitting && { opacity: 0.5 }]}
-              onPress={isSubmitting ? null : onClose}
+              onPress={isSubmitting ? null : handleClose}
               disabled={isSubmitting}
               activeOpacity={0.7}
             >
@@ -141,7 +151,7 @@ export default function CallbackModal({
 
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
-              onPress={onClose}
+              onPress={handleClose}
               activeOpacity={0.8}
             >
               <Text style={styles.modalConfirmBtnText}>Got it</Text>

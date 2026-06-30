@@ -28,43 +28,32 @@ export const shareJob = async (jobId) => {
   return response.data;
 };
 
+export const toggleSaveJob = async (jobId) => {
+  const response = await apiClient.post(`/jobs/${jobId}/save`);
+  return response.data;
+};
+
 export const getSavedJobs = async () => {
   try {
-    const response = await apiClient.get("/jobs/saved");
-    return response.data;
+    const response = await apiClient.get("/profile/saved");
+    // Normalize response jobs
+    const rawJobs = response.data?.saved_jobs || response.data?.jobs || (Array.isArray(response.data) ? response.data : []);
+    const normalized = rawJobs.map((item) => {
+      const jobSource = item.job || item;
+      return {
+        id: String(jobSource.id || item.id),
+        title: jobSource.title || "Job Opportunity",
+        employer: jobSource.company || jobSource.employer || "Company",
+        salary: jobSource.salary || "Competitive Salary",
+        location: jobSource.location || "Flexible",
+        avatar: jobSource.company_logo_url || jobSource.logo || jobSource.avatar || null,
+        savedAt: item.pivot?.created_at || item.created_at || item.savedAt || new Date().toISOString(),
+        applied: jobSource.applied || item.applied || false,
+      };
+    });
+    return { success: true, jobs: normalized };
   } catch (error) {
-    // Return mockup matching the image when API fails or is not available
-    return {
-      success: true,
-      jobs: [
-        {
-          id: "saved-1",
-          title: "Restaurant Manager",
-          employer: "The Grand Plaza Hotel",
-          salary: "INR 5 Lakh LPA",
-          location: "Mumbai",
-          avatar: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&auto=format&fit=crop",
-          savedAt: "2026-06-27T10:00:00.000Z", // 2d ago relative to 2026-06-29
-        },
-        {
-          id: "saved-2",
-          title: "Restaurant Manager",
-          employer: "Oasis Artisan Coffee",
-          salary: "INR 5 Lakh LPA",
-          location: "Delhi",
-          avatar: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&auto=format&fit=crop",
-          savedAt: "2026-06-29T05:00:00.000Z", // 5h ago relative to 10:00 AM
-        },
-        {
-          id: "saved-3",
-          title: "Restaurant Manager",
-          employer: "The Emerald Lounge",
-          salary: "Competitive Salary",
-          location: "Dubai",
-          avatar: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=100&auto=format&fit=crop",
-          savedAt: "2026-06-22T10:00:00.000Z", // 1w ago
-        },
-      ],
-    };
+    console.error("Failed to fetch saved jobs:", error.message);
+    return { success: false, jobs: [], error: error.message };
   }
 };

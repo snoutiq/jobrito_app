@@ -42,6 +42,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   
   const { history, loading } = useSelector((state) => state.application);
+  console.log("Application History:", history);
   const { profile } = useSelector((state) => state.user);
   
   const [search, setSearch] = useState("");
@@ -67,8 +68,10 @@ export default function ApplicationHistoryScreen({ navigation }) {
   };
 
   useEffect(() => {
-    dispatch(fetchApplicationHistory());
-  }, [dispatch]);
+    if (profile?.email) {
+      dispatch(fetchApplicationHistory(profile.email));
+    }
+  }, [dispatch, profile?.email]);
 
   const filteredHistory = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -140,17 +143,15 @@ export default function ApplicationHistoryScreen({ navigation }) {
   const isFilterActive = activeStatusFilter !== "All";
 
   return (
-    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container}>
+    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container} contentStyle={{ padding: 0 }}>
       {/* Custom Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={26} color="#0A7B32" />
+            <Ionicons name="arrow-back" size={24} color="#15803D" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>My Applications</Text>
         </View>
-        
-        {/* Profile Avatar */}
       </View>
 
       {/* Search / Filter Bar */}
@@ -298,23 +299,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#E2E8F0",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   backBtn: {
     padding: 4,
+    marginRight: 10,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#0A7B32", // green title matching image
+    color: "#0F172A",
   },
   profileAvatar: {
     width: 38,

@@ -82,10 +82,7 @@ function Tabs() {
         name="Post Job"
         component={PostJobScreen}
         options={{
-          headerShown: true,
-          title: t("postJob"),
-          headerTitleAlign: "center",
-          headerTitleStyle: { fontWeight: "800" },
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -166,10 +163,7 @@ function EmployerTabs() {
         name="Post Job"
         component={PostJobScreen}
         options={{
-          headerShown: true,
-          title: t("postJob"),
-          headerTitleAlign: "center",
-          headerTitleStyle: { fontWeight: "800" },
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -205,7 +199,13 @@ function ChefTabs() {
     <Tab.Navigator>
       <Tab.Screen name="Home" component={ChefHomeScreen} />
       <Tab.Screen name="Applications" component={ApplicationHistoryScreen} />
-      <Tab.Screen name="Post Job" component={PostJobScreen} />
+      <Tab.Screen
+        name="Post Job"
+        component={PostJobScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
       <Tab.Screen name="ChefConnect" component={ChefConnectScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
@@ -291,6 +291,13 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="SavedJobs"
         component={SavedJobsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Post Job"
+        component={PostJobScreen}
         options={{
           headerShown: false,
         }}

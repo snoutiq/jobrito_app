@@ -11,13 +11,14 @@ import {
   Pressable,
   Share,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
-import { fetchFeedJobs } from "../../redux/slices/jobSlice";
+import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 
@@ -25,7 +26,7 @@ export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   
-  const { feedJobs, applyingJobId } = useSelector((state) => state.job);
+  const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
   const [activeFilter, setActiveFilter] = useState("all");
 
   // Modals state
@@ -64,14 +65,37 @@ export default function HomeScreen({ navigation }) {
     dispatch(fetchFeedJobs(activeFilter));
   }, [dispatch, activeFilter]);
 
-  const toggleFavorite = (id) => {
-    setFavorites((prev) => {
-      const isFav = !prev[id];
-      if (isFav) {
-        Alert.alert("Liked", "Job added to your favorites list.");
-      }
-      return { ...prev, [id]: isFav };
-    });
+  useEffect(() => {
+    dispatch(fetchSavedJobs());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (feedJobs) {
+      const favs = {};
+      feedJobs.forEach((job) => {
+        const isSavedInList = (savedJobs || []).some((sj) => String(sj.id) === String(job.id));
+        favs[job.id] = job.saved || job.is_saved || isSavedInList || false;
+      });
+      setFavorites(favs);
+    }
+  }, [feedJobs, savedJobs]);
+
+  const toggleFavorite = async (id) => {
+    const isFav = !favorites[id];
+    setFavorites((prev) => ({ ...prev, [id]: isFav }));
+    if (isFav) {
+      Alert.alert("Liked", "Job added to your favorites list.");
+    } else {
+      Alert.alert("Removed", "Job removed from your favorites list.");
+    }
+
+    try {
+      await dispatch(toggleSaveJob(id)).unwrap();
+    } catch (error) {
+      // Rollback on error
+      setFavorites((prev) => ({ ...prev, [id]: !isFav }));
+      Alert.alert("Error", error || "Failed to save job.");
+    }
   };
 
   const handleApplyPress = (job) => {
@@ -85,8 +109,11 @@ export default function HomeScreen({ navigation }) {
     setTimeout(() => setCopiedJobId(null), 2000);
   };
 
-  const handleCall = (company) => {
-    Alert.alert("Dialing...", `Calling recruiting partner of ${company} at +91 98765 43210`);
+  const handleCall = (job) => {
+    const phoneNumber = job.creator?.mobile_number || job.mobile_number || job.phone || "+919876543210";
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
+      Alert.alert("Error", "Could not open dialer: " + err.message);
+    });
   };
 
   const handleShare = async (title, company) => {
@@ -205,7 +232,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.twoActionsRow}>
                   <TouchableOpacity
                     style={styles.actionBtnLight}
-                    onPress={() => handleCall(job.company)}
+                    onPress={() => handleCall(job)}
                     activeOpacity={0.7}
                   >
                     <Ionicons name="call" size={16} color="#15803D" style={{ marginRight: 6 }} />
@@ -268,7 +295,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={[styles.twoActionsRow, { marginTop: 10 }]}>
                     <TouchableOpacity
                       style={[styles.actionBtnLight, { backgroundColor: "#F1F5F9", borderColor: "#E2E8F0" }]}
-                      onPress={() => handleCall(job.company)}
+                      onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="call" size={16} color="#475569" style={{ marginRight: 6 }} />
