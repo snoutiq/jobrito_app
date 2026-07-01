@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/colors";

@@ -36,6 +36,7 @@ export const updateApplicantStatus = createAsyncThunk(
 
 const initialState = {
   stats: [],
+  metrics: {},
   submittedJobs: [],
   applicants: [],
   loading: false,
@@ -63,6 +64,7 @@ const employerSlice = createSlice({
       .addCase(fetchEmployerDashboard.fulfilled, (state, action) => {
         state.loading = false;
         state.stats = action.payload?.stats || [];
+        state.metrics = action.payload?.metrics || {};
         state.submittedJobs = action.payload?.submittedJobs || [];
         state.success = true;
       })

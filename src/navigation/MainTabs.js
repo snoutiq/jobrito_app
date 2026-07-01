@@ -11,6 +11,7 @@ import ApplicationHistoryScreen from "../screens/applications/ApplicationHistory
 import PostJobScreen from "../screens/jobs/PostJobScreen";
 import ChefConnectScreen from "../screens/chef/ChefConnectScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
+import SettingsScreen from "../screens/profile/SettingsScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ChefProfileScreen from "../screens/chef/ChefProfileScreen";
@@ -26,7 +27,6 @@ import MyJobsScreen from "../screens/employer/MyJobsScreen";
 import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
 import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
 import SplashScreen from "../screens/auth/SplashScreen";
-import { checkEmployerOnboarding } from "../services/employerApi";
 import { setProfileData } from "../redux/slices/userSlice";
 
 
@@ -326,50 +326,7 @@ export default function MainTabs() {
     (state) => state.user.profile?.employerOnboardingCompleted
   );
 
-  const [checkingStatus, setCheckingStatus] = useState(isEmployer);
 
-  useEffect(() => {
-    if (isEmployer) {
-      const checkStatus = async () => {
-        try {
-          const res = await checkEmployerOnboarding();
-          if (res && res.success && res.data) {
-            dispatch(
-              setProfileData({
-                ...res.data,
-                name: res.data.nominee_name || res.data.contact_person_name || "Employer",
-                company: res.data.business_name,
-                businessName: res.data.business_name,
-                segment: res.data.industry_segment,
-                location: res.data.business_location,
-                phone: res.data.business_mobile,
-                email: res.data.business_email,
-                preferredLanguage: res.data.preferred_language,
-                employerOnboardingCompleted: true,
-              })
-            );
-          } else {
-            dispatch(
-              setProfileData({
-                employerOnboardingCompleted: false,
-              })
-            );
-          }
-        } catch (error) {
-          console.error("Error checking onboarding status:", error);
-        } finally {
-          setCheckingStatus(false);
-        }
-      };
-      checkStatus();
-    } else {
-      setCheckingStatus(false);
-    }
-  }, [isEmployer, dispatch]);
-
-  if (checkingStatus) {
-    return <SplashScreen />;
-  }
 
   if (isEmployer && !employerOnboardingCompleted) {
     return (
@@ -405,11 +362,11 @@ export default function MainTabs() {
     return <HomeOnlyStack key={activeRole ?? "job_seeker"} />;
   }
 
-  let TabsComponent = EmployerTabs; // Default to Employer
+  let TabsComponent = EmployerHomeScreen; // Default to Employer (no bottom tabs)
   if (isChef) {
     TabsComponent = ChefTabs;
   } else if (isEmployer) {
-    TabsComponent = EmployerTabs;
+    TabsComponent = EmployerHomeScreen;
   }
 
   return (
@@ -481,6 +438,31 @@ export default function MainTabs() {
         options={{
           headerShown: false,
         }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: t("profileTab") }}
+      />
+      <Stack.Screen
+        name="Post Job"
+        component={PostJobScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ChefConnect"
+        component={ChefConnectScreen}
+        options={{ title: t("chefConnect") }}
+      />
+      <Stack.Screen
+        name="Applications"
+        component={ApplicationHistoryScreen}
+        options={{ title: t("applications") }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

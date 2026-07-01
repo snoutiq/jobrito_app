@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getProfile as getProfileApi, switchRole as switchRoleApi, updateProfile as updateProfileApi, updateLanguagePreference } from "../../services/profileApi";
 import { ROLES } from "../../constants/roles";
-import { verifyOtp, requestOtp } from "./authSlice";
+import { verifyOtp } from "./authSlice";
 
 export const fetchProfile = createAsyncThunk(
   "user/fetchProfile",
@@ -83,30 +83,11 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(requestOtp.fulfilled, (state, action) => {
-        const payload = action.payload?.data || action.payload;
-        if (payload && payload.token) {
-          const role = action.meta.arg.role;
-          const isEmp = role === "employer" || role === ROLES.EMPLOYER;
-          
-          state.profile = {
-            ...state.profile,
-            ...payload.user,
-            employerOnboardingCompleted: isEmp ? (payload.has_completed_onboarding ?? false) : state.profile.employerOnboardingCompleted,
-          };
-          state.activeRole = role || state.activeRole;
-          
-          if (payload.user) {
-            state.profile.name = payload.user.full_name || payload.user.name || state.profile.name;
-            state.profile.phone = payload.user.mobile_number || payload.user.phone || state.profile.phone;
-          }
-        }
-      })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         const payload = action.payload;
         if (payload) {
           const role = action.meta.arg.role;
-          const isEmp = role === "employer" || role === ROLES.EMPLOYER;
+          const isEmp = role?.toLowerCase() === "employer";
           
           state.profile = {
             ...state.profile,

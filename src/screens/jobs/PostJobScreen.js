@@ -141,6 +141,7 @@ export default function PostJobScreen({ navigation, route }) {
 
     try {
       const result = await dispatch(storeEmployerJob(jobData));
+      
       if (storeEmployerJob.fulfilled.match(result)) {
         if (route.params?.isOnboarding) {
           // Mark onboarding as completed!

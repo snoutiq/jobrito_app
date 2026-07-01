@@ -115,15 +115,7 @@ const authSlice = createSlice({
       })
       .addCase(requestOtp.fulfilled, (state, action) => {
         state.loading = false;
-        const payload = action.payload?.data || action.payload;
-        if (payload?.token) {
-          state.otpVerified = true;
-          state.token = payload.token;
-          state.user = payload.user || null;
-          state.hasCompletedOnboarding = payload.has_completed_onboarding ?? false;
-        } else {
-          state.otpRequested = true;
-        }
+        state.otpRequested = true;
         state.phone = action.meta.arg.phone;
         state.role = action.meta.arg.role;
         state.success = true;

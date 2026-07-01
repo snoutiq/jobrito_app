@@ -61,5 +61,7 @@ export const getSavedJobs = async () => {
 export const storeJob = async (jobData) => {
   const response = await apiClient.post("/jobs/store", jobData);
   return response.data;
+  console.log(response,"ankit");
+  
 };
 

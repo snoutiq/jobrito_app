@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   ScrollView,
@@ -11,7 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
@@ -20,6 +21,7 @@ import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services
 import colors from "../../constants/colors";
 import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
+import * as Location from "expo-location";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -55,6 +57,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
   const [showSegmentDropdown, setShowSegmentDropdown] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showRelationDropdown, setShowRelationDropdown] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   const segments = ["Hospitality & Leisure", "Food & Beverage", "Cafe & QSR", "Retail", "Other"];
   const languages = ["English (UK)", "English (US)", "Hindi", "Arabic"];
@@ -213,6 +216,66 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
     );
   };
 
+  const handleGPSLocation = async () => {
+    setIsLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Permission to access location was denied. Please enable location permissions in your settings."
+        );
+        setIsLocating(false);
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (geocode && geocode.length > 0) {
+        const addressObj = geocode[0];
+        const parts = [];
+        if (addressObj.name && addressObj.name !== addressObj.street) {
+          parts.push(addressObj.name);
+        }
+        if (addressObj.street) {
+          parts.push(addressObj.street);
+        }
+        if (addressObj.district || addressObj.subregion) {
+          parts.push(addressObj.district || addressObj.subregion);
+        }
+        if (addressObj.city) {
+          parts.push(addressObj.city);
+        }
+        if (addressObj.region) {
+          parts.push(addressObj.region);
+        }
+        if (addressObj.country) {
+          parts.push(addressObj.country);
+        }
+
+        const fullAddress = parts.join(", ");
+        setBusinessLocation(fullAddress);
+        Alert.alert("GPS Location", `Successfully fetched location:\n${fullAddress}`);
+      } else {
+        const coordsString = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+        setBusinessLocation(coordsString);
+        Alert.alert("GPS Location", `Successfully fetched coordinates: ${coordsString}`);
+      }
+    } catch (error) {
+      console.error("Error fetching GPS location:", error);
+      Alert.alert("Error", "Failed to fetch current location. Please make sure location services are enabled on your device.");
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   const finishOnboarding = async () => {
     try {
       const payload = {
@@ -263,7 +326,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
       }
 
       // Call API
-      await saveEmployerOnboarding(formData);
+      const apiResponse = await saveEmployerOnboarding(formData);
       
       const profileReduxData = {
         name: managerName || contactName || "Employer User",
@@ -276,8 +339,13 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         contactPhone,
         contactEmail,
         preferredLanguage,
+        nominee_name: managerName,
+        nominee_relationship: managerRelationship,
+        nominee_mobile: managerPhone,
+        company_logo: logoUri,
         role: "employer",
-        employerOnboardingCompleted: false, // Wait for first job post
+        employerOnboardingCompleted: true,
+        ...(apiResponse?.data || apiResponse || {}),
       };
 
       // Update Redux state
@@ -285,16 +353,15 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
       
       // Save locally
       await setStoredProfile(profileReduxData);
+      await setEmployerOnboardingCompleted();
 
       Alert.alert(
         t("success"),
-        "Profile saved! Now, let's post your first job to complete the onboarding.",
+        "Profile onboarding completed successfully!",
         [
           {
-            text: "Post First Job",
-            onPress: () => {
-              navigation.navigate("EmployerFirstJobPost", { isOnboarding: true });
-            }
+            text: "OK",
+            onPress: () => {}
           }
         ]
       );
@@ -316,7 +383,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={prev} style={styles.backButton}>
-            <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
+            <Ionicons name={step === 1 ? "" : step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Complete Profile</Text>
           <View style={styles.stepBadge}>
@@ -446,13 +513,17 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.gpsButton}
                   activeOpacity={0.8}
-                  onPress={() => {
-                    setBusinessLocation("Business Bay, Dubai, UAE");
-                    Alert.alert("GPS Location", "Successfully fetched current location: Business Bay, Dubai");
-                  }}
+                  onPress={handleGPSLocation}
+                  disabled={isLocating}
                 >
-                  <Ionicons name="locate" size={18} color={PRIMARY_GREEN} />
-                  <Text style={styles.gpsButtonText}>Use current location</Text>
+                  {isLocating ? (
+                    <ActivityIndicator size="small" color={PRIMARY_GREEN} />
+                  ) : (
+                    <Ionicons name="locate" size={18} color={PRIMARY_GREEN} />
+                  )}
+                  <Text style={styles.gpsButtonText}>
+                    {isLocating ? "Fetching location..." : "Use current location"}
+                  </Text>
                 </TouchableOpacity>
               </View>
 

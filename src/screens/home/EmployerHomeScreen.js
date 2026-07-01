@@ -1,25 +1,64 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Image,
   Alert,
+  RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import colors from "../../constants/colors";
+import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 
 const PRIMARY_GREEN = "#22C55E";
 
 export default function EmployerHomeScreen({ navigation }) {
+  const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
+  const { metrics, submittedJobs, loading } = useSelector((state) => state.employer);
+console.log(profile,"ankit");
 
-  const businessName = profile?.businessName || "Grand Hyatt Dubai";
-  const contactName = profile?.contactName || "Sarah Jenkins";
+  useEffect(() => {
+    dispatch(fetchEmployerDashboard());
+  }, [dispatch]);
+
+  const onRefresh = React.useCallback(() => {
+    dispatch(fetchEmployerDashboard());
+  }, [dispatch]);
+
+  const businessName = profile?.business_name || profile?.businessName || profile?.company || "";
+  const contactName = profile?.contact_person_name || profile?.contactName || profile?.nominee_name || profile?.full_name || profile?.name || "";
+  const mobile_number = profile?.mobile_number || profile?.phone || profile?.contact_number || "";
+
+  // Helper to determine the company logo source URL
+  const getLogoSource = () => {
+    const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
+    if (!uri) return null;
+    if (
+      uri.startsWith("http://") ||
+      uri.startsWith("https://") ||
+      uri.startsWith("file://") ||
+      uri.startsWith("data:")
+    ) {
+      return { uri };
+    }
+    return { uri: `http://178.16.138.159${uri.startsWith("/") ? "" : "/"}${uri}` };
+  };
+
+  const logoSource = getLogoSource();
+
+  // Metrics directly from API metrics
+  const totalApplicants = metrics?.total_applicants ?? 0;
+  const shortlistedCount = metrics?.shortlisted ?? 0;
+  const rejectedCount = metrics?.rejected ?? 0;
+  const contactedCount = metrics?.contacted ?? 0;
+  const activeJobsCount = metrics?.active_jobs_count ?? 0;
+  const pendingJobsCount = metrics?.pending_jobs_count ?? 0;
 
   const handleSupportPress = () => {
     Alert.alert("Customer Support", "Connecting you to JobRito support team...");
@@ -30,13 +69,19 @@ export default function EmployerHomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image
-            source={{ uri: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop&q=60" }}
-            style={styles.avatar}
-          />
+          {logoSource ? (
+            <Image
+              source={logoSource}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <Ionicons name="business" size={24} color="#64748B" />
+            </View>
+          )}
           <View style={styles.headerInfo}>
-            <Text style={styles.businessName}>{businessName}</Text>
-            <Text style={styles.contactText}>Contact: {contactName}</Text>
+            <Text style={styles.businessName}>{contactName}</Text>
+            <Text style={styles.contactText}>{mobile_number}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -44,13 +89,19 @@ export default function EmployerHomeScreen({ navigation }) {
             <Ionicons name="notifications-outline" size={22} color="#1E293B" />
             <View style={styles.notifBadge} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate("Profile")}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate("Settings")}>
             <Ionicons name="settings-outline" size={22} color="#1E293B" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />
+        }
+      >
         <Text style={styles.sectionTitle}>Dashboard</Text>
 
         {/* Card: All Talent Applicants Received */}
@@ -58,7 +109,7 @@ export default function EmployerHomeScreen({ navigation }) {
           <View style={styles.statsCardHeader}>
             <View>
               <Text style={styles.statsCardLabel}>ALL TALENT APPLICANTS RECEIVED</Text>
-              <Text style={styles.statsCardValue}>28</Text>
+              <Text style={styles.statsCardValue}>{totalApplicants}</Text>
             </View>
             <View style={[styles.statsIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
               <Ionicons name="people" size={24} color={PRIMARY_GREEN} />
@@ -67,17 +118,17 @@ export default function EmployerHomeScreen({ navigation }) {
 
           <View style={styles.statsSubRow}>
             <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>12</Text>
+              <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>{shortlistedCount}</Text>
               <Text style={styles.subStatLabel}>Shortlisted</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#EF4444" }]}>8</Text>
+              <Text style={[styles.subStatValue, { color: "#EF4444" }]}>{rejectedCount}</Text>
               <Text style={styles.subStatLabel}>Rejected</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#1E293B" }]}>5</Text>
+              <Text style={[styles.subStatValue, { color: "#1E293B" }]}>{contactedCount}</Text>
               <Text style={styles.subStatLabel}>Contacted</Text>
             </View>
           </View>
@@ -91,7 +142,7 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
             <View>
               <Text style={styles.smallStatLabel}>Pending</Text>
-              <Text style={styles.smallStatValue}>1</Text>
+              <Text style={styles.smallStatValue}>{pendingJobsCount}</Text>
             </View>
           </View>
 
@@ -101,7 +152,7 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
             <View>
               <Text style={styles.smallStatLabel}>Active Jobs</Text>
-              <Text style={styles.smallStatValue}>4</Text>
+              <Text style={styles.smallStatValue}>{activeJobsCount}</Text>
             </View>
           </View>
         </View>
@@ -183,6 +234,11 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+  },
+  avatarPlaceholder: {
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerInfo: {
     flex: 1,

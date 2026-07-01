@@ -8,6 +8,7 @@ import AppButton from "../../components/buttons/AppButton";
 import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
 import { verifyOtp } from "../../redux/slices/authSlice";
+import { setStoredProfile, setStoredRole } from "../../services/storage";
 
 const OTP_LENGTH = 6;
 
@@ -29,6 +30,21 @@ export default function OtpScreen({ navigation, route }) {
     console.log("Verify OTP API Full Response:", result);
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
+      const user = result.payload?.user;
+      const hasCompletedOnboarding = result.payload?.hasCompletedOnboarding ?? false;
+      const isEmp = role?.toLowerCase() === "employer";
+      
+      const profileToStore = {
+        ...user,
+        name: user?.full_name || user?.name || "Guest User",
+        phone: user?.mobile_number || user?.phone,
+        role: role,
+        employerOnboardingCompleted: isEmp ? hasCompletedOnboarding : false,
+      };
+
+      await setStoredProfile(profileToStore);
+      await setStoredRole(role);
+
       const msg = result.payload?.message || "Successfully logged in.";
       Alert.alert("Login Status", msg);
       return;

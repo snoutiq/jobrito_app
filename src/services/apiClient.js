@@ -13,6 +13,10 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
+    if (config.skipAuth) {
+      return config;
+    }
+
     const token = await getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -42,12 +46,26 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-    console.error("[API Error Response]", {
-      url: error?.config?.url,
-      status: error?.response?.status || error?.status,
-      data: error?.response?.data,
-      message: error?.message,
-    });
+    if (error?.config?.skipAuth) {
+      const normalizedError = {
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong",
+        status: error?.status || error?.response?.status || 0,
+        raw: error,
+      };
+      return Promise.reject(normalizedError);
+    }
+
+    if (!error?.config?.url?.endsWith("/logout")) {
+      console.error("[API Error Response]", {
+        url: error?.config?.url,
+        status: error?.response?.status || error?.status,
+        data: error?.response?.data,
+        message: error?.message,
+      });
+    }
 
     if (error?.status === 401 || error?.response?.status === 401) {
       try {

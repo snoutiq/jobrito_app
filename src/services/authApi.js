@@ -1,7 +1,6 @@
 import apiClient from "./apiClient";
 import { setStoredProfile, setStoredRole, setToken } from "./storage";
 import { ROLES, ROLE_API_MAP } from "../constants/roles";
-import { API_BASE_URL } from "../constants/endpoints";
 
 const toFormUrlEncoded = (data) => {
   return Object.entries(data)
@@ -25,11 +24,13 @@ const toFormUrlEncoded = (data) => {
 export const requestOtp = async (phone, role) => {
   console.log('hii');
   console.log('Sending Data:', { phone, role, mappedRole: ROLE_API_MAP[role] });
+      console.log(apiClient.defaults.baseURL,"ankit2");
   try {
     const response = await apiClient.post("/login", toFormUrlEncoded({
       mobile_number: phone,
       login_role: ROLE_API_MAP[role],
     }), {
+      skipAuth: true,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
@@ -88,6 +89,7 @@ export const verifyOtp = async (phone, otp, role, language) => {
       otp,
       selected_language: language,
     }), {
+      skipAuth: true,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
@@ -146,19 +148,10 @@ export const updateBasicProfile = async (data) => {
 };
 
 export const logout = async () => {
-  console.log("DEBUG: authApi logout called!");
   try {
-    const logoutUrl = API_BASE_URL.replace(/\/api$/, "/logout");
-    console.log("DEBUG: authApi logoutUrl:", logoutUrl);
-    await fetch(logoutUrl, {
-      method: "GET",
-      headers: {
-        "Accept": "text/html",
-      },
-    });
+    const response = await apiClient.post("/logout");
+    return response.data;
   } catch (error) {
-    console.log("DEBUG: authApi logout error caught:", error.message);
-    // Ignore redirect / HTML parse errors silently
+    return { success: true, message: "Logged out (offline)" };
   }
-  return { success: true, message: "Logged out locally" };
 };
