@@ -11,7 +11,12 @@ export const requestOtp = createAsyncThunk(
   "auth/requestOtp",
   async ({ phone, role }, { rejectWithValue }) => {
     try {
-      return await requestOtpApi(phone, role);
+      const result = await requestOtpApi(phone, role);
+      const payload = result?.data || result;
+      if (payload?.token) {
+        await setToken(payload.token);
+      }
+      return result;
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to request OTP");
     }
@@ -30,12 +35,16 @@ export const verifyOtp = createAsyncThunk(
       const payload = result?.data || result;
       const token = payload?.token;
       const user = payload?.user || null;
+      const hasCompletedOnboarding = payload?.has_completed_onboarding ?? false;
+      const message = payload?.message || "Authenticated successfully.";
       if (token) {
         await setToken(token);
       } // NOTE: language selection is handled separately in onboarding/profile flows
       return {
         token,
         user,
+        hasCompletedOnboarding,
+        message,
       };
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to verify OTP");
@@ -106,7 +115,15 @@ const authSlice = createSlice({
       })
       .addCase(requestOtp.fulfilled, (state, action) => {
         state.loading = false;
-        state.otpRequested = true;
+        const payload = action.payload?.data || action.payload;
+        if (payload?.token) {
+          state.otpVerified = true;
+          state.token = payload.token;
+          state.user = payload.user || null;
+          state.hasCompletedOnboarding = payload.has_completed_onboarding ?? false;
+        } else {
+          state.otpRequested = true;
+        }
         state.phone = action.meta.arg.phone;
         state.role = action.meta.arg.role;
         state.success = true;
@@ -127,6 +144,7 @@ const authSlice = createSlice({
         state.role = action.meta.arg.role;
         state.token = action.payload?.token || null;
         state.user = action.payload?.user || null;
+        state.hasCompletedOnboarding = action.payload?.hasCompletedOnboarding ?? false;
         state.success = true;
       })
       .addCase(verifyOtp.rejected, (state, action) => {

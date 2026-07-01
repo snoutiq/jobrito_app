@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   box: {
     flex: 1,
-    minWidth: 40,
+    minWidth: 30,
     height: 44,
     borderRadius: 10,
     borderWidth: 1,

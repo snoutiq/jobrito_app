@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import colors from "../constants/colors";
 import { ROLES } from "../constants/roles";
 import HomeScreen from "../screens/home/HomeScreen";
@@ -25,6 +25,10 @@ import EmployerCompleteProfileScreen from "../screens/employer/EmployerCompleteP
 import MyJobsScreen from "../screens/employer/MyJobsScreen";
 import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
 import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
+import SplashScreen from "../screens/auth/SplashScreen";
+import { checkEmployerOnboarding } from "../services/employerApi";
+import { setProfileData } from "../redux/slices/userSlice";
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -308,6 +312,7 @@ function HomeOnlyStack() {
 
 export default function MainTabs() {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole
   );
@@ -321,12 +326,61 @@ export default function MainTabs() {
     (state) => state.user.profile?.employerOnboardingCompleted
   );
 
+  const [checkingStatus, setCheckingStatus] = useState(isEmployer);
+
+  useEffect(() => {
+    if (isEmployer) {
+      const checkStatus = async () => {
+        try {
+          const res = await checkEmployerOnboarding();
+          if (res && res.success && res.data) {
+            dispatch(
+              setProfileData({
+                ...res.data,
+                name: res.data.nominee_name || res.data.contact_person_name || "Employer",
+                company: res.data.business_name,
+                businessName: res.data.business_name,
+                segment: res.data.industry_segment,
+                location: res.data.business_location,
+                phone: res.data.business_mobile,
+                email: res.data.business_email,
+                preferredLanguage: res.data.preferred_language,
+                employerOnboardingCompleted: true,
+              })
+            );
+          } else {
+            dispatch(
+              setProfileData({
+                employerOnboardingCompleted: false,
+              })
+            );
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+        } finally {
+          setCheckingStatus(false);
+        }
+      };
+      checkStatus();
+    } else {
+      setCheckingStatus(false);
+    }
+  }, [isEmployer, dispatch]);
+
+  if (checkingStatus) {
+    return <SplashScreen />;
+  }
+
   if (isEmployer && !employerOnboardingCompleted) {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen
           name="EmployerCompleteProfile"
           component={EmployerCompleteProfileScreen}
+        />
+        <Stack.Screen
+          name="EmployerFirstJobPost"
+          component={PostJobScreen}
         />
       </Stack.Navigator>
     );

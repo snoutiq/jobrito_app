@@ -16,13 +16,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { submitCommunityJob } from "../../redux/slices/jobSlice";
+import { submitCommunityJob, storeEmployerJob } from "../../redux/slices/jobSlice";
+import { setProfileData } from "../../redux/slices/userSlice";
+import { setEmployerOnboardingCompleted } from "../../services/storage";
 import colors from "../../constants/colors";
 
 const PRIMARY_GREEN = "#22C55E";
 const { width } = Dimensions.get("window");
 
-export default function PostJobScreen({ navigation }) {
+export default function PostJobScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
@@ -41,6 +43,10 @@ export default function PostJobScreen({ navigation }) {
   const [openPositions, setOpenPositions] = useState("1");
   const [experience, setExperience] = useState("Mid-Level (3-5 years)");
   const [jobDescription, setJobDescription] = useState("");
+  const [jobType, setJobType] = useState("Full-time");
+  const [showJobTypeDropdown, setShowJobTypeDropdown] = useState(false);
+  const [requirements, setRequirements] = useState("");
+  const [benefits, setBenefits] = useState("");
 
   const [showExpDropdown, setShowExpDropdown] = useState(false);
   const [activeField, setActiveField] = useState(null);
@@ -54,6 +60,12 @@ export default function PostJobScreen({ navigation }) {
     "Entry Level (0-2 years)",
     "Mid-Level (3-5 years)",
     "Senior (5+ years)",
+  ];
+  const jobTypeOptions = [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Internship",
   ];
 
   // Autofill fields from user profile if available
@@ -113,23 +125,33 @@ export default function PostJobScreen({ navigation }) {
     }
 
     const jobData = {
-      employerName: businessName,
-      contactPerson: contactPerson,
-      contactNumber: contactPhone,
-      email: contactEmail,
-      jobTitle,
-      jobCategory: profile?.segment || "Hospitality & Service",
-      city: location,
-      experienceRequired: experience,
-      openings: openPositions,
+      title: jobTitle,
+      category: region.toLowerCase(),
+      company: businessName,
+      location: location,
       salary: salaryRange,
-      jobDescription,
-      region,
+      contact_info: contactEmail,
+      description: jobDescription,
+      job_type: jobType,
+      experience_range: experience,
+      open_positions: parseInt(openPositions, 10) || 1,
+      requirements: requirements,
+      benefits: benefits,
     };
 
     try {
-      const result = await dispatch(submitCommunityJob(jobData));
-      if (submitCommunityJob.fulfilled.match(result)) {
+      const result = await dispatch(storeEmployerJob(jobData));
+      if (storeEmployerJob.fulfilled.match(result)) {
+        if (route.params?.isOnboarding) {
+          // Mark onboarding as completed!
+          await setEmployerOnboardingCompleted();
+          dispatch(
+            setProfileData({
+              ...profile,
+              employerOnboardingCompleted: true,
+            })
+          );
+        }
         setStep(4);
       } else {
         Alert.alert(t("error"), t("postJob.submitFailed", "Failed to submit job posting. Please try again."));
@@ -155,6 +177,9 @@ export default function PostJobScreen({ navigation }) {
     setOpenPositions("1");
     setJobDescription("");
     setRegion("India");
+    setJobType("Full-time");
+    setRequirements("");
+    setBenefits("");
     setStep(1);
   };
 
@@ -517,6 +542,98 @@ export default function PostJobScreen({ navigation }) {
                       ))}
                     </View>
                   )}
+                </View>
+
+                {/* Job Type Dropdown */}
+                <View style={[styles.inputGroup, { marginTop: 14 }]}>
+                  <Text style={styles.inputLabel}>Job Type</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.inputWrapper,
+                      showJobTypeDropdown && styles.inputWrapperActive,
+                    ]}
+                    onPress={() => setShowJobTypeDropdown(!showJobTypeDropdown)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.textInput}>{jobType}</Text>
+                    <Ionicons
+                      name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
+                      size={18}
+                      color="#64748B"
+                    />
+                  </TouchableOpacity>
+
+                  {showJobTypeDropdown && (
+                    <View style={styles.dropdownContainer}>
+                      {jobTypeOptions.map((opt) => (
+                        <TouchableOpacity
+                          key={opt}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setJobType(opt);
+                            setShowJobTypeDropdown(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              jobType === opt && {
+                                color: PRIMARY_GREEN,
+                                fontWeight: "700",
+                              },
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                          {jobType === opt && (
+                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+
+                {/* Requirements */}
+                <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                  <Text style={styles.inputLabel}>Requirements (e.g. Food Safety, Menu Design)</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "requirements" && styles.inputWrapperActive,
+                    ]}
+                  >
+                    <TextInput
+                      value={requirements}
+                      onChangeText={setRequirements}
+                      placeholder="e.g. HACCP Certified, Food Safety, Menu Design"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveField("requirements")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
+                </View>
+
+                {/* Benefits */}
+                <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                  <Text style={styles.inputLabel}>Benefits (e.g. Free Meals, Accommodation)</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "benefits" && styles.inputWrapperActive,
+                    ]}
+                  >
+                    <TextInput
+                      value={benefits}
+                      onChangeText={setBenefits}
+                      placeholder="e.g. Free Staff Meals, Accommodation, Medical Cover"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveField("benefits")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
                 </View>
 
                 {/* Job Description */}

@@ -39,10 +39,20 @@ export default function LoginScreen({ navigation }) {
       }),
     );
 
+    console.log("DEBUG: handleRequestOtp result action:", result);
+    console.log("DEBUG: handleRequestOtp result.payload:", result?.payload);
+
     if (requestOtp.fulfilled.match(result)) {
-      navigation.navigate("Otp", {
-        phone: phone.trim(),
-      });
+      const payload = result.payload?.data || result.payload;
+      console.log("DEBUG: handleRequestOtp payload evaluated:", payload);
+      console.log("DEBUG: handleRequestOtp payload.token:", payload?.token);
+      if (payload?.token) {
+        Alert.alert("Login Status", payload.message || "Already logged in.");
+      } else {
+        navigation.navigate("Otp", {
+          phone: phone.trim(),
+        });
+      }
     }
   };
 

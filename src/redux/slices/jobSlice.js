@@ -6,6 +6,7 @@ import {
   applyToJob as applyToJobApi,
   getSavedJobs as getSavedJobsApi,
   toggleSaveJob as toggleSaveJobApi,
+  storeJob as storeJobApi,
 } from "../../services/jobApi";
 
 export const fetchFeedJobs = createAsyncThunk(
@@ -62,6 +63,18 @@ export const submitCommunityJob = createAsyncThunk(
     }
   }
 );
+
+export const storeEmployerJob = createAsyncThunk(
+  "job/storeEmployerJob",
+  async (data, { rejectWithValue }) => {
+    try {
+      return await storeJobApi(data);
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to store job");
+    }
+  }
+);
+
 
 export const applyJob = createAsyncThunk(
   "job/applyJob",
@@ -151,6 +164,20 @@ const jobSlice = createSlice({
         state.success = true;
       })
       .addCase(submitCommunityJob.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(storeEmployerJob.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(storeEmployerJob.fulfilled, (state, action) => {
+        state.loading = false;
+        state.communityJobResult = action.payload;
+        state.success = true;
+      })
+      .addCase(storeEmployerJob.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

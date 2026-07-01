@@ -9,7 +9,7 @@ import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
 import { verifyOtp } from "../../redux/slices/authSlice";
 
-const OTP_LENGTH = 4;
+const OTP_LENGTH = 6;
 
 export default function OtpScreen({ navigation, route }) {
   const { t, i18n } = useTranslation();
@@ -26,8 +26,11 @@ export default function OtpScreen({ navigation, route }) {
     }
 
     const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role, language: i18n.language }));
+    console.log("Verify OTP API Full Response:", result);
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
+      const msg = result.payload?.message || "Successfully logged in.";
+      Alert.alert("Login Status", msg);
       return;
     }
 

@@ -57,3 +57,9 @@ export const getSavedJobs = async () => {
     return { success: false, jobs: [], error: error.message };
   }
 };
+
+export const storeJob = async (jobData) => {
+  const response = await apiClient.post("/jobs/store", jobData);
+  return response.data;
+};
+

@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import { Platform } from "react-native";
 
 export const updateLanguagePreference = async (language) => {
   try {
@@ -80,16 +81,53 @@ export const getProfile = async () => {
 
 export const updateProfile = async (data) => {
   try {
-    const response = await apiClient.post("/profile/personal", {
-      full_name: data.full_name,
-      email: data.email,
-      profile_photo_path: data.profile_photo_path,
-      city: data.city,
-      experience_range: data.experience_range,
-      preferred_role: data.preferred_role,
-      current_employer: data.current_employer,
-      skills: data.skills,
-    });
+    let payload;
+    let headers = {};
+
+    if (data.profile_photo_path && data.profile_photo_path.startsWith("file://")) {
+      payload = new FormData();
+      payload.append("full_name", data.full_name || "");
+      payload.append("email", data.email || "");
+      payload.append("city", data.city || "");
+      payload.append("experience_range", data.experience_range || "");
+      payload.append("preferred_role", data.preferred_role || "");
+      payload.append("current_employer", data.current_employer || "");
+      payload.append("skills", data.skills || "");
+      if (data.gender) payload.append("gender", data.gender);
+      if (data.job_type) payload.append("job_type", data.job_type);
+      if (data.location_preference) payload.append("location_preference", data.location_preference);
+      
+      const uri = data.profile_photo_path;
+      const uriParts = uri.split("/");
+      const fileName = uriParts[uriParts.length - 1];
+      const fileType = fileName.split(".").pop();
+
+      payload.append("profile_photo_path", {
+        uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+        name: fileName,
+        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+      });
+      
+      headers = {
+        "Content-Type": "multipart/form-data",
+      };
+    } else {
+      payload = {
+        full_name: data.full_name,
+        email: data.email,
+        profile_photo_path: data.profile_photo_path,
+        city: data.city,
+        experience_range: data.experience_range,
+        preferred_role: data.preferred_role,
+        current_employer: data.current_employer,
+        skills: data.skills,
+        gender: data.gender,
+        job_type: data.job_type,
+        location_preference: data.location_preference,
+      };
+    }
+
+    const response = await apiClient.post("/profile/personal", payload, { headers });
     const u = response.data?.user || response.data?.profile;
     if (u) {
       const profile = normalizeProfile(u);

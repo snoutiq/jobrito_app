@@ -97,3 +97,23 @@ export const updateApplicantStatus = async (applicationId, status) => {
     };
   }
 };
+
+export const checkEmployerOnboarding = async () => {
+  try {
+    const response = await apiClient.get("/employer/onboarding/detail");
+    return response.data;
+  } catch (error) {
+    console.warn("Failed to check employer onboarding:", error.message);
+    return { success: false, data: null };
+  }
+};
+
+export const saveEmployerOnboarding = async (formData) => {
+  const response = await apiClient.post("/employer/onboarding/save", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+

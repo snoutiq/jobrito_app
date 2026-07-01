@@ -333,5 +333,8 @@
     "successMessage": "Your job has been submitted for admin review. Once approved, it will be published in the community feed and notifications will be sent to matched staff.",
     "postNew": "Post a new job",
     "goDashboard": "Go to Dashboard"
-  }
+  },
+  "discardTitle": "Discard changes?",
+  "discardMessage": "Are you sure you want to discard your changes and leave this page?",
+  "discardLeave": "Leave"
 }

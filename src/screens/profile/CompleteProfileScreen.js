@@ -28,7 +28,7 @@ export default function CompleteProfileScreen({ navigation }) {
   const [step, setStep] = useState(1);
 
   // Profile Form States
-  const [photo, setPhoto] = useState("https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=120&auto=format&fit=crop");
+  const [photo, setPhoto] = useState(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("male");
@@ -65,6 +65,35 @@ export default function CompleteProfileScreen({ navigation }) {
       if (profile.location_preference) setLocationPreference(profile.location_preference);
     }
   }, [profile]);
+
+  // Handle back/leave confirmation alert
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      // If we are at step 6 (Success screen) or we already confirmed leaving, don't show the alert
+      if (step === 6) {
+        return;
+      }
+
+      // Prevent default behavior of leaving the screen immediately
+      e.preventDefault();
+
+      // Show alert confirmation
+      Alert.alert(
+        t("discardTitle", "Discard changes?"),
+        t("discardMessage", "Are you sure you want to discard your changes and leave this page?"),
+        [
+          { text: t("cancel"), style: "cancel", onPress: () => {} },
+          {
+            text: t("discardLeave", "Leave"),
+            style: "destructive",
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, step, t]);
 
   const next = () => {
     if (step < 6) setStep(step + 1);
@@ -612,6 +641,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 16,
+    marginTop: 16,
   },
   stepText: {
     fontWeight: "600",
@@ -625,6 +655,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
     marginHorizontal: 16,
     borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 16,
   },
   progressFill: {
     height: 6,

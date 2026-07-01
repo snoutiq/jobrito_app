@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,8 @@ import { useDispatch } from "react-redux";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import colors from "../../constants/colors";
+import * as ImagePicker from "expo-image-picker";
+import { saveEmployerOnboarding } from "../../services/employerApi";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -145,36 +148,162 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
     }));
   };
 
-  const simulateLogoUpload = () => {
-    setLogoUploaded(true);
-    setLogoUri("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&auto=format&fit=crop&q=60");
-    Alert.alert(t("success"), t("employerOnboarding.logoSuccess"));
+  const handleUploadPhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Sorry, we need camera roll permissions to upload a photo."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setLogoUri(result.assets[0].uri);
+        setLogoUploaded(true);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to select photo.");
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Sorry, we need camera permissions to take a photo."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setLogoUri(result.assets[0].uri);
+        setLogoUploaded(true);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open camera.");
+    }
+  };
+
+  const handleLogoUpload = () => {
+    Alert.alert(
+      "Upload Company Logo",
+      "Choose a source for your logo image",
+      [
+        { text: "Camera", onPress: handleTakePhoto },
+        { text: "Gallery", onPress: handleUploadPhoto },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
   };
 
   const finishOnboarding = async () => {
-    const profilePayload = {
-      name: managerName || contactName || "Employer User",
-      businessName: businessName,
-      segment: industrySegment,
-      location: businessLocation,
-      locations: locations.map(l => `${l.address}, ${l.cityPostcode}`),
-      contactName,
-      contactPhone,
-      contactEmail,
-      preferredLanguage,
-      role: "employer",
-      employerOnboardingCompleted: true,
-    };
+    try {
+      const payload = {
+        business_name: businessName,
+        industry_segment: industrySegment,
+        business_location: businessLocation,
+        contact_person_name: contactName,
+        business_mobile: contactPhone,
+        business_email: contactEmail,
+        preferred_language: preferredLanguage,
+        operational_locations: locations.map(l => `${l.address}, ${l.cityPostcode}`),
+        nominee_name: managerName,
+        nominee_relationship: managerRelationship,
+        nominee_mobile: managerPhone,
+        company_logo: logoUri,
+      };
 
-    // Update Redux state
-    dispatch(setProfileData(profilePayload));
+      const formData = new FormData();
+      formData.append("business_name", payload.business_name);
+      formData.append("industry_segment", payload.industry_segment);
+      formData.append("business_location", payload.business_location);
+      formData.append("contact_person_name", payload.contact_person_name);
+      formData.append("business_mobile", payload.business_mobile);
+      formData.append("business_email", payload.business_email);
+      formData.append("preferred_language", payload.preferred_language);
+      
+      if (Array.isArray(payload.operational_locations)) {
+        payload.operational_locations.forEach((loc) => {
+          formData.append("operational_locations[]", loc);
+        });
+      }
+      
+      formData.append("nominee_name", payload.nominee_name || "");
+      formData.append("nominee_relationship", payload.nominee_relationship || "");
+      formData.append("nominee_mobile", payload.nominee_mobile || "");
 
-    // Save to AsyncStorage
-    await setEmployerOnboardingCompleted();
-    await setStoredProfile(profilePayload);
+      if (payload.company_logo) {
+        const uri = payload.company_logo;
+        const uriParts = uri.split("/");
+        const fileName = uriParts[uriParts.length - 1];
+        const fileType = fileName.split(".").pop();
+        
+        formData.append("company_logo", {
+          uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+          name: fileName,
+          type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
+        });
+      }
 
-    Alert.alert(t("success"), t("employerOnboarding.profileSuccess"));
+      // Call API
+      await saveEmployerOnboarding(formData);
+      
+      const profileReduxData = {
+        name: managerName || contactName || "Employer User",
+        businessName: businessName,
+        company: businessName,
+        segment: industrySegment,
+        location: businessLocation,
+        locations: payload.operational_locations,
+        contactName,
+        contactPhone,
+        contactEmail,
+        preferredLanguage,
+        role: "employer",
+        employerOnboardingCompleted: false, // Wait for first job post
+      };
+
+      // Update Redux state
+      dispatch(setProfileData(profileReduxData));
+      
+      // Save locally
+      await setStoredProfile(profileReduxData);
+
+      Alert.alert(
+        t("success"),
+        "Profile saved! Now, let's post your first job to complete the onboarding.",
+        [
+          {
+            text: "Post First Job",
+            onPress: () => {
+              navigation.navigate("EmployerFirstJobPost", { isOnboarding: true });
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Failed to save employer onboarding:", error);
+      Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
+    }
   };
+
 
   const progress = step === 5 ? 100 : step * 20;
 
@@ -505,10 +634,18 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
               <TouchableOpacity
                 style={styles.logoUploadBox}
                 activeOpacity={0.7}
-                onPress={simulateLogoUpload}
+                onPress={handleLogoUpload}
               >
                 <View style={styles.logoUploadInner}>
-                  <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
+                  {logoUri ? (
+                    <Image
+                      source={{ uri: logoUri }}
+                      style={{ width: 80, height: 80, borderRadius: 8, marginBottom: 8 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
+                  )}
                   <Text style={styles.logoUploadText}>{logoUploaded ? "Change Logo" : "Upload"}</Text>
                 </View>
               </TouchableOpacity>
