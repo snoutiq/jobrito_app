@@ -129,7 +129,7 @@ export default function ChefHomeScreen({ navigation }) {
             <Text style={styles.avatarText}>J</Text>
           </View>
           <View>
-            <Text style={styles.communityName}>Jobrito Community</Text>
+            <Text style={styles.communityName}>Jobrito</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   communityName: {
-    fontSize: 15,
-    fontWeight: "750",
+    fontSize: 18,
+    fontWeight: "900",
     color: "#0F172A",
   },
   memberCount: {
