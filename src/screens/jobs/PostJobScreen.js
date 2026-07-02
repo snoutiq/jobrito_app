@@ -338,7 +338,7 @@ export default function PostJobScreen({ navigation, route }) {
               </View>
 
               {/* Floating Help Button */}
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.fab}
                 onPress={() =>
                   Alert.alert("Help", t("postJob.supportMessage", "Need assistance? Please contact support@jobconnect.com"))
@@ -346,7 +346,7 @@ export default function PostJobScreen({ navigation, route }) {
                 activeOpacity={0.8}
               >
                 <Ionicons name="help-circle-outline" size={26} color="#FFFFFF" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
 
               {/* Footer actions */}
               <View style={[styles.footerContainer, { marginTop: 40 }]}>
@@ -880,7 +880,7 @@ export default function PostJobScreen({ navigation, route }) {
                   activeOpacity={0.7}
                   onPress={() => {
                     handleReset();
-                    navigation.navigate("Home");
+                    navigation.popToTop();
                   }}
                 >
                   <Text style={styles.dashboardLinkText}>{t("postJob.goDashboard")}</Text>
