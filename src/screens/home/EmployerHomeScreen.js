@@ -80,8 +80,8 @@ console.log(profile,"ankit");
             </View>
           )}
           <View style={styles.headerInfo}>
-            <Text style={styles.businessName}>{contactName}</Text>
-            <Text style={styles.contactText}>{mobile_number}</Text>
+            <Text style={styles.businessName}>{businessName}</Text>
+            <Text style={styles.contactText}>Contact: {contactName}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -105,7 +105,11 @@ console.log(profile,"ankit");
         <Text style={styles.sectionTitle}>Dashboard</Text>
 
         {/* Card: All Talent Applicants Received */}
-        <View style={styles.mainStatsCard}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("MyJobs")}
+          style={styles.mainStatsCard}
+        >
           <View style={styles.statsCardHeader}>
             <View>
               <Text style={styles.statsCardLabel}>ALL TALENT APPLICANTS RECEIVED</Text>
@@ -132,7 +136,7 @@ console.log(profile,"ankit");
               <Text style={styles.subStatLabel}>Contacted</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Row of small stats */}
         <View style={styles.smallStatsRow}>

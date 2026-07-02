@@ -19,10 +19,16 @@ const palette = {
 };
 
 export default function StatusBadge({ status }) {
-  const style = palette[status] || { bg: "#E2E8F0", fg: colors.text };
+  const norm = String(status || "").toLowerCase().trim();
+  const matchKey = Object.keys(palette).find((k) => k.toLowerCase() === norm);
+  const style = (matchKey && palette[matchKey]) || { bg: "#E2E8F0", fg: colors.text };
+  
+  // Display the status capitalized nicely
+  const displayStatus = matchKey || status || "";
+
   return (
     <View style={[styles.container, { backgroundColor: style.bg }]}>
-      <Text style={[styles.text, { color: style.fg }]}>{status}</Text>
+      <Text style={[styles.text, { color: style.fg }]}>{displayStatus}</Text>
     </View>
   );
 }

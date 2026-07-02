@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,92 +9,68 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import colors from "../../constants/colors";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployerDashboard, closeEmployerJob } from "../../redux/slices/employerSlice";
 
 const PRIMARY_GREEN = "#22C55E";
 
+const normalizeStatus = (status) => String(status || "").toLowerCase();
+
 export default function MyJobsScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState("active"); // 'active' | 'pending' | 'closed'
+  const dispatch = useDispatch();
+  const submittedJobs = useSelector((state) => state.employer.submittedJobs);
+  const [activeTab, setActiveTab] = useState("active");
+  const [localJobs, setLocalJobs] = useState([]);
 
-  // Mock Jobs Data
-  const [activeJobs, setActiveJobs] = useState([
-    {
-      id: "job1",
-      title: "Senior Head Chef",
-      location: "Mumbai, India",
-      date: "12 June 2026",
-      openings: 5,
-      type: "Full-time",
-      applicationsCount: 24,
-      stats: { pending: 3, shortlist: 8, contact: 6, rejected: 7 },
-    },
-    {
-      id: "job2",
-      title: "Restaurant Manager",
-      location: "Mumbai, India",
-      date: "12 June 2026",
-      openings: 1,
-      type: "Full-time",
-      applicationsCount: 4,
-      stats: { pending: 3, shortlist: 1, contact: 0, rejected: 0 },
-    },
-    {
-      id: "job3",
-      title: "Senior Barista",
-      location: "Delhi, India",
-      date: "15 June 2026",
-      openings: 2,
-      type: "Full-time",
-      applicationsCount: 12,
-      stats: { pending: 2, shortlist: 5, contact: 3, rejected: 2 },
-    },
-    {
-      id: "job4",
-      title: "Sous Chef",
-      location: "Mumbai, India",
-      date: "18 June 2026",
-      openings: 1,
-      type: "Full-time",
-      applicationsCount: 6,
-      stats: { pending: 1, shortlist: 3, contact: 1, rejected: 1 },
-    },
-  ]);
+  useEffect(() => {
+    if (!submittedJobs?.length) {
+      dispatch(fetchEmployerDashboard());
+      return;
+    }
 
-  const [pendingJobs, setPendingJobs] = useState([
-    {
-      id: "job5",
-      title: "Line Cook",
-      location: "Pune, India",
-      date: "24 June 2026",
-      openings: 3,
-      type: "Full-time",
-      applicationsCount: 0,
-      stats: { pending: 0, shortlist: 0, contact: 0, rejected: 0 },
-    },
-  ]);
+    setLocalJobs(submittedJobs);
+  }, [dispatch, submittedJobs]);
 
-  const [closedJobs, setClosedJobs] = useState([]);
+  const activeJobs = localJobs.filter((job) => {
+    const status = normalizeStatus(job.status);
+    return status === "active" || status === "approved";
+  });
+
+  const pendingJobs = localJobs.filter((job) => normalizeStatus(job.status) === "pending");
+  const closedJobs = localJobs.filter((job) => normalizeStatus(job.status) === "closed");
+
+  const getApplicationsCount = (job) => job?.applicants?.length || job?.applicationsCount || 0;
+
+  const getJobStats = (job) => {
+    const applicants = job?.applicants || [];
+    const countByStatus = (status) =>
+      applicants.filter((applicant) => normalizeStatus(applicant.status) === status).length;
+
+    return {
+      pending: countByStatus("new") || countByStatus("pending"),
+      shortlist: countByStatus("shortlisted"),
+      contact: countByStatus("contacted"),
+      rejected: countByStatus("rejected"),
+    };
+  };
 
   const closeJob = (jobId) => {
-    Alert.alert(
-      "Close Job",
-      "Are you sure you want to close this job posting?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Close Job",
-          style: "destructive",
-          onPress: () => {
-            const jobToClose = activeJobs.find((j) => j.id === jobId);
-            if (jobToClose) {
-              setActiveJobs(activeJobs.filter((j) => j.id !== jobId));
-              setClosedJobs([...closedJobs, jobToClose]);
-              Alert.alert("Success", "Job has been closed.");
-            }
-          },
+    Alert.alert("Close Job", "Are you sure you want to close this job posting?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Close Job",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await dispatch(closeEmployerJob(jobId)).unwrap();
+            Alert.alert("Success", "Job has been closed.");
+            dispatch(fetchEmployerDashboard());
+          } catch (err) {
+            Alert.alert("Error", err || "Failed to close the job.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const deletePendingJob = (jobId) => {
@@ -104,15 +80,25 @@ export default function MyJobsScreen({ navigation }) {
         text: "Delete",
         style: "destructive",
         onPress: () => {
-          setPendingJobs(pendingJobs.filter((j) => j.id !== jobId));
+          setLocalJobs((current) =>
+            current.filter((job) => String(job.id) !== String(jobId)),
+          );
         },
       },
     ]);
   };
 
+  const reopenJob = (jobId) => {
+    setLocalJobs((current) =>
+      current.map((job) =>
+        String(job.id) === String(jobId) ? { ...job, status: "active" } : job,
+      ),
+    );
+    Alert.alert("Success", "Job has been reopened!");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -122,7 +108,6 @@ export default function MyJobsScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === "active" && styles.tabButtonActive]}
@@ -152,92 +137,106 @@ export default function MyJobsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Jobs List */}
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {activeTab === "active" && (
           <>
             {activeJobs.length === 0 ? (
               <EmptyState message="No active job postings." />
             ) : (
-              activeJobs.map((job) => (
-                <View key={job.id} style={styles.jobCard}>
-                  {/* Job Header */}
-                  <View style={styles.jobHeader}>
-                    <View style={styles.jobTitleWrapper}>
-                      <View style={styles.iconContainer}>
-                        <Ionicons name="restaurant-outline" size={22} color={PRIMARY_GREEN} />
+              activeJobs.map((job) => {
+                const stats = getJobStats(job);
+                return (
+                  <View key={String(job.id)} style={styles.jobCard}>
+                    <View style={styles.jobHeader}>
+                      <View style={styles.jobTitleWrapper}>
+                        <View style={styles.iconContainer}>
+                          <Ionicons name="restaurant-outline" size={22} color={PRIMARY_GREEN} />
+                        </View>
+                        <View>
+                          <Text style={styles.jobTitleText}>{job.title}</Text>
+                          <Text style={styles.jobMetaText}>
+                            <Ionicons name="location-outline" size={13} color="#64748B" />{" "}
+                            {job.location} • {job.date_posted || job.date}
+                          </Text>
+                        </View>
                       </View>
-                      <View>
-                        <Text style={styles.jobTitleText}>{job.title}</Text>
-                        <Text style={styles.jobMetaText}>
-                          <Ionicons name="location-outline" size={13} color="#64748B" /> {job.location} • {job.date}
+                      <View style={styles.statusBadge}>
+                        <Text style={styles.statusBadgeText}>
+                          {normalizeStatus(job.status).toUpperCase() || "ACTIVE"}
                         </Text>
                       </View>
                     </View>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusBadgeText}>ACTIVE</Text>
+
+                    <View style={styles.detailsRow}>
+                      <Text style={styles.detailsText}>
+                        <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
+                        {job.openings || 0} Openings
+                      </Text>
+                      <Text style={styles.detailsText}>
+                        <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
+                        {job.type || "Full-time"}
+                      </Text>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <View style={styles.progressSection}>
+                      <Text style={styles.progressLabel}>
+                        HIRING PROGRESS ({getApplicationsCount(job)} TALENT APPLICATIONS RECEIVED)
+                      </Text>
+                      <View style={styles.statsGrid}>
+                        <View style={styles.statBox}>
+                          <Text style={[styles.statValue, { color: "#3B82F6" }]}>
+                            {stats.pending}
+                          </Text>
+                          <Text style={styles.statLabel}>Pending</Text>
+                        </View>
+                        <View style={styles.statBox}>
+                          <Text style={[styles.statValue, { color: PRIMARY_GREEN }]}>
+                            {stats.shortlist}
+                          </Text>
+                          <Text style={styles.statLabel}>Shortlist</Text>
+                        </View>
+                        <View style={styles.statBox}>
+                          <Text style={[styles.statValue, { color: "#F59E0B" }]}>
+                            {stats.contact}
+                          </Text>
+                          <Text style={styles.statLabel}>Contact</Text>
+                        </View>
+                        <View style={styles.statBox}>
+                          <Text style={[styles.statValue, { color: "#EF4444" }]}>
+                            {stats.rejected}
+                          </Text>
+                          <Text style={styles.statLabel}>Rejected</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.actionsRow}>
+                      <TouchableOpacity
+                        style={styles.viewTalentBtn}
+                        activeOpacity={0.8}
+                        onPress={() =>
+                          navigation.navigate("ApplicantList", {
+                            jobId: job.id,
+                            jobTitle: job.title,
+                          })
+                        }
+                      >
+                        <Text style={styles.viewTalentBtnText}>View Talent</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.closeJobBtn}
+                        activeOpacity={0.8}
+                        onPress={() => closeJob(job.id)}
+                      >
+                        <Text style={styles.closeJobBtnText}>Close Job</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
-
-                  {/* Openings & Type Row */}
-                  <View style={styles.detailsRow}>
-                    <Text style={styles.detailsText}>
-                      <Ionicons name="people-outline" size={14} color="#64748B" /> {job.openings} Openings
-                    </Text>
-                    <Text style={styles.detailsText}>
-                      <Ionicons name="briefcase-outline" size={14} color="#64748B" /> {job.type}
-                    </Text>
-                  </View>
-
-                  <View style={styles.divider} />
-
-                  {/* Hiring Progress */}
-                  <View style={styles.progressSection}>
-                    <Text style={styles.progressLabel}>
-                      HIRING PROGRESS ({job.applicationsCount} TALENT APPLICATIONS RECEIVED)
-                    </Text>
-                    <View style={styles.statsGrid}>
-                      <View style={styles.statBox}>
-                        <Text style={[styles.statValue, { color: "#3B82F6" }]}>{job.stats.pending}</Text>
-                        <Text style={styles.statLabel}>Pending</Text>
-                      </View>
-                      <View style={styles.statBox}>
-                        <Text style={[styles.statValue, { color: PRIMARY_GREEN }]}>{job.stats.shortlist}</Text>
-                        <Text style={styles.statLabel}>Shortlist</Text>
-                      </View>
-                      <View style={styles.statBox}>
-                        <Text style={[styles.statValue, { color: "#F59E0B" }]}>{job.stats.contact}</Text>
-                        <Text style={styles.statLabel}>Contact</Text>
-                      </View>
-                      <View style={styles.statBox}>
-                        <Text style={[styles.statValue, { color: "#EF4444" }]}>{job.stats.rejected}</Text>
-                        <Text style={styles.statLabel}>Rejected</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Action Buttons */}
-                  <View style={styles.actionsRow}>
-                    <TouchableOpacity
-                      style={styles.viewTalentBtn}
-                      activeOpacity={0.8}
-                      onPress={() =>
-                        navigation.navigate("ApplicantList", { jobId: job.id, jobTitle: job.title })
-                      }
-                    >
-                      <Text style={styles.viewTalentBtnText}>View Talent</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.closeJobBtn}
-                      activeOpacity={0.8}
-                      onPress={() => closeJob(job.id)}
-                    >
-                      <Text style={styles.closeJobBtnText}>Close Job</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
+                );
+              })
             )}
           </>
         )}
@@ -248,7 +247,7 @@ export default function MyJobsScreen({ navigation }) {
               <EmptyState message="No pending job postings." />
             ) : (
               pendingJobs.map((job) => (
-                <View key={job.id} style={styles.jobCard}>
+                <View key={String(job.id)} style={styles.jobCard}>
                   <View style={styles.jobHeader}>
                     <View style={styles.jobTitleWrapper}>
                       <View style={[styles.iconContainer, { backgroundColor: "#FEF3C7" }]}>
@@ -257,7 +256,8 @@ export default function MyJobsScreen({ navigation }) {
                       <View>
                         <Text style={styles.jobTitleText}>{job.title}</Text>
                         <Text style={styles.jobMetaText}>
-                          <Ionicons name="location-outline" size={13} color="#64748B" /> {job.location} • {job.date}
+                          <Ionicons name="location-outline" size={13} color="#64748B" />{" "}
+                          {job.location} • {job.date_posted || job.date}
                         </Text>
                       </View>
                     </View>
@@ -268,17 +268,24 @@ export default function MyJobsScreen({ navigation }) {
 
                   <View style={styles.detailsRow}>
                     <Text style={styles.detailsText}>
-                      <Ionicons name="people-outline" size={14} color="#64748B" /> {job.openings} Openings
+                      <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
+                      {job.openings || 0} Openings
                     </Text>
                     <Text style={styles.detailsText}>
-                      <Ionicons name="briefcase-outline" size={14} color="#64748B" /> {job.type}
+                      <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
+                      {job.type || "Full-time"}
                     </Text>
                   </View>
 
                   <View style={styles.divider} />
 
                   <View style={styles.pendingInfoCard}>
-                    <Ionicons name="information-circle-outline" size={18} color="#D97706" style={{ marginRight: 8 }} />
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={18}
+                      color="#D97706"
+                      style={{ marginRight: 8 }}
+                    />
                     <Text style={styles.pendingInfoText}>
                       This job posting is currently being reviewed by admin and will be published in feed shortly.
                     </Text>
@@ -305,7 +312,7 @@ export default function MyJobsScreen({ navigation }) {
               <EmptyState message="No closed job postings." />
             ) : (
               closedJobs.map((job) => (
-                <View key={job.id} style={styles.jobCard}>
+                <View key={String(job.id)} style={styles.jobCard}>
                   <View style={styles.jobHeader}>
                     <View style={styles.jobTitleWrapper}>
                       <View style={[styles.iconContainer, { backgroundColor: "#F1F5F9" }]}>
@@ -314,7 +321,8 @@ export default function MyJobsScreen({ navigation }) {
                       <View>
                         <Text style={styles.jobTitleText}>{job.title}</Text>
                         <Text style={styles.jobMetaText}>
-                          <Ionicons name="location-outline" size={13} color="#64748B" /> {job.location} • {job.date}
+                          <Ionicons name="location-outline" size={13} color="#64748B" />{" "}
+                          {job.location} • {job.date_posted || job.date}
                         </Text>
                       </View>
                     </View>
@@ -325,10 +333,12 @@ export default function MyJobsScreen({ navigation }) {
 
                   <View style={styles.detailsRow}>
                     <Text style={styles.detailsText}>
-                      <Ionicons name="people-outline" size={14} color="#64748B" /> {job.openings} Openings
+                      <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
+                      {job.openings || 0} Openings
                     </Text>
                     <Text style={styles.detailsText}>
-                      <Ionicons name="briefcase-outline" size={14} color="#64748B" /> {job.type}
+                      <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
+                      {job.type || "Full-time"}
                     </Text>
                   </View>
 
@@ -338,21 +348,19 @@ export default function MyJobsScreen({ navigation }) {
                     <TouchableOpacity
                       style={[styles.viewTalentBtn, { flex: 1, backgroundColor: "#E2E8F0" }]}
                       activeOpacity={0.8}
-                      onPress={() => {
+                      onPress={() =>
                         Alert.alert("Reopen Job", "Would you like to reopen this job posting?", [
                           { text: "Cancel", style: "cancel" },
                           {
                             text: "Reopen",
-                            onPress: () => {
-                              setClosedJobs(closedJobs.filter((j) => j.id !== job.id));
-                              setActiveJobs([...activeJobs, job]);
-                              Alert.alert("Success", "Job has been reopened!");
-                            },
+                            onPress: () => reopenJob(job.id),
                           },
-                        ]);
-                      }}
+                        ])
+                      }
                     >
-                      <Text style={[styles.viewTalentBtnText, { color: "#475569" }]}>Reopen Job</Text>
+                      <Text style={[styles.viewTalentBtnText, { color: "#475569" }]}>
+                        Reopen Job
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -362,7 +370,6 @@ export default function MyJobsScreen({ navigation }) {
         )}
       </ScrollView>
 
-      {/* Floating Action Button */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
         activeOpacity={0.8}

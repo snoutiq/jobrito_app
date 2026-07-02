@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getApplicants as getApplicantsApi, getEmployerDashboard as getEmployerDashboardApi, updateApplicantStatus as updateApplicantStatusApi } from "../../services/employerApi";
+import { getApplicants as getApplicantsApi, getEmployerDashboard as getEmployerDashboardApi, updateApplicantStatus as updateApplicantStatusApi, closeJob as closeJobApi } from "../../services/employerApi";
 
 export const fetchEmployerDashboard = createAsyncThunk(
   "employer/fetchEmployerDashboard",
@@ -30,6 +30,17 @@ export const updateApplicantStatus = createAsyncThunk(
       return await updateApplicantStatusApi(applicationId, status);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to update applicant status");
+    }
+  }
+);
+
+export const closeEmployerJob = createAsyncThunk(
+  "employer/closeEmployerJob",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      return await closeJobApi(jobId);
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to close job");
     }
   }
 );
@@ -103,6 +114,19 @@ const employerSlice = createSlice({
         state.success = true;
       })
       .addCase(updateApplicantStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(closeEmployerJob.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(closeEmployerJob.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(closeEmployerJob.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

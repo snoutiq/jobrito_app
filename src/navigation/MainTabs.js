@@ -14,6 +14,7 @@ import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
+import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
 import ChefProfileScreen from "../screens/chef/ChefProfileScreen";
 import RoleSwitcherScreen from "../screens/profile/RoleSwitcherScreen";
 import LanguageScreen from "../screens/profile/LanguageScreen";
@@ -251,7 +252,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="ApplicantList"
         component={ApplicantListScreen}
-        options={{ title: t("applicantList") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ChefProfile"
@@ -391,7 +392,7 @@ export default function MainTabs() {
       <Stack.Screen
         name="ApplicantList"
         component={ApplicantListScreen}
-        options={{ title: t("applicantList") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ChefProfile"
@@ -462,6 +463,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ApplicantDetail"
+        component={ApplicantDetailScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
