@@ -11,12 +11,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployerDashboard, closeEmployerJob } from "../../redux/slices/employerSlice";
+import { useTranslation } from "react-i18next";
 
 const PRIMARY_GREEN = "#22C55E";
 
 const normalizeStatus = (status) => String(status || "").toLowerCase();
 
 export default function MyJobsScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const submittedJobs = useSelector((state) => state.employer.submittedJobs);
   const [activeTab, setActiveTab] = useState("active");
@@ -104,7 +106,7 @@ export default function MyJobsScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>All Jobs</Text>
+          <Text style={styles.headerTitle}>{t("allJobs")}</Text>
         </View>
       </View>
 
@@ -114,7 +116,7 @@ export default function MyJobsScreen({ navigation }) {
           onPress={() => setActiveTab("active")}
         >
           <Text style={[styles.tabText, activeTab === "active" && styles.tabTextActive]}>
-            Active ({activeJobs.length})
+            {t("active")} ({activeJobs.length})
           </Text>
         </TouchableOpacity>
 
@@ -123,7 +125,7 @@ export default function MyJobsScreen({ navigation }) {
           onPress={() => setActiveTab("pending")}
         >
           <Text style={[styles.tabText, activeTab === "pending" && styles.tabTextActive]}>
-            Pending ({pendingJobs.length})
+            {t("pending")} ({pendingJobs.length})
           </Text>
         </TouchableOpacity>
 
@@ -132,7 +134,7 @@ export default function MyJobsScreen({ navigation }) {
           onPress={() => setActiveTab("closed")}
         >
           <Text style={[styles.tabText, activeTab === "closed" && styles.tabTextActive]}>
-            Closed ({closedJobs.length})
+            {t("closed")} ({closedJobs.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -141,7 +143,7 @@ export default function MyJobsScreen({ navigation }) {
         {activeTab === "active" && (
           <>
             {activeJobs.length === 0 ? (
-              <EmptyState message="No active job postings." />
+              <EmptyState message={t("noActiveJobs")} />
             ) : (
               activeJobs.map((job) => {
                 const stats = getJobStats(job);
@@ -170,7 +172,7 @@ export default function MyJobsScreen({ navigation }) {
                     <View style={styles.detailsRow}>
                       <Text style={styles.detailsText}>
                         <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
-                        {job.openings || 0} Openings
+                        {t("openings_count", { count: job.openings || 0 })}
                       </Text>
                       <Text style={styles.detailsText}>
                         <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
@@ -182,32 +184,32 @@ export default function MyJobsScreen({ navigation }) {
 
                     <View style={styles.progressSection}>
                       <Text style={styles.progressLabel}>
-                        HIRING PROGRESS ({getApplicationsCount(job)} TALENT APPLICATIONS RECEIVED)
+                        {t("hiringProgressCount", { count: getApplicationsCount(job) })}
                       </Text>
                       <View style={styles.statsGrid}>
                         <View style={styles.statBox}>
                           <Text style={[styles.statValue, { color: "#3B82F6" }]}>
                             {stats.pending}
                           </Text>
-                          <Text style={styles.statLabel}>Pending</Text>
+                          <Text style={styles.statLabel}>{t("pending")}</Text>
                         </View>
                         <View style={styles.statBox}>
                           <Text style={[styles.statValue, { color: PRIMARY_GREEN }]}>
                             {stats.shortlist}
                           </Text>
-                          <Text style={styles.statLabel}>Shortlist</Text>
+                          <Text style={styles.statLabel}>{t("shortlisted")}</Text>
                         </View>
                         <View style={styles.statBox}>
                           <Text style={[styles.statValue, { color: "#F59E0B" }]}>
                             {stats.contact}
                           </Text>
-                          <Text style={styles.statLabel}>Contact</Text>
+                          <Text style={styles.statLabel}>{t("contacted")}</Text>
                         </View>
                         <View style={styles.statBox}>
                           <Text style={[styles.statValue, { color: "#EF4444" }]}>
                             {stats.rejected}
                           </Text>
-                          <Text style={styles.statLabel}>Rejected</Text>
+                          <Text style={styles.statLabel}>{t("rejected")}</Text>
                         </View>
                       </View>
                     </View>
@@ -223,7 +225,7 @@ export default function MyJobsScreen({ navigation }) {
                           })
                         }
                       >
-                        <Text style={styles.viewTalentBtnText}>View Talent</Text>
+                        <Text style={styles.viewTalentBtnText}>{t("viewTalent")}</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
@@ -231,7 +233,7 @@ export default function MyJobsScreen({ navigation }) {
                         activeOpacity={0.8}
                         onPress={() => closeJob(job.id)}
                       >
-                        <Text style={styles.closeJobBtnText}>Close Job</Text>
+                        <Text style={styles.closeJobBtnText}>{t("closeJob")}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -244,7 +246,7 @@ export default function MyJobsScreen({ navigation }) {
         {activeTab === "pending" && (
           <>
             {pendingJobs.length === 0 ? (
-              <EmptyState message="No pending job postings." />
+              <EmptyState message={t("noPendingJobs")} />
             ) : (
               pendingJobs.map((job) => (
                 <View key={String(job.id)} style={styles.jobCard}>
@@ -262,14 +264,14 @@ export default function MyJobsScreen({ navigation }) {
                       </View>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: "#FEF3C7" }]}>
-                      <Text style={[styles.statusBadgeText, { color: "#D97706" }]}>PENDING</Text>
+                      <Text style={[styles.statusBadgeText, { color: "#D97706" }]}>{t("pending").toUpperCase()}</Text>
                     </View>
                   </View>
 
                   <View style={styles.detailsRow}>
                     <Text style={styles.detailsText}>
                       <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
-                      {job.openings || 0} Openings
+                      {t("openings_count", { count: job.openings || 0 })}
                     </Text>
                     <Text style={styles.detailsText}>
                       <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
@@ -287,7 +289,7 @@ export default function MyJobsScreen({ navigation }) {
                       style={{ marginRight: 8 }}
                     />
                     <Text style={styles.pendingInfoText}>
-                      This job posting is currently being reviewed by admin and will be published in feed shortly.
+                      {t("pendingReviewMessage")}
                     </Text>
                   </View>
 
@@ -297,7 +299,7 @@ export default function MyJobsScreen({ navigation }) {
                       activeOpacity={0.8}
                       onPress={() => deletePendingJob(job.id)}
                     >
-                      <Text style={styles.closeJobBtnText}>Delete Posting</Text>
+                      <Text style={styles.closeJobBtnText}>{t("deletePosting")}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -309,7 +311,7 @@ export default function MyJobsScreen({ navigation }) {
         {activeTab === "closed" && (
           <>
             {closedJobs.length === 0 ? (
-              <EmptyState message="No closed job postings." />
+              <EmptyState message={t("noClosedJobs")} />
             ) : (
               closedJobs.map((job) => (
                 <View key={String(job.id)} style={styles.jobCard}>
@@ -327,42 +329,20 @@ export default function MyJobsScreen({ navigation }) {
                       </View>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: "#F1F5F9" }]}>
-                      <Text style={[styles.statusBadgeText, { color: "#64748B" }]}>CLOSED</Text>
+                      <Text style={[styles.statusBadgeText, { color: "#64748B" }]}>{t("closed").toUpperCase()}</Text>
                     </View>
                   </View>
 
                   <View style={styles.detailsRow}>
                     <Text style={styles.detailsText}>
                       <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
-                      {job.openings || 0} Openings
+                      {t("openings_count", { count: job.openings || 0 })}
                     </Text>
                     <Text style={styles.detailsText}>
                       <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
                       {job.type || "Full-time"}
                     </Text>
                   </View>
-
-                  {/* <View style={styles.divider} />
-
-                  <View style={styles.actionsRow}>
-                    <TouchableOpacity
-                      style={[styles.viewTalentBtn, { flex: 1, backgroundColor: "#E2E8F0" }]}
-                      activeOpacity={0.8}
-                      onPress={() =>
-                        CustomAlert.show("Reopen Job", "Would you like to reopen this job posting?", [
-                          { text: "Cancel", style: "cancel" },
-                          {
-                            text: "Reopen",
-                            onPress: () => reopenJob(job.id),
-                          },
-                        ])
-                      }
-                    >
-                      <Text style={[styles.viewTalentBtnText, { color: "#475569" }]}>
-                        Reopen Job
-                      </Text>
-                    </TouchableOpacity>
-                  </View> */}
                 </View>
               ))
             )}

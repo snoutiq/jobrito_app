@@ -7,10 +7,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ApplicantCard from "../../components/cards/ApplicantCard";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import { useTranslation } from "react-i18next";
 
 const PRIMARY_GREEN = "#22C55E";
 
 export default function ApplicantListScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   
   const jobId = route?.params?.jobId;
@@ -113,7 +115,7 @@ export default function ApplicantListScreen({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Applicant List</Text>
+          <Text style={styles.headerTitle}>{t("applicantList")}</Text>
         </View>
       </View>
 
@@ -188,7 +190,7 @@ export default function ApplicantListScreen({ route, navigation }) {
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={48} color="#94A3B8" />
-            <Text style={styles.emptyText}>No applicants in this category.</Text>
+            <Text style={styles.emptyText}>{t("noApplicantsCategory")}</Text>
           </View>
         )}
       </View>

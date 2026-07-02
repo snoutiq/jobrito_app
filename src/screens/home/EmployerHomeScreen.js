@@ -6,22 +6,23 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Alert,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#22C55E";
 
 export default function EmployerHomeScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const { metrics, submittedJobs, loading } = useSelector((state) => state.employer);
-console.log(profile,"ankit");
 
   useEffect(() => {
     dispatch(fetchEmployerDashboard());
@@ -62,7 +63,7 @@ console.log(profile,"ankit");
   const pendingJobsCount = metrics?.pending_jobs_count ?? 0;
 
   const handleSupportPress = () => {
-    Alert.alert("Customer Support", "Connecting you to JobRito support team...");
+    navigation.navigate("HelpSupport");
   };
 
   return (
@@ -86,7 +87,7 @@ console.log(profile,"ankit");
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={() => Alert.alert("Notifications", "You have no new notifications.")}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => CustomAlert.show(t("notifications"), t("noNotifications"))}>
             <Ionicons name="notifications-outline" size={22} color="#1E293B" />
             <View style={styles.notifBadge} />
           </TouchableOpacity>
@@ -103,7 +104,7 @@ console.log(profile,"ankit");
           <RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />
         }
       >
-        <Text style={styles.sectionTitle}>Dashboard</Text>
+        <Text style={styles.sectionTitle}>{t("dashboard")}</Text>
 
         {/* Card: All Talent Applicants Received */}
         <TouchableOpacity
@@ -113,7 +114,7 @@ console.log(profile,"ankit");
         >
           <View style={styles.statsCardHeader}>
             <View>
-              <Text style={styles.statsCardLabel}>ALL TALENT APPLICANTS RECEIVED</Text>
+              <Text style={styles.statsCardLabel}>{t("allTalentApplicantsReceived")}</Text>
               <Text style={styles.statsCardValue}>{totalApplicants}</Text>
             </View>
             <View style={[styles.statsIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
@@ -124,17 +125,17 @@ console.log(profile,"ankit");
           <View style={styles.statsSubRow}>
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>{shortlistedCount}</Text>
-              <Text style={styles.subStatLabel}>Shortlisted</Text>
+              <Text style={styles.subStatLabel}>{t("shortlisted")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#EF4444" }]}>{rejectedCount}</Text>
-              <Text style={styles.subStatLabel}>Rejected</Text>
+              <Text style={styles.subStatLabel}>{t("rejected")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#1E293B" }]}>{contactedCount}</Text>
-              <Text style={styles.subStatLabel}>Contacted</Text>
+              <Text style={styles.subStatLabel}>{t("contacted")}</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -146,7 +147,7 @@ console.log(profile,"ankit");
               <Ionicons name="hourglass-outline" size={20} color="#D97706" />
             </View>
             <View>
-              <Text style={styles.smallStatLabel}>Pending</Text>
+              <Text style={styles.smallStatLabel}>{t("pending")}</Text>
               <Text style={styles.smallStatValue}>{pendingJobsCount}</Text>
             </View>
           </View>
@@ -156,13 +157,13 @@ console.log(profile,"ankit");
               <Ionicons name="briefcase-outline" size={20} color="#3B82F6" />
             </View>
             <View>
-              <Text style={styles.smallStatLabel}>Active Jobs</Text>
+              <Text style={styles.smallStatLabel}>{t("activeJobs")}</Text>
               <Text style={styles.smallStatValue}>{activeJobsCount}</Text>
             </View>
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>Actions</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>{t("actions")}</Text>
 
         {/* Action List */}
         <View style={styles.actionsContainer}>
@@ -176,8 +177,8 @@ console.log(profile,"ankit");
               <Ionicons name="add-circle" size={26} color={PRIMARY_GREEN} />
             </View>
             <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>Post Job</Text>
-              <Text style={styles.actionSubtitle}>Create a new opening for your team</Text>
+              <Text style={styles.actionTitle}>{t("postJobAction")}</Text>
+              <Text style={styles.actionSubtitle}>{t("postJobActionSubtitle")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
@@ -192,8 +193,8 @@ console.log(profile,"ankit");
               <Ionicons name="briefcase" size={22} color="#64748B" />
             </View>
             <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>My Jobs</Text>
-              <Text style={styles.actionSubtitle}>Edit or close existing job postings</Text>
+              <Text style={styles.actionTitle}>{t("myJobs")}</Text>
+              <Text style={styles.actionSubtitle}>{t("myJobsSubtitle")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>

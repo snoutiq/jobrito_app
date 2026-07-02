@@ -12,6 +12,7 @@ import PostJobScreen from "../screens/jobs/PostJobScreen";
 import ChefConnectScreen from "../screens/chef/ChefConnectScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
+import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
@@ -463,6 +464,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

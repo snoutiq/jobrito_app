@@ -8,8 +8,8 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Switch,
   ScrollView,
+  Linking,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +19,7 @@ import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
+import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -28,11 +29,26 @@ export default function SettingsScreen({ navigation }) {
   const { profile } = useSelector((state) => state.user);
   
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailUpdates, setEmailUpdates] = useState(false);
 
-  const businessName = profile?.businessName || "Grand Hyatt Dubai";
-  const contactName = profile?.contactName || "Sarah Jenkins";
+  const businessName = profile?.business_name || profile?.businessName || profile?.current_employer || profile?.company || "";
+  const contactName = profile?.contact_person_name || profile?.contactName || profile?.full_name || profile?.name || "";
+
+  // Helper to determine the company logo source URL
+  const getLogoSource = () => {
+    const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
+    if (!uri) return null;
+    if (
+      uri.startsWith("http://") ||
+      uri.startsWith("https://") ||
+      uri.startsWith("file://") ||
+      uri.startsWith("data:")
+    ) {
+      return { uri };
+    }
+    return { uri: `http://178.16.138.159${uri.startsWith("/") ? "" : "/"}${uri}` };
+  };
+
+  const logoSource = getLogoSource();
 
   const handleLogout = async () => {
     try {
@@ -46,8 +62,10 @@ export default function SettingsScreen({ navigation }) {
     dispatch(resetUser());
   };
 
-  const handleStubAction = (title) => {
-    Alert.alert(title, "This feature will be available in the next release.");
+  const handlePrivacyPolicy = () => {
+    Linking.openURL("https://jobrito.com/privacy-policy").catch(() => {
+      CustomAlert.show("Error", "Unable to open link.");
+    });
   };
 
   return (
@@ -57,17 +75,23 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t("settingsTitle")}</Text>
         <View style={{ width: 32 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <Image
-            source={{ uri: profile?.company_logo || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop&q=60" }}
-            style={styles.avatar}
-          />
+          {logoSource ? (
+            <Image
+              source={logoSource}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <Ionicons name="business" size={28} color="#64748B" />
+            </View>
+          )}
           <View style={styles.profileInfo}>
             <Text style={styles.businessName}>{businessName}</Text>
             <Text style={styles.contactText}>{contactName}</Text>
@@ -75,7 +99,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         {/* Section: Account Settings */}
-        <Text style={styles.sectionTitle}>Account Settings</Text>
+        <Text style={styles.sectionTitle}>{t("accountSettings")}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity
             style={styles.settingsItem}
@@ -85,7 +109,7 @@ export default function SettingsScreen({ navigation }) {
             <View style={[styles.iconBox, { backgroundColor: "#EEF4FF" }]}>
               <Ionicons name="person-outline" size={20} color="#3B82F6" />
             </View>
-            <Text style={styles.itemLabel}>Company Information</Text>
+            <Text style={styles.itemLabel}>{t("companyInfo")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
@@ -99,69 +123,23 @@ export default function SettingsScreen({ navigation }) {
             <View style={[styles.iconBox, { backgroundColor: "#F0FDF4" }]}>
               <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
             </View>
-            <Text style={styles.itemLabel}>App Language</Text>
+            <Text style={styles.itemLabel}>{t("appLanguage")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("RoleSwitcher")}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#FAF5FF" }]}>
-              <Ionicons name="repeat-outline" size={20} color="#A855F7" />
-            </View>
-            <Text style={styles.itemLabel}>Switch Role</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Section: Notifications */}
-        <Text style={styles.sectionTitle}>Notifications</Text>
-        <View style={styles.settingsGroup}>
-          <View style={styles.settingsItem}>
-            <View style={[styles.iconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons name="notifications-outline" size={20} color="#D97706" />
-            </View>
-            <Text style={styles.itemLabel}>Push Notifications</Text>
-            <Switch
-              value={pushNotifications}
-              onValueChange={setPushNotifications}
-              trackColor={{ false: "#CBD5E1", true: PRIMARY_GREEN }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.settingsItem}>
-            <View style={[styles.iconBox, { backgroundColor: "#FFF1F2" }]}>
-              <Ionicons name="mail-outline" size={20} color="#F43F5E" />
-            </View>
-            <Text style={styles.itemLabel}>Email Updates</Text>
-            <Switch
-              value={emailUpdates}
-              onValueChange={setEmailUpdates}
-              trackColor={{ false: "#CBD5E1", true: PRIMARY_GREEN }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
         </View>
 
         {/* Section: Information & Support */}
-        <Text style={styles.sectionTitle}>Support & Legal</Text>
+        <Text style={styles.sectionTitle}>{t("supportLegal")}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity
             style={styles.settingsItem}
             activeOpacity={0.7}
-            onPress={() => handleStubAction("Help & Support")}
+            onPress={() => navigation.navigate("HelpSupport")}
           >
             <View style={[styles.iconBox, { backgroundColor: "#ECFEFF" }]}>
               <Ionicons name="help-circle-outline" size={20} color="#0891B2" />
             </View>
-            <Text style={styles.itemLabel}>Help & Support</Text>
+            <Text style={styles.itemLabel}>{t("helpSupport")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
@@ -170,12 +148,12 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity
             style={styles.settingsItem}
             activeOpacity={0.7}
-            onPress={() => handleStubAction("Privacy Policy")}
+            onPress={handlePrivacyPolicy}
           >
             <View style={[styles.iconBox, { backgroundColor: "#F8FAFC" }]}>
               <Ionicons name="shield-checkmark-outline" size={20} color="#64748B" />
             </View>
-            <Text style={styles.itemLabel}>Privacy Policy</Text>
+            <Text style={styles.itemLabel}>{t("privacyPolicy")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
@@ -187,7 +165,7 @@ export default function SettingsScreen({ navigation }) {
           onPress={() => setShowLogoutModal(true)}
         >
           <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t("logOut")}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -203,20 +181,20 @@ export default function SettingsScreen({ navigation }) {
             <View style={styles.modalHeader}>
               <Ionicons name="log-out" size={40} color="#EF4444" />
             </View>
-            <Text style={styles.modalTitle}>Confirm Log Out</Text>
-            <Text style={styles.modalSubtitle}>Are you sure you want to log out of your account?</Text>
+            <Text style={styles.modalTitle}>{t("logOut")}</Text>
+            <Text style={styles.modalSubtitle}>{t("logoutConfirm")}</Text>
             <View style={styles.modalActions}>
               <Pressable
                 style={[styles.modalBtn, styles.modalCancelBtn]}
                 onPress={() => setShowLogoutModal(false)}
               >
-                <Text style={styles.modalCancelBtnText}>Cancel</Text>
+                <Text style={styles.modalCancelBtnText}>{t("cancel")}</Text>
               </Pressable>
               <Pressable
                 style={[styles.modalBtn, styles.modalConfirmBtn]}
                 onPress={handleLogout}
               >
-                <Text style={styles.modalConfirmBtnText}>Log Out</Text>
+                <Text style={styles.modalConfirmBtnText}>{t("logOut")}</Text>
               </Pressable>
             </View>
           </View>
@@ -264,6 +242,13 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  avatarPlaceholder: {
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileInfo: {
     flex: 1,

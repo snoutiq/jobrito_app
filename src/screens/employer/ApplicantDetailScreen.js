@@ -12,12 +12,14 @@ import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { updateApplicantStatus, fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 
 const PRIMARY_GREEN = "#22C55E";
 
 export default function ApplicantDetailScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { applicantId, jobId } = route.params || {};
 
@@ -98,8 +100,10 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>{displayName || "Applicant Profile"}</Text>
-      
+          <Text style={styles.headerTitle}>{displayName || t("applicantProfile")}</Text>
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
+            {selectedJob?.title || "Sales"} • {headerStatsText}
+          </Text>
         </View>
       </View>
       <View style={styles.headerLine} />
@@ -129,11 +133,11 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         {/* Info Grid (Experience and Employer) */}
         <View style={styles.infoGrid}>
           <View style={styles.infoGridCard}>
-            <Text style={styles.infoGridLabel}>EXPERIENCE</Text>
+            <Text style={styles.infoGridLabel}>{t("experience_caps")}</Text>
             <Text style={styles.infoGridValue}>{displayExperience}</Text>
           </View>
           <View style={styles.infoGridCard}>
-            <Text style={styles.infoGridLabel}>CURRENT EMPLOYER</Text>
+            <Text style={styles.infoGridLabel}>{t("currentEmployer_caps")}</Text>
             <Text style={styles.infoGridValue} numberOfLines={2}>{displayEmployer}</Text>
           </View>
         </View>
@@ -151,7 +155,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
             <View style={styles.detailRow}>
               <Ionicons name="map-outline" size={20} color="#64748B" style={styles.detailIcon} />
               <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Preferred Location (India & Overseas)</Text>
+                <Text style={styles.detailLabel}>{t("preferredLocation")}</Text>
                 <Text style={styles.detailValue}>{displayCity}</Text>
               </View>
             </View>
@@ -162,7 +166,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={20} color="#64748B" style={styles.detailIcon} />
             <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Preferred Callback Time</Text>
+              <Text style={styles.detailLabel}>{t("preferredCallback")}</Text>
               <Text style={styles.detailValue}>{displayCallback}</Text>
             </View>
           </View>
@@ -172,14 +176,14 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <View style={styles.detailRow}>
             <Ionicons name="language-outline" size={20} color="#64748B" style={styles.detailIcon} />
             <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Preferred Language</Text>
+              <Text style={styles.detailLabel}>{t("preferredLanguage")}</Text>
               <Text style={styles.detailValue}>{displayLanguage}</Text>
             </View>
           </View>
         </View>
 
         {/* Skills Tag Pills */}
-        <Text style={styles.sectionTitle}>Skills</Text>
+        <Text style={styles.sectionTitle}>{t("skills")}</Text>
         <View style={styles.pillsContainer}>
           {applicant.skills && applicant.skills.length > 0 ? (
             applicant.skills.map((skill, idx) => (
@@ -189,20 +193,20 @@ export default function ApplicantDetailScreen({ route, navigation }) {
             ))
           ) : (
             <Text style={{ fontSize: 13, color: "#64748B", fontStyle: "italic", marginLeft: 4 }}>
-              No skills specified
+              {t("noSkillsSpecified")}
             </Text>
           )}
         </View>
 
         {/* Job Category Pills */}
-        <Text style={styles.sectionTitle}>Job Category</Text>
+        <Text style={styles.sectionTitle}>{t("jobCategory")}</Text>
         <View style={styles.pillsContainer}>
           <View style={styles.pill}><Text style={styles.pillText}>Restaurant Operations</Text></View>
           <View style={styles.pill}><Text style={styles.pillText}>Kitchen Production</Text></View>
         </View>
 
         {/* Talent Specialization Pills */}
-        <Text style={styles.sectionTitle}>Talent Specialization</Text>
+        <Text style={styles.sectionTitle}>{t("talentSpecialization")}</Text>
         <View style={styles.pillsContainer}>
           <View style={styles.pill}><Text style={styles.pillText}>Continental Cuisine</Text></View>
           <View style={styles.pill}><Text style={styles.pillText}>Italian Cuisine</Text></View>
@@ -224,7 +228,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           onPress={handleCall}
         >
           <Ionicons name="call" size={18} color="#FFFFFF" />
-          <Text style={styles.callTalentText}>Call Talent</Text>
+          <Text style={styles.callTalentText}>{t("callTalent")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
