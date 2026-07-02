@@ -5,6 +5,7 @@ import i18n from "../i18n";
 import SplashScreen from "../screens/auth/SplashScreen";
 import OnboardingNavigator from "./OnboardingNavigator";
 import MainTabs from "./MainTabs";
+import { CustomAlertComponent, registerAlertRef } from "../components/common/CustomAlert";
 
 import {
   getStoredLanguage,
@@ -90,9 +91,19 @@ export default function RootNavigator() {
 
   if (reduxToken) {
     console.log("RootNavigator -> MainTabs", reduxToken);
-    return <MainTabs key="main" />;
+    return (
+      <>
+        <MainTabs key="main" />
+        <CustomAlertComponent ref={registerAlertRef} />
+      </>
+    );
   }
 
   console.log("RootNavigator -> Onboarding");
-  return <OnboardingNavigator key="onboarding" />;
+  return (
+    <>
+      <OnboardingNavigator key="onboarding" />
+      <CustomAlertComponent ref={registerAlertRef} />
+    </>
+  );
 }

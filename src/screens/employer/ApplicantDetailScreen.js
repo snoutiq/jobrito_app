@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Alert,
   Linking,
   StyleSheet,
   Text,
@@ -9,6 +8,7 @@ import {
   ScrollView,
   Image,
 } from "react-native";
+import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -65,7 +65,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const handleCall = () => {
     const phone = applicant.mobile_number;
     if (!phone) {
-      Alert.alert("Error", "Mobile number not available.");
+      CustomAlert.show("Error", "Mobile number not available.");
       return;
     }
     Linking.openURL(`tel:${phone}`)
@@ -74,19 +74,19 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         handleStatusUpdate("contacted");
       })
       .catch(() => {
-        Alert.alert("Call unavailable", "Dialer could not be opened.");
+        CustomAlert.show("Call unavailable", "Dialer could not be opened.");
       });
   };
 
   const handleStatusUpdate = async (status) => {
     try {
       const result = await dispatch(updateApplicantStatus({ applicationId: applicant.id, status })).unwrap();
-      Alert.alert("Success", `Applicant status updated to: ${status}`);
+      CustomAlert.show("Success", `Applicant status updated to: ${status}`);
       // Refresh dashboard to pull the fresh metrics and data
       dispatch(fetchEmployerDashboard());
     } catch (error) {
       console.error("Failed to update status:", error);
-      Alert.alert("Error", error || "Failed to update status. Please try again.");
+      CustomAlert.show("Error", error || "Failed to update status. Please try again.");
     }
   };
 

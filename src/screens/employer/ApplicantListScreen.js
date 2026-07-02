@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Linking, StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { Linking, StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,11 +32,11 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   const handleCall = (phone) => {
     if (!phone) {
-      Alert.alert("Error", "Phone number not available.");
+      CustomAlert.show("Error", "Phone number not available.");
       return;
     }
     Linking.openURL(`tel:${phone}`).catch(() => {
-      Alert.alert("Call unavailable", "Dialer could not be opened.");
+      CustomAlert.show("Call unavailable", "Dialer could not be opened.");
     });
   };
 

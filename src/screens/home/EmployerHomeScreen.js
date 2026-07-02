@@ -34,6 +34,7 @@ console.log(profile,"ankit");
   const businessName = profile?.business_name || profile?.businessName || profile?.company || "";
   const contactName = profile?.contact_person_name || profile?.contactName || profile?.nominee_name || profile?.full_name || profile?.name || "";
   const mobile_number = profile?.mobile_number || profile?.phone || profile?.contact_number || "";
+  const mobileNumber = mobile_number ? `${mobile_number}` : "N/A";
 
   // Helper to determine the company logo source URL
   const getLogoSource = () => {
@@ -80,8 +81,8 @@ console.log(profile,"ankit");
             </View>
           )}
           <View style={styles.headerInfo}>
-            <Text style={styles.businessName}>{businessName}</Text>
-            <Text style={styles.contactText}>Contact: {contactName}</Text>
+            <Text style={styles.businessName}>{contactName}</Text>
+            <Text style={styles.contactText}>{mobileNumber}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>

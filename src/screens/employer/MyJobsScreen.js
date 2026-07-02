@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from "react-native";
+import { CustomAlert } from "../../components/common/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,7 +55,7 @@ export default function MyJobsScreen({ navigation }) {
   };
 
   const closeJob = (jobId) => {
-    Alert.alert("Close Job", "Are you sure you want to close this job posting?", [
+    CustomAlert.show("Close Job", "Are you sure you want to close this job posting?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Close Job",
@@ -63,10 +63,10 @@ export default function MyJobsScreen({ navigation }) {
         onPress: async () => {
           try {
             await dispatch(closeEmployerJob(jobId)).unwrap();
-            Alert.alert("Success", "Job has been closed.");
+            CustomAlert.show("Success", "Job has been closed.");
             dispatch(fetchEmployerDashboard());
           } catch (err) {
-            Alert.alert("Error", err || "Failed to close the job.");
+            CustomAlert.show("Error", err || "Failed to close the job.");
           }
         },
       },
@@ -74,7 +74,7 @@ export default function MyJobsScreen({ navigation }) {
   };
 
   const deletePendingJob = (jobId) => {
-    Alert.alert("Delete Draft", "Are you sure you want to delete this job posting?", [
+    CustomAlert.show("Delete Draft", "Are you sure you want to delete this job posting?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -94,7 +94,7 @@ export default function MyJobsScreen({ navigation }) {
         String(job.id) === String(jobId) ? { ...job, status: "active" } : job,
       ),
     );
-    Alert.alert("Success", "Job has been reopened!");
+    CustomAlert.show("Success", "Job has been reopened!");
   };
 
   return (
@@ -342,14 +342,14 @@ export default function MyJobsScreen({ navigation }) {
                     </Text>
                   </View>
 
-                  <View style={styles.divider} />
+                  {/* <View style={styles.divider} />
 
                   <View style={styles.actionsRow}>
                     <TouchableOpacity
                       style={[styles.viewTalentBtn, { flex: 1, backgroundColor: "#E2E8F0" }]}
                       activeOpacity={0.8}
                       onPress={() =>
-                        Alert.alert("Reopen Job", "Would you like to reopen this job posting?", [
+                        CustomAlert.show("Reopen Job", "Would you like to reopen this job posting?", [
                           { text: "Cancel", style: "cancel" },
                           {
                             text: "Reopen",
@@ -362,7 +362,7 @@ export default function MyJobsScreen({ navigation }) {
                         Reopen Job
                       </Text>
                     </TouchableOpacity>
-                  </View>
+                  </View> */}
                 </View>
               ))
             )}
