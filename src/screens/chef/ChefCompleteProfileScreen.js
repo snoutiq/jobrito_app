@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  BackHandler,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
-import { setProfileData } from "../../redux/slices/userSlice";
-import { setChefOnboardingCompleted, setStoredProfile } from "../../services/storage";
+import { setProfileData, resetUser } from "../../redux/slices/userSlice";
+import { logout } from "../../redux/slices/authSlice";
+import { setChefOnboardingCompleted, setStoredProfile, clearAuthStorage } from "../../services/storage";
+import * as ImagePicker from "expo-image-picker";
+import { saveChefOnboarding } from "../../services/chefApi";
+import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -24,21 +30,23 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
 
   // --- Step 1 State ---
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [photoUri, setPhotoUri] = useState(null);
   const [fullName, setFullName] = useState("");
   const [professionalTitle, setProfessionalTitle] = useState("");
   const [currentCity, setCurrentCity] = useState("");
   const [country, setCountry] = useState("");
-  const [languages, setLanguages] = useState(["English", "French"]);
+  const [languages, setLanguages] = useState([]);
   const [newLanguage, setNewLanguage] = useState("");
   const [showLangInput, setShowLangInput] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
 
   // --- Step 2 State ---
-  const [selectedCuisines, setSelectedCuisines] = useState(["Indian"]);
-  const [selectedOperations, setSelectedOperations] = useState(["Kitchen Setup"]);
+  const [selectedCuisines, setSelectedCuisines] = useState([]);
+  const [selectedOperations, setSelectedOperations] = useState([]);
   const [experienceYears, setExperienceYears] = useState("");
   const [showExpDropdown, setShowExpDropdown] = useState(false);
 
@@ -57,10 +65,10 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   ];
 
   // --- Step 3 State ---
-  const [regionalExperience, setRegionalExperience] = useState(["UAE"]);
-  const [locationPreference, setLocationPreference] = useState("Both (India & Overseas)");
-  const [employmentPreference, setEmploymentPreference] = useState(["Full Time"]);
-  const [availability, setAvailability] = useState("Available Immediately");
+  const [regionalExperience, setRegionalExperience] = useState([]);
+  const [locationPreference, setLocationPreference] = useState("");
+  const [employmentPreference, setEmploymentPreference] = useState([]);
+  const [availability, setAvailability] = useState("");
   const [showAvailDropdown, setShowAvailDropdown] = useState(false);
   const [bio, setBio] = useState("");
 
@@ -70,7 +78,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const availabilityOptions = ["Available Immediately", "1 Month Notice", "2 Months Notice", "Currently Employed"];
 
   // --- Step 4 State ---
-  const [calendlyLink, setCalendlyLink] = useState("calendly.com/your-name");
+  const [calendlyLink, setCalendlyLink] = useState("");
   const [calendlyConnected, setCalendlyConnected] = useState(false);
 
   // --- Step 5 State ---
@@ -78,6 +86,83 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [instagramConnected, setInstagramConnected] = useState(false);
   const [facebookConnected, setFacebookConnected] = useState(false);
   const [moreConnected, setMoreConnected] = useState(false);
+
+  const handleUploadPhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Sorry, we need camera roll permissions to upload a photo."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhotoUri(result.assets[0].uri);
+        setPhotoUploaded(true);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to select photo.");
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Sorry, we need camera permissions to take a photo."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhotoUri(result.assets[0].uri);
+        setPhotoUploaded(true);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to take photo.");
+    }
+  };
+
+  const selectPhotoSource = () => {
+    Alert.alert(
+      "Profile Photo",
+      "Select profile photo source:",
+      [
+        { text: "Camera", onPress: handleTakePhoto },
+        { text: "Gallery", onPress: handleUploadPhoto },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
+
+  const handleExitAndLogout = async () => {
+    try {
+      const { logout: logoutApi } = require("../../services/authApi");
+      await logoutApi();
+    } catch (e) {
+      // ignore
+    }
+    await clearAuthStorage();
+    dispatch(logout());
+    dispatch(resetUser());
+  };
 
   // --- Actions ---
   const handleAddLanguage = () => {
@@ -190,32 +275,127 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     } else {
       if (navigation.canGoBack()) {
         navigation.goBack();
+      } else {
+        CustomAlert.show(
+          t("exitOnboarding", "Exit Onboarding?"),
+          t("exitOnboardingMessage", "Do you want to log out and exit profile setup?"),
+          [
+            { text: t("cancel"), style: "cancel" },
+            {
+              text: t("logOut"),
+              style: "destructive",
+              onPress: handleExitAndLogout,
+            },
+          ]
+        );
       }
     }
   };
 
-  const handleCompleteProfile = async () => {
-    const profilePayload = {
-      name: fullName || "Chef User",
-      professionalTitle,
-      city: currentCity,
-      country,
-      languages,
-      cuisines: selectedCuisines,
-      operations: selectedOperations,
-      experienceYears,
-      regionalExperience,
-      locationPreference,
-      employmentPreference,
-      availability,
-      bio,
-      role: "chef",
-      chefOnboardingCompleted: false, // Keep onboarding active to show Step 5
+  useEffect(() => {
+    const backAction = () => {
+      prev();
+      return true; // Prevent default app closing behavior
     };
 
-    dispatch(setProfileData(profilePayload));
-    await setStoredProfile(profilePayload);
-    setStep(5); // Go to success screen
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [step]);
+
+  const handleCompleteProfile = async () => {
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("full_name", fullName);
+      formData.append("preferred_role", professionalTitle);
+      formData.append("city", currentCity);
+      formData.append("experience_range", experienceYears);
+      formData.append("cuisine_specialty", selectedCuisines.join(", "));
+      formData.append("bio", bio);
+      formData.append("calendly_link", calendlyLink || "");
+
+      // Location Preference Mapping
+      let locPref = "Both";
+      if (locationPreference.includes("India") && !locationPreference.includes("Both")) {
+        locPref = "India";
+      } else if (locationPreference.includes("Overseas") && !locationPreference.includes("Both")) {
+        locPref = "Overseas";
+      }
+      formData.append("location_preference", locPref);
+      formData.append("availability", availability);
+
+      // Arrays
+      if (Array.isArray(languages)) {
+        languages.forEach((lang) => {
+          formData.append("languages[]", lang);
+        });
+      }
+
+      if (Array.isArray(selectedOperations)) {
+        selectedOperations.forEach((skill) => {
+          formData.append("skills[]", skill);
+        });
+      }
+
+      if (Array.isArray(regionalExperience)) {
+        regionalExperience.forEach((region) => {
+          formData.append("regional_experience[]", region);
+        });
+      }
+
+      if (Array.isArray(employmentPreference)) {
+        employmentPreference.forEach((pref) => {
+          formData.append("employment_preference[]", pref);
+        });
+      }
+
+      // Photo file upload
+      if (photoUri) {
+        const uriParts = photoUri.split("/");
+        const fileName = uriParts[uriParts.length - 1];
+        const fileType = fileName.split(".").pop();
+        formData.append("profile_photo", {
+          uri: Platform.OS === "android" ? photoUri : photoUri.replace("file://", ""),
+          name: fileName,
+          type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
+        });
+      }
+
+      // Call API
+      const apiResponse = await saveChefOnboarding(formData);
+
+      const profilePayload = {
+        name: fullName || "Chef User",
+        professionalTitle,
+        city: currentCity,
+        country,
+        languages,
+        cuisines: selectedCuisines,
+        operations: selectedOperations,
+        experienceYears,
+        regionalExperience,
+        locationPreference,
+        employmentPreference,
+        availability,
+        bio,
+        role: "chef",
+        chefOnboardingCompleted: false, // Keep onboarding active to show Step 5
+        ...(apiResponse?.data || apiResponse || {}),
+      };
+
+      dispatch(setProfileData(profilePayload));
+      await setStoredProfile(profilePayload);
+      setStep(5); // Go to success screen
+    } catch (error) {
+      console.error("Failed to save chef onboarding:", error);
+      Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFinishOnboarding = async (targetTab = "Home") => {
@@ -241,7 +421,15 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     await setChefOnboardingCompleted();
     await setStoredProfile(profilePayload);
 
-    // Navigation switches automatically because Redux profile state is updated.
+    try {
+      if (targetTab === "Profile") {
+        navigation.navigate("Tabs", { screen: "Profile" });
+      } else {
+        navigation.navigate("Tabs", { screen: "Home" });
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   const progress = step === 4 ? 100 : step * 25;
@@ -299,16 +487,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.avatarCircle}
                   activeOpacity={0.8}
-                  onPress={() => {
-                    setPhotoUploaded(true);
-                    Alert.alert("Photo Picker", "Selected profile photo successfully!");
-                  }}
+                  onPress={selectPhotoSource}
                 >
                   <Image
                     source={{
-                      uri: photoUploaded
-                        ? "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
-                        : "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
+                      uri: photoUri || "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
                     }}
                     style={styles.avatarImage}
                   />
@@ -655,7 +838,9 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   onPress={() => setShowAvailDropdown(!showAvailDropdown)}
                   style={[styles.inputWrapper, showAvailDropdown && styles.inputWrapperActive]}
                 >
-                  <Text style={styles.textInput}>{availability}</Text>
+                  <Text style={[styles.textInput, !availability && { color: "#94A3B8" }]}>
+                    {availability || "Select availability"}
+                  </Text>
                   <Ionicons name={showAvailDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
                 </TouchableOpacity>
 
@@ -726,9 +911,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={styles.reviewProfileSection}>
                   <Image
                     source={{
-                      uri: photoUploaded
-                        ? "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
-                        : "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
+                      uri: photoUri || "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
                     }}
                     style={styles.reviewAvatar}
                   />
@@ -822,12 +1005,19 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
               {/* Complete Profile Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { backgroundColor: "#22C55E" }]}
+                style={[styles.continueButton, { backgroundColor: "#22C55E" }, submitting && styles.continueButtonDisabled]}
                 onPress={handleCompleteProfile}
                 activeOpacity={0.8}
+                disabled={submitting}
               >
-                <Text style={styles.continueButtonText}>{t("chefOnboarding.completeProfile")}</Text>
-                <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                {submitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.continueButtonText}>{t("chefOnboarding.completeProfile")}</Text>
+                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                  </>
+                )}
               </TouchableOpacity>
 
               {/* Edit Information Link */}

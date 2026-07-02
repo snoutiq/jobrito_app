@@ -14,7 +14,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import ScreenWrapper from "../../components/common/ScreenWrapper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
@@ -69,7 +69,7 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <ScreenWrapper style={{ backgroundColor: "#F8FAFC" }}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -200,11 +200,15 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </ScreenWrapper>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

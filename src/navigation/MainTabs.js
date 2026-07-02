@@ -199,21 +199,65 @@ function EmployerTabs() {
 
 function ChefTabs() {
   const { t } = useTranslation();
-  // For now, ChefTabs is the same as EmployerTabs but with a different Home screen.
-  // You can customize this further later.
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedText,
+        tabBarStyle: {
+          height: 60,
+          paddingTop: 6,
+          paddingBottom: 8,
+          backgroundColor: "#fff",
+          borderTopColor: colors.border,
+        },
+        tabBarIcon: ({ color, size }) => {
+          const icons = {
+            Home: "home-outline",
+            Applications: "file-tray-full-outline",
+            "Post Job": "add-circle-outline",
+            ChefConnect: "people-outline",
+            Profile: "person-circle-outline",
+          };
+          return (
+            <Ionicons name={icons[route.name]} size={size} color={color} />
+          );
+        },
+      })}
+    >
       <Tab.Screen name="Home" component={ChefHomeScreen} />
-      <Tab.Screen name="Applications" component={ApplicationHistoryScreen} />
       <Tab.Screen
-        name="Post Job"
-        component={PostJobScreen}
+        name="Applications"
+        component={ApplicationHistoryScreen}
         options={{
-          headerShown: false,
+          headerShown: true,
+          title: t("applications"),
+          headerTitleAlign: "center",
+          headerTitleStyle: { fontWeight: "800" },
         }}
       />
-      <Tab.Screen name="ChefConnect" component={ChefConnectScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Post Job" component={PostJobScreen} />
+      <Tab.Screen
+        name="ChefConnect"
+        component={ChefConnectScreen}
+        options={{
+          headerShown: true,
+          title: t("chefConnect"),
+          headerTitleAlign: "center",
+          headerTitleStyle: { fontWeight: "800" },
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          headerShown: true,
+          title: t("profileTab"),
+          headerTitleAlign: "center",
+          headerTitleStyle: { fontWeight: "800" },
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -258,7 +302,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="ChefProfile"
         component={ChefProfileScreen}
-        options={{ title: t("chefProfile") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="RoleSwitcher"
@@ -396,7 +440,7 @@ export default function MainTabs() {
       <Stack.Screen
         name="ChefProfile"
         component={ChefProfileScreen}
-        options={{ title: t("chefProfile") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="RoleSwitcher"

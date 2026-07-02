@@ -151,7 +151,7 @@ export default function CallbackModal({
 
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
-              onPress={handleClose}
+              onPress={onClose}
               activeOpacity={0.8}
             >
               <Text style={styles.modalConfirmBtnText}>Got it</Text>

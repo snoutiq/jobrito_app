@@ -47,3 +47,12 @@ export const getChefProfileDetails = async (chefId) => {
     return { success: true, chef };
   }
 };
+
+export const saveChefOnboarding = async (formData) => {
+  const response = await apiClient.post("/chef/onboarding/save", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};

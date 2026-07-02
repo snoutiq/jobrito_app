@@ -41,6 +41,8 @@ const normalizeProfile = (u) => {
     gender: u.gender,
     job_type: u.job_type,
     location_preference: u.location_preference,
+    employerOnboardingCompleted: !!(u.employerOnboardingCompleted || u.has_completed_onboarding),
+    chefOnboardingCompleted: !!(u.chefOnboardingCompleted || u.has_completed_onboarding),
   };
 };
 

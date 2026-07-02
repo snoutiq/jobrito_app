@@ -21,7 +21,7 @@ import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices
 import { applyJob } from "../../redux/slices/applicationSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 
-export default function ChefHomeScreen() {
+export default function ChefHomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -130,10 +130,9 @@ export default function ChefHomeScreen() {
           </View>
           <View>
             <Text style={styles.communityName}>Jobrito Community</Text>
-            <Text style={styles.memberCount}>8,421 members</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.headerRight} onPress={() => Alert.alert("Options", "Jobrito Community options")}>
+        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
           <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
@@ -163,13 +162,13 @@ export default function ChefHomeScreen() {
       {/* Main Feed Content */}
       <ScrollView contentContainerStyle={styles.feedScroll} showsVerticalScrollIndicator={false}>
         {/* Today separator */}
-        <View style={styles.separatorContainer}>
+        {/* <View style={styles.separatorContainer}>
           <View style={styles.separatorLine} />
           <View style={styles.separatorBadge}>
             <Text style={styles.separatorText}>TODAY</Text>
           </View>
           <View style={styles.separatorLine} />
-        </View>
+        </View> */}
 
         {feedJobs.map((job) => {
           const isFav = favorites[job.id] || false;
@@ -323,12 +322,7 @@ export default function ChefHomeScreen() {
         })}
 
         {/* Bottom banner warning/informational */}
-        <View style={styles.bottomBanner}>
-          <Ionicons name="sync" size={18} color="#0284C7" style={{ marginRight: 10 }} />
-          <Text style={styles.bottomBannerText}>
-            Keep checking the feed regularly for new updates
-          </Text>
-        </View>
+
       </ScrollView>
 
       {/* Floating Action Button */}

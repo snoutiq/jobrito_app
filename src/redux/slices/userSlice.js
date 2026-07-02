@@ -88,11 +88,14 @@ const userSlice = createSlice({
         if (payload) {
           const role = action.meta.arg.role;
           const isEmp = role?.toLowerCase() === "employer";
+          const isChef = role?.toLowerCase() === "chef" || role?.toLowerCase() === "job_seeker";
+          const hasCompleted = payload.hasCompletedOnboarding ?? false;
           
           state.profile = {
             ...state.profile,
             ...payload.user,
-            employerOnboardingCompleted: isEmp ? (payload.hasCompletedOnboarding ?? false) : state.profile.employerOnboardingCompleted,
+            employerOnboardingCompleted: isEmp ? hasCompleted : state.profile.employerOnboardingCompleted,
+            chefOnboardingCompleted: isChef ? hasCompleted : state.profile.chefOnboardingCompleted,
           };
           state.activeRole = role || state.activeRole;
           
