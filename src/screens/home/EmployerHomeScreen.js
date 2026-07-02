@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -24,9 +25,11 @@ export default function EmployerHomeScreen({ navigation }) {
   const profile = useSelector((state) => state.user.profile);
   const { metrics, submittedJobs, loading } = useSelector((state) => state.employer);
 
-  useEffect(() => {
-    dispatch(fetchEmployerDashboard());
-  }, [dispatch]);
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchEmployerDashboard());
+    }, [dispatch])
+  );
 
   const onRefresh = React.useCallback(() => {
     dispatch(fetchEmployerDashboard());
@@ -104,7 +107,6 @@ export default function EmployerHomeScreen({ navigation }) {
           <RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />
         }
       >
-        <Text style={styles.sectionTitle}>{t("dashboard")}</Text>
 
         {/* Card: All Talent Applicants Received */}
         <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,16 @@ import {
   Platform,
   Image,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
-import { setProfileData } from "../../redux/slices/userSlice";
-import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
+import { setProfileData, resetUser } from "../../redux/slices/userSlice";
+import { logout } from "../../redux/slices/authSlice";
+import { setEmployerOnboardingCompleted, setStoredProfile, clearAuthStorage } from "../../services/storage";
+import { CustomAlert } from "../../components/common/CustomAlert";
 import colors from "../../constants/colors";
 import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
@@ -120,15 +123,54 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
     }
   };
 
+  const handleExitAndLogout = async () => {
+    try {
+      const { logout: logoutApi } = require("../../services/authApi");
+      await logoutApi();
+    } catch (e) {
+      // ignore
+    }
+    await clearAuthStorage();
+    dispatch(logout());
+    dispatch(resetUser());
+  };
+
   const prev = () => {
     if (step > 1) {
       setStep(step - 1);
     } else {
       if (navigation.canGoBack()) {
         navigation.goBack();
+      } else {
+        CustomAlert.show(
+          t("exitOnboarding", "Exit Onboarding?"),
+          t("exitOnboardingMessage", "Do you want to log out and exit profile setup?"),
+          [
+            { text: t("cancel"), style: "cancel" },
+            {
+              text: t("logOut"),
+              style: "destructive",
+              onPress: handleExitAndLogout,
+            },
+          ]
+        );
       }
     }
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      prev();
+      return true; // Prevent default app closing behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [step]); // Re-subscribe when step changes so prev() has the correct step value
 
   const addLocation = () => {
     setLocations([
@@ -383,7 +425,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={prev} style={styles.backButton}>
-            <Ionicons name={step === 1 ? "" : step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
+            <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Complete Profile</Text>
           <View style={styles.stepBadge}>

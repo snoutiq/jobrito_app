@@ -328,7 +328,9 @@ export default function MainTabs() {
     (state) => state.user.profile?.employerOnboardingCompleted
   );
 
-
+  const chefOnboardingCompleted = useSelector(
+    (state) => state.user.profile?.chefOnboardingCompleted
+  );
 
   if (isEmployer && !employerOnboardingCompleted) {
     return (
@@ -344,10 +346,6 @@ export default function MainTabs() {
       </Stack.Navigator>
     );
   }
-
-  const chefOnboardingCompleted = useSelector(
-    (state) => state.user.profile?.chefOnboardingCompleted
-  );
 
   if (isChef && !chefOnboardingCompleted) {
     return (

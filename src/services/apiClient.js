@@ -80,9 +80,21 @@ apiClient.interceptors.response.use(
         console.error("Failed to handle 401 Unauthorized logout:", e);
       }
     }
+
+    let serverMessage = error?.response?.data?.message;
+    if (!serverMessage && error?.response?.data?.errors) {
+      const firstErrorKey = Object.keys(error.response.data.errors)[0];
+      const errorsList = error.response.data.errors[firstErrorKey];
+      if (Array.isArray(errorsList) && errorsList.length > 0) {
+        serverMessage = errorsList[0];
+      } else if (typeof errorsList === "string") {
+        serverMessage = errorsList;
+      }
+    }
+
     const normalizedError = {
       message:
-        error?.response?.data?.message ||
+        serverMessage ||
         error?.message ||
         "Something went wrong",
       status: error?.status || error?.response?.status || 0,
