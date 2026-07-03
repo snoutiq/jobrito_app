@@ -56,3 +56,8 @@ export const saveChefOnboarding = async (formData) => {
   });
   return response.data;
 };
+
+export const getChefAppointments = async () => {
+  const response = await apiClient.get("/chef/appointments");
+  return response.data;
+};

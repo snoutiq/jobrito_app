@@ -16,6 +16,7 @@ import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
 import ChefProfileScreen from "../screens/chef/ChefProfileScreen";
+import AppointmentRequestsScreen from "../screens/chef/AppointmentRequestsScreen";
 import RoleSwitcherScreen from "../screens/profile/RoleSwitcherScreen";
 import LanguageScreen from "../screens/profile/LanguageScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
@@ -211,6 +212,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="ChefProfile"
         component={ChefProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AppointmentRequests"
+        component={AppointmentRequestsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

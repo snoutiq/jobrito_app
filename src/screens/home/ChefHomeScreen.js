@@ -193,7 +193,7 @@ export default function ChefHomeScreen({ navigation }) {
               <View style={styles.cardHeaderRow}>
                 <View style={{ flex: 1 }}>
                   {isReferral ? (
-                    <Text style={styles.referralHeader}>Referral Job Post</Text>
+                    <Text style={styles.referralHeader}>{t("referralJobPost", "Referral Job Post")}</Text>
                   ) : (
                     <Text style={styles.employerNameGreen}>{job.company}</Text>
                   )}
@@ -211,18 +211,18 @@ export default function ChefHomeScreen({ navigation }) {
               <View style={styles.detailsBlock}>
                 <View style={styles.detailItem}>
                   <Ionicons name="location-outline" size={16} color="#64748B" />
-                  <Text style={styles.detailText}>Location: {job.location}</Text>
+                  <Text style={styles.detailText}>{t("location", "Location")}: {job.location}</Text>
                 </View>
                 {job.salary && (
                   <View style={styles.detailItem}>
                     <Ionicons name="cash-outline" size={16} color="#64748B" />
-                    <Text style={styles.detailText}>Salary: {job.salary}</Text>
+                    <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
                   </View>
                 )}
                 {job.experience && (
                   <View style={styles.detailItem}>
                     <Ionicons name="calendar-outline" size={16} color="#64748B" />
-                    <Text style={styles.detailText}>Contract: {job.experience}</Text>
+                    <Text style={styles.detailText}>{t("contract", "Contract")}: {job.experience}</Text>
                   </View>
                 )}
               </View>
@@ -238,7 +238,7 @@ export default function ChefHomeScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <Ionicons name="call" size={16} color="#15803D" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>Call</Text>
+                    <Text style={styles.actionBtnTextGreen}>{t("call", "Call")}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -247,7 +247,7 @@ export default function ChefHomeScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <Ionicons name="share-social" size={16} color="#15803D" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>Share</Text>
+                    <Text style={styles.actionBtnTextGreen}>{t("share", "Share")}</Text>
                   </TouchableOpacity>
                 </View>
               ) : hasMultipleActions ? (
@@ -263,7 +263,7 @@ export default function ChefHomeScreen({ navigation }) {
                         <ActivityIndicator size="small" color="#15803D" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                          {isApplied ? "✓ Applied" : "Apply Now"}
+                          {isApplied ? `✓ ${t("applied", "Applied")}` : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -276,7 +276,7 @@ export default function ChefHomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       <Ionicons name="call" size={16} color="#475569" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>Call</Text>
+                      <Text style={styles.actionBtnTextGrey}>{t("call", "Call")}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -285,7 +285,7 @@ export default function ChefHomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       <Ionicons name="share-social" size={16} color="#475569" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>Share</Text>
+                      <Text style={styles.actionBtnTextGrey}>{t("share", "Share")}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -302,7 +302,7 @@ export default function ChefHomeScreen({ navigation }) {
                         <ActivityIndicator size="small" color="#15803D" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                          {isApplied ? "✓ Applied" : "Apply Now"}
+                          {isApplied ? `✓ ${t("applied", "Applied")}` : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -311,7 +311,7 @@ export default function ChefHomeScreen({ navigation }) {
                   <TouchableOpacity style={styles.linkCopiedBox} onPress={() => copyToClipboard(job.id)}>
                     <Ionicons name="link" size={16} color="#64748B" />
                     <Text style={styles.linkCopiedText}>
-                      {isCopied ? "Link copied" : "Copy job link"}
+                      {isCopied ? t("linkCopied", "Link copied") : t("copyLink", "Copy job link")}
                     </Text>
                   </TouchableOpacity>
                 </View>

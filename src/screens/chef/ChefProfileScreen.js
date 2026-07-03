@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,11 +13,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
+import { getChefAppointments } from "../../services/chefApi";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -26,10 +28,29 @@ export default function ChefProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
 
+  // Appointments State (only length needed for badge)
+  const [appointmentCount, setAppointmentCount] = useState(0);
+
   const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
   const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
   const displayCity = profile?.city || "India & Overseas";
   const displayAvailability = profile?.availability || "Available for Consultation";
+
+  // Refresh appointments on screen focus to keep badge updated
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchAppointmentsData = async () => {
+        try {
+          const res = await getChefAppointments();
+          const list = res?.appointments || res?.data || (Array.isArray(res) ? res : []);
+          setAppointmentCount(list.length);
+        } catch (err) {
+          console.warn("Failed to fetch appointments:", err.message || err);
+        }
+      };
+      fetchAppointmentsData();
+    }, [])
+  );
 
   // Helper to determine the company logo source URL
   const getLogoSource = () => {
@@ -105,7 +126,7 @@ export default function ChefProfileScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Chef Connect</Text>
+          <Text style={styles.headerTitle}>{t("chefConnect", "Chef Connect")}</Text>
         </View>
         <TouchableOpacity
           style={styles.bellButton}
@@ -145,12 +166,12 @@ export default function ChefProfileScreen({ navigation }) {
             activeOpacity={0.8}
             onPress={() => CustomAlert.show("View Profile", "Showing profile preview...")}
           >
-            <Text style={styles.viewProfileBtnText}>View Profile</Text>
+            <Text style={styles.viewProfileBtnText}>{t("chefDashboard.viewProfile")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Performance Analytics */}
-        <Text style={styles.sectionTitle}>Performance Analytics</Text>
+        <Text style={styles.sectionTitle}>{t("chefDashboard.performanceAnalytics")}</Text>
         
         <View style={styles.analyticsGrid}>
           {/* Card 1 */}
@@ -159,7 +180,7 @@ export default function ChefProfileScreen({ navigation }) {
               <Ionicons name="eye-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.analyticsValue}>12</Text>
-            <Text style={styles.analyticsLabel}>Profile Views</Text>
+            <Text style={styles.analyticsLabel}>{t("chefDashboard.profileViews")}</Text>
           </View>
 
           {/* Card 2 */}
@@ -168,7 +189,7 @@ export default function ChefProfileScreen({ navigation }) {
               <Ionicons name="calendar-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.analyticsValue}>3</Text>
-            <Text style={styles.analyticsLabel}>Appointment Req.</Text>
+            <Text style={styles.analyticsLabel}>{t("chefDashboard.appointmentReq")}</Text>
           </View>
 
           {/* Card 3 */}
@@ -177,7 +198,7 @@ export default function ChefProfileScreen({ navigation }) {
               <Ionicons name="paper-plane-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.analyticsValue}>3</Text>
-            <Text style={styles.analyticsLabel}>Referrals Posted</Text>
+            <Text style={styles.analyticsLabel}>{t("chefDashboard.referralsPosted")}</Text>
           </View>
 
           {/* Card 4 */}
@@ -186,7 +207,7 @@ export default function ChefProfileScreen({ navigation }) {
               <Ionicons name="checkmark-done-circle-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.analyticsValue}>1</Text>
-            <Text style={styles.analyticsLabel}>Upcoming Consult.</Text>
+            <Text style={styles.analyticsLabel}>{t("chefDashboard.upcomingConsult")}</Text>
           </View>
         </View>
 
@@ -201,14 +222,14 @@ export default function ChefProfileScreen({ navigation }) {
               <Ionicons name="document-text-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.fullWidthCardText}>
-              <Text style={{ fontWeight: "800" }}>3</Text> Active Project Requests
+              <Text style={{ fontWeight: "800" }}>3</Text> {t("chefDashboard.activeProjectReq")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#64748B" />
         </TouchableOpacity>
 
         {/* My Activity */}
-        <Text style={styles.sectionTitle}>My Activity</Text>
+        <Text style={styles.sectionTitle}>{t("chefDashboard.myActivity")}</Text>
         <View style={styles.menuGroup}>
           {/* My Applications */}
           <TouchableOpacity
@@ -218,7 +239,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="mail-open-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>My Applications</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.myApplications")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
@@ -238,7 +259,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="bookmark-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>My Saved Jobs</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.mySavedJobs")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
@@ -258,7 +279,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="share-social-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>My Posted Jobs</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.myPostedJobs")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
@@ -274,15 +295,15 @@ export default function ChefProfileScreen({ navigation }) {
           <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => CustomAlert.show("Appointments", "You have 3 callback requests.")}
+            onPress={() => navigation.navigate("AppointmentRequests")}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Appointment Requests</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.appointmentRequests")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>3</Text>
+                <Text style={styles.badgeText}>{appointmentCount}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>
@@ -298,7 +319,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-number-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Upcoming Consultations</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.upcomingConsultations")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
@@ -310,12 +331,12 @@ export default function ChefProfileScreen({ navigation }) {
         </View>
 
         {/* Professional Tools */}
-        <Text style={styles.sectionTitle}>Professional Tools</Text>
+        <Text style={styles.sectionTitle}>{t("chefDashboard.professionalTools")}</Text>
         <View style={styles.menuGroup}>
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleOpenCalendly}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Calendly Integration</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.calendlyIntegration")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#64748B" />
           </TouchableOpacity>
@@ -329,7 +350,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="globe-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Social Media Links</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.socialMediaLinks")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#64748B" />
           </TouchableOpacity>
@@ -343,7 +364,7 @@ export default function ChefProfileScreen({ navigation }) {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="time-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Availability</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.availability")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#64748B" />
           </TouchableOpacity>
@@ -353,14 +374,14 @@ export default function ChefProfileScreen({ navigation }) {
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleShareProfile}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="share-outline" size={20} color="#15803D" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>Share Professional Profile</Text>
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.shareProfile")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#64748B" />
           </TouchableOpacity>
         </View>
 
         {/* Settings & Support */}
-        <Text style={styles.sectionTitle}>Settings & Support</Text>
+        <Text style={styles.sectionTitle}>{t("chefDashboard.settingsSupport")}</Text>
         <View style={styles.menuGroup}>
           <TouchableOpacity
             style={styles.menuItem}
