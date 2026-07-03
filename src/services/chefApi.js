@@ -62,6 +62,11 @@ export const getChefAppointments = async () => {
   return response.data;
 };
 
+export const getChefDashboardStats = async () => {
+  const response = await apiClient.get("/chef/dashboard");
+  return response.data;
+};
+
 export const getEmployerChefs = async () => {
   const response = await apiClient.get("/employer/chefs");
   return response.data;

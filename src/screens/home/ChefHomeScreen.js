@@ -58,11 +58,6 @@ export default function ChefHomeScreen({ navigation }) {
   const toggleFavorite = async (id) => {
     const isFav = !favorites[id];
     setFavorites((prev) => ({ ...prev, [id]: isFav }));
-    if (isFav) {
-      Alert.alert("Liked", "Job added to your favorites list.");
-    } else {
-      Alert.alert("Removed", "Job removed from your favorites list.");
-    }
 
     try {
       await dispatch(toggleSaveJob(id)).unwrap();

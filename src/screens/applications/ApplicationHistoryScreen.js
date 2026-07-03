@@ -68,10 +68,8 @@ export default function ApplicationHistoryScreen({ navigation }) {
   };
 
   useEffect(() => {
-    if (profile?.email) {
-      dispatch(fetchApplicationHistory(profile.email));
-    }
-  }, [dispatch, profile?.email]);
+    dispatch(fetchApplicationHistory());
+  }, [dispatch]);
 
   const filteredHistory = useMemo(() => {
     const query = search.trim().toLowerCase();

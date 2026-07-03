@@ -51,10 +51,8 @@ export default function SavedJobsScreen({ navigation }) {
 
   useEffect(() => {
     dispatch(fetchSavedJobs());
-    if (profile?.email) {
-      dispatch(fetchApplicationHistory(profile.email));
-    }
-  }, [dispatch, profile?.email]);
+    dispatch(fetchApplicationHistory());
+  }, [dispatch]);
 
   const handleApplyPress = (job) => {
     setSelectedJob(job);

@@ -19,7 +19,9 @@ import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
-import { getChefAppointments } from "../../services/chefApi";
+import { getChefAppointments, getChefDashboardStats } from "../../services/chefApi";
+import { getSavedJobs } from "../../services/jobApi";
+import { getApplicationHistory } from "../../services/applicationApi";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -30,25 +32,59 @@ export default function ChefProfileScreen({ navigation }) {
 
   // Appointments State (only length needed for badge)
   const [appointmentCount, setAppointmentCount] = useState(0);
+  const [stats, setStats] = useState({
+    profile_views: 0,
+    appointment_requests: 0,
+    referrals_posted: 0,
+    upcoming_consultations: 0,
+    active_project_requests: 0,
+  });
+  const [applicationsCount, setApplicationsCount] = useState(0);
+  const [savedJobsCount, setSavedJobsCount] = useState(0);
 
   const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
   const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
   const displayCity = profile?.city || "India & Overseas";
   const displayAvailability = profile?.availability || "Available for Consultation";
 
-  // Refresh appointments on screen focus to keep badge updated
+  // Refresh dashboard data on focus
   useFocusEffect(
     React.useCallback(() => {
-      const fetchAppointmentsData = async () => {
+      let isMounted = true;
+      const fetchDashboardData = async () => {
         try {
-          const res = await getChefAppointments();
-          const list = res?.appointments || res?.data || (Array.isArray(res) ? res : []);
-          setAppointmentCount(list.length);
+          const [statsRes, appsRes, savedRes, appointmentsRes] = await Promise.all([
+            getChefDashboardStats().catch(() => null),
+            getApplicationHistory().catch(() => null),
+            getSavedJobs().catch(() => null),
+            getChefAppointments().catch(() => null),
+          ]);
+
+          if (!isMounted) return;
+
+          if (statsRes?.success && statsRes.stats) {
+            setStats(statsRes.stats);
+          } else if (statsRes?.stats) {
+            setStats(statsRes.stats);
+          }
+          if (appsRes?.success && appsRes.applications) {
+            setApplicationsCount(appsRes.applications.length);
+          }
+          if (savedRes?.success && savedRes.jobs) {
+            setSavedJobsCount(savedRes.jobs.length);
+          }
+          if (appointmentsRes) {
+            const list = appointmentsRes.appointments || appointmentsRes.data || (Array.isArray(appointmentsRes) ? appointmentsRes : []);
+            setAppointmentCount(list.length);
+          }
         } catch (err) {
-          console.warn("Failed to fetch appointments:", err.message || err);
+          console.warn("Failed to fetch dashboard data:", err.message || err);
         }
       };
-      fetchAppointmentsData();
+      fetchDashboardData();
+      return () => {
+        isMounted = false;
+      };
     }, [])
   );
 
@@ -179,7 +215,7 @@ export default function ChefProfileScreen({ navigation }) {
             <View style={styles.analyticsIconBox}>
               <Ionicons name="eye-outline" size={18} color="#15803D" />
             </View>
-            <Text style={styles.analyticsValue}>12</Text>
+            <Text style={styles.analyticsValue}>{stats.profile_views}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.profileViews")}</Text>
           </View>
 
@@ -188,7 +224,7 @@ export default function ChefProfileScreen({ navigation }) {
             <View style={styles.analyticsIconBox}>
               <Ionicons name="calendar-outline" size={18} color="#15803D" />
             </View>
-            <Text style={styles.analyticsValue}>3</Text>
+            <Text style={styles.analyticsValue}>{stats.appointment_requests || appointmentCount}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.appointmentReq")}</Text>
           </View>
 
@@ -197,7 +233,7 @@ export default function ChefProfileScreen({ navigation }) {
             <View style={styles.analyticsIconBox}>
               <Ionicons name="paper-plane-outline" size={18} color="#15803D" />
             </View>
-            <Text style={styles.analyticsValue}>3</Text>
+            <Text style={styles.analyticsValue}>{stats.referrals_posted}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.referralsPosted")}</Text>
           </View>
 
@@ -206,7 +242,7 @@ export default function ChefProfileScreen({ navigation }) {
             <View style={styles.analyticsIconBox}>
               <Ionicons name="checkmark-done-circle-outline" size={18} color="#15803D" />
             </View>
-            <Text style={styles.analyticsValue}>1</Text>
+            <Text style={styles.analyticsValue}>{stats.upcoming_consultations}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.upcomingConsult")}</Text>
           </View>
         </View>
@@ -215,14 +251,14 @@ export default function ChefProfileScreen({ navigation }) {
         <TouchableOpacity
           style={styles.fullWidthCardRow}
           activeOpacity={0.7}
-          onPress={() => CustomAlert.show("Active Projects", "You have 3 active project requests.")}
+          onPress={() => CustomAlert.show("Active Projects", `You have ${stats.active_project_requests} active project requests.`)}
         >
           <View style={styles.fullWidthCardLeft}>
             <View style={[styles.analyticsIconBox, { marginRight: 12 }]}>
               <Ionicons name="document-text-outline" size={18} color="#15803D" />
             </View>
             <Text style={styles.fullWidthCardText}>
-              <Text style={{ fontWeight: "800" }}>3</Text> {t("chefDashboard.activeProjectReq")}
+              <Text style={{ fontWeight: "800" }}>{stats.active_project_requests}</Text> {t("chefDashboard.activeProjectReq")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#64748B" />
@@ -243,7 +279,7 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>1</Text>
+                <Text style={styles.badgeText}>{applicationsCount}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>
@@ -263,7 +299,7 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>2</Text>
+                <Text style={styles.badgeText}>{savedJobsCount}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>
@@ -283,7 +319,7 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>3</Text>
+                <Text style={styles.badgeText}>{stats.referrals_posted}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>
@@ -303,7 +339,7 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{appointmentCount}</Text>
+                <Text style={styles.badgeText}>{stats.appointment_requests || appointmentCount}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>
@@ -315,7 +351,7 @@ export default function ChefProfileScreen({ navigation }) {
           <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => CustomAlert.show("Consultations", "You have 1 upcoming consultation.")}
+            onPress={() => CustomAlert.show("Consultations", `You have ${stats.upcoming_consultations} upcoming consultations.`)}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-number-outline" size={20} color="#15803D" style={styles.menuIcon} />
@@ -323,7 +359,7 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>1</Text>
+                <Text style={styles.badgeText}>{stats.upcoming_consultations}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#64748B" />
             </View>

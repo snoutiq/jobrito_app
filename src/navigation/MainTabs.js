@@ -290,7 +290,12 @@ export default function MainTabs() {
       <Stack.Screen
         name="Applications"
         component={ApplicationHistoryScreen}
-        options={{ title: t("applications") }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SavedJobs"
+        component={SavedJobsScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Settings"
