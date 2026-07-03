@@ -163,7 +163,13 @@ export default function CompleteProfileScreen({ navigation }) {
 
   const handleReturnToProfile = async () => {
     await dispatch(fetchProfile());
-    navigation.navigate("Profile");
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: "Home" },
+        { name: "Profile" }
+      ],
+    });
   };
 
   const progress = step === 6 ? 100 : ((step - 1) / 5) * 100;
