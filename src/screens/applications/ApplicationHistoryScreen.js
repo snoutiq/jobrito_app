@@ -87,7 +87,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
     });
   }, [history, search, activeStatusFilter]);
 
-  const displayName = profile?.name === "Guest User" || !profile?.name ? "Guest" : profile.name;
+  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.phone || "");
   const initials = displayName
     .split(" ")
     .map((part) => part[0])

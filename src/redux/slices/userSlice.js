@@ -50,7 +50,7 @@ export const updateUserLanguage = createAsyncThunk(
 
 const initialState = {
   profile: {
-    name: "Guest User",
+    name: "",
     role: ROLES.JOB_SEEKER,
     completionPercentage: 60,
     employerOnboardingCompleted: false,

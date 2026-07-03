@@ -15,7 +15,7 @@ export default function ProfileScreen({ navigation }) {
   const { profile, activeRole } = useSelector((state) => state.user);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const displayName = profile?.name === "Guest User" || !profile?.name ? t("guest") : profile.name;
+  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.phone || "");
 
   const initials = displayName
     .split(" ")

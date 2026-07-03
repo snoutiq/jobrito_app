@@ -484,5 +484,6 @@
   "operationalExpertise": "Operational Expertise",
   "cuisineSpecialization": "Cuisine Specialization",
   "businessBrandDev": "Business & Brand Development",
-  "applyFilters": "Apply Filters"
+  "emailTakenTitle": "Email Already Registered",
+  "emailTakenMessage": "This email address is already in use. Please enter a different email address."
 }

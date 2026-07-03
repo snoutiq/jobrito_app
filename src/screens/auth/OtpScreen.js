@@ -37,7 +37,7 @@ export default function OtpScreen({ navigation, route }) {
       
       const profileToStore = {
         ...user,
-        name: user?.full_name || user?.name || "Guest User",
+        name: user?.full_name || user?.name || user?.mobile_number || "",
         phone: user?.mobile_number || user?.phone,
         role: role,
         employerOnboardingCompleted: isEmp ? hasCompletedOnboarding : false,

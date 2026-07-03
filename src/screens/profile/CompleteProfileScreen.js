@@ -53,7 +53,9 @@ export default function CompleteProfileScreen({ navigation }) {
   useEffect(() => {
     if (profile) {
       if (profile.profile_photo_path) setPhoto(profile.profile_photo_path);
-      if (profile.full_name || profile.name) setFullName(profile.full_name || profile.name);
+      const profileName = profile.full_name || profile.name || "";
+      const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(profileName);
+      if (profileName && !isPhoneLike) setFullName(profileName);
       if (profile.email) setEmail(profile.email);
       if (profile.city) setCity(profile.city);
       if (profile.experience_range) setExperienceRange(profile.experience_range);
@@ -126,8 +128,42 @@ export default function CompleteProfileScreen({ navigation }) {
       await dispatch(updateProfile(payload)).unwrap();
       setStep(6); // Success screen
     } catch (error) {
-      Alert.alert("Submission Error", error?.message || "Failed to update profile details.");
+      const emailErrors =
+        error?.raw?.response?.data?.errors?.email ||
+        error?.response?.data?.errors?.email ||
+        [];
+      const messageText = String(
+        error?.message ||
+          error?.raw?.response?.data?.message ||
+          emailErrors?.[0] ||
+          "Failed to update profile details."
+      );
+
+      let alertTitle = t("onboarding.validationTitle", "Verification Failed");
+      let displayError = messageText;
+
+      const isEmailTaken =
+        messageText.toLowerCase().includes("email has already been taken") ||
+        messageText.toLowerCase().includes("email already exists") ||
+        messageText.toLowerCase().includes("email already taken") ||
+        messageText.toLowerCase().includes("email already used") ||
+        emailErrors.length > 0;
+
+      if (isEmailTaken) {
+        alertTitle = t("emailTakenTitle", "Email Already Exists");
+        displayError = t(
+          "emailTakenMessage",
+          "This email address already exists. Please use a different email."
+        );
+      }
+
+      Alert.alert(alertTitle, displayError);
     }
+  };
+
+  const handleReturnToProfile = async () => {
+    await dispatch(fetchProfile());
+    navigation.navigate("Profile");
   };
 
   const progress = step === 6 ? 100 : ((step - 1) / 5) * 100;
@@ -217,7 +253,7 @@ export default function CompleteProfileScreen({ navigation }) {
             loading={loading}
           />
         )}
-        {step === 6 && <SuccessStep t={t} navigation={navigation} />}
+        {step === 6 && <SuccessStep t={t} onReturnPress={handleReturnToProfile} />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -236,7 +272,7 @@ function PhotoStep({ next, t, photo, setPhoto }) {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -317,7 +353,8 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
     <View style={styles.content}>
       <Text style={styles.label}>{t("fullName")}</Text>
       <TextInput
-        placeholder={t("enterFullName")}
+        placeholder={t("enterFullName", "Enter full name")}
+        placeholderTextColor="#94A3B8"
         value={fullName}
         onChangeText={setFullName}
         style={styles.input}
@@ -328,6 +365,7 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
       </Text>
       <TextInput
         placeholder="Enter your email address"
+        placeholderTextColor="#94A3B8"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -438,7 +476,8 @@ function ExperienceStep({
       </Text>
 
       <TextInput
-        placeholder={t("typeCurrentEmployer")}
+        placeholder={t("typeCurrentEmployer", "Enter current employer")}
+        placeholderTextColor="#94A3B8"
         value={currentEmployer}
         onChangeText={setCurrentEmployer}
         style={styles.input}
@@ -507,6 +546,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
       <Text style={styles.label}>City / Location</Text>
       <TextInput
         placeholder="e.g. London, UK or Mumbai, India"
+        placeholderTextColor="#94A3B8"
         value={city}
         onChangeText={setCity}
         style={styles.input}
@@ -566,6 +606,7 @@ function CategoryStep({ onSubmit, t, preferredRole, setPreferredRole, skills, se
       <Text style={styles.label}>Additional Skills (comma separated)</Text>
       <TextInput
         placeholder="e.g. Fine Dining, Chocolate tempering"
+        placeholderTextColor="#94A3B8"
         value={skills}
         onChangeText={setSkills}
         style={styles.input}
@@ -586,7 +627,7 @@ function CategoryStep({ onSubmit, t, preferredRole, setPreferredRole, skills, se
   );
 }
 
-function SuccessStep({ t, navigation }) {
+function SuccessStep({ t, onReturnPress }) {
   return (
     <View style={styles.success}>
       <Ionicons
@@ -603,7 +644,7 @@ function SuccessStep({ t, navigation }) {
         {t("completeProfile.successSubTitle")}
       </Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Home")}>
+      <TouchableOpacity style={styles.successButton} onPress={onReturnPress}>
         <Text style={styles.buttonText}>
           {t("returnToCommunityFeed")}
         </Text>
@@ -854,5 +895,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 15,
     lineHeight: 22,
+  },
+  successButton: {
+    alignSelf: "stretch",
+    paddingHorizontal: 18,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: PRIMARY,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 18,
   },
 });

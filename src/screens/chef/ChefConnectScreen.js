@@ -23,7 +23,7 @@ export default function ChefConnectScreen({ navigation }) {
   const profile = useSelector((state) => state.user.profile);
 
   // Get active profile data with fallbacks matching the Rajesh Kumar mockup card
-  const chefName = profile?.name && profile.name !== "Guest User" ? profile.name : "Chef Rajesh Kumar";
+  const chefName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.phone || "Chef Rajesh Kumar");
   const chefTitle = profile?.professionalTitle || "Culinary Consultant & Kitchen Setup Expert";
   const chefLocation = profile?.country ? `${profile.city || ""}, ${profile.country}` : "India & Overseas";
   const chefAvailability = profile?.availability || "Available for Consultation";

@@ -494,5 +494,7 @@
   "operationalExpertise": "परिचालन विशेषज्ञता",
   "cuisineSpecialization": "भोजन विशेषज्ञता",
   "businessBrandDev": "व्यवसाय और ब्रांड विकास",
-  "applyFilters": "फ़िल्टर लागू करें"
+  "applyFilters": "फ़िल्टर लागू करें",
+  "emailTakenTitle": "ईमेल पहले से ही पंजीकृत है",
+  "emailTakenMessage": "यह ईमेल पता पहले से उपयोग में है। कृपया दूसरा ईमेल पता दर्ज करें।"
 }

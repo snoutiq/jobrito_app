@@ -1,5 +1,4 @@
 import apiClient from "./apiClient";
-import { Platform } from "react-native";
 
 export const updateLanguagePreference = async (language) => {
   try {
@@ -21,11 +20,21 @@ const mapExperienceYears = (years) => {
   return "5+ Years";
 };
 
+const pickValue = (data, keys) => {
+  for (const key of keys) {
+    const value = data?.[key];
+    if (value !== undefined && value !== null && value !== "") {
+      return value;
+    }
+  }
+  return "";
+};
+
 const normalizeProfile = (u) => {
   if (!u) return null;
   return {
     id: u.id,
-    name: u.full_name || u.name || "Guest User",
+    name: u.full_name || u.name || "",
     full_name: u.full_name || u.name,
     email: u.email,
     phone: u.mobile_number || u.phone,
@@ -83,53 +92,29 @@ export const getProfile = async () => {
 
 export const updateProfile = async (data) => {
   try {
-    let payload;
-    let headers = {};
+    const profilePhotoPath = pickValue(data, ["profile_photo_path", "profilePhotoPath"]);
+    const isValidRemotePhoto =
+      typeof profilePhotoPath === "string" &&
+      (profilePhotoPath.startsWith("http://") || profilePhotoPath.startsWith("https://"));
 
-    if (data.profile_photo_path && data.profile_photo_path.startsWith("file://")) {
-      payload = new FormData();
-      payload.append("full_name", data.full_name || "");
-      payload.append("email", data.email || "");
-      payload.append("city", data.city || "");
-      payload.append("experience_range", data.experience_range || "");
-      payload.append("preferred_role", data.preferred_role || "");
-      payload.append("current_employer", data.current_employer || "");
-      payload.append("skills", data.skills || "");
-      if (data.gender) payload.append("gender", data.gender);
-      if (data.job_type) payload.append("job_type", data.job_type);
-      if (data.location_preference) payload.append("location_preference", data.location_preference);
-      
-      const uri = data.profile_photo_path;
-      const uriParts = uri.split("/");
-      const fileName = uriParts[uriParts.length - 1];
-      const fileType = fileName.split(".").pop();
+    const payload = {
+      full_name: pickValue(data, ["full_name", "fullName", "name"]),
+      email: pickValue(data, ["email"]),
+      city: pickValue(data, ["city"]),
+      experience_range: pickValue(data, ["experience_range", "experienceRange"]),
+      preferred_role: pickValue(data, ["preferred_role", "preferredRole"]),
+      current_employer: pickValue(data, ["current_employer", "currentEmployer"]),
+      skills: pickValue(data, ["skills"]),
+      gender: pickValue(data, ["gender"]),
+      job_type: pickValue(data, ["job_type", "jobType"]),
+      location_preference: pickValue(data, ["location_preference", "locationPreference"]),
+    };
 
-      payload.append("profile_photo_path", {
-        uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
-        name: fileName,
-        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
-      });
-      
-      headers = {
-        "Content-Type": "multipart/form-data",
-      };
-    } else {
-      payload = {
-        full_name: data.full_name,
-        email: data.email,
-        profile_photo_path: data.profile_photo_path,
-        city: data.city,
-        experience_range: data.experience_range,
-        preferred_role: data.preferred_role,
-        current_employer: data.current_employer,
-        skills: data.skills,
-        gender: data.gender,
-        job_type: data.job_type,
-        location_preference: data.location_preference,
-      };
+    if (isValidRemotePhoto) {
+      payload.profile_photo_path = profilePhotoPath;
     }
 
-    const response = await apiClient.post("/profile/personal", payload, { headers });
+    const response = await apiClient.post("/profile/personal", payload);
     const u = response.data?.user || response.data?.profile;
     if (u) {
       const profile = normalizeProfile(u);
@@ -137,17 +122,8 @@ export const updateProfile = async (data) => {
     }
     return response.data;
   } catch (error) {
-    console.warn("Failed to save profile to server, using local fallback:", error.message);
-    // Mock response when API fails
-    return {
-      success: true,
-      profile: {
-        ...data,
-        name: data.full_name,
-        completionPercentage: 90,
-        chefOnboardingCompleted: true,
-      },
-    };
+    console.error("Failed to save profile to server:", error.message || error);
+    throw error;
   }
 };
 
