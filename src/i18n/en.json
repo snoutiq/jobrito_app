@@ -1,5 +1,5 @@
 {
-  "appName": "JobConnect",
+  "appName": "JobRito",
   "loading": "Loading",
   "loginTitle": "OTP Login",
   "phoneNumber": "Phone Number",
@@ -63,7 +63,7 @@
 
   "roleSelection": {
     "title": "Choose your role",
-    "subtitle": "Tell us how you want to use JobConnect. You can change this later.",
+    "subtitle": "Tell us how you want to use JobRito. You can change this later.",
     "description": {
       "jobseeker": "Find jobs, track applications, and grow your career.",
       "employer": "Post jobs, manage applicants, and hire staff.",
@@ -97,7 +97,7 @@
     "profileComplete": "Profile Complete {{completion}}%",
     "finishNow": "Finish Now",
     "signOut": "Sign out of your account",
-    "logoutConfirm": "Are you sure you want to log out of JobConnect?",
+    "logoutConfirm": "Are you sure you want to log out of JobRito?",
     "menu": {
       "personalInfo": "Personal Information",
       "personalInfoSubtitle": "Manage your contact details and address",
@@ -186,7 +186,7 @@
 
   },
   "intro": {
-    "title": "Welcome to JobConnect",
+    "title": "Welcome to JobRito",
     "subtitle": "Your gateway to job opportunities and career growth.",
     "languageSelection": "Select your preferred language",
     "introLanguage": "Select your preferred language",

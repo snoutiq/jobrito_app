@@ -360,7 +360,7 @@ export default function PostJobScreen({ navigation, route }) {
               {/* <TouchableOpacity
                 style={styles.fab}
                 onPress={() =>
-                  Alert.alert("Help", t("postJob.supportMessage", "Need assistance? Please contact support@jobconnect.com"))
+                  Alert.alert("Help", t("postJob.supportMessage", "Need assistance? Please contact support@JobRito.com"))
                 }
                 activeOpacity={0.8}
               >

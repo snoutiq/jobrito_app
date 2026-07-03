@@ -10,7 +10,7 @@ export default function SplashScreen() {
       <View style={styles.brandMark}>
         <Text style={styles.brandText}>JC</Text>
       </View>
-      <Text style={styles.title}>JobConnect</Text>
+      <Text style={styles.title}>JobRito</Text>
       <Text style={styles.subtitle}>Hospitality workforce platform</Text>
       <AppLoader label="Loading app" />
     </ScreenWrapper>

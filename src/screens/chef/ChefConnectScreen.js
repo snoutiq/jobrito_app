@@ -31,7 +31,7 @@ export default function ChefConnectScreen({ navigation }) {
   const handleLogout = async () => {
     Alert.alert(
       t("logout") || "Logout",
-      t("profile.logoutConfirm") || "Are you sure you want to log out of JobConnect?",
+      t("profile.logoutConfirm") || "Are you sure you want to log out of JobRito?",
       [
         { text: t("cancel") || "Cancel", style: "cancel" },
         {

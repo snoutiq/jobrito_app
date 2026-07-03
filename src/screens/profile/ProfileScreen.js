@@ -208,7 +208,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.footer}>
         <Text style={styles.footerFrom}>{t("profile.from")}</Text>
         <Text style={styles.footerBrand}>HOSPITALITY CO.</Text>
-        <Text style={styles.footerVersion}>JobConnect v4.2.1-stable</Text>
+        <Text style={styles.footerVersion}>JobRito v4.2.1-stable</Text>
       </View>
 
       <Modal
