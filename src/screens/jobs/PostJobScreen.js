@@ -113,6 +113,20 @@ export default function PostJobScreen({ navigation, route }) {
     }
     setStep(3);
   };
+  
+  const handleExitOnboarding = async () => {
+    try {
+      await setEmployerOnboardingCompleted();
+      dispatch(
+        setProfileData({
+          ...profile,
+          employerOnboardingCompleted: true,
+        })
+      );
+    } catch (err) {
+      console.warn("Failed to complete onboarding:", err);
+    }
+  };
 
   const handleSubmitJob = async () => {
     if (!contactPhone.trim()) {
@@ -144,14 +158,8 @@ export default function PostJobScreen({ navigation, route }) {
       
       if (storeEmployerJob.fulfilled.match(result)) {
         if (route.params?.isOnboarding) {
-          // Mark onboarding as completed!
+          // Save completion in local storage (so restart doesn't reload onboarding screen)
           await setEmployerOnboardingCompleted();
-          dispatch(
-            setProfileData({
-              ...profile,
-              employerOnboardingCompleted: true,
-            })
-          );
         }
         setStep(4);
       } else {
@@ -235,20 +243,31 @@ export default function PostJobScreen({ navigation, route }) {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t("postJob.title")}</Text>
             <View style={styles.headerRight}>
-              {step === 2 && (
-                <TouchableOpacity style={styles.headerIcon}>
-                  <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+              {route?.params?.isOnboarding ? (
+                <TouchableOpacity
+                  onPress={handleExitOnboarding}
+                  style={{ padding: 4 }}
+                >
+                  <Ionicons name="close" size={28} color="#EF4444" />
                 </TouchableOpacity>
-              )}
-              {profile?.profile_photo_path ? (
-                <Image
-                  source={{ uri: profile.profile_photo_path }}
-                  style={styles.headerAvatar}
-                />
               ) : (
-                <View style={styles.headerAvatarFallback}>
-                  <Ionicons name="person-outline" size={16} color="#64748B" />
-                </View>
+                <>
+                  {step === 2 && (
+                    <TouchableOpacity style={styles.headerIcon}>
+                      <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+                    </TouchableOpacity>
+                  )}
+                  {profile?.profile_photo_path ? (
+                    <Image
+                      source={{ uri: profile.profile_photo_path }}
+                      style={styles.headerAvatar}
+                    />
+                  ) : (
+                    <View style={styles.headerAvatarFallback}>
+                      <Ionicons name="person-outline" size={16} color="#64748B" />
+                    </View>
+                  )}
+                </>
               )}
             </View>
           </View>
@@ -870,7 +889,12 @@ export default function PostJobScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.primaryNextBtn}
                   activeOpacity={0.8}
-                  onPress={handleReset}
+                  onPress={() => {
+                    handleReset();
+                    if (route?.params?.isOnboarding) {
+                      handleExitOnboarding();
+                    }
+                  }}
                 >
                   <Text style={styles.primaryNextBtnText}>{t("postJob.postNew")}</Text>
                 </TouchableOpacity>
@@ -880,7 +904,11 @@ export default function PostJobScreen({ navigation, route }) {
                   activeOpacity={0.7}
                   onPress={() => {
                     handleReset();
-                    navigation.popToTop();
+                    if (route?.params?.isOnboarding) {
+                      handleExitOnboarding();
+                    } else {
+                      navigation.popToTop();
+                    }
                   }}
                 >
                   <Text style={styles.dashboardLinkText}>{t("postJob.goDashboard")}</Text>

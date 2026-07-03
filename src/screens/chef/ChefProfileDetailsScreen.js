@@ -200,9 +200,6 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefProfile")}</Text>
         </View>
-        <TouchableOpacity style={styles.menuIcon} onPress={() => CustomAlert.show("Options", "Chef profile options")}>
-          <Ionicons name="ellipsis-vertical" size={20} color="#1E293B" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

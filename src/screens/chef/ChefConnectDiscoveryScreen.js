@@ -277,15 +277,6 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefConnect")}</Text>
         </View>
-        <TouchableOpacity style={styles.menuIcon} onPress={() => CustomAlert.show("Menu", "Chef Connect features Menu.")}>
-          <Ionicons name="search" size={22} color="#1E293B" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Sub Title Banner */}
-      <View style={styles.titleBanner}>
-        <Text style={styles.bannerMainTitle}>{t("chefConnect")}</Text>
-        <Text style={styles.bannerSubtitle}>{t("discoverHospitality")}</Text>
       </View>
 
       {/* Filters Metrics Row */}

@@ -386,7 +386,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         nominee_mobile: managerPhone,
         company_logo: logoUri,
         role: "employer",
-        employerOnboardingCompleted: true,
+        employerOnboardingCompleted: false,
         ...(apiResponse?.data || apiResponse || {}),
       };
 
@@ -395,7 +395,6 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
       
       // Save locally
       await setStoredProfile(profileReduxData);
-      await setEmployerOnboardingCompleted();
 
       Alert.alert(
         t("success"),
@@ -403,7 +402,9 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         [
           {
             text: "OK",
-            onPress: () => {}
+            onPress: () => {
+              navigation.navigate("EmployerFirstJobPost", { isOnboarding: true });
+            }
           }
         ]
       );
