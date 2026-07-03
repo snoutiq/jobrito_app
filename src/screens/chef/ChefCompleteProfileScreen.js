@@ -12,6 +12,7 @@ import {
   Image,
   BackHandler,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -142,10 +143,19 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [calendlyConnected, setCalendlyConnected] = useState(false);
 
   // --- Step 5 State ---
-  const [linkedinConnected, setLinkedinConnected] = useState(true);
+  const [linkedinLink, setLinkedinLink] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
+  const [facebookLink, setFacebookLink] = useState("");
+  const [twitterLink, setTwitterLink] = useState("");
+  const [linkedinConnected, setLinkedinConnected] = useState(false);
   const [instagramConnected, setInstagramConnected] = useState(false);
   const [facebookConnected, setFacebookConnected] = useState(false);
   const [moreConnected, setMoreConnected] = useState(false);
+
+  // Connection Modal State
+  const [socialModalVisible, setSocialModalVisible] = useState(false);
+  const [editingPlatform, setEditingPlatform] = useState("");
+  const [tempLink, setTempLink] = useState("");
 
   const handleUploadPhoto = async () => {
     try {
@@ -323,13 +333,13 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       }
     }
 
-    if (step < 5) {
+    if (step < 7) {
       setStep(step + 1);
     }
   };
 
   const prev = () => {
-    if (step === 5) return; // Cannot go back from Congratulations
+    if (step === 7) return; // Cannot go back from Congratulations
     if (step > 1) {
       setStep(step - 1);
     } else {
@@ -378,6 +388,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       formData.append("cuisine_specialty", selectedCuisines.join(", "));
       formData.append("bio", bio);
       formData.append("calendly_link", calendlyLink || "");
+
+      // Append social links
+      if (linkedinLink) formData.append("linkedin", linkedinLink);
+      if (instagramLink) formData.append("instagram", instagramLink);
+      if (facebookLink) formData.append("facebook", facebookLink);
+      if (twitterLink) formData.append("twitter", twitterLink);
 
       // Location Preference Mapping
       let locPref = "Both";
@@ -443,14 +459,19 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         employmentPreference,
         availability,
         bio,
+        calendlyLink,
+        linkedin: linkedinLink,
+        instagram: instagramLink,
+        facebook: facebookLink,
+        twitter: twitterLink,
         role: "chef",
-        chefOnboardingCompleted: false, // Keep onboarding active to show Step 5
+        chefOnboardingCompleted: false, // Keep onboarding active to show Success step
         ...(apiResponse?.data || apiResponse || {}),
       };
 
       dispatch(setProfileData(profilePayload));
       await setStoredProfile(profilePayload);
-      setStep(5); // Go to success screen
+      setStep(7); // Go to success screen
     } catch (error) {
       console.error("Failed to save chef onboarding:", error);
       Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
@@ -474,6 +495,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       employmentPreference,
       availability,
       bio,
+      calendlyLink,
+      linkedin: linkedinLink,
+      instagram: instagramLink,
+      facebook: facebookLink,
+      twitter: twitterLink,
       role: "chef",
       chefOnboardingCompleted: true,
     };
@@ -493,7 +519,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     }
   };
 
-  const progress = step === 4 ? 100 : step * 25;
+  const progress = step === 6 ? 100 : Math.round((step / 6) * 100);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -503,17 +529,17 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       >
         {/* Header */}
         <View style={styles.header}>
-          {step < 5 ? (
+          {step < 7 ? (
             <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
               <Ionicons name="arrow-back" size={24} color="#1E293B" />
             </TouchableOpacity>
           ) : (
             <View style={{ width: 32 }} />
           )}
-          <Text style={[styles.headerTitle, step >= 4 && { color: "#15803D" }]}>
-            {step === 5 ? "Jobrito" : "Professional Profile"}
+          <Text style={[styles.headerTitle, step >= 6 && { color: "#15803D" }]}>
+            {step === 7 ? "Jobrito" : "Professional Profile"}
           </Text>
-          {step < 5 ? (
+          {step < 7 ? (
             <TouchableOpacity style={styles.headerIconBtn} onPress={() => Alert.alert("Help", "Fill in your chef professional credentials to sync your profile with top employers.")}>
               <Ionicons name="help-circle-outline" size={24} color="#64748B" />
             </TouchableOpacity>
@@ -522,11 +548,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
           )}
         </View>
 
-        {/* Progress Tracker (only for steps 1 to 4) */}
-        {step <= 4 && (
+        {/* Progress Tracker (only for steps 1 to 6) */}
+        {step <= 6 && (
           <View style={styles.progressSection}>
             <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>STEP {step} OF 4</Text>
+              <Text style={styles.progressLabel}>STEP {step} OF 6</Text>
               <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{progress}% Complete</Text>
             </View>
             <View style={styles.progressBarBg}>
@@ -552,7 +578,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 >
                   <Image
                     source={{
-                      uri: photoUri || "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
+                      uri: photoUri || "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
                     }}
                     style={styles.avatarImage}
                   />
@@ -1130,8 +1156,308 @@ export default function ChefCompleteProfileScreen({ navigation }) {
             </View>
           )}
 
-          {/* STEP 4: FINAL REVIEW */}
+          {/* STEP 4: CALENDLY INTEGRATION */}
           {step === 4 && (
+            <View style={styles.stepContainer}>
+              {/* Top Sync Card */}
+              <View style={styles.syncIllustrationCard}>
+                <View style={styles.syncLogosRow}>
+                  <View style={styles.syncLogoBox}>
+                    <Ionicons name="calendar" size={24} color={PRIMARY_GREEN} />
+                  </View>
+                  <Ionicons name="repeat-outline" size={20} color="#94A3B8" style={{ marginHorizontal: 12 }} />
+                  <View style={[styles.syncLogoBox, { backgroundColor: "#0284C7" }]}>
+                    <Text style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>C</Text>
+                  </View>
+                </View>
+                <Text style={styles.illustrationTitle}>Schedule Faster</Text>
+                <Text style={styles.illustrationSubtitle}>
+                  Connect your calendar to let employers book interviews instantly.
+                </Text>
+              </View>
+
+              {/* Calendly Details Card */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                    <View style={styles.calendarIconBg}>
+                      <Ionicons name="calendar-outline" size={24} color="#16A34A" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.cardSectionTitle}>Calendly Integration</Text>
+                      <Text style={styles.cardSectionSubtitle}>Sync your availability</Text>
+                    </View>
+                  </View>
+                  <View style={[
+                    styles.connectBadge, 
+                    calendlyConnected ? styles.connectBadgeSuccess : styles.connectBadgePending
+                  ]}>
+                    <View style={[
+                      styles.connectBadgeDot, 
+                      calendlyConnected ? { backgroundColor: "#16A34A" } : { backgroundColor: "#94A3B8" }
+                    ]} />
+                    <Text style={[
+                      styles.connectBadgeText,
+                      calendlyConnected ? { color: "#16A34A" } : { color: "#64748B" }
+                    ]}>
+                      {calendlyConnected ? "Connected" : "Not Connected"}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Input Field */}
+                <View style={[styles.inputGroup, { marginTop: 20 }]}>
+                  <Text style={styles.inputLabel}>Your Calendly Link</Text>
+                  <View style={[styles.inputWrapper, activeInput === "calendly" && styles.inputWrapperActive]}>
+                    <Ionicons name="link-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <TextInput
+                      value={calendlyLink}
+                      onChangeText={(val) => {
+                        setCalendlyLink(val);
+                        if (!val.trim()) setCalendlyConnected(false);
+                      }}
+                      placeholder="calendly.com/your-name"
+                      placeholderTextColor="#94A3B8"
+                      autoCapitalize="none"
+                      style={styles.textInput}
+                      onFocus={() => setActiveInput("calendly")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                  <Text style={styles.inputSubtext}>
+                    Paste your personal Calendly scheduling link to enable direct booking for hospitality shifts.
+                  </Text>
+                </View>
+
+                {/* Connect Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.connectButton,
+                    !calendlyLink.trim() && styles.connectButtonDisabled
+                  ]}
+                  onPress={() => {
+                    if (calendlyLink.trim()) {
+                      setCalendlyConnected(true);
+                      Alert.alert("Success", "Calendly link connected successfully!");
+                    }
+                  }}
+                  disabled={!calendlyLink.trim()}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.connectButtonText}>
+                    {calendlyConnected ? "Connected" : "Connect"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Why Connect Info Card */}
+              <View style={styles.whyConnectCard}>
+                <Ionicons name="bulb-outline" size={20} color="#16A34A" style={{ marginRight: 10, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.whyConnectTitle}>Why connect?</Text>
+                  <Text style={styles.whyConnectText}>
+                    Candidates with connected calendars receive 4x more interview requests. It's the fastest way to land your next shift.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Bottom Continue Button */}
+              <TouchableOpacity
+                style={[styles.continueButton, { marginTop: 24 }]}
+                onPress={next}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* STEP 5: SYNC YOUR PROFILE */}
+          {step === 5 && (
+            <View style={styles.stepContainer}>
+              {/* Top Sync Icon Box */}
+              <View style={styles.syncIllustrationCard}>
+                <View style={styles.shareIconCircle}>
+                  <Ionicons name="share-social" size={32} color="#fff" />
+                </View>
+                <Text style={styles.illustrationTitle}>Sync Your Profile</Text>
+                <Text style={styles.illustrationSubtitle}>
+                  Connect your social accounts to import your hospitality experience and stand out to top employers.
+                </Text>
+              </View>
+
+              {/* List of Social Connect Options */}
+              <View style={styles.socialListCard}>
+                {/* LinkedIn */}
+                <TouchableOpacity
+                  style={styles.socialRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setEditingPlatform("LinkedIn");
+                    setTempLink(linkedinLink);
+                    setSocialModalVisible(true);
+                  }}
+                >
+                  <View style={styles.socialRowLeft}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "#0A66C2" }]}>
+                      <Ionicons name="logo-linkedin" size={20} color="#fff" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.socialPlatformTitle}>LinkedIn</Text>
+                      <Text style={styles.socialPlatformSubtitle}>Work History & Certificates</Text>
+                    </View>
+                  </View>
+                  <View style={styles.socialRowRight}>
+                    <View style={[
+                      styles.socialStatusBadge,
+                      linkedinLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
+                    ]}>
+                      {linkedinLink ? (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.socialRowDivider} />
+
+                {/* Instagram */}
+                <TouchableOpacity
+                  style={styles.socialRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setEditingPlatform("Instagram");
+                    setTempLink(instagramLink);
+                    setSocialModalVisible(true);
+                  }}
+                >
+                  <View style={styles.socialRowLeft}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "#E1306C" }]}>
+                      <Ionicons name="logo-instagram" size={20} color="#fff" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.socialPlatformTitle}>Instagram</Text>
+                      <Text style={styles.socialPlatformSubtitle}>Visual Portfolio</Text>
+                    </View>
+                  </View>
+                  <View style={styles.socialRowRight}>
+                    <View style={[
+                      styles.socialStatusBadge,
+                      instagramLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
+                    ]}>
+                      {instagramLink ? (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.socialRowDivider} />
+
+                {/* Facebook */}
+                <TouchableOpacity
+                  style={styles.socialRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setEditingPlatform("Facebook");
+                    setTempLink(facebookLink);
+                    setSocialModalVisible(true);
+                  }}
+                >
+                  <View style={styles.socialRowLeft}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "#1877F2" }]}>
+                      <Ionicons name="logo-facebook" size={20} color="#fff" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.socialPlatformTitle}>Facebook</Text>
+                      <Text style={styles.socialPlatformSubtitle}>Community Badges</Text>
+                    </View>
+                  </View>
+                  <View style={styles.socialRowRight}>
+                    <View style={[
+                      styles.socialStatusBadge,
+                      facebookLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
+                    ]}>
+                      {facebookLink ? (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.socialRowDivider} />
+
+                {/* Add More (Twitter) */}
+                <TouchableOpacity
+                  style={styles.socialRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setEditingPlatform("Twitter");
+                    setTempLink(twitterLink);
+                    setSocialModalVisible(true);
+                  }}
+                >
+                  <View style={styles.socialRowLeft}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "#1DA1F2" }]}>
+                      <Ionicons name="logo-twitter" size={20} color="#fff" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.socialPlatformTitle}>Add More</Text>
+                      <Text style={styles.socialPlatformSubtitle}>Community Badges</Text>
+                    </View>
+                  </View>
+                  <View style={styles.socialRowRight}>
+                    <View style={[
+                      styles.socialStatusBadge,
+                      twitterLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
+                    ]}>
+                      {twitterLink ? (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Finish Setup Button */}
+              <TouchableOpacity
+                style={[styles.finishSetupButton, { backgroundColor: "#15803D" }]}
+                onPress={next}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.continueButtonText}>Finish Setup</Text>
+                <Ionicons name="arrow-forward" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* STEP 6: FINAL REVIEW */}
+          {step === 6 && (
             <View style={styles.stepContainer}>
               <Text style={styles.reviewMainTitle}>{t("chefOnboarding.reviewTitle")}</Text>
               <Text style={styles.reviewMainSubtitle}>
@@ -1143,7 +1469,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={styles.reviewProfileSection}>
                   <Image
                     source={{
-                      uri: photoUri || "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&auto=format&fit=crop&q=60"
+                      uri: photoUri || "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
                     }}
                     style={styles.reviewAvatar}
                   />
@@ -1263,8 +1589,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
             </View>
           )}
 
-          {/* STEP 5: CONGRATULATIONS (SUCCESS SCREEN) */}
-          {step === 5 && (
+          {/* STEP 7: CONGRATULATIONS (SUCCESS SCREEN) */}
+          {step === 7 && (
             <View style={[styles.stepContainer, { alignItems: "center", paddingTop: 40 }]}>
               {/* Success Circle Icon */}
               <View style={styles.successIconBox}>
@@ -1312,6 +1638,65 @@ export default function ChefCompleteProfileScreen({ navigation }) {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={socialModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSocialModalVisible(false)}
+      >
+        <View style={styles.socialModalOverlay}>
+          <View style={styles.socialModalCard}>
+            <Text style={styles.socialModalTitle}>Connect {editingPlatform}</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{editingPlatform} Link/Handle</Text>
+              <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+                <Ionicons name="link-outline" size={18} color="#64748B" style={styles.inputIconLeft} />
+                <TextInput
+                  value={tempLink}
+                  onChangeText={setTempLink}
+                  placeholder={`Enter your ${editingPlatform} URL`}
+                  placeholderTextColor="#94A3B8"
+                  autoCapitalize="none"
+                  style={styles.textInput}
+                />
+              </View>
+            </View>
+
+            <View style={styles.socialModalActions}>
+              <TouchableOpacity
+                style={[styles.socialModalButton, styles.socialModalCancel]}
+                onPress={() => setSocialModalVisible(false)}
+              >
+                <Text style={styles.socialModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.socialModalButton, styles.socialModalSave]}
+                onPress={() => {
+                  const val = tempLink.trim();
+                  if (editingPlatform === "LinkedIn") {
+                    setLinkedinLink(val);
+                    setLinkedinConnected(!!val);
+                  } else if (editingPlatform === "Instagram") {
+                    setInstagramLink(val);
+                    setInstagramConnected(!!val);
+                  } else if (editingPlatform === "Facebook") {
+                    setFacebookLink(val);
+                    setFacebookConnected(!!val);
+                  } else if (editingPlatform === "Twitter") {
+                    setTwitterLink(val);
+                    setMoreConnected(!!val);
+                  }
+                  setSocialModalVisible(false);
+                }}
+              >
+                <Text style={styles.socialModalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1889,5 +2274,272 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: "#15803D",
+  },
+  // --- New Styles ---
+  syncIllustrationCard: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  syncLogosRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  syncLogoBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#F2FBF5",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  illustrationTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  illustrationSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  cardContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  calendarIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#F0FDF4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardSectionTitle: {
+    fontSize: 15,
+    fontWeight: "750",
+    color: "#1E293B",
+  },
+  cardSectionSubtitle: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  connectBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
+  connectBadgePending: {
+    backgroundColor: "#F1F5F9",
+  },
+  connectBadgeSuccess: {
+    backgroundColor: "#F0FDF4",
+  },
+  connectBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  connectBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  connectButton: {
+    backgroundColor: "#22C55E",
+    minHeight: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 18,
+  },
+  connectButtonDisabled: {
+    backgroundColor: "#E2E8F0",
+  },
+  connectButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  whyConnectCard: {
+    flexDirection: "row",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginTop: 20,
+  },
+  whyConnectTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
+  },
+  whyConnectText: {
+    fontSize: 12,
+    color: "#64748B",
+    lineHeight: 16,
+  },
+  shareIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#22C55E",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  socialListCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    overflow: "hidden",
+  },
+  socialRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  socialRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  socialIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  socialPlatformTitle: {
+    fontSize: 14,
+    fontWeight: "750",
+    color: "#1E293B",
+  },
+  socialPlatformSubtitle: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  socialRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  socialStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
+  socialStatusBadgeConnect: {
+    backgroundColor: "#F1F5F9",
+  },
+  socialStatusBadgeConnected: {
+    backgroundColor: "#F0FDF4",
+  },
+  socialStatusBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  socialRowDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 16,
+  },
+  finishSetupButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#15803D",
+    minHeight: 52,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 24,
+  },
+  socialModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  socialModalCard: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  socialModalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  socialModalActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+  socialModalButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  socialModalCancel: {
+    backgroundColor: "#F1F5F9",
+  },
+  socialModalCancelText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#475569",
+  },
+  socialModalSave: {
+    backgroundColor: "#22C55E",
+  },
+  socialModalSaveText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
