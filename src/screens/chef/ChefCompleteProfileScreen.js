@@ -26,6 +26,43 @@ import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#22C55E";
 
+const countriesList = [
+  "India",
+  "Saudi Arabia",
+  "UAE",
+  "Qatar",
+  "Oman",
+  "Kuwait",
+  "Bahrain",
+  "United Kingdom",
+  "United States",
+  "Other"
+];
+
+const citiesByCountry = {
+  "India": ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Kochi", "Goa", "Other"],
+  "Saudi Arabia": ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Tabuk", "Other"],
+  "UAE": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Other"],
+  "Qatar": ["Doha", "Al Wakrah", "Al Rayyan", "Other"],
+  "Oman": ["Muscat", "Salalah", "Sohar", "Other"],
+  "Kuwait": ["Kuwait City", "Hawally", "Salmiya", "Other"],
+  "Bahrain": ["Manama", "Riffa", "Muharraq", "Other"],
+  "United States": ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco", "Miami", "Other"],
+  "United Kingdom": ["London", "Birmingham", "Manchester", "Edinburgh", "Glasgow", "Other"],
+};
+
+const commonLanguagesList = [
+  "English",
+  "Hindi",
+  "Arabic",
+  "Malayalam",
+  "Tamil",
+  "Urdu",
+  "Bengali",
+  "French",
+  "Spanish"
+];
+
 export default function ChefCompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -43,6 +80,29 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [newLanguage, setNewLanguage] = useState("");
   const [showLangInput, setShowLangInput] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+
+  // Country & City Dropdown States
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  useEffect(() => {
+    if (country) {
+      if (countriesList.includes(country)) {
+        setSelectedCountry(country);
+      } else {
+        setSelectedCountry("Other");
+      }
+    }
+    if (currentCity) {
+      if (country && countriesList.includes(country) && citiesByCountry[country]?.includes(currentCity)) {
+        setSelectedCity(currentCity);
+      } else {
+        setSelectedCity("Other");
+      }
+    }
+  }, []);
 
   // --- Step 2 State ---
   const [selectedCuisines, setSelectedCuisines] = useState([]);
@@ -313,6 +373,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       formData.append("full_name", fullName);
       formData.append("preferred_role", professionalTitle);
       formData.append("city", currentCity);
+      formData.append("country", country);
       formData.append("experience_range", experienceYears);
       formData.append("cuisine_specialty", selectedCuisines.join(", "));
       formData.append("bio", bio);
@@ -545,15 +606,157 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <Text style={styles.inputSubtext}>Common: Executive Chef, Culinary Consultant, Pastry Chef</Text>
               </View>
 
-              {/* City & Country Row */}
-              <View style={styles.inlineRow}>
-                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                  <Text style={styles.inputLabel}>Current City</Text>
+              {/* Country Selection */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Country</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setShowCountryDropdown(!showCountryDropdown);
+                    setShowCityDropdown(false);
+                  }}
+                  style={[styles.inputWrapper, showCountryDropdown && styles.inputWrapperActive]}
+                >
+                  <Ionicons name="globe-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Text style={[styles.textInput, !selectedCountry && { color: "#94A3B8" }]}>
+                    {selectedCountry || "Select Country"}
+                  </Text>
+                  <Ionicons name={showCountryDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
+                </TouchableOpacity>
+
+                {showCountryDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
+                      {countriesList.map((opt) => (
+                        <TouchableOpacity
+                          key={opt}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setSelectedCountry(opt);
+                            if (opt === "Other") {
+                              setCountry("");
+                            } else {
+                              setCountry(opt);
+                            }
+                            setShowCountryDropdown(false);
+                            // Clear city when country changes
+                            setCurrentCity("");
+                            setSelectedCity("");
+                          }}
+                        >
+                          <Text style={[styles.dropdownItemText, selectedCountry === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+
+              {/* Custom Country TextInput */}
+              {selectedCountry === "Other" && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Enter Country Name</Text>
+                  <View style={[styles.inputWrapper, activeInput === "customCountry" && styles.inputWrapperActive]}>
+                    <Ionicons name="globe-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <TextInput
+                      value={country}
+                      onChangeText={setCountry}
+                      placeholder="Enter country name"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveInput("customCountry")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                </View>
+              )}
+
+              {/* City Selection */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Current City</Text>
+                {selectedCountry === "Other" ? (
                   <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
+                    <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
                     <TextInput
                       value={currentCity}
                       onChangeText={setCurrentCity}
-                      placeholder="e.g. Dubai"
+                      placeholder="Enter city name"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.textInput}
+                      onFocus={() => setActiveInput("city")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        if (!selectedCountry) {
+                          Alert.alert("Select Country", "Please select a country first.");
+                          return;
+                        }
+                        setShowCityDropdown(!showCityDropdown);
+                        setShowCountryDropdown(false);
+                      }}
+                      style={[
+                        styles.inputWrapper,
+                        !selectedCountry && { backgroundColor: "#F1F5F9", borderColor: "#E2E8F0" },
+                        showCityDropdown && styles.inputWrapperActive
+                      ]}
+                      disabled={!selectedCountry}
+                    >
+                      <Ionicons name="location-outline" size={20} color={selectedCountry ? "#64748B" : "#94A3B8"} style={styles.inputIconLeft} />
+                      <Text style={[styles.textInput, (!selectedCity || !currentCity) && { color: "#94A3B8" }]}>
+                        {!selectedCountry 
+                          ? "Select Country First" 
+                          : (selectedCity === "Other" ? (currentCity || "Type your city name") : (currentCity || "Select City"))
+                        }
+                      </Text>
+                      <Ionicons name={showCityDropdown ? "chevron-up" : "chevron-down"} size={20} color={selectedCountry ? "#64748B" : "#94A3B8"} />
+                    </TouchableOpacity>
+
+                    {showCityDropdown && selectedCountry && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
+                          {(citiesByCountry[selectedCountry] || ["Other"]).map((opt) => (
+                            <TouchableOpacity
+                              key={opt}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSelectedCity(opt);
+                                if (opt === "Other") {
+                                  setCurrentCity("");
+                                } else {
+                                  setCurrentCity(opt);
+                                }
+                                setShowCityDropdown(false);
+                              }}
+                            >
+                              <Text style={[styles.dropdownItemText, selectedCity === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                                {opt}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+
+              {/* Custom City TextInput (for standard country) */}
+              {selectedCountry !== "Other" && selectedCity === "Other" && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Enter City Name</Text>
+                  <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
+                    <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <TextInput
+                      value={currentCity}
+                      onChangeText={setCurrentCity}
+                      placeholder="e.g. Pune"
                       placeholderTextColor="#94A3B8"
                       style={styles.textInput}
                       onFocus={() => setActiveInput("city")}
@@ -561,57 +764,86 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     />
                   </View>
                 </View>
-
-                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                  <Text style={styles.inputLabel}>Country</Text>
-                  <View style={[styles.inputWrapper, activeInput === "country" && styles.inputWrapperActive]}>
-                    <TextInput
-                      value={country}
-                      onChangeText={setCountry}
-                      placeholder="e.g. UAE"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.textInput}
-                      onFocus={() => setActiveInput("country")}
-                      onBlur={() => setActiveInput(null)}
-                    />
-                  </View>
-                </View>
-              </View>
+              )}
 
               {/* Languages Spoken */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Languages Spoken</Text>
-                <View style={styles.tagWrapper}>
-                  {languages.map((lang) => (
-                    <View key={lang} style={styles.languageTag}>
-                      <Text style={styles.languageTagText}>{lang}</Text>
-                      <TouchableOpacity onPress={() => handleRemoveLanguage(lang)} style={styles.languageTagClose}>
-                        <Ionicons name="close" size={14} color="#64748B" />
+                
+                <Text style={[styles.inputSubtext, { paddingLeft: 0, marginBottom: 8 }]}>Tap to select languages you speak:</Text>
+                <View style={[styles.pillsRow, { paddingLeft: 0, marginTop: 4, marginBottom: 12 }]}>
+                  {commonLanguagesList.map((lang) => {
+                    const isSelected = languages.includes(lang);
+                    return (
+                      <TouchableOpacity
+                        key={lang}
+                        style={[styles.pill, isSelected && styles.pillSelected]}
+                        onPress={() => {
+                          if (isSelected) {
+                            setLanguages(languages.filter((l) => l !== lang));
+                          } else {
+                            setLanguages([...languages, lang]);
+                          }
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
+                          {lang}
+                        </Text>
                       </TouchableOpacity>
-                    </View>
-                  ))}
+                    );
+                  })}
+                </View>
 
+                {languages.length > 0 && (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={[styles.inputSubtext, { paddingLeft: 0, marginBottom: 6 }]}>Selected Languages:</Text>
+                    <View style={styles.tagWrapper}>
+                      {languages.map((lang) => (
+                        <View key={lang} style={styles.languageTag}>
+                          <Text style={styles.languageTagText}>{lang}</Text>
+                          <TouchableOpacity onPress={() => handleRemoveLanguage(lang)} style={styles.languageTagClose}>
+                            <Ionicons name="close" size={14} color="#64748B" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                <View>
                   {showLangInput ? (
-                    <View style={styles.addLangWrapper}>
+                    <View style={[styles.inputWrapper, { borderColor: PRIMARY_GREEN }]}>
                       <TextInput
                         value={newLanguage}
                         onChangeText={setNewLanguage}
-                        placeholder="Language"
+                        placeholder="Type custom language (e.g. German)"
                         placeholderTextColor="#94A3B8"
-                        style={styles.addLangInput}
+                        style={styles.textInput}
                         autoFocus
                         onSubmitEditing={handleAddLanguage}
                       />
-                      <TouchableOpacity onPress={handleAddLanguage} style={styles.addLangSubmit}>
-                        <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
+                      <TouchableOpacity onPress={handleAddLanguage} style={{ padding: 4 }}>
+                        <Ionicons name="checkmark-circle" size={24} color={PRIMARY_GREEN} />
                       </TouchableOpacity>
                     </View>
                   ) : (
                     <TouchableOpacity
-                      style={styles.addLangButton}
+                      style={[
+                        styles.inputWrapper,
+                        {
+                          justifyContent: "center",
+                          borderStyle: "dashed",
+                          borderColor: PRIMARY_GREEN,
+                          backgroundColor: "transparent"
+                        }
+                      ]}
                       onPress={() => setShowLangInput(true)}
                     >
-                      <Text style={[styles.addLangButtonText, { color: PRIMARY_GREEN }]}>+ Add More</Text>
+                      <Ionicons name="add" size={20} color={PRIMARY_GREEN} style={{ marginRight: 6 }} />
+                      <Text style={{ color: PRIMARY_GREEN, fontWeight: "700", fontSize: 14 }}>
+                        Add Other Language
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
