@@ -36,22 +36,26 @@ const formatPostedTime = (postedDate) => {
 export default function JobDetailsScreen({ route }) {
   const dispatch = useDispatch();
   const { jobDetails, loading, applyingJobId } = useSelector((state) => state.job);
-  const applyLoading = useSelector((state) => state.application.loading);
+  const { history: applicationHistory, loading: applyLoading } = useSelector((state) => state.application);
   const jobId = route?.params?.jobId;
+  const passedJob = route?.params?.job;
   const [showCallModal, setShowCallModal] = useState(false);
 
   const job = useMemo(() => {
-    if (!jobDetails || jobDetails.id !== jobId) {
+    if (passedJob && String(passedJob.id) === String(jobId)) {
+      return passedJob;
+    }
+    if (!jobDetails || String(jobDetails.id) !== String(jobId)) {
       return null;
     }
     return jobDetails;
-  }, [jobDetails, jobId]);
+  }, [passedJob, jobDetails, jobId]);
 
   useEffect(() => {
-    if (jobId) {
+    if (jobId && (!passedJob || !passedJob.description)) {
       dispatch(fetchJobDetails(jobId));
     }
-  }, [dispatch, jobId]);
+  }, [dispatch, jobId, passedJob]);
 
   const handleShare = async () => {
     try {
@@ -67,8 +71,10 @@ export default function JobDetailsScreen({ route }) {
   const company = job?.company;
   const location = job?.location;
   const salary = job?.salary;
-  const experience = job?.experience;
-  const postedTime = formatPostedTime(job?.postedDate);
+  const experience = job?.experience || job?.experience_range || "5+ Years";
+  const postedTime = formatPostedTime(job?.postedDate || job?.created_at);
+  const jobRequirements = job?.requirements || requirements;
+  const jobBenefits = job?.benefits || benefits;
 
   if (!job) {
     return (
@@ -78,7 +84,9 @@ export default function JobDetailsScreen({ route }) {
     );
   }
 
-  const isApplied = job?.applied || false;
+  const isApplied = job?.applied ||
+                    (applicationHistory || []).some((app) => String(app.jobId) === String(job?.id || jobId)) ||
+                    false;
   const isApplying = applyingJobId === job?.id || applyLoading;
 
   return (
@@ -110,7 +118,7 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.metaIcon}>
               <Ionicons name="cash-outline" size={16} color={colors.success} />
             </View>
-            <View>
+            <View style={styles.metaItemContent}>
               <Text style={styles.metaLabel}>Salary</Text>
               <Text style={styles.metaValue}>{salary}</Text>
             </View>
@@ -119,7 +127,7 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.metaIcon}>
               <Ionicons name="location-outline" size={16} color={colors.primary} />
             </View>
-            <View>
+            <View style={styles.metaItemContent}>
               <Text style={styles.metaLabel}>Location</Text>
               <Text style={styles.metaValue}>{location}</Text>
             </View>
@@ -128,7 +136,7 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.metaIcon}>
               <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
             </View>
-            <View>
+            <View style={styles.metaItemContent}>
               <Text style={styles.metaLabel}>Experience</Text>
               <Text style={styles.metaValue}>{experience}</Text>
             </View>
@@ -137,11 +145,55 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.metaIcon}>
               <Ionicons name="time-outline" size={16} color={colors.success} />
             </View>
-            <View>
+            <View style={styles.metaItemContent}>
               <Text style={styles.metaLabel}>Posted</Text>
               <Text style={styles.metaValue}>{postedTime}</Text>
             </View>
           </View>
+          {job?.contract_duration ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="document-text-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>Contract</Text>
+                <Text style={styles.metaValue}>{job.contract_duration}</Text>
+              </View>
+            </View>
+          ) : null}
+          {job?.hasOwnProperty("visa_assistance") ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="card-outline" size={16} color={colors.success} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>Visa Assistance</Text>
+                <Text style={styles.metaValue}>{job.visa_assistance ? "Available" : "Not Provided"}</Text>
+              </View>
+            </View>
+          ) : null}
+          {job?.hasOwnProperty("accommodation_available") ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="home-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>Accommodation</Text>
+                <Text style={styles.metaValue}>{job.accommodation_available ? "Provided" : "Not Available"}</Text>
+              </View>
+            </View>
+          ) : null}
+          {job?.open_positions ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="people-outline" size={16} color={colors.success} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>Open Positions</Text>
+                <Text style={styles.metaValue}>{job.open_positions}</Text>
+              </View>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -155,7 +207,7 @@ export default function JobDetailsScreen({ route }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Key Requirements</Text>
         <View style={styles.requirementList}>
-          {requirements.map((item) => (
+          {jobRequirements.map((item) => (
             <View key={item} style={styles.requirementRow}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={styles.requirementText}>{item}</Text>
@@ -178,7 +230,7 @@ export default function JobDetailsScreen({ route }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Benefits & Perks</Text>
         <View style={styles.benefitWrap}>
-          {benefits.map((item) => (
+          {jobBenefits.map((item) => (
             <View key={item} style={styles.benefitChip}>
               <Text style={styles.benefitText}>{item}</Text>
             </View>
@@ -500,5 +552,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
+  },
+  metaItemContent: {
+    flex: 1,
   },
 });

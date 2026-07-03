@@ -13,6 +13,8 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
+    config.withCredentials = false;
+
     if (config.skipAuth) {
       return config;
     }

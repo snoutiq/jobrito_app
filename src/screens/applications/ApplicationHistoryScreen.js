@@ -100,7 +100,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
       <Pressable
         onPress={() => {
           if (item.jobId) {
-            navigation.navigate("JobDetails", { jobId: item.jobId });
+            navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
           }
         }}
         style={styles.row}
@@ -124,6 +124,23 @@ export default function ApplicationHistoryScreen({ navigation }) {
           <Text style={styles.companyName} numberOfLines={1}>
             {item.employer}
           </Text>
+          
+          {/* Salary and Location Row */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="cash-outline" size={14} color="#94A3B8" style={{ marginRight: 2 }} />
+              <Text style={styles.metaText} numberOfLines={1}>
+                {item.job?.salary || "Competitive"}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="location-outline" size={14} color="#94A3B8" style={{ marginRight: 2 }} />
+              <Text style={styles.metaText} numberOfLines={1}>
+                {item.job?.location || "Flexible"}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.badgeWrapper}>
             <StatusBadge status={item.status} />
           </View>
@@ -532,5 +549,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: "#EF4444",
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    maxWidth: "50%",
+  },
+  metaText: {
+    fontSize: 12,
+    color: "#94A3B8",
   },
 });

@@ -8,6 +8,8 @@ import PhoneInput from "../../components/inputs/PhoneInput";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 import { requestOtp } from "../../redux/slices/authSlice";
+import { ROLES } from "../../constants/roles";
+import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -40,6 +42,35 @@ export default function LoginScreen({ navigation }) {
     );
 
     if (requestOtp.fulfilled.match(result)) {
+      const payload = result.payload?.data || result.payload;
+      if (payload?.token && payload?.message === "Already logged in.") {
+        const user = payload.user;
+        const hasCompletedOnboarding = payload.has_completed_onboarding ?? (user?.chef_profile || user?.employer_profile ? true : false);
+        const isEmp = role?.toLowerCase() === "employer";
+        const isChef = role?.toLowerCase() === "chef" || role?.toLowerCase() === "job_seeker";
+        
+        const profileToStore = {
+          ...user,
+          name: user?.full_name || user?.name || "Guest User",
+          phone: user?.mobile_number || user?.phone,
+          role: role,
+          employerOnboardingCompleted: isEmp ? hasCompletedOnboarding : false,
+          chefOnboardingCompleted: isChef ? hasCompletedOnboarding : false,
+        };
+
+        await setStoredProfile(profileToStore);
+        await setStoredRole(role);
+
+        if (hasCompletedOnboarding) {
+          if (isEmp) {
+            await setEmployerOnboardingCompleted();
+          } else if (isChef) {
+            await setChefOnboardingCompleted();
+          }
+        }
+        return;
+      }
+
       navigation.navigate("Otp", {
         phone: phone.trim(),
       });

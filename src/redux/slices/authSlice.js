@@ -119,6 +119,14 @@ const authSlice = createSlice({
         state.phone = action.meta.arg.phone;
         state.role = action.meta.arg.role;
         state.success = true;
+
+        const payload = action.payload?.data || action.payload;
+        if (payload?.token && payload?.message === "Already logged in.") {
+          state.token = payload.token;
+          state.user = payload.user;
+          state.otpVerified = true;
+          state.hasCompletedOnboarding = payload.has_completed_onboarding ?? (payload.user?.chef_profile || payload.user?.employer_profile ? true : false);
+        }
       })
       .addCase(requestOtp.rejected, (state, action) => {
         state.loading = false;

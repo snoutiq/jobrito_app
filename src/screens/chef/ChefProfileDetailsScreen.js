@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import { bookChefAppointment } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
@@ -22,6 +23,10 @@ const PRIMARY_GREEN = "#22C55E";
 export default function ChefProfileDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const chef = route?.params?.chef;
+  const { profile: loggedInProfile } = useSelector((state) => state.user);
+  const isOwnProfile = route?.params?.isOwnProfile || 
+                       (loggedInProfile && String(loggedInProfile.id) === String(chef?.id)) || 
+                       false;
 
   // Booking Modal States
   const [bookingVisible, setBookingVisible] = useState(false);
@@ -309,16 +314,27 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {/* Get Appointment Bottom Button */}
+      {/* Get Appointment / Edit Profile Bottom Button */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
-          activeOpacity={0.8}
-          onPress={() => setBookingVisible(true)}
-        >
-          <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
-        </TouchableOpacity>
+        {isOwnProfile ? (
+          <TouchableOpacity
+            style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("ChefCompleteProfile")}
+          >
+            <Ionicons name="create-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.appointmentBtnText}>{t("editProfile", "Edit Profile")}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
+            activeOpacity={0.8}
+            onPress={() => setBookingVisible(true)}
+          >
+            <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Booking Modal */}

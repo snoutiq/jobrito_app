@@ -69,13 +69,6 @@ export default function ChefConnectScreen({ navigation }) {
     });
   };
 
-  const toggleLanguage = async () => {
-    const currentLang = i18n.language;
-    const nextLang = currentLang === "hi" ? "en" : "hi";
-    await i18n.changeLanguage(nextLang);
-    Alert.alert("Language / भाषा", `Language switched to ${nextLang === "hi" ? "Hindi (हिन्दी)" : "English"}`);
-  };
-
   const handleToolAction = (toolName) => {
     Alert.alert(toolName, `Opening settings for ${toolName}`);
   };
@@ -253,13 +246,13 @@ export default function ChefConnectScreen({ navigation }) {
         {/* Settings & Support Section */}
         <Text style={styles.sectionTitle}>Settings & Support</Text>
         <View style={styles.actionList}>
-          <TouchableOpacity style={styles.listItem} onPress={toggleLanguage}>
+          <TouchableOpacity style={styles.listItem} onPress={() => navigation.navigate("Language")}>
             <View style={styles.listItemLeft}>
               <Ionicons name="language-outline" size={20} color="#15803D" style={styles.listIcon} />
               <Text style={styles.listItemText}>Language</Text>
             </View>
             <View style={styles.rightValueRow}>
-              <Text style={styles.rightValueText}>{i18n.language === "hi" ? "हिन्दी" : "English"}</Text>
+              <Text style={styles.rightValueText}>{LANGUAGE_LABELS[i18n.language] || "English"}</Text>
               <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
             </View>
           </TouchableOpacity>

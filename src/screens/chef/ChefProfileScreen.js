@@ -152,7 +152,16 @@ export default function ChefProfileScreen({ navigation }) {
     }
   };
 
-  const currentLanguageName = i18n.language === "hi" ? "हिंदी" : "English";
+  const LANGUAGE_LABELS = {
+    en: "English",
+    hi: "हिन्दी",
+    mr: "मराठी",
+    ar_AE: "العربية (UAE)",
+    ar_SA: "العربية (KSA)",
+    en_EU: "English (Europe)"
+  };
+
+  const currentLanguageName = LANGUAGE_LABELS[i18n.language] || "English";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,14 +171,8 @@ export default function ChefProfileScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("chefConnect", "Chef Connect")}</Text>
+          <Text style={styles.headerTitle}>{t("chefProfile", "Chef Profile")}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.bellButton}
-          onPress={() => CustomAlert.show("Notifications", "You have no new notifications.")}
-        >
-          <Ionicons name="notifications-outline" size={24} color="#1E293B" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -197,12 +200,12 @@ export default function ChefProfileScreen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity
+          <TouchableOpacity 
+            onPress={() => navigation.navigate("ChefProfileDetails", { chef: profile, isOwnProfile: true })}
             style={[styles.viewProfileBtn, { backgroundColor: PRIMARY_GREEN }]}
             activeOpacity={0.8}
-            onPress={() => CustomAlert.show("View Profile", "Showing profile preview...")}
           >
-            <Text style={styles.viewProfileBtnText}>{t("chefDashboard.viewProfile")}</Text>
+            <Text style={styles.viewProfileBtnText}>{t("chefDashboard.viewProfile", "View Profile")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -436,7 +439,7 @@ export default function ChefProfileScreen({ navigation }) {
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
             onPress={() => navigation.navigate("Settings")}
@@ -446,7 +449,7 @@ export default function ChefProfileScreen({ navigation }) {
               <Text style={styles.menuItemLabel}>{t("settingsTitle")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#64748B" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <View style={styles.menuDivider} />
 

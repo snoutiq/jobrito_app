@@ -8,7 +8,7 @@ import AppButton from "../../components/buttons/AppButton";
 import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
 import { verifyOtp } from "../../redux/slices/authSlice";
-import { setStoredProfile, setStoredRole } from "../../services/storage";
+import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
 
 const OTP_LENGTH = 6;
 
@@ -33,6 +33,7 @@ export default function OtpScreen({ navigation, route }) {
       const user = result.payload?.user;
       const hasCompletedOnboarding = result.payload?.hasCompletedOnboarding ?? false;
       const isEmp = role?.toLowerCase() === "employer";
+      const isChef = role?.toLowerCase() === "chef" || role?.toLowerCase() === "job_seeker";
       
       const profileToStore = {
         ...user,
@@ -40,10 +41,19 @@ export default function OtpScreen({ navigation, route }) {
         phone: user?.mobile_number || user?.phone,
         role: role,
         employerOnboardingCompleted: isEmp ? hasCompletedOnboarding : false,
+        chefOnboardingCompleted: isChef ? hasCompletedOnboarding : false,
       };
 
       await setStoredProfile(profileToStore);
       await setStoredRole(role);
+
+      if (hasCompletedOnboarding) {
+        if (isEmp) {
+          await setEmployerOnboardingCompleted();
+        } else if (isChef) {
+          await setChefOnboardingCompleted();
+        }
+      }
 
       const msg = result.payload?.message || "Successfully logged in.";
       Alert.alert("Login Status", msg);
