@@ -7,6 +7,8 @@ import {
   getSavedJobs as getSavedJobsApi,
   toggleSaveJob as toggleSaveJobApi,
   storeJob as storeJobApi,
+  createJob as createJobApi,
+  getMyJobs as getMyJobsApi,
 } from "../../services/jobApi";
 
 export const fetchFeedJobs = createAsyncThunk(
@@ -75,6 +77,35 @@ export const storeEmployerJob = createAsyncThunk(
   }
 );
 
+export const createJobPost = createAsyncThunk(
+  "job/createJobPost",
+  async (data, { rejectWithValue }) => {
+    try {
+      return await createJobApi(data);
+    } catch (error) {
+      // Normalize error (apiClient returns a normalized error with message/status)
+      const serialized = {
+        message: error?.message || "Server Error",
+        status: error?.status || null,
+        errors: error?.errors || null,
+        data: error?.data || null,
+      };
+      return rejectWithValue(serialized);
+    }
+  }
+);
+
+
+export const fetchMyJobs = createAsyncThunk(
+  "job/fetchMyJobs",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getMyJobsApi();
+    } catch (error) {
+      return rejectWithValue(error?.message || "Failed to fetch my jobs");
+    }
+  }
+);
 
 export const applyJob = createAsyncThunk(
   "job/applyJob",
@@ -90,6 +121,7 @@ export const applyJob = createAsyncThunk(
 const initialState = {
   feedJobs: [],
   savedJobs: [],
+  myJobs: [],
   jobDetails: null,
   communityJobResult: null,
   loading: false,
@@ -123,7 +155,7 @@ const jobSlice = createSlice({
       })
       .addCase(fetchFeedJobs.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message;
       })
       .addCase(fetchSavedJobs.pending, (state) => {
         state.loading = true;
@@ -137,7 +169,7 @@ const jobSlice = createSlice({
       })
       .addCase(fetchSavedJobs.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message;
       })
       .addCase(fetchJobDetails.pending, (state) => {
         state.loading = true;
@@ -151,7 +183,21 @@ const jobSlice = createSlice({
       })
       .addCase(fetchJobDetails.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message;
+      })
+      .addCase(fetchMyJobs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(fetchMyJobs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.myJobs = action.payload?.jobs || action.payload || [];
+        state.success = true;
+      })
+      .addCase(fetchMyJobs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error?.message;
       })
       .addCase(submitCommunityJob.pending, (state) => {
         state.loading = true;
@@ -165,7 +211,7 @@ const jobSlice = createSlice({
       })
       .addCase(submitCommunityJob.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message;
       })
       .addCase(storeEmployerJob.pending, (state) => {
         state.loading = true;
@@ -179,7 +225,21 @@ const jobSlice = createSlice({
       })
       .addCase(storeEmployerJob.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message;
+      })
+      .addCase(createJobPost.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(createJobPost.fulfilled, (state, action) => {
+        state.loading = false;
+        state.communityJobResult = action.payload;
+        state.success = true;
+      })
+      .addCase(createJobPost.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error?.message;
       });
 
     // apply job handlers
@@ -212,8 +272,8 @@ const jobSlice = createSlice({
       .addCase("application/applyJob/rejected", (state, action) => {
         state.loading = false;
         state.applyingJobId = null;
-        state.error = action.payload;
-        const errorMsg = action.payload;
+        state.error = action.payload || action.error?.message;
+        const errorMsg = action.payload || action.error?.message;
         if (
           typeof errorMsg === "string" &&
           (errorMsg.toLowerCase().includes("already applied") ||
@@ -262,8 +322,8 @@ const jobSlice = createSlice({
       .addCase(applyJob.rejected, (state, action) => {
         state.loading = false;
         state.applyingJobId = null;
-        state.error = action.payload;
-        const errorMsg = action.payload;
+        state.error = action.payload || action.error?.message;
+        const errorMsg = action.payload || action.error?.message;
         if (
           typeof errorMsg === "string" &&
           (errorMsg.toLowerCase().includes("already applied") ||

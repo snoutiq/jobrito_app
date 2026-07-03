@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployerDashboard, closeEmployerJob } from "../../redux/slices/employerSlice";
+import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
 
 const PRIMARY_GREEN = "#22C55E";
@@ -21,17 +22,23 @@ export default function MyJobsScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const submittedJobs = useSelector((state) => state.employer.submittedJobs);
+  const myJobs = useSelector((state) => state.job.myJobs);
+  const activeRole = useSelector(
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole
+  );
   const [activeTab, setActiveTab] = useState("active");
   const [localJobs, setLocalJobs] = useState([]);
 
-  useEffect(() => {
-    if (!submittedJobs?.length) {
-      dispatch(fetchEmployerDashboard());
-      return;
-    }
+  const jobsToShow = myJobs?.length ? myJobs : submittedJobs;
 
-    setLocalJobs(submittedJobs);
-  }, [dispatch, submittedJobs]);
+  useEffect(() => {
+    dispatch(fetchEmployerDashboard());
+    dispatch(fetchMyJobs());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setLocalJobs(jobsToShow);
+  }, [jobsToShow]);
 
   const activeJobs = localJobs.filter((job) => {
     const status = normalizeStatus(job.status);
@@ -353,7 +360,9 @@ export default function MyJobsScreen({ navigation }) {
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
         activeOpacity={0.8}
-        onPress={() => navigation.navigate("Post Job")}
+        onPress={() => {
+          navigation.navigate("Post Referral Job");
+        }}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>

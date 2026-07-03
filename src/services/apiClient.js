@@ -41,7 +41,6 @@ apiClient.interceptors.response.use(
       const unauthorizedError = {
         message: "Session expired, please login again",
         status: 401,
-        response,
       };
       return Promise.reject(unauthorizedError);
     }
@@ -55,7 +54,8 @@ apiClient.interceptors.response.use(
           error?.message ||
           "Something went wrong",
         status: error?.status || error?.response?.status || 0,
-        raw: error,
+        errors: error?.response?.data?.errors || null,
+        data: error?.response?.data || null,
       };
       return Promise.reject(normalizedError);
     }
@@ -100,7 +100,8 @@ apiClient.interceptors.response.use(
         error?.message ||
         "Something went wrong",
       status: error?.status || error?.response?.status || 0,
-      raw: error,
+      errors: error?.response?.data?.errors || null,
+      data: error?.response?.data || null,
     };
     return Promise.reject(normalizedError);
   }

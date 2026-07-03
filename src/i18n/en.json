@@ -332,7 +332,13 @@
     "successTitle": "Job Submitted Successfully",
     "successMessage": "Your job has been submitted for admin review. Once approved, it will be published in the community feed and notifications will be sent to matched staff.",
     "postNew": "Post a new job",
-    "goDashboard": "Go to Dashboard"
+    "goDashboard": "Go to Dashboard",
+    "country": "Country",
+    "countryPlaceholder": "e.g. United Kingdom",
+    "contractDuration": "Contract Duration",
+    "contractDurationPlaceholder": "e.g. 2 Years",
+    "visaAssistance": "Visa Assistance",
+    "accommodation": "Accommodation Available"
   },
   "discardTitle": "Discard changes?",
   "discardMessage": "Are you sure you want to discard your changes and leave this page?",
@@ -485,5 +491,7 @@
   "cuisineSpecialization": "Cuisine Specialization",
   "businessBrandDev": "Business & Brand Development",
   "emailTakenTitle": "Email Already Registered",
-  "emailTakenMessage": "This email address is already in use. Please enter a different email address."
+  "emailTakenMessage": "This email address is already in use. Please enter a different email address.",
+  "yes": "Yes",
+  "no": "No"
 }

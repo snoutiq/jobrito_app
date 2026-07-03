@@ -65,3 +65,13 @@ export const storeJob = async (jobData) => {
   
 };
 
+export const createJob = async (jobData) => {
+  const response = await apiClient.post("/jobs", jobData);
+  return response.data;
+};
+
+export const getMyJobs = async () => {
+  const response = await apiClient.get("/my-jobs");
+  return response.data;
+};
+

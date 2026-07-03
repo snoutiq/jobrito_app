@@ -82,7 +82,10 @@ export default function ProfileScreen({ navigation }) {
       subtitle: t("profile.menu.myPostedJobsSubtitle"),
       icon: "briefcase-outline",
       color: colors.text,
-      onPress: () => navigation.navigate("Post Job"),
+      onPress: () => {
+        const isChefOrJobSeeker = normalizedRole === "jobseeker" || normalizedRole === "job_seeker" || normalizedRole === "chef";
+        navigation.navigate(isChefOrJobSeeker ? "Post Referral Job" : "Post Job");
+      },
     },
     // {
     //   label: t("profile.menu.becomeEmployer"),

@@ -8,6 +8,7 @@ import { ROLES } from "../constants/roles";
 import HomeScreen from "../screens/home/HomeScreen";
 import ApplicationHistoryScreen from "../screens/applications/ApplicationHistoryScreen";
 import PostJobScreen from "../screens/jobs/PostJobScreen";
+import PostReferralJobScreen from "../screens/jobs/PostReferralJobScreen";
 import ChefConnectDiscoveryScreen from "../screens/chef/ChefConnectDiscoveryScreen";
 import ChefConnectFiltersScreen from "../screens/chef/ChefConnectFiltersScreen";
 import ChefProfileDetailsScreen from "../screens/chef/ChefProfileDetailsScreen";
@@ -122,6 +123,13 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Post Job"
         component={PostJobScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Post Referral Job"
+        component={PostReferralJobScreen}
         options={{
           headerShown: false,
         }}
@@ -285,6 +293,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="Post Job"
         component={PostJobScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Post Referral Job"
+        component={PostReferralJobScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

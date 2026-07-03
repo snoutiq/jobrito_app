@@ -323,7 +323,7 @@ export default function ChefHomeScreen({ navigation }) {
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => Alert.alert("Create Post", "Write a new job alert or community discussion post.")}
+        onPress={() => navigation.navigate("Post Referral Job")}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#fff" />
