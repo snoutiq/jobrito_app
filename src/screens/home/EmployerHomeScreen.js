@@ -52,7 +52,7 @@ export default function EmployerHomeScreen({ navigation }) {
     ) {
       return { uri };
     }
-    return { uri: `http://178.16.138.159${uri.startsWith("/") ? "" : "/"}${uri}` };
+    return { uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}` };
   };
 
   const logoSource = getLogoSource();

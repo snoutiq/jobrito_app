@@ -57,18 +57,18 @@ export default function MyJobsScreen({ navigation }) {
   };
 
   const closeJob = (jobId) => {
-    CustomAlert.show("Close Job", "Are you sure you want to close this job posting?", [
-      { text: "Cancel", style: "cancel" },
+    CustomAlert.show(t("closeJobConfirmTitle", "Close Job"), t("closeJobConfirm", "Are you sure you want to close this job posting?"), [
+      { text: t("cancel"), style: "cancel" },
       {
-        text: "Close Job",
+        text: t("closeJob"),
         style: "destructive",
         onPress: async () => {
           try {
             await dispatch(closeEmployerJob(jobId)).unwrap();
-            CustomAlert.show("Success", "Job has been closed.");
+            CustomAlert.show(t("success"), t("jobClosed", "Job has been closed."));
             dispatch(fetchEmployerDashboard());
           } catch (err) {
-            CustomAlert.show("Error", err || "Failed to close the job.");
+            CustomAlert.show(t("error"), err || t("failCloseJob", "Failed to close the job."));
           }
         },
       },
@@ -76,10 +76,10 @@ export default function MyJobsScreen({ navigation }) {
   };
 
   const deletePendingJob = (jobId) => {
-    CustomAlert.show("Delete Draft", "Are you sure you want to delete this job posting?", [
-      { text: "Cancel", style: "cancel" },
+    CustomAlert.show(t("deleteDraftConfirmTitle", "Delete Draft"), t("deleteDraftConfirm", "Are you sure you want to delete this job posting?"), [
+      { text: t("cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("delete"),
         style: "destructive",
         onPress: () => {
           setLocalJobs((current) =>
@@ -96,7 +96,7 @@ export default function MyJobsScreen({ navigation }) {
         String(job.id) === String(jobId) ? { ...job, status: "active" } : job,
       ),
     );
-    CustomAlert.show("Success", "Job has been reopened!");
+    CustomAlert.show(t("success"), t("jobReopened", "Job has been reopened!"));
   };
 
   return (

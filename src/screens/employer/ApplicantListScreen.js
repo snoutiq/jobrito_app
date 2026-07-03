@@ -62,7 +62,7 @@ export default function ApplicantListScreen({ route, navigation }) {
   const filterTabs = [
     {
       key: "all",
-      label: "All",
+      label: t("all", "All"),
       count: totalApplied,
       activeColor: "#6366F1",
       inactiveBg: "#EEF2FF",
@@ -71,7 +71,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     },
     {
       key: "new",
-      label: "New",
+      label: t("new", "New"),
       count: pendingCount,
       activeColor: "#3B82F6",
       inactiveBg: "#EFF6FF",
@@ -80,7 +80,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     },
     {
       key: "shortlisted",
-      label: "Shortlisted",
+      label: t("shortlisted", "Shortlisted"),
       count: shortlistedCount,
       activeColor: "#10B981",
       inactiveBg: "#ECFDF5",
@@ -89,7 +89,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     },
     {
       key: "contacted",
-      label: "Contacted",
+      label: t("contacted", "Contacted"),
       count: contactedCount,
       activeColor: "#F59E0B",
       inactiveBg: "#FEF3C7",
@@ -98,7 +98,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     },
     {
       key: "rejected",
-      label: "Rejected",
+      label: t("rejected", "Rejected"),
       count: rejectedCount,
       activeColor: "#EF4444",
       inactiveBg: "#FEF2F2",

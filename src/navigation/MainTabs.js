@@ -8,7 +8,9 @@ import { ROLES } from "../constants/roles";
 import HomeScreen from "../screens/home/HomeScreen";
 import ApplicationHistoryScreen from "../screens/applications/ApplicationHistoryScreen";
 import PostJobScreen from "../screens/jobs/PostJobScreen";
-import ChefConnectScreen from "../screens/chef/ChefConnectScreen";
+import ChefConnectDiscoveryScreen from "../screens/chef/ChefConnectDiscoveryScreen";
+import ChefConnectFiltersScreen from "../screens/chef/ChefConnectFiltersScreen";
+import ChefProfileDetailsScreen from "../screens/chef/ChefProfileDetailsScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
@@ -235,6 +237,21 @@ export default function MainTabs() {
         options={{ title: t("personalInformation") }}
       />
       <Stack.Screen
+        name="ChefConnectDiscovery"
+        component={ChefConnectDiscoveryScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ChefConnectFilters"
+        component={ChefConnectFiltersScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ChefProfileDetails"
+        component={ChefProfileDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="EmployerDashboard"
         component={EmployerDashboardScreen}
         options={{ title: t("employerDashboard") }}
@@ -269,11 +286,6 @@ export default function MainTabs() {
         name="Post Job"
         component={PostJobScreen}
         options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ChefConnect"
-        component={ChefConnectScreen}
-        options={{ title: t("chefConnect") }}
       />
       <Stack.Screen
         name="Applications"

@@ -32,17 +32,17 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   if (!applicant) {
     return (
-      <ScreenWrapper style={{ backgroundColor: "#F8FAFC" }}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Talent Details</Text>
+          <Text style={styles.headerTitle}>{t("talentDetails", "Talent Details")}</Text>
         </View>
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Applicant details not found.</Text>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24 }}>
+          <Text style={{ color: "#64748B" }}>{t("applicantNotFound", "Applicant details not found.")}</Text>
         </View>
-      </ScreenWrapper>
+      </SafeAreaView>
     );
   }
 
@@ -126,7 +126,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
             ) : null}
           </View>
           <View style={styles.matchBadge}>
-            <Text style={styles.matchText}>85% Match</Text>
+            <Text style={styles.matchText}>85% {t("match", "Match")}</Text>
           </View>
         </View>
 
@@ -201,16 +201,16 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         {/* Job Category Pills */}
         <Text style={styles.sectionTitle}>{t("jobCategory")}</Text>
         <View style={styles.pillsContainer}>
-          <View style={styles.pill}><Text style={styles.pillText}>Restaurant Operations</Text></View>
-          <View style={styles.pill}><Text style={styles.pillText}>Kitchen Production</Text></View>
+          <View style={styles.pill}><Text style={styles.pillText}>{t("restaurantOperations", "Restaurant Operations")}</Text></View>
+          <View style={styles.pill}><Text style={styles.pillText}>{t("kitchenProduction", "Kitchen Production")}</Text></View>
         </View>
 
         {/* Talent Specialization Pills */}
         <Text style={styles.sectionTitle}>{t("talentSpecialization")}</Text>
         <View style={styles.pillsContainer}>
-          <View style={styles.pill}><Text style={styles.pillText}>Continental Cuisine</Text></View>
-          <View style={styles.pill}><Text style={styles.pillText}>Italian Cuisine</Text></View>
-          <View style={styles.pill}><Text style={styles.pillText}>Bakery</Text></View>
+          <View style={styles.pill}><Text style={styles.pillText}>{t("continentalCuisine", "Continental Cuisine")}</Text></View>
+          <View style={styles.pill}><Text style={styles.pillText}>{t("italianCuisine", "Italian Cuisine")}</Text></View>
+          <View style={styles.pill}><Text style={styles.pillText}>{t("bakery", "Bakery")}</Text></View>
         </View>
       </ScrollView>
 

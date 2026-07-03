@@ -61,3 +61,13 @@ export const getChefAppointments = async () => {
   const response = await apiClient.get("/chef/appointments");
   return response.data;
 };
+
+export const getEmployerChefs = async () => {
+  const response = await apiClient.get("/employer/chefs");
+  return response.data;
+};
+
+export const bookChefAppointment = async (bookingData) => {
+  const response = await apiClient.post("/appointments/book", bookingData);
+  return response.data;
+};

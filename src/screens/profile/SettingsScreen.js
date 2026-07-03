@@ -45,7 +45,7 @@ export default function SettingsScreen({ navigation }) {
     ) {
       return { uri };
     }
-    return { uri: `http://178.16.138.159${uri.startsWith("/") ? "" : "/"}${uri}` };
+    return { uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}` };
   };
 
   const logoSource = getLogoSource();
@@ -124,6 +124,20 @@ export default function SettingsScreen({ navigation }) {
               <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
             </View>
             <Text style={styles.itemLabel}>{t("appLanguage")}</Text>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity
+            style={styles.settingsItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("ChefConnectFilters")}
+          >
+            <View style={[styles.iconBox, { backgroundColor: "#FFF7ED" }]}>
+              <Ionicons name="people-outline" size={20} color="#F97316" />
+            </View>
+            <Text style={styles.itemLabel}>Chef Connect</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>

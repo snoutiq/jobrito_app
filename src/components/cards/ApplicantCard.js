@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import StatusBadge from "../common/StatusBadge";
 
@@ -8,7 +9,8 @@ export default function ApplicantCard({
   applicant,
   onPress,
 }) {
-  const displayName = applicant.name || "Name not specified";
+  const { t } = useTranslation();
+  const displayName = applicant.name || t("nameNotSpecified", "Name not specified");
   const displayCity = applicant.city || "";
   const displayPhone = applicant.mobile_number || applicant.phone || "";
   const displayExperience = applicant.experience_range || "";
@@ -50,14 +52,14 @@ export default function ApplicantCard({
         {displayExperience ? (
           <View style={styles.infoRow}>
             <Ionicons name="briefcase-outline" size={14} color="#475569" />
-            <Text style={styles.infoText}>Experience: {displayExperience}</Text>
+            <Text style={styles.infoText}>{t("experience", "Experience")}: {displayExperience}</Text>
           </View>
         ) : null}
 
         {displayCuisine ? (
           <View style={styles.infoRow}>
             <Ionicons name="restaurant-outline" size={14} color="#475569" />
-            <Text style={styles.infoText}>Cuisine: {displayCuisine}</Text>
+            <Text style={styles.infoText}>{t("cuisine", "Cuisine")}: {displayCuisine}</Text>
           </View>
         ) : null}
 
@@ -74,10 +76,10 @@ export default function ApplicantCard({
 
       <View style={styles.footer}>
         <Text style={styles.appliedDate}>
-          Applied: {applicant.applied_date || "--"}
+          {t("applied", "Applied")}: {applicant.applied_date || "--"}
         </Text>
         <View style={styles.hintContainer}>
-          <Text style={styles.hintText}>View profile</Text>
+          <Text style={styles.hintText}>{t("viewProfile", "View profile")}</Text>
           <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
         </View>
       </View>
