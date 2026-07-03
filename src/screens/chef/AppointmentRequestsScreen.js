@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import colors from "../../constants/colors";
 import { getChefAppointments } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
@@ -35,9 +36,11 @@ export default function AppointmentRequestsScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAppointments();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,11 +72,31 @@ export default function AppointmentRequestsScreen({ navigation }) {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {appointments.map((item, index) => {
-            const clientName = item.employer?.business_name || item.employer?.contact_name || item.user?.name || item.client_name || "Recruiter Request";
-            const slot = item.preferred_call_time || item.time_slot || item.time || "Not specified";
-            const phone = item.employer?.contact_phone || item.user?.mobile_number || item.phone || item.mobile_number || "";
-            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString() : "Recent";
+            const clientName = item.employer_name || item.employer?.business_name || item.employer?.contact_name || item.user?.name || item.client_name || "Recruiter Request";
+            const phone = item.employer_phone || item.employer?.contact_phone || item.user?.mobile_number || item.phone || item.mobile_number || "";
+            const email = item.employer_email || item.employer?.contact_email || item.user?.email || item.email || "";
+            const purpose = item.purpose || "";
             const status = item.status || "Pending";
+            
+            // Format Date
+            let dateStr = "";
+            if (item.meeting_date) {
+              dateStr = item.meeting_date;
+            } else if (item.created_at) {
+              try {
+                if (isNaN(Date.parse(item.created_at))) {
+                  dateStr = item.created_at;
+                } else {
+                  dateStr = new Date(item.created_at).toLocaleDateString();
+                }
+              } catch (e) {
+                dateStr = item.created_at;
+              }
+            } else {
+              dateStr = "Recent";
+            }
+
+            const slot = item.meeting_time || item.preferred_call_time || item.time_slot || item.time || "Not specified";
             
             // Determine status badge color
             let statusColor = "#E2E8F0";
@@ -108,6 +131,18 @@ export default function AppointmentRequestsScreen({ navigation }) {
                     <Ionicons name="time-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
                     <Text style={styles.bodyDetailText}>Preferred Call Time: {slot}</Text>
                   </View>
+                  {purpose ? (
+                    <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
+                      <Ionicons name="restaurant-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                      <Text style={styles.bodyDetailText} numberOfLines={2}>Purpose: {purpose}</Text>
+                    </View>
+                  ) : null}
+                  {email ? (
+                    <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
+                      <Ionicons name="mail-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                      <Text style={styles.bodyDetailText}>Email: {email}</Text>
+                    </View>
+                  ) : null}
                   {phone ? (
                     <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
                       <Ionicons name="call-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
@@ -116,19 +151,35 @@ export default function AppointmentRequestsScreen({ navigation }) {
                   ) : null}
                 </View>
 
-                {phone ? (
-                  <TouchableOpacity
-                    style={[styles.callActionButton, { backgroundColor: PRIMARY_GREEN }]}
-                    onPress={() => {
-                      Linking.openURL(`tel:${phone}`).catch(() => {
-                        CustomAlert.show("Error", "Could not open dialer.");
-                      });
-                    }}
-                  >
-                    <Ionicons name="call" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
-                    <Text style={styles.callActionButtonText}>Call Recruiter</Text>
-                  </TouchableOpacity>
-                ) : null}
+                <View style={styles.actionButtonsRow}>
+                  {phone ? (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, { backgroundColor: PRIMARY_GREEN }]}
+                      onPress={() => {
+                        Linking.openURL(`tel:${phone}`).catch(() => {
+                          CustomAlert.show("Error", "Could not open dialer.");
+                        });
+                      }}
+                    >
+                      <Ionicons name="call" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Text style={styles.actionBtnText}>Call Recruiter</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  
+                  {email ? (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, { backgroundColor: "#3B82F6", marginLeft: phone ? 10 : 0 }]}
+                      onPress={() => {
+                        Linking.openURL(`mailto:${email}`).catch(() => {
+                          CustomAlert.show("Error", "Could not open mail client.");
+                        });
+                      }}
+                    >
+                      <Ionicons name="mail" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Text style={styles.actionBtnText}>Email Recruiter</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </View>
             );
           })}
@@ -260,6 +311,28 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   callActionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  actionButtonsRow: {
+    flexDirection: "row",
+    marginTop: 4,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    paddingVertical: 11,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  actionBtnText: {
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "700",
