@@ -83,8 +83,7 @@ export default function ProfileScreen({ navigation }) {
       icon: "briefcase-outline",
       color: colors.text,
       onPress: () => {
-        const isChefOrJobSeeker = normalizedRole === "jobseeker" || normalizedRole === "job_seeker" || normalizedRole === "chef";
-        navigation.navigate(isChefOrJobSeeker ? "Post Referral Job" : "Post Job");
+        navigation.navigate("MyJobs");
       },
     },
     // {

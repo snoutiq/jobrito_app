@@ -134,6 +134,13 @@ function HomeOnlyStack() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="MyJobs"
+        component={MyJobsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 }
