@@ -649,6 +649,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     placeholder="Enter business mobile number"
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
+                    maxLength={10}
                     style={styles.textInput}
                     onFocus={() => setActiveInput("contactPhone")}
                     onBlur={() => setActiveInput(null)}
@@ -935,6 +936,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     placeholder="Enter mobile number"
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
+                    maxLength={10}
                     style={[styles.textInput, { paddingLeft: 10 }]}
                     onFocus={() => setActiveInput("managerPhone")}
                     onBlur={() => setActiveInput(null)}

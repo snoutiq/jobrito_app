@@ -92,7 +92,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const experienceOptions = [
     "Entry Level (0-2 years)",
     "Mid-Level (3-5 years)",
-    "Senior (5+ years)",
+    "Senior (5+ and above)",
   ];
 
   const roleOptions = [
@@ -745,6 +745,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     placeholderTextColor="#94A3B8"
                     style={styles.step3TextInputField}
                     keyboardType="phone-pad"
+                    maxLength={10}
                     onFocus={() => setActiveField("phone")}
                     onBlur={() => setActiveField(null)}
                   />

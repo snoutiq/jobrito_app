@@ -45,12 +45,10 @@ export default function PostJobScreen({ navigation, route }) {
   const [jobDescription, setJobDescription] = useState("");
   const [jobType, setJobType] = useState("Full-time");
   const [showJobTypeDropdown, setShowJobTypeDropdown] = useState(false);
-  const [requirements, setRequirements] = useState("");
-  const [benefits, setBenefits] = useState("");
 
   const [showExpDropdown, setShowExpDropdown] = useState(false);
   const [activeField, setActiveField] = useState(null);
-
+  
   // Step 3: Contact & Review
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -59,7 +57,7 @@ export default function PostJobScreen({ navigation, route }) {
   const experienceOptions = [
     "Entry Level (0-2 years)",
     "Mid-Level (3-5 years)",
-    "Senior (5+ years)",
+    "Senior (5+ and above)",
   ];
   const jobTypeOptions = [
     "Full-time",
@@ -73,8 +71,17 @@ export default function PostJobScreen({ navigation, route }) {
     if (profile) {
       setBusinessName(profile.businessName || profile.company || "");
       setContactPerson(profile.name || profile.full_name || profile.contactName || "");
+      const bName = profile.businessName || profile.company || "";
+      const cPerson = profile.name || profile.full_name || profile.contactName || "";
+
+      setBusinessName(bName);
+      setContactPerson(cPerson);
       setContactPhone(profile.phone || profile.mobile_number || profile.contactPhone || "");
       setContactEmail(profile.email || profile.contactEmail || "");
+
+      if (bName.trim() && cPerson.trim()) {
+        setStep(2);
+      }
     }
   }, [profile]);
 
@@ -149,13 +156,12 @@ export default function PostJobScreen({ navigation, route }) {
       job_type: jobType,
       experience_range: experience,
       open_positions: parseInt(openPositions, 10) || 1,
-      requirements: requirements,
-      benefits: benefits,
     };
 
     try {
+      // Dispatch the action to store the job
       const result = await dispatch(storeEmployerJob(jobData));
-      
+
       if (storeEmployerJob.fulfilled.match(result)) {
         if (route.params?.isOnboarding) {
           // Save completion in local storage (so restart doesn't reload onboarding screen)
@@ -187,14 +193,13 @@ export default function PostJobScreen({ navigation, route }) {
     setJobDescription("");
     setRegion("India");
     setJobType("Full-time");
-    setRequirements("");
-    setBenefits("");
     setStep(1);
   };
 
   const renderProgress = () => {
     let percentage = "0%";
     let title = "";
+
     if (step === 1) {
       percentage = "33%";
       title = t("step", { current: 1, total: 3 });
@@ -614,48 +619,6 @@ export default function PostJobScreen({ navigation, route }) {
                   )}
                 </View>
 
-                {/* Requirements */}
-                <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                  <Text style={styles.inputLabel}>Requirements (e.g. Food Safety, Menu Design)</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "requirements" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <TextInput
-                      value={requirements}
-                      onChangeText={setRequirements}
-                      placeholder="e.g. HACCP Certified, Food Safety, Menu Design"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("requirements")}
-                      onBlur={() => setActiveField(null)}
-                    />
-                  </View>
-                </View>
-
-                {/* Benefits */}
-                <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                  <Text style={styles.inputLabel}>Benefits (e.g. Free Meals, Accommodation)</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "benefits" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <TextInput
-                      value={benefits}
-                      onChangeText={setBenefits}
-                      placeholder="e.g. Free Staff Meals, Accommodation, Medical Cover"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("benefits")}
-                      onBlur={() => setActiveField(null)}
-                    />
-                  </View>
-                </View>
-
                 {/* Job Description */}
                 <View style={[styles.inputGroup, { marginTop: 8 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.jobDescription")}</Text>
@@ -669,11 +632,11 @@ export default function PostJobScreen({ navigation, route }) {
                     <TextInput
                       value={jobDescription}
                       onChangeText={setJobDescription}
-                      placeholder={t("postJob.jobDescriptionPlaceholder")}
+                      placeholder={t("postJob.descriptionPlaceholder")}
                       placeholderTextColor="#94A3B8"
-                      multiline
-                      numberOfLines={5}
                       style={[styles.textInput, styles.multilineInput]}
+                      multiline
+                      numberOfLines={4}
                       onFocus={() => setActiveField("jobDescription")}
                       onBlur={() => setActiveField(null)}
                     />
@@ -681,34 +644,19 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Lightbulb Tip Card */}
+              {/* Tip Box */}
               <View style={styles.tipBox}>
-                <Ionicons
-                  name="bulb-outline"
-                  size={20}
-                  color={PRIMARY_GREEN}
-                  style={styles.tipBoxIcon}
-                />
-                <Text style={styles.tipBoxText}>
-                  {t("postJob.tipText")}
-                </Text>
+                <Ionicons name="bulb-outline" size={20} color="#64748B" style={styles.tipBoxIcon} />
+                <Text style={styles.tipBoxText}>{t("postJob.descriptionTip")}</Text>
               </View>
 
-              {/* Footer step 2 */}
+              {/* Footer actions for Step 2 */}
               <View style={styles.footerRowStep2}>
-                <TouchableOpacity
-                  style={styles.saveDraftLink}
-                  onPress={handleSaveAsDraft}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity style={styles.saveDraftLink} onPress={handleSaveAsDraft} activeOpacity={0.7}>
                   <Text style={styles.saveDraftLinkText}>{t("postJob.saveDraft")}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.primaryNextBtnSmall}
-                  activeOpacity={0.8}
-                  onPress={handleNextStep2}
-                >
+                <TouchableOpacity style={styles.primaryNextBtnSmall} activeOpacity={0.8} onPress={handleNextStep2}>
                   <Text style={styles.primaryNextBtnText}>{t("postJob.next")}</Text>
                 </TouchableOpacity>
               </View>
@@ -718,6 +666,7 @@ export default function PostJobScreen({ navigation, route }) {
           {/* STEP 3: CONTACT & REVIEW */}
           {step === 3 && (
             <View style={styles.stepContainer}>
+
               {/* Top Banner Card */}
               <View style={styles.step3Banner}>
                 <Text style={styles.step3BannerText}>
@@ -746,6 +695,7 @@ export default function PostJobScreen({ navigation, route }) {
                     placeholder={t("postJob.phonePlaceholder")}
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
+                    maxLength={10}
                     style={styles.textInput}
                     onFocus={() => setActiveField("contactPhone")}
                     onBlur={() => setActiveField(null)}
@@ -867,22 +817,19 @@ export default function PostJobScreen({ navigation, route }) {
               <Text style={styles.successTitle}>🎉 {t("postJob.successTitle")}</Text>
 
               {/* Submission description card */}
-              <View style={styles.successInfoCard}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={24}
-                  color="#64748B"
-                  style={{ marginRight: 12 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.successInfoTitle}>
-                    {t("postJob.successTitle")}
-                  </Text>
-                  <Text style={styles.successInfoText}>
-                    {t("postJob.successMessage")}
-                  </Text>
-                </View>
-              </View>
+              <View style={styles.tipBox}>
+                              <Ionicons
+                                name="bulb-outline"
+                                size={20}
+                                color={PRIMARY_GREEN}
+                                style={styles.tipBoxIcon}
+                              />
+                              <Text style={styles.tipBoxText}>
+                                Detailed job descriptions attract{" "}
+                                <Text style={{ color: PRIMARY_GREEN, fontWeight: "700" }}>40% more</Text>{" "}
+                                qualified applicants. Be sure to mention specific benefits!
+                              </Text>
+                            </View>
 
               {/* Success Action Buttons */}
               <View style={{ width: "100%", gap: 14, marginTop: 40 }}>
