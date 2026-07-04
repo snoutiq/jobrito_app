@@ -28,6 +28,7 @@ export default function HomeScreen({ navigation }) {
   
   const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [highlightedJobId, setHighlightedJobId] = useState(null);
 
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
@@ -62,8 +63,8 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   useEffect(() => {
-    dispatch(fetchFeedJobs(activeFilter));
-  }, [dispatch, activeFilter]);
+    dispatch(fetchFeedJobs("all"));
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchSavedJobs());
@@ -126,15 +127,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const filters = [
-    { label: t("filters.all", "All"), value: "all" },
-    { label: t("filters.india", "India Jobs"), value: "india" },
-    { label: t("filters.overseas", "Overseas Jobs"), value: "overseas" },
-    { label: t("filters.training", "Training Opportunities"), value: "training" },
-    { label: t("filters.referral", "Referral Opportunities"), value: "referral" },
-    { label: t("filters.community", "Community Job Posts"), value: "community" },
-  ];
-
   const formatPostedTime = (postedDate) => {
     if (!postedDate) return "Today";
     const posted = new Date(postedDate);
@@ -152,17 +144,17 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#15803D" style={styles.pinIcon} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
-          {filters.map((f) => {
-            const isSelected = activeFilter === f.value;
+          {(feedJobs || []).filter(job => job.is_pinned).map((job, index) => {
+            const isSelected = highlightedJobId === job.id;
             return (
               <TouchableOpacity
-                key={f.value}
+                key={job.id}
                 style={[styles.filterPill, isSelected && styles.filterPillSelected]}
-                onPress={() => setActiveFilter(f.value)}
+                onPress={() => setHighlightedJobId((prev) => (prev === job.id ? null : job.id))}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterPillText, isSelected && styles.filterPillTextSelected]}>
-                  {f.label}
+                  {index + 1}
                 </Text>
               </TouchableOpacity>
             );
@@ -179,13 +171,14 @@ export default function HomeScreen({ navigation }) {
           const isApplying = applyingJobId === job.id;
           const isCopied = copiedJobId === job.id;
           const isPinned = job.is_pinned || false;
+          const isHighlighted = highlightedJobId === job.id;
 
           // Grand Hyatt and Global Talent are "Apply" jobs. Bombay Cafe is "Call & Share" referral.
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
           return (
-            <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard]}>
+            <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard, isHighlighted && styles.highlightedCard]}>
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
@@ -208,18 +201,18 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.detailsBlock}>
                 <View style={styles.detailItem}>
                   <Ionicons name="location-outline" size={15} color="#64748B" />
-                  <Text style={styles.detailText}>Location: {job.location}</Text>
+                  <Text style={styles.detailText}>{t("location", "Location")}: {job.location}</Text>
                 </View>
                 {job.salary && (
                   <View style={styles.detailItem}>
                     <Ionicons name="cash-outline" size={15} color="#64748B" />
-                    <Text style={styles.detailText}>Salary: {job.salary}</Text>
+                    <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
                   </View>
                 )}
                 {job.experience && (
                   <View style={styles.detailItem}>
                     <Ionicons name="calendar-outline" size={15} color="#64748B" />
-                    <Text style={styles.detailText}>Contract: {job.experience}</Text>
+                    <Text style={styles.detailText}>{t("contract", "Contract")}: {job.experience}</Text>
                   </View>
                 )}
               </View>
@@ -236,7 +229,7 @@ export default function HomeScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <Ionicons name="call" size={16} color="#15803D" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>Call</Text>
+                    <Text style={styles.actionBtnTextGreen}>{t("call", "Call")}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -245,7 +238,7 @@ export default function HomeScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <Ionicons name="share-social" size={16} color="#15803D" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>Share</Text>
+                    <Text style={styles.actionBtnTextGreen}>{t("share", "Share")}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -274,7 +267,7 @@ export default function HomeScreen({ navigation }) {
                         <ActivityIndicator size="small" color="#15803D" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                          {isApplied ? "✓ Applied" : "Apply Now"}
+                          {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -299,7 +292,7 @@ export default function HomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       <Ionicons name="call" size={16} color="#475569" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>Call</Text>
+                      <Text style={styles.actionBtnTextGrey}>{t("call", "Call")}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -308,7 +301,7 @@ export default function HomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       <Ionicons name="share-social" size={16} color="#475569" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>Share</Text>
+                      <Text style={styles.actionBtnTextGrey}>{t("share", "Share")}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -326,7 +319,7 @@ export default function HomeScreen({ navigation }) {
                         <ActivityIndicator size="small" color="#15803D" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                          {isApplied ? "✓ Applied" : "Apply Now"}
+                          {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -347,7 +340,7 @@ export default function HomeScreen({ navigation }) {
                   <TouchableOpacity style={styles.linkCopiedBox} onPress={() => copyToClipboard(job.id)}>
                     <Ionicons name="link" size={16} color="#64748B" />
                     <Text style={styles.linkCopiedText}>
-                      {isCopied ? "Link copied" : "Copy job link"}
+                      {isCopied ? t("linkCopied", "Link copied") : t("copyJobLink", "Copy job link")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -516,6 +509,15 @@ const styles = StyleSheet.create({
   pinnedCard: {
     borderLeftWidth: 4,
     borderLeftColor: "#EF4444",
+  },
+  highlightedCard: {
+    borderColor: "#16A34A",
+    borderWidth: 2,
+    backgroundColor: "#F0FDF4",
+    shadowColor: "#16A34A",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   pinnedIndicator: {
     flexDirection: "row",

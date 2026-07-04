@@ -62,29 +62,30 @@
   },
 
   "roleSelection": {
-    "title": "Choose your role",
-    "subtitle": "Tell us how you want to use JobRito. You can change this later.",
+    "title": "Welcome to Jobrito",
+    "subtitle": "How would you like to get started?",
     "description": {
-      "jobseeker": "Find jobs, track applications, and grow your career.",
-      "employer": "Post jobs, manage applicants, and hire staff.",
-      "chef": "Discover chef opportunities and culinary work."
+      "jobseeker": "Explore hospitality job opportunities",
+      "employer": "Hire talent for your kitchen",
+      "chef": "Showcase your culinary skills to top employers"
     },
-     "jobseeker": "Job Seeker",
-    "employer": "Employer",
-    "chef": "Chef"
+    "jobseeker": "Talent",
+    "employer": "Post a Job",
+    "chef": "Register as Chef"
   },
   "otp": {
-    "title": "Verify your phone",
-    "subtitle": "We've sent a {{length}}-digit code to {{phone}}.",
+    "title": "Verify your account",
+    "subtitle": "We've sent a {{length}}-digit code to {{phone}}. Please enter it below.",
     "yourPhoneNumber": "your phone number",
-    "verifyButton": "Verify",
+    "verifyButton": "Verify OTP",
     "didNotReceive": "Didn't receive the code?",
     "resendNow": "Resend OTP now",
     "requiredTitle": "OTP required",
     "requiredMessage": "Enter the {{length}}-digit OTP sent to your mobile number.",
     "verificationFailed": "OTP verification failed",
     "resendTitle": "Resend OTP",
-    "resendMessage": "OTP request can be triggered again from login."
+    "resendMessage": "OTP request can be triggered again from login.",
+    "whatsappNote": "Friendly tip: We sent the OTP directly to your WhatsApp to keep things fast and secure! 💬"
   },
   "profile": {
     "title": "Basic Profile",
@@ -119,11 +120,11 @@
     "logoutConfirmTitle": "Logout?"
   },
   "login": {
-    "title": "Login",
-    "subtitle": "Enter your phone number to receive an OTP for login.",
-    "phoneNumberPlaceholder": "Enter your phone number",
-    "requestOtpButton": "Request OTP",
-    "phoneLabel": "Phone Number",
+    "title": "Welcome to JobConnect",
+    "subtitle": "Enter your WhatsApp number to get started with your hospitality career.",
+    "phoneNumberPlaceholder": "Enter your WhatsApp number",
+    "requestOtpButton": "Send OTP",
+    "phoneLabel": "WhatsApp Number",
     "otpLabel": "OTP",
     "verifyOtpButton": "Verify OTP",
     "resendOtpButton": "Resend OTP",
@@ -186,8 +187,8 @@
 
   },
   "intro": {
-    "title": "Welcome to JobRito",
-    "subtitle": "Your gateway to job opportunities and career growth.",
+    "title": "Welcome to Jobrito",
+    "subtitle": "How would you like to get started?",
     "languageSelection": "Select your preferred language",
     "introLanguage": "Select your preferred language",
     "continue": "Continue",
@@ -493,5 +494,30 @@
   "emailTakenTitle": "Email Already Registered",
   "emailTakenMessage": "This email address is already in use. Please enter a different email address.",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "chefIntro": {
+    "badge": "Premium Talent Network",
+    "mainTitle": "The Global Nexus for Culinary Excellence",
+    "verifiedChefs": "5,000+ Verified Professional Chefs",
+    "countries": "Available in 42 Countries",
+    "sectionTitle": "Elevate Your Career",
+    "consultingTitle": "Consulting Opportunities",
+    "consultingDesc": "Share your expertise with top brands globally.",
+    "projectsTitle": "Hospitality Projects",
+    "projectsDesc": "Join exclusive luxury resort and hotel openings.",
+    "networkingTitle": "Business Networking",
+    "networkingDesc": "Connect with industry leaders and innovators.",
+    "visibilityTitle": "Professional Visibility",
+    "visibilityDesc": "Showcase your portfolio to elite recruiters.",
+    "button": "Become a Culinary Talent →"
+  },
+  "location": "Location",
+  "salary": "Salary",
+  "contract": "Contract",
+  "call": "Call",
+  "share": "Share",
+  "applyNow": "Apply Now",
+  "applied": "Applied",
+  "copyJobLink": "Copy job link",
+  "linkCopied": "Link copied"
 }

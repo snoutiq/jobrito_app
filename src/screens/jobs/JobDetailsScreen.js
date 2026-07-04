@@ -52,7 +52,7 @@ export default function JobDetailsScreen({ route }) {
   }, [passedJob, jobDetails, jobId]);
 
   useEffect(() => {
-    if (jobId && (!passedJob || !passedJob.description)) {
+    if (jobId && !passedJob) {
       dispatch(fetchJobDetails(jobId));
     }
   }, [dispatch, jobId, passedJob]);

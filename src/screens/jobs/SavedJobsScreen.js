@@ -97,7 +97,23 @@ export default function SavedJobsScreen({ navigation }) {
       <View style={styles.card}>
         <Pressable
           onPress={() => {
-            navigation.navigate("JobDetails", { jobId: item.id });
+            const feedJob = feedJobs.find((j) => String(j.id) === String(item.id));
+            const fullJob = feedJob || {
+              ...item,
+              company: item.employer,
+              description: "Join our team to grow your career in the hospitality industry. We are looking for dedicated professionals.",
+              requirements: [
+                "Relevant experience in the required field.",
+                "Good teamwork and communication skills.",
+                "Willingness to work flexible hours."
+              ],
+              benefits: [
+                "Competitive Pay & Allowances",
+                "Complimentary Staff Meals",
+                "Professional Training & Development"
+              ],
+            };
+            navigation.navigate("JobDetails", { jobId: item.id, job: fullJob });
           }}
           style={styles.cardPressable}
         >

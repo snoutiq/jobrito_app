@@ -7,15 +7,22 @@ import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { fetchProfile, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
+import { fetchSavedJobs, fetchMyJobs } from "../../redux/slices/jobSlice";
+import { fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 import { clearAuthStorage } from "../../services/storage";
 
 export default function ProfileScreen({ navigation }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { profile, activeRole } = useSelector((state) => state.user);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.phone || "");
+  // Redux counts using real data
+  const savedJobsCount = useSelector((state) => state.job.savedJobs?.length) || 0;
+  const myJobsCount = useSelector((state) => state.job.myJobs?.length) || 0;
+  const applicationsCount = useSelector((state) => state.application?.history?.length) || 0;
+
+  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : "Chef Rajesh";
 
   const initials = displayName
     .split(" ")
@@ -24,13 +31,21 @@ export default function ProfileScreen({ navigation }) {
     .join("")
     .toUpperCase();
 
-  const completion = profile?.completionPercentage || 85;
-
-  const normalizedRole = activeRole ? activeRole.toLowerCase().replace(" ", "") : "jobseeker";
+  const completion = profile?.completionPercentage || 65;
 
   useEffect(() => {
     dispatch(fetchProfile());
+    dispatch(fetchSavedJobs());
+    dispatch(fetchMyJobs());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (profile?.email) {
+      dispatch(fetchApplicationHistory(profile.email));
+    } else {
+      dispatch(fetchApplicationHistory());
+    }
+  }, [dispatch, profile]);
 
   const handleLogout = async () => {
     try {
@@ -44,175 +59,196 @@ export default function ProfileScreen({ navigation }) {
     dispatch(resetUser());
   };
 
-  const handleStubAction = (titleKey) => {
-    Alert.alert(t(titleKey), t("profile.stubMessage"));
+  const getLanguageLabel = () => {
+    const lang = i18n.language;
+    if (lang === "hi") return "Hindi (हिंदी)";
+    if (lang === "mr") return "Marathi (मराठी)";
+    if (lang === "ar") return "Arabic (العربية)";
+    if (lang === "ml") return "Malayalam (മലയാളം)";
+    if (lang === "kn") return "Kannada (ಕನ್ನಡ)";
+    if (lang === "te") return "Telugu (తెలుగు)";
+    if (lang === "ta") return "Tamil (தமிழ்)";
+    return "English (Device default)";
   };
-
-  const menuItems = [
-    {
-      label: t("profile.menu.personalInfo"),
-      subtitle: t("profile.menu.personalInfoSubtitle"),
-      icon: "person-outline",
-      color: colors.text,
-      onPress: () => navigation.navigate("CompleteProfileScreen"),
-    },
-    // {
-    //   label: t("profile.menu.professionalInfo"),
-    //   subtitle: t("profile.menu.professionalInfoSubtitle"),
-    //   icon: "id-card-outline",
-    //   color: colors.text,
-    //   onPress: () => handleStubAction("Professional Information"),
-    // },
-    {
-      label: t("profile.menu.myApplications"),
-      subtitle: t("profile.menu.myApplicationsSubtitle"),
-      icon: "document-text-outline",
-      color: colors.text,
-      onPress: () => navigation.navigate("Applications"),
-    },
-    {
-      label: t("profile.menu.savedJobs"),
-      subtitle: t("profile.menu.savedJobsSubtitle"),
-      icon: "star-outline",
-      color: colors.text,
-      onPress: () => navigation.navigate("SavedJobs"),
-    },
-    {
-      label: t("profile.menu.myPostedJobs"),
-      subtitle: t("profile.menu.myPostedJobsSubtitle"),
-      icon: "briefcase-outline",
-      color: colors.text,
-      onPress: () => {
-        navigation.navigate("MyJobs");
-      },
-    },
-    // {
-    //   label: t("profile.menu.becomeEmployer"),
-    //   subtitle: t("profile.menu.becomeEmployerSubtitle"),
-    //   icon: "business-outline",
-    //   color: colors.primary,
-    //   onPress: () => navigation.navigate("RoleSwitcher"),
-    // },
-    // {
-    //   label: t("profile.menu.becomeChef"),
-    //   subtitle: t("profile.menu.becomeChefSubtitle"),
-    //   icon: "restaurant-outline",
-    //   color: colors.primaryDark,
-    //   onPress: () => navigation.navigate("RoleSwitcher"),
-    // },
-    {
-      label: t("profile.menu.settings"),
-      subtitle: t("profile.menu.settingsSubtitle"),
-      icon: "settings-outline",
-      color: colors.text,
-      onPress: () => handleStubAction("profile.stubTitleSettings"),
-    },
-    {
-      label: t("profile.menu.language"),
-      subtitle: t("profile.menu.languageSubtitle"),
-      icon: "globe-outline",
-      color: colors.text,
-      onPress: () => navigation.navigate("Language"),
-    },
-  ];
 
   return (
     <ScreenWrapper
       edges={["left", "right", "bottom"]}
-      style={{ backgroundColor: "#fff" }}
-      contentStyle={styles.page}
+      style={{ backgroundColor: "#FFFFFF" }}
+      contentStyle={[styles.page, { padding: 0, gap: 0 }]}
+      scroll={true}
     >
-      <View style={styles.hero}>
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatarRing}>
-            <View style={styles.avatar}>
-              {profile?.profile_photo_path ? (
-                <Image
-                  source={{ uri: profile.profile_photo_path }}
-                  style={{ width: "100%", height: "100%", borderRadius: 35 }}
-                />
-              ) : (
-                <Text style={styles.avatarText}>{initials}</Text>
-              )}
-            </View>
+      {/* Top Header */}
+      <View style={styles.headerSection}>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatarCircle}>
+            {profile?.profile_photo_path ? (
+              <Image
+                source={{ uri: profile.profile_photo_path }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={42} color="#16A34A" />
+              </View>
+            )}
           </View>
-          <View style={styles.avatarBadge}>
-            <Ionicons name="pencil" size={12} color="#fff" />
-          </View>
-        </View>
-        <Text style={styles.name}>{displayName}</Text>
-        {profile?.phone && <Text style={styles.phone}>{profile?.phone}</Text>}
-        {profile?.email && <Text style={styles.emailText}>{profile?.email}</Text>}
-        {profile?.city && <Text style={styles.cityText}>📍 {profile?.city}</Text>}
-        {profile?.role && <Text style={styles.role}>{t("profile.activeRole")}: {t("roleSelection." + normalizedRole)}</Text>}
-
-        <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>
-              {t("profile.profileComplete", { completion })}
-            </Text>
-            <Pressable onPress={() => handleStubAction("profile.stubTitleFinish")}>
-              <Text style={styles.progressAction}>{t("profile.finishNow")}</Text>
-            </Pressable>
-          </View>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${completion}%` }]} />
+          <View style={styles.cameraBadge}>
+            <Ionicons name="camera" size={14} color="#FFFFFF" />
           </View>
         </View>
-      </View>
 
-      <View style={styles.listCard}>
-        {menuItems.map((item, index) => (
-          <Pressable
-            key={item.label}
-            onPress={item.onPress}
-            style={[
-              styles.row,
-              index === menuItems.length - 1 && styles.rowLast,
-            ]}
-          >
-            <View
-              style={[
-                styles.iconBox,
-                {
-                  borderColor:
-                    item.color === colors.text ? "#E5EAF2" : "#BDECCB",
-                },
-              ]}
-            >
-              <Ionicons name={item.icon} size={18} color={item.color} />
-            </View>
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>{item.label}</Text>
-              <Text style={styles.rowSubtitle}>{item.subtitle}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#C7CFDA" />
-          </Pressable>
-        ))}
-      </View>
-
-      <Pressable
-        onPress={() => setShowLogoutModal(true)}
-        style={styles.logoutRow}
-      >
-        <View style={[styles.iconBox, styles.logoutIconBox]}>
-          <Ionicons name="log-out-outline" size={18} color={colors.danger} />
-        </View>
-        <View style={styles.rowText}>
-          <Text style={[styles.rowTitle, styles.logoutTitle]}>{t("logout")}</Text>
-          <Text style={[styles.rowSubtitle, styles.logoutSubtitle]}>
-            {t("profile.signOut")}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userPhone}>
+            {profile?.phone || "+91 98765 43210"}
           </Text>
+          <Text style={styles.userTag}>{t("profile.userTag", "India & Overseas")}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.danger} />
-      </Pressable>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerFrom}>{t("profile.from")}</Text>
-        <Text style={styles.footerBrand}>HOSPITALITY CO.</Text>
-        <Text style={styles.footerVersion}>JobRito v4.2.1-stable</Text>
       </View>
 
+      {/* Profile Completion Card */}
+      <View style={styles.completionCardContainer}>
+        <View style={styles.completionCard}>
+          <View style={styles.completionHeader}>
+            <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
+            <Text style={styles.completionPercent}>{completion}%</Text>
+          </View>
+
+          {/* Progress bar with absolute marker */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBarTrack}>
+              <View style={[styles.progressBarFill, { width: `${completion}%` }]} />
+            </View>
+            <View style={[styles.progressTooltip, { left: `${completion}%` }]}>
+              <View style={styles.tooltipInner}>
+                <Text style={styles.tooltipText}>T</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Add Skills Action */}
+          <Pressable
+            style={styles.addSkillsBar}
+            onPress={() => navigation.navigate("CompleteProfileScreen")}
+          >
+            <Text style={styles.addSkillsText}>{t("profile.addSkills", "Add Skills (+10%)")}</Text>
+            <Ionicons name="add-circle" size={18} color="#22C55E" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Main Actions Card */}
+      <View style={styles.menuList}>
+        {/* Item: My Applications */}
+        <Pressable
+          style={styles.menuItem}
+          onPress={() => navigation.navigate("Applications")}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="paper-plane-outline" size={18} color="#64748B" />
+            </View>
+            <Text style={styles.menuItemLabel}>{t("profile.menu.myApplications", "My Applications")}</Text>
+          </View>
+          <View style={styles.menuItemRight}>
+            <View style={[styles.badge, styles.badgeRed]}>
+              <Text style={[styles.badgeText, styles.badgeTextRed]}>
+                {applicationsCount}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          </View>
+        </Pressable>
+
+        {/* Item: My Posted Jobs */}
+        <Pressable
+          style={styles.menuItem}
+          onPress={() => navigation.navigate("MyJobs")}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="megaphone-outline" size={18} color="#64748B" />
+            </View>
+            <Text style={styles.menuItemLabel}>{t("profile.menu.myPostedJobs", "My Posted Jobs")}</Text>
+          </View>
+          <View style={styles.menuItemRight}>
+            <View style={[styles.badge, styles.badgeGreen]}>
+              <Text style={[styles.badgeText, styles.badgeTextGreen]}>
+                {myJobsCount}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          </View>
+        </Pressable>
+
+        {/* Item: My Saved Jobs */}
+        <Pressable
+          style={[styles.menuItem, { borderBottomWidth: 0 }]}
+          onPress={() => navigation.navigate("SavedJobs")}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="star-outline" size={18} color="#64748B" />
+            </View>
+            <Text style={styles.menuItemLabel}>{t("profile.menu.savedJobs", "My Saved Jobs")}</Text>
+          </View>
+          <View style={styles.menuItemRight}>
+            <View style={[styles.badge, styles.badgeBlue]}>
+              <Text style={[styles.badgeText, styles.badgeTextBlue]}>
+                {savedJobsCount}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Screen Divider */}
+      <View style={styles.screenDivider} />
+
+      {/* Settings / Logout Section */}
+      <View style={styles.menuList}>
+        {/* Item: Language */}
+        <Pressable
+          style={styles.menuItem}
+          onPress={() => navigation.navigate("Language")}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="globe-outline" size={18} color="#64748B" />
+            </View>
+            <View style={styles.menuTextGroup}>
+              <Text style={styles.menuItemLabel}>{t("profile.menu.language", "Language")}</Text>
+              <Text style={styles.menuItemSublabel}>{getLanguageLabel()}</Text>
+            </View>
+          </View>
+          <View style={styles.menuItemRight}>
+            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          </View>
+        </Pressable>
+
+        {/* Item: Logout */}
+        <Pressable
+          style={[styles.menuItem, { borderBottomWidth: 0 }]}
+          onPress={() => setShowLogoutModal(true)}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={[styles.iconCircle, styles.iconCircleRed]}>
+              <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+            </View>
+            <Text style={[styles.menuItemLabel, styles.logoutLabel]}>{t("logout", "Logout")}</Text>
+          </View>
+          <View style={styles.menuItemRight}>
+            <Ionicons name="chevron-forward" size={16} color="#EF4444" />
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Footer version text */}
+      <Text style={styles.footerVersion}>JobConnect v4.2.0</Text>
+
+      {/* Logout Confirmation Modal */}
       <Modal
         visible={showLogoutModal}
         transparent
@@ -226,16 +262,10 @@ export default function ProfileScreen({ navigation }) {
           />
           <View style={styles.modalCard}>
             <View style={styles.modalIcon}>
-              <Ionicons
-                name="log-out-outline"
-                size={22}
-                color={colors.danger}
-              />
+              <Ionicons name="log-out-outline" size={22} color={colors.danger} />
             </View>
             <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle")}</Text>
-            <Text style={styles.modalText}>
-              {t("profile.logoutConfirm")}
-            </Text>
+            <Text style={styles.modalText}>{t("profile.logoutConfirm")}</Text>
 
             <View style={styles.modalActions}>
               <Pressable
@@ -260,213 +290,253 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: "#fff",
-    paddingBottom: 14,
-    gap: 14,
+    backgroundColor: "#FFFFFF",
+    paddingBottom: 20,
   },
-  hero: {
+  headerSection: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingBottom: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  avatarWrap: {
-    width: 92,
-    height: 92,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
+  avatarContainer: {
+    position: "relative",
   },
-  avatarRing: {
-    width: 82,
-    height: 82,
-    borderRadius: 41,
-    borderWidth: 3,
-    borderColor: "#BDECCB",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#F2FBF5",
-    borderWidth: 1,
-    borderColor: "#BDECCB",
+  avatarCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 2.5,
+    borderColor: "#22C55E",
+    padding: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: {
-    color: "#15803D",
-    fontSize: 22,
-    fontWeight: "900",
-  },
-  avatarBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#22C55E",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-    position: "absolute",
-    right: 8,
-    bottom: 6,
-  },
-  name: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: "900",
-    textAlign: "center",
-    marginTop: 2,
-  },
-  phone: {
-    color: "#16A34A",
-    fontSize: 15,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  emailText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  cityText: {
-    color: colors.mutedText,
-    fontSize: 13,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  role: {
-    color: colors.mutedText,
-    fontSize: 12,
-    textAlign: "center",
-  },
-  progressCard: {
+  avatarImage: {
     width: "100%",
-    backgroundColor: "#F0FDF4",
-    borderRadius: 28,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 10,
-    marginTop: 6,
+    height: "100%",
+    borderRadius: 45,
   },
-  progressHeader: {
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 45,
+    backgroundColor: "#F2FBF5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#22C55E",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userInfo: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 2,
+  },
+  userPhone: {
+    fontSize: 14,
+    color: "#475569",
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  userTag: {
+    fontSize: 13,
+    color: "#16A34A",
+    fontWeight: "600",
+  },
+  completionCardContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  completionCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 18,
+    padding: 16,
+  },
+  completionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  completionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  completionPercent: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#22C55E",
+  },
+  progressContainer: {
+    position: "relative",
+    height: 38,
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#E2E8F0",
+    width: "100%",
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: "#047857",
+  },
+  progressTooltip: {
+    position: "absolute",
+    top: 0,
+    marginLeft: -16, // center the marker pin
+  },
+  tooltipInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#A21CAF", // purple color matching screenshot
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tooltipText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#FFFFFF",
+  },
+  addSkillsBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  addSkillsText: {
+    fontSize: 13,
+    color: "#475569",
+    fontWeight: "600",
+  },
+  menuList: {
+    backgroundColor: "#FFFFFF",
+  },
+  menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 10,
-  },
-  progressLabel: {
-    flex: 1,
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  progressAction: {
-    color: "#16A34A",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  track: {
-    height: 7,
-    borderRadius: 999,
-    backgroundColor: "#DCFCE7",
-    overflow: "hidden",
-  },
-  fill: {
-    height: "100%",
-    borderRadius: 999,
-    backgroundColor: "#22C55E",
-  },
-  listCard: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#EEF2F7",
-    borderRadius: 18,
-    overflow: "hidden",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 13,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEF2F7",
-    backgroundColor: "#fff",
+    borderBottomColor: "#F1F5F9",
   },
-  rowLast: {
-    borderBottomWidth: 0,
-  },
-  logoutRow: {
+  menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 13,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-    borderRadius: 18,
-    backgroundColor: "#fff",
   },
-  logoutIconBox: {
-    borderColor: "#FECACA",
-  },
-  logoutTitle: {
-    color: colors.danger,
-  },
-  logoutSubtitle: {
-    color: "#FCA5A5",
-  },
-  iconBox: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    borderWidth: 1,
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#F1F5F9",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
   },
-  rowText: {
-    flex: 1,
-    gap: 2,
+  iconCircleRed: {
+    backgroundColor: "#FEE2E2",
   },
-  rowTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: "700",
+  menuItemLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#0F172A",
+    marginLeft: 12,
   },
-  rowSubtitle: {
-    color: colors.mutedText,
+  logoutLabel: {
+    color: "#EF4444",
+  },
+  menuTextGroup: {
+    marginLeft: 12,
+  },
+  menuItemSublabel: {
     fontSize: 12,
-    lineHeight: 16,
+    color: "#64748B",
+    marginTop: 2,
   },
-  footer: {
+  menuItemRight: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingTop: 12,
-    gap: 4,
+    gap: 8,
   },
-  footerFrom: {
-    color: colors.mutedText,
-    fontSize: 11,
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  footerBrand: {
-    color: "#15803D",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1.2,
+  badgeRed: {
+    backgroundColor: "#FEE2E2",
+  },
+  badgeGreen: {
+    backgroundColor: "#DCFCE7",
+  },
+  badgeBlue: {
+    backgroundColor: "#DBEAFE",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "750",
+  },
+  badgeTextRed: {
+    color: "#EF4444",
+  },
+  badgeTextGreen: {
+    color: "#16A34A",
+  },
+  badgeTextBlue: {
+    color: "#2563EB",
+  },
+  screenDivider: {
+    height: 12,
+    backgroundColor: "#F8FAFC",
+    width: "100%",
+    marginVertical: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#E2E8F0",
   },
   footerVersion: {
-    color: "#16A34A",
-    fontSize: 11,
+    fontSize: 12,
+    color: "#94A3B8",
+    textAlign: "center",
+    marginVertical: 24,
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,
@@ -478,7 +548,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 340,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderRadius: 22,
     padding: 20,
     alignItems: "center",
@@ -500,13 +570,13 @@ const styles = StyleSheet.create({
     borderColor: "#FECACA",
   },
   modalTitle: {
-    color: colors.text,
+    color: "#0F172A",
     fontSize: 18,
     fontWeight: "900",
     textAlign: "center",
   },
   modalText: {
-    color: colors.mutedText,
+    color: "#64748B",
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",
@@ -525,7 +595,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalCancelButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -533,12 +603,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger,
   },
   modalCancelText: {
-    color: colors.text,
+    color: "#0F172A",
     fontSize: 14,
     fontWeight: "800",
   },
   modalConfirmText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "800",
   },

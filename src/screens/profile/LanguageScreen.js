@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { getStoredLanguage, setStoredLanguage } from "../../services/storage";
@@ -10,6 +11,7 @@ import { updateUserLanguage } from "../../redux/slices/userSlice";
 
 export default function LanguageScreen({ navigation }) {
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState("en");
 
@@ -75,13 +77,33 @@ export default function LanguageScreen({ navigation }) {
       label: "English (Europe)",
       subtitle: "Use the app in European English",
     },
+    {
+      key: "ml",
+      label: "മലയാളം",
+      subtitle: "മലയാളത്തിൽ ആപ്പ് ഉപയോഗിക്കുക",
+    },
+    {
+      key: "kn",
+      label: "ಕನ್ನಡ",
+      subtitle: "ಕನ್ನಡದಲ್ಲಿ ಅಪ್ಲಿಕೇಶನ್ ಬಳಸಿ",
+    },
+    {
+      key: "te",
+      label: "తెలుగు",
+      subtitle: "తెలుగులో యాప్‌ని ఉపయోగించండి",
+    },
+    {
+      key: "ta",
+      label: "தமிழ்",
+      subtitle: "தமிழில் பயன்பாட்டைப் பயன்படுத்தவும்",
+    },
   ];
 
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </Pressable>

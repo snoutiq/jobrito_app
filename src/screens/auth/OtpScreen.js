@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
-import AppButton from "../../components/buttons/AppButton";
 import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
-import { verifyOtp } from "../../redux/slices/authSlice";
+import { verifyOtp, requestOtp } from "../../redux/slices/authSlice";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
 
 const OTP_LENGTH = 6;
@@ -17,8 +16,53 @@ export default function OtpScreen({ navigation, route }) {
   const dispatch = useDispatch();
   const { loading, phone: storedPhone } = useSelector((state) => state.auth);
   const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(0);
   const phone = route?.params?.phone || storedPhone;
   const role = useSelector((state) => state.auth.role);
+
+  useEffect(() => {
+    if (countdown === 0) return;
+    const interval = setInterval(() => {
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  const maskPhone = (phoneStr) => {
+    if (!phoneStr) return "";
+    const cleaned = phoneStr.trim();
+    if (cleaned.length <= 4) return cleaned;
+
+    let country = "";
+    let local = cleaned;
+    if (cleaned.startsWith("+")) {
+      if (cleaned.startsWith("+971")) {
+        country = "+971";
+        local = cleaned.substring(4);
+      } else if (cleaned.startsWith("+91")) {
+        country = "+91";
+        local = cleaned.substring(3);
+      } else if (cleaned.startsWith("+44")) {
+        country = "+44";
+        local = cleaned.substring(3);
+      } else if (cleaned.startsWith("+1")) {
+        country = "+1";
+        local = cleaned.substring(2);
+      } else {
+        country = cleaned.substring(0, 3);
+        local = cleaned.substring(3);
+      }
+    }
+
+    const localTrimmed = local.trim();
+    if (localTrimmed.length <= 4) {
+      return `${country} *** *** ${localTrimmed}`;
+    }
+    const lastFour = localTrimmed.substring(localTrimmed.length - 4);
+    return `${country} *** *** ${lastFour}`;
+  };
+
+  const formattedPhone = maskPhone(phone);
 
   const handleVerify = async () => {
     if (!otp.trim() || otp.trim().length < OTP_LENGTH) {
@@ -34,7 +78,7 @@ export default function OtpScreen({ navigation, route }) {
       const hasCompletedOnboarding = result.payload?.hasCompletedOnboarding ?? false;
       const isEmp = role?.toLowerCase() === "employer";
       const isChef = role?.toLowerCase() === "chef" || role?.toLowerCase() === "job_seeker";
-      
+
       const profileToStore = {
         ...user,
         name: user?.full_name || user?.name || user?.mobile_number || "",
@@ -55,42 +99,92 @@ export default function OtpScreen({ navigation, route }) {
         }
       }
 
-      const msg = result.payload?.message || "Successfully logged in.";
-      Alert.alert("Login Status", msg);
       return;
     }
 
     Alert.alert(t("error"), result?.payload || t("otp.verificationFailed"));
   };
 
-  const handleResend = () => {
-    Alert.alert(t("otp.resendTitle"), t("otp.resendMessage"));
+  const handleResend = async () => {
+    if (countdown > 0) return;
+
+    const result = await dispatch(
+      requestOtp({
+        phone: phone.trim(),
+        role,
+      })
+    );
+
+    if (requestOtp.fulfilled.match(result)) {
+      // Start 50 seconds countdown and do NOT show success alert
+      setCountdown(50);
+    } else {
+      Alert.alert(t("error"), result?.payload || t("login.otpResendFailed"));
+    }
   };
 
   return (
     <ScreenWrapper
-      style={{ backgroundColor: colors.background }}
+      scroll={true}
+      style={{ backgroundColor: "#F7F9FB" }}
       contentStyle={styles.content}
     >
-      <View style={styles.hero}>
-        <View style={styles.iconWrap}>
-          <Ionicons name="shield-checkmark" size={30} color="#fff" />
+      <View style={styles.centerContainer}>
+        {/* Top Icon Wrap */}
+        <View style={styles.iconOuterCircle}>
+          <Ionicons name="mail-unread" size={34} color="#047857" />
         </View>
+
+        {/* Hero title & subtitle */}
         <Text style={styles.title}>{t("otp.title")}</Text>
         <Text style={styles.subtitle}>
-          {t("otp.subtitle", { length: OTP_LENGTH, phone: phone || t("otp.yourPhoneNumber") })}
+          {t("otp.subtitle", { length: OTP_LENGTH, phone: formattedPhone || t("otp.yourPhoneNumber") })}
         </Text>
-      </View>
 
-      <View style={styles.otpBlock}>
-        <OtpInput value={otp} onChangeText={setOtp} length={OTP_LENGTH} />
-        <AppButton title={t("otp.verifyButton")} onPress={handleVerify} loading={loading} />
+        {/* WhatsApp Friendly Note with Human Touch */}
+        <View style={styles.whatsappNote}>
+          <Ionicons name="chatbubble-ellipses" size={16} color="#15803d" style={styles.whatsappNoteIcon} />
+          <Text style={styles.whatsappNoteText}>{t("otp.whatsappNote")}</Text>
+        </View>
 
+        {/* Form Card */}
+        <View style={styles.card}>
+          <View style={styles.otpInputContainer}>
+            <OtpInput value={otp} onChangeText={setOtp} length={OTP_LENGTH} />
+          </View>
+
+          {/* Verify OTP Button */}
+          <Pressable
+            onPress={handleVerify}
+            disabled={loading}
+            style={[styles.verifyButton, loading && styles.verifyButtonDisabled]}
+          >
+            <Text style={styles.verifyButtonText}>
+              {loading ? t("loading") : t("otp.verifyButton")}
+            </Text>
+            {!loading && <Ionicons name="chevron-forward" size={16} color="#065f46" />}
+          </Pressable>
+        </View>
+
+        {/* Resend Section */}
         <View style={styles.resendWrap}>
           <Text style={styles.resendLabel}>{t("otp.didNotReceive")}</Text>
-          <Text style={styles.resendAction} onPress={handleResend}>
-            {t("otp.resendNow")}
-          </Text>
+          <Pressable
+            onPress={handleResend}
+            disabled={countdown > 0}
+            style={[styles.resendActionRow, countdown > 0 && styles.resendActionRowDisabled]}
+          >
+            <Ionicons
+              name="refresh"
+              size={13}
+              color={countdown > 0 ? "#cbd5e1" : "#22C55E"}
+            />
+            <Text style={[styles.resendAction, countdown > 0 && styles.resendActionDisabled]}>
+              {countdown > 0
+                ? `${t("otp.resendNow")} (${countdown}s)`
+                : t("otp.resendNow")}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </ScreenWrapper>
@@ -99,53 +193,116 @@ export default function OtpScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    gap: 16,
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F7F9FB",
   },
-  hero: {
+  centerContainer: {
     alignItems: "center",
-    gap: 10,
-    paddingTop: 12,
+    width: "100%",
   },
-  iconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#EAF2FF",
-    borderWidth: 1,
-    borderColor: "#C7D8FF",
+  iconOuterCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#E6F7ED",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 20,
   },
   title: {
-    color: colors.text,
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: "900",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1e293b",
     textAlign: "center",
+    marginBottom: 8,
   },
   subtitle: {
-    color: colors.mutedText,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    color: "#64748b",
     textAlign: "center",
-    maxWidth: 300,
+    lineHeight: 20,
+    maxWidth: 290,
+    marginBottom: 28,
   },
-  otpBlock: {
-    gap: 16,
-    paddingTop: 4,
+  card: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 20,
+    padding: 20,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 24,
+  },
+  otpInputContainer: {
+    marginBottom: 20,
+  },
+  verifyButton: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: "#22C55E",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  verifyButtonDisabled: {
+    opacity: 0.6,
+  },
+  verifyButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#065f46",
   },
   resendWrap: {
     alignItems: "center",
-    gap: 4,
+    gap: 8,
   },
   resendLabel: {
-    color: colors.mutedText,
-    fontSize: 12,
+    color: "#64748b",
+    fontSize: 13,
+  },
+  resendActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  resendActionRowDisabled: {
+    opacity: 0.6,
   },
   resendAction: {
-    color: colors.primary,
-    fontSize: 12,
+    color: "#22C55E",
+    fontSize: 14,
     fontWeight: "800",
+  },
+  resendActionDisabled: {
+    color: "#cbd5e1",
+  },
+  whatsappNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#DCFCE7",
+    borderRadius: 12,
+    padding: 12,
+    width: "100%",
+    marginBottom: 24,
+  },
+  whatsappNoteIcon: {
+    marginRight: 8,
+  },
+  whatsappNoteText: {
+    flex: 1,
+    fontSize: 12,
+    color: "#166534",
+    lineHeight: 18,
+    fontWeight: "600",
   },
 });

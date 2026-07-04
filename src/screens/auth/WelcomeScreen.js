@@ -12,7 +12,7 @@ export default function WelcomeScreen({navigation }) {
 
   const handleNext = async () => {
     await setSeenOnboarding();
-    navigation.navigate("IntroLanguage");
+    navigation.navigate("Role");
   };
 
   return (

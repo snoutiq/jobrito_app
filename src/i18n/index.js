@@ -5,6 +5,10 @@ import en from "./en.json";
 import hi from "./hi.json";
 import mr from "./mr.json";
 import ar from "./ar.json";
+import ml from "./ml.json";
+import kn from "./kn.json";
+import te from "./te.json";
+import ta from "./ta.json";
 
 const initializeI18n = async () => {
   if (i18n.isInitialized) {
@@ -27,6 +31,10 @@ const initializeI18n = async () => {
       ar_AE: { translation: ar },
       ar_SA: { translation: ar },
       en_EU: { translation: en },
+      ml: { translation: ml },
+      kn: { translation: kn },
+      te: { translation: te },
+      ta: { translation: ta },
     },
   });
 };
