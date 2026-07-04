@@ -122,7 +122,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   ];
 
   const experienceOptions = [
-    "1-2 Years", "2-5 Years", "5-10 Years", "10+ Years"
+    "1-2 Years", "2-5 Years", "5-10 Years", "10-25 Years", "25+ and above"
   ];
 
   // --- Step 3 State ---
@@ -1625,14 +1625,6 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               >
                 <Text style={styles.continueButtonText}>{t("chefOnboarding.returnToFeed")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.viewDraftBtn}
-                onPress={() => handleFinishOnboarding("Profile")}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewDraftBtnText}>{t("chefOnboarding.viewProfileDraft")}</Text>
               </TouchableOpacity>
             </View>
           )}

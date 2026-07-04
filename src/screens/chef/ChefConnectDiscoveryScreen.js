@@ -25,7 +25,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   const [chefs, setChefs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeQuickFilter, setActiveQuickFilter] = useState("all"); // all, freelance, full_time
+  const [activeQuickFilter, setActiveQuickFilter] = useState("all"); // all, freelance, full_time, part_time
 
   // Booking Modal States
   const [bookingVisible, setBookingVisible] = useState(false);
@@ -125,6 +125,9 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     } else if (activeQuickFilter === "full_time") {
       const isFullTimer = empPrefsLower.some(x => x.includes("full time"));
       if (!isFullTimer) return false;
+    } else if (activeQuickFilter === "part_time") {
+      const isPartTimer = empPrefsLower.some(x => x.includes("part time"));
+      if (!isPartTimer) return false;
     }
 
     // 3. Advanced filters (Accordion params)
@@ -332,6 +335,15 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
           >
             <Text style={[styles.quickFilterPillText, activeQuickFilter === "full_time" && styles.quickFilterPillTextActive]}>
               {t("fullTime")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.quickFilterPill, activeQuickFilter === "part_time" && styles.quickFilterPillActive]}
+            onPress={() => setActiveQuickFilter("part_time")}
+          >
+            <Text style={[styles.quickFilterPillText, activeQuickFilter === "part_time" && styles.quickFilterPillTextActive]}>
+              {t("partTime", "Part Time")}
             </Text>
           </TouchableOpacity>
         </ScrollView>
