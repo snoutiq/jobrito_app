@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
+import { Ionicons } from "@expo/vector-icons";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { getStoredLanguage, setStoredLanguage } from "../../services/storage";
 import { updateUserLanguage } from "../../redux/slices/userSlice";
 
-export default function LanguageScreen() {
+export default function LanguageScreen({ navigation }) {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState("en");
@@ -36,6 +37,11 @@ export default function LanguageScreen() {
     await i18n.changeLanguage(language);
     await setStoredLanguage(language);
     dispatch(updateUserLanguage(language)); // Sync with backend
+    
+    // Smooth back navigation after language is set
+    setTimeout(() => {
+      navigation.goBack();
+    }, 300);
   };
 
   const languageButtons = [
@@ -73,48 +79,79 @@ export default function LanguageScreen() {
 
 
   return (
-    <ScreenWrapper
-      edges={["left", "right", "bottom"]}
-      style={{ backgroundColor: "#fff" }}
-      contentStyle={{ backgroundColor: "#fff" }}
-    >
-
-      <View style={styles.card}>
-        <Text style={styles.title}>{t("languageScreen.title")}</Text>
-        <Text style={styles.description}>
-          {t("languageScreen.description")}
-        </Text>
-
-        <View style={styles.buttonList}>
-          {languageButtons.map((item) => {
-            const active = selectedLanguage === item.key;
-            return (
-              <Pressable
-                key={item.key}
-                onPress={() => handleSelectLanguage(item.key)}
-                style={[styles.languageButton, active && styles.languageButtonActive]}
-              >
-                <View style={styles.buttonTextBlock}>
-                  <Text style={[styles.buttonLabel, active && styles.buttonLabelActive]}>
-                    {item.label}
-                  </Text>
-                  <Text style={[styles.buttonSubtitle, active && styles.buttonSubtitleActive]}>
-                    {item.subtitle}
-                  </Text>
-                </View>
-                <View style={[styles.radio, active && styles.radioActive]}>
-                  {active ? <View style={styles.radioDot} /> : null}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+        </Pressable>
+        <Text style={styles.headerTitle}>{t("languageScreen.title")}</Text>
+        <View style={{ width: 32 }} />
       </View>
-    </ScreenWrapper>
+
+      <ScreenWrapper
+        edges={["left", "right", "bottom"]}
+        style={{ backgroundColor: "#F8FAFC", flex: 1 }}
+        contentStyle={{ backgroundColor: "#F8FAFC", padding: 16 }}
+      >
+        <View style={styles.card}>
+          <Text style={styles.description}>
+            {t("languageScreen.description")}
+          </Text>
+
+          <View style={styles.buttonList}>
+            {languageButtons.map((item) => {
+              const active = selectedLanguage === item.key;
+              return (
+                <Pressable
+                  key={item.key}
+                  onPress={() => handleSelectLanguage(item.key)}
+                  style={[styles.languageButton, active && styles.languageButtonActive]}
+                >
+                  <View style={styles.buttonTextBlock}>
+                    <Text style={[styles.buttonLabel, active && styles.buttonLabelActive]}>
+                      {item.label}
+                    </Text>
+                    <Text style={[styles.buttonSubtitle, active && styles.buttonSubtitleActive]}>
+                      {item.subtitle}
+                    </Text>
+                  </View>
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active ? <View style={styles.radioDot} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </ScreenWrapper>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1E293B",
+  },
   card: {
     backgroundColor: colors.card,
     borderRadius: 18,
@@ -122,11 +159,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: 16,
     gap: 14,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: "900",
   },
   description: {
     color: colors.mutedText,

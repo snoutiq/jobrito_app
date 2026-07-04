@@ -176,7 +176,7 @@ export default function ProfileScreen({ navigation }) {
                 styles.iconBox,
                 {
                   borderColor:
-                    item.color === colors.text ? "#E5EAF2" : "#EAF0FF",
+                    item.color === colors.text ? "#E5EAF2" : "#BDECCB",
                 },
               ]}
             >
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     height: 82,
     borderRadius: 41,
     borderWidth: 3,
-    borderColor: "#C7D8FF",
+    borderColor: "#BDECCB",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff",
@@ -295,14 +295,14 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#EAF2FF",
+    backgroundColor: "#F2FBF5",
     borderWidth: 1,
-    borderColor: "#C7D8FF",
+    borderColor: "#BDECCB",
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
-    color: colors.primaryDark,
+    color: "#15803D",
     fontSize: 22,
     fontWeight: "900",
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: colors.primary,
+    backgroundColor: "#22C55E",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   phone: {
-    color: colors.primary,
+    color: "#16A34A",
     fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     width: "100%",
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "#F0FDF4",
     borderRadius: 28,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -371,20 +371,20 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   progressAction: {
-    color: colors.primary,
+    color: "#16A34A",
     fontSize: 13,
     fontWeight: "800",
   },
   track: {
     height: 7,
     borderRadius: 999,
-    backgroundColor: "#D6E6FF",
+    backgroundColor: "#DCFCE7",
     overflow: "hidden",
   },
   fill: {
     height: "100%",
     borderRadius: 999,
-    backgroundColor: colors.primary,
+    backgroundColor: "#22C55E",
   },
   listCard: {
     backgroundColor: "#fff",
@@ -459,13 +459,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   footerBrand: {
-    color: colors.primaryDark,
+    color: "#15803D",
     fontSize: 13,
     fontWeight: "900",
     letterSpacing: 1.2,
   },
   footerVersion: {
-    color: colors.primary,
+    color: "#16A34A",
     fontSize: 11,
   },
   modalOverlay: {

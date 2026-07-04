@@ -87,7 +87,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Language"
         component={LanguageScreen}
-        options={{ title: t("language") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="PersonalInformation"
@@ -244,7 +244,7 @@ export default function MainTabs() {
       <Stack.Screen
         name="Language"
         component={LanguageScreen}
-        options={{ title: t("language") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="PersonalInformation"
