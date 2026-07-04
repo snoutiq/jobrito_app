@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import StatusBadge from "../../components/common/StatusBadge";
 import EmptyState from "../../components/common/EmptyState";
@@ -38,6 +39,7 @@ const formatAppliedTime = (appliedOn) => {
 };
 
 export default function ApplicationHistoryScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   
@@ -59,12 +61,12 @@ export default function ApplicationHistoryScreen({ navigation }) {
   ];
 
   const statusTitles = {
-    "All": "All Applications",
-    "UNDER REVIEW": "Under Review",
-    "SHORTLISTED": "Shortlisted",
-    "CONTACTED": "Contacted",
-    "DECISION PENDING": "Decision Pending",
-    "JOB CLOSED": "Job Closed"
+    "All": t("applications.status.all", "All Applications"),
+    "UNDER REVIEW": t("applications.status.underReview", "Under Review"),
+    "SHORTLISTED": t("applications.status.shortlisted", "Shortlisted"),
+    "CONTACTED": t("applications.status.contacted", "Contacted"),
+    "DECISION PENDING": t("applications.status.decisionPending", "Decision Pending"),
+    "JOB CLOSED": t("applications.status.jobClosed", "Job Closed")
   };
 
   useEffect(() => {
@@ -165,7 +167,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#15803D" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Applications</Text>
+          <Text style={styles.headerTitle}>{t("applications.title", "My Applications")}</Text>
         </View>
       </View>
 
@@ -176,7 +178,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search applications"
+            placeholder={t("applications.searchPlaceholder", "Search applications")}
             placeholderTextColor="#94A3B8"
             style={styles.searchInput}
           />
@@ -197,10 +199,10 @@ export default function ApplicationHistoryScreen({ navigation }) {
       {isFilterActive && (
         <View style={styles.filterInfoBar}>
           <Text style={styles.filterInfoText}>
-            Showing: <Text style={{ fontWeight: "700" }}>{statusTitles[activeStatusFilter]}</Text>
+            {t("applications.showing", "Showing: ")}<Text style={{ fontWeight: "700" }}>{statusTitles[activeStatusFilter]}</Text>
           </Text>
           <TouchableOpacity onPress={() => setActiveStatusFilter("All")}>
-            <Text style={styles.resetFilterText}>Clear</Text>
+            <Text style={styles.resetFilterText}>{t("clear", "Clear")}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -214,13 +216,13 @@ export default function ApplicationHistoryScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <EmptyState
-              title={loading ? "Loading..." : "No applications found"}
+              title={loading ? t("loading", "Loading...") : t("applications.noFound", "No applications found")}
               subtitle={
                 loading
-                  ? "Please wait..."
+                  ? t("pleaseWait", "Please wait...")
                   : isFilterActive || search
-                  ? "Try changing your search query or status filter."
-                  : "Your applied jobs will show up here."
+                  ? t("applications.tryChangingSearch", "Try changing your search query or status filter.")
+                  : t("applications.appliedJobsShowHere", "Your applied jobs will show up here.")
               }
             />
           }
@@ -228,7 +230,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
             filteredHistory.length > 0 ? (
               <View style={styles.footerContainer}>
                 <Text style={styles.footerText}>
-                  Showing last 6 months of application history
+                  {t("applications.showingHistoryRange", "Showing last 6 months of application history")}
                 </Text>
               </View>
             ) : null
@@ -257,7 +259,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowFilterModal(false)} />
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 24 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter by Status</Text>
+              <Text style={styles.modalTitle}>{t("applications.filterByStatus", "Filter by Status")}</Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
                 <Ionicons name="close" size={24} color="#475569" />
               </TouchableOpacity>
@@ -294,7 +296,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
                   setShowFilterModal(false);
                 }}
               >
-                <Text style={styles.clearFilterText}>Clear Filter</Text>
+                <Text style={styles.clearFilterText}>{t("applications.clearFilter", "Clear Filter")}</Text>
               </TouchableOpacity>
             )}
           </View>

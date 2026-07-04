@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
+import { useTranslation } from "react-i18next";
 import EmptyState from "../../components/common/EmptyState";
 import colors from "../../constants/colors";
 import { fetchSavedJobs, toggleSaveJob } from "../../redux/slices/jobSlice";
@@ -39,6 +40,7 @@ const formatSavedTime = (savedAt) => {
 };
 
 export default function SavedJobsScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   
@@ -61,19 +63,19 @@ export default function SavedJobsScreen({ navigation }) {
 
   const handleUnsave = (jobId, jobTitle) => {
     Alert.alert(
-      "Remove Saved Job",
-      `Are you sure you want to remove "${jobTitle}" from your saved list?`,
+      t("savedJobs.removeSavedJob", "Remove Saved Job"),
+      t("savedJobs.removeConfirm", { title: jobTitle }, `Are you sure you want to remove "${jobTitle}" from your saved list?`),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("cancel", "Cancel"), style: "cancel" },
         {
-          text: "Remove",
+          text: t("remove", "Remove"),
           style: "destructive",
           onPress: async () => {
             try {
               await dispatch(toggleSaveJob(jobId)).unwrap();
-              Alert.alert("Removed", "Job removed from saved list.");
+              Alert.alert(t("removed", "Removed"), t("savedJobs.removedMsg", "Job removed from saved list."));
             } catch (error) {
-              Alert.alert("Error", error || "Failed to remove job.");
+              Alert.alert(t("error", "Error"), error || t("savedJobs.failedToRemove", "Failed to remove job."));
             }
           },
         },
@@ -160,7 +162,7 @@ export default function SavedJobsScreen({ navigation }) {
                 disabled={isApplied}
               >
                 <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                  {isApplied ? "✓ Applied" : "Apply Now"}
+                  {isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
                 </Text>
               </TouchableOpacity>
               <Text style={styles.timeText}>{formatSavedTime(item.savedAt)}</Text>
@@ -187,7 +189,7 @@ export default function SavedJobsScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#15803D" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Saved Jobs</Text>
+          <Text style={styles.headerTitle}>{t("savedJobs.title", "Saved Jobs")}</Text>
         </View>
       </View>
 
@@ -195,8 +197,8 @@ export default function SavedJobsScreen({ navigation }) {
       <View style={styles.summaryBar}>
         <Text style={styles.summaryText}>
           {loading
-            ? "Loading Saved Opportunities..."
-            : `${savedJobs.length} Saved Opportunities`}
+            ? t("savedJobs.loadingOps", "Loading Saved Opportunities...")
+            : t("savedJobs.opportunitiesCount", { count: savedJobs.length }, `${savedJobs.length} Saved Opportunities`)}
         </Text>
       </View>
 
@@ -209,11 +211,11 @@ export default function SavedJobsScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <EmptyState
-              title={loading ? "Loading..." : "No saved jobs yet"}
+              title={loading ? t("loading", "Loading...") : t("savedJobs.noSavedYet", "No saved jobs yet")}
               subtitle={
                 loading
-                  ? "Please wait..."
-                  : "Jobs you bookmark will be displayed here for quick access."
+                  ? t("pleaseWait", "Please wait...")
+                  : t("savedJobs.bookmarkInstruction", "Jobs you bookmark will be displayed here for quick access.")
               }
             />
           }
@@ -230,7 +232,7 @@ export default function SavedJobsScreen({ navigation }) {
               await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
               return true;
             } catch (err) {
-              Alert.alert("Application Error", err || "Failed to apply to job");
+              Alert.alert(t("jobDetails.applyError", "Application Error"), err || t("jobDetails.failedToApply", "Failed to apply to job"));
               return false;
             }
           }

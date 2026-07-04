@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
@@ -34,6 +35,7 @@ const formatPostedTime = (postedDate) => {
 };
 
 export default function JobDetailsScreen({ route }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { jobDetails, loading, applyingJobId } = useSelector((state) => state.job);
   const { history: applicationHistory, loading: applyLoading } = useSelector((state) => state.application);
@@ -79,7 +81,7 @@ export default function JobDetailsScreen({ route }) {
   if (!job) {
     return (
       <ScreenWrapper>
-        <Text style={styles.loading}>Loading job details...</Text>
+        <Text style={styles.loading}>{t("jobDetails.loading", "Loading job details...")}</Text>
       </ScreenWrapper>
     );
   }
@@ -104,10 +106,10 @@ export default function JobDetailsScreen({ route }) {
             <Text style={styles.positionTitle}>{title}</Text>
             <View style={styles.tagRow}>
               <View style={[styles.tag, styles.tagUrgent]}>
-                <Text style={styles.tagUrgentText}>Urgent Hiring</Text>
+                <Text style={styles.tagUrgentText}>{t("jobDetails.urgentHiring", "Urgent Hiring")}</Text>
               </View>
               <View style={[styles.tag, styles.tagFullTime]}>
-                <Text style={styles.tagFullTimeText}>Full Time</Text>
+                <Text style={styles.tagFullTimeText}>{t("jobDetails.fullTime", "Full Time")}</Text>
               </View>
             </View>
           </View>
@@ -119,7 +121,7 @@ export default function JobDetailsScreen({ route }) {
               <Ionicons name="cash-outline" size={16} color={colors.success} />
             </View>
             <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>Salary</Text>
+              <Text style={styles.metaLabel}>{t("jobDetails.salary", "Salary")}</Text>
               <Text style={styles.metaValue}>{salary}</Text>
             </View>
           </View>
@@ -128,7 +130,7 @@ export default function JobDetailsScreen({ route }) {
               <Ionicons name="location-outline" size={16} color={colors.primary} />
             </View>
             <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>Location</Text>
+              <Text style={styles.metaLabel}>{t("jobDetails.location", "Location")}</Text>
               <Text style={styles.metaValue}>{location}</Text>
             </View>
           </View>
@@ -137,7 +139,7 @@ export default function JobDetailsScreen({ route }) {
               <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
             </View>
             <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>Experience</Text>
+              <Text style={styles.metaLabel}>{t("jobDetails.experience", "Experience")}</Text>
               <Text style={styles.metaValue}>{experience}</Text>
             </View>
           </View>
@@ -146,7 +148,7 @@ export default function JobDetailsScreen({ route }) {
               <Ionicons name="time-outline" size={16} color={colors.success} />
             </View>
             <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>Posted</Text>
+              <Text style={styles.metaLabel}>{t("jobDetails.posted", "Posted")}</Text>
               <Text style={styles.metaValue}>{postedTime}</Text>
             </View>
           </View>
@@ -156,7 +158,7 @@ export default function JobDetailsScreen({ route }) {
                 <Ionicons name="document-text-outline" size={16} color={colors.primary} />
               </View>
               <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>Contract</Text>
+                <Text style={styles.metaLabel}>{t("jobDetails.contract", "Contract")}</Text>
                 <Text style={styles.metaValue}>{job.contract_duration}</Text>
               </View>
             </View>
@@ -167,8 +169,8 @@ export default function JobDetailsScreen({ route }) {
                 <Ionicons name="card-outline" size={16} color={colors.success} />
               </View>
               <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>Visa Assistance</Text>
-                <Text style={styles.metaValue}>{job.visa_assistance ? "Available" : "Not Provided"}</Text>
+                <Text style={styles.metaLabel}>{t("jobDetails.visaAssistance", "Visa Assistance")}</Text>
+                <Text style={styles.metaValue}>{job.visa_assistance ? t("jobDetails.available", "Available") : t("jobDetails.notProvided", "Not Provided")}</Text>
               </View>
             </View>
           ) : null}
@@ -178,8 +180,8 @@ export default function JobDetailsScreen({ route }) {
                 <Ionicons name="home-outline" size={16} color={colors.primary} />
               </View>
               <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>Accommodation</Text>
-                <Text style={styles.metaValue}>{job.accommodation_available ? "Provided" : "Not Available"}</Text>
+                <Text style={styles.metaLabel}>{t("jobDetails.accommodation", "Accommodation")}</Text>
+                <Text style={styles.metaValue}>{job.accommodation_available ? t("jobDetails.provided", "Provided") : t("jobDetails.notAvailable", "Not Available")}</Text>
               </View>
             </View>
           ) : null}
@@ -189,7 +191,7 @@ export default function JobDetailsScreen({ route }) {
                 <Ionicons name="people-outline" size={16} color={colors.success} />
               </View>
               <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>Open Positions</Text>
+                <Text style={styles.metaLabel}>{t("jobDetails.openPositions", "Open Positions")}</Text>
                 <Text style={styles.metaValue}>{job.open_positions}</Text>
               </View>
             </View>
@@ -198,14 +200,14 @@ export default function JobDetailsScreen({ route }) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About the Role</Text>
+        <Text style={styles.sectionTitle}>{t("jobDetails.aboutRole", "About the Role")}</Text>
         <Text style={styles.bodyText}>
           {job?.description}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Key Requirements</Text>
+        <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "Key Requirements")}</Text>
         <View style={styles.requirementList}>
           {jobRequirements.map((item) => (
             <View key={item} style={styles.requirementRow}>
@@ -224,11 +226,11 @@ export default function JobDetailsScreen({ route }) {
             <View style={styles.dessertBase} />
           </View>
         </View>
-        <Text style={styles.imageCaption}>Example of our signature dessert menu style</Text>
+        <Text style={styles.imageCaption}>{t("jobDetails.imageCaption", "Example of our signature dessert menu style")}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Benefits & Perks</Text>
+        <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "Benefits & Perks")}</Text>
         <View style={styles.benefitWrap}>
           {jobBenefits.map((item) => (
             <View key={item} style={styles.benefitChip}>
@@ -239,7 +241,7 @@ export default function JobDetailsScreen({ route }) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Location Map</Text>
+        <Text style={styles.sectionTitle}>{t("jobDetails.locationMap", "Location Map")}</Text>
         <View style={styles.mapCard}>
           <View style={styles.mapTile} />
           <View style={styles.mapOverlay}>
@@ -255,7 +257,7 @@ export default function JobDetailsScreen({ route }) {
 
       <View style={styles.bottomBar}>
         <AppButton
-          title={isApplied ? "✓ Applied" : "Apply Now"}
+          title={isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
           onPress={() => setShowCallModal(true)}
           loading={isApplying}
           disabled={isApplied || isApplying}
@@ -277,7 +279,7 @@ export default function JobDetailsScreen({ route }) {
             await dispatch(applyJob({ jobId: job.id, preferredCallTime: timeSlot })).unwrap();
             return true;
           } catch (err) {
-            Alert.alert("Application Error", err || "Failed to apply to job");
+            Alert.alert(t("jobDetails.applyError", "Application Error"), err || t("jobDetails.failedToApply", "Failed to apply to job"));
             return false;
           }
         }}
