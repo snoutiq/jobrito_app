@@ -200,6 +200,22 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
+
+          {/* Chef Connect Action */}
+          <TouchableOpacity
+            style={styles.actionItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("ChefConnectFilters")}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: "#FFF7ED" }]}>
+              <Ionicons name="people-outline" size={22} color="#F97316" />
+            </View>
+            <View style={styles.actionDetails}>
+              <Text style={styles.actionTitle}>Chef Connect</Text>
+              <Text style={styles.actionSubtitle}>Discover and connect with talented chefs</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 

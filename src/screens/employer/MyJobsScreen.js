@@ -313,7 +313,17 @@ export default function MyJobsScreen({ navigation }) {
             </TouchableOpacity>
           )}
 
-         
+          {isActive && isEmployer && (
+            <TouchableOpacity
+              style={styles.closeJobBtn}
+              activeOpacity={0.8}
+              onPress={() => closeJob(job.id)}
+            >
+              <Text style={styles.closeJobBtnText}>
+                {t("closeJob", "Close Job")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );

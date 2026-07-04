@@ -126,20 +126,6 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.itemLabel}>{t("appLanguage")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("ChefConnectFilters")}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#FFF7ED" }]}>
-              <Ionicons name="people-outline" size={20} color="#F97316" />
-            </View>
-            <Text style={styles.itemLabel}>Chef Connect</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
         </View>
 
         {/* Section: Information & Support */}
