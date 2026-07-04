@@ -158,6 +158,31 @@ export default function ProfileScreen({ navigation }) {
     return "English (Device default)";
   };
 
+  const getMissingFieldText = () => {
+    if (!profile) return t("profile.addSkills", "Add Skills (+10%)");
+
+    if (!profile.profile_photo_path) {
+      return t("profile.addPhotoAction", "Add Profile Photo (+10%)");
+    }
+    if (!profile.email) {
+      return t("profile.addEmailAction", "Add Email Address (+10%)");
+    }
+    if (!profile.city) {
+      return t("profile.addCityAction", "Add Current City (+10%)");
+    }
+    if (!profile.skills) {
+      return t("profile.addSkillsAction", "Add Skills (+10%)");
+    }
+    if (!profile.current_employer) {
+      return t("profile.addEmployerAction", "Add Current Employer (+10%)");
+    }
+    if (!profile.gender) {
+      return t("profile.addGenderAction", "Add Gender (+10%)");
+    }
+    
+    return t("profile.profileCompleteText", "Profile is complete!");
+  };
+
   return (
     <ScreenWrapper
       edges={["left", "right", "bottom"]}
@@ -214,13 +239,17 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Add Skills Action */}
+          {/* Dynamic Missing Field / Add Skills Action */}
           <Pressable
             style={styles.addSkillsBar}
             onPress={() => navigation.navigate("CompleteProfileScreen")}
           >
-            <Text style={styles.addSkillsText}>{t("profile.addSkills", "Add Skills (+10%)")}</Text>
-            <Ionicons name="add-circle" size={18} color="#22C55E" />
+            <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
+            <Ionicons 
+              name={completion >= 100 ? "checkmark-circle" : "add-circle"} 
+              size={18} 
+              color="#22C55E" 
+            />
           </Pressable>
         </View>
       </View>
