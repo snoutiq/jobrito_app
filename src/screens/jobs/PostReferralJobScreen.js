@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Modal,
   KeyboardAvoidingView,
   Platform,
   Image,
@@ -31,13 +32,23 @@ export default function PostReferralJobScreen({ navigation, route }) {
   );
 
   const [step, setStep] = useState(1); // 1: Business Basics, 2: Job Details, 3: Contact & Extras, 4: Success
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeField, setActiveField] = useState(null);
+
+  const handleDismissSuccessModal = () => {
+    setShowSuccessModal(false);
+    handleReset();
+    navigation.navigate("MyJobs");
+  };
 
   // Form Fields
   const [category, setCategory] = useState("india"); // "india", "overseas", "community"
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [contactInfo, setContactInfo] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
   const [description, setDescription] = useState("");
   
   // Optional Fields
@@ -94,8 +105,21 @@ export default function PostReferralJobScreen({ navigation, route }) {
   // Autofill fields from user profile if available
   useEffect(() => {
     if (profile) {
-      setCompany(profile.businessName || profile.company || "");
-      setContactInfo(profile.email || profile.phone || "");
+      if (!company) {
+        setCompany(profile.businessName || profile.company || "");
+      }
+      if (!contactInfo) {
+        setContactInfo(profile.email || profile.phone || "");
+      }
+      if (!phoneNumber) {
+        setPhoneNumber(profile.phone || "");
+      }
+      if (!emailAddress) {
+        setEmailAddress(profile.email || "");
+      }
+      if (!contactPerson) {
+        setContactPerson(profile.name || profile.full_name || "");
+      }
     }
   }, [profile]);
 
@@ -117,11 +141,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
   const handleNextStep1 = () => {
     if (!company.trim()) {
-      Alert.alert(t("error"), t("postJob.companyRequired", "Please enter a Company Name."));
+      Alert.alert(t("error"), "Please enter a Business / Agency Name.");
       return;
     }
-    if (!contactInfo.trim()) {
-      Alert.alert(t("error"), t("postJob.contactInfoRequired", "Please enter contact info."));
+    if (!contactPerson.trim()) {
+      Alert.alert(t("error"), "Please enter a Contact Person Name.");
       return;
     }
     setStep(2);
@@ -140,6 +164,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
   };
 
   const handleSubmitJob = async () => {
+    if (!phoneNumber.trim()) {
+      Alert.alert(t("error"), "Phone number is required.");
+      return;
+    }
+    if (!emailAddress.trim()) {
+      Alert.alert(t("error"), "Email address is required.");
+      return;
+    }
     if (category === "overseas" && !country.trim()) {
       Alert.alert(t("error"), t("postJob.countryRequired", "Country is required when category is Overseas."));
       return;
@@ -152,11 +184,13 @@ export default function PostReferralJobScreen({ navigation, route }) {
       ? benefits.split(",").map((b) => b.trim()).filter(Boolean)
       : null;
 
+    const combinedContact = `Phone: ${phoneNumber.trim()} | Email: ${emailAddress.trim()}`;
+
     const jobData = {
       title,
       category,
       company,
-      contact_info: contactInfo,
+      contact_info: combinedContact,
       description,
       salary: salary.trim() || null,
       location: location.trim() || null,
@@ -167,6 +201,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
       open_positions: parseInt(openPositions, 10) || null,
       is_referral: isReferral,
       submitted_by_role: submittedByRole,
+      contact_person: contactPerson,
     };
 
     if (category === "overseas") {
@@ -189,7 +224,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
       const result = await dispatch(createJobPost(payload));
       
       if (createJobPost.fulfilled.match(result)) {
-        setStep(4);
+        setShowSuccessModal(true);
       } else {
         const serverError = result.payload;
         let errorMessage = t("postJob.submitFailed", "Failed to submit job posting. Please try again.");
@@ -294,18 +329,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
               <Ionicons name="arrow-back" size={24} color="#15803D" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t("postJob.title", "Post a Referral Job")}</Text>
-            <View style={styles.headerRight}>
-              {profile?.profile_photo_path ? (
-                <Image
-                  source={{ uri: profile.profile_photo_path }}
-                  style={styles.headerAvatar}
-                />
-              ) : (
-                <View style={styles.headerAvatarFallback}>
-                  <Ionicons name="person-outline" size={16} color="#64748B" />
-                </View>
-              )}
-            </View>
+            <View style={{ width: 24 }} />
           </View>
         </View>
 
@@ -329,14 +353,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoBoxText}>
-                    {t("postJob.businessBasics", "Enter basic company and contact information for the job post. Providing clear info ensures trust.")}
+                    Let's start with your business basics. This information helps applicants identify who they'll be working for.
                   </Text>
+                  <Text style={styles.infoBoxSub}>10:04 AM</Text>
                 </View>
               </View>
 
               {/* Company Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.companyName", "Company Name *")}</Text>
+                <Text style={styles.inputLabel}>Business / Agency Name</Text>
                 <View
                   style={[
                     styles.inputWrapper,
@@ -346,7 +371,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <TextInput
                     value={company}
                     onChangeText={setCompany}
-                    placeholder={t("postJob.companyPlaceholder", "e.g., The Grand Patisserie")}
+                    placeholder="e.g. The Grand Bistro"
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveField("company")}
@@ -355,22 +380,22 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Contact Info */}
+              {/* Contact Person Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.contactInfo", "Contact Email or Phone *")}</Text>
+                <Text style={styles.inputLabel}>Contact Person Name</Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    activeField === "contactInfo" && styles.inputWrapperActive,
+                    activeField === "contactPerson" && styles.inputWrapperActive,
                   ]}
                 >
                   <TextInput
-                    value={contactInfo}
-                    onChangeText={setContactInfo}
-                    placeholder={t("postJob.contactInfoPlaceholder", "e.g., hire@company.com")}
+                    value={contactPerson}
+                    onChangeText={setContactPerson}
+                    placeholder="Full name of hiring manager"
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("contactInfo")}
+                    onFocus={() => setActiveField("contactPerson")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -386,20 +411,22 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 />
                 <View style={styles.imageCardOverlay} />
                 <View style={styles.imageCardContent}>
-                  <Text style={styles.imageCardStepLabel}>{t("step", { current: 1, total: 3 })}</Text>
-                  <Text style={styles.imageCardTitleLabel}>{t("postJob.identityTrust", "Identity & Collaboration")}</Text>
+                  <Text style={styles.imageCardStepLabel}>Step 1 of 3</Text>
+                  <Text style={styles.imageCardTitleLabel}>Identity & Trust</Text>
                 </View>
               </View>
 
+
+
               {/* Footer actions */}
-              <View style={[styles.footerContainer, { marginTop: 40 }]}>
+              <View style={[styles.footerContainer, { marginTop: 24 }]}>
                 <TouchableOpacity
                   style={styles.primaryNextBtn}
                   activeOpacity={0.8}
                   onPress={handleNextStep1}
                 >
                   <Text style={styles.primaryNextBtnText}>{t("postJob.next", "Next")}</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 6 }} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -630,48 +657,6 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   )}
                 </View>
 
-                {/* Requirements */}
-                <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.requirements", "Requirements (comma separated)")}</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "requirements" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <TextInput
-                      value={requirements}
-                      onChangeText={setRequirements}
-                      placeholder="e.g. HACCP Certified, Food Safety, Menu Design"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("requirements")}
-                      onBlur={() => setActiveField(null)}
-                    />
-                  </View>
-                </View>
-
-                {/* Benefits */}
-                <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.benefits", "Benefits (comma separated)")}</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "benefits" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <TextInput
-                      value={benefits}
-                      onChangeText={setBenefits}
-                      placeholder="e.g. Free Staff Meals, Accommodation, Medical Cover"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("benefits")}
-                      onBlur={() => setActiveField(null)}
-                    />
-                  </View>
-                </View>
-
                 {/* Job Description */}
                 <View style={[styles.inputGroup, { marginTop: 8 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.jobDescription", "Job Description *")}</Text>
@@ -706,7 +691,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   style={styles.tipBoxIcon}
                 />
                 <Text style={styles.tipBoxText}>
-                  {t("postJob.tipText", "Add detailed requirements and benefits to get quality applications from chefs and professionals.")}
+                  Detailed job descriptions attract{" "}
+                  <Text style={{ color: PRIMARY_GREEN, fontWeight: "700" }}>40% more</Text>{" "}
+                  qualified applicants. Be sure to mention specific benefits!
                 </Text>
               </View>
 
@@ -734,189 +721,90 @@ export default function PostReferralJobScreen({ navigation, route }) {
           {/* STEP 3: CONTACT & EXTRAS (REVIEW) */}
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <View style={styles.step3Banner}>
+              {/* Top Banner Card */}
+              <View style={styles.step3BannerBox}>
                 <Text style={styles.step3BannerText}>
-                  {t("postJob.contactInfoBanner", "Confirm your referral details and additional preferences below before submitting.")}
+                  Almost done! We just need your Contact Information so applicants know how to reach you or where to send their CVs.
                 </Text>
               </View>
 
-              {/* OVERSEAS SPECIFIC FIELDS */}
-              {category === "overseas" && (
-                <View style={styles.fieldsCard}>
-                  <Text style={[styles.inputLabel, { color: PRIMARY_GREEN }]}>{t("postJob.overseasInfo", "Overseas Information")}</Text>
-                  
-                  {/* Country */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>{t("postJob.country", "Country *")}</Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "country" && styles.inputWrapperActive,
-                      ]}
-                    >
-                      <TextInput
-                        value={country}
-                        onChangeText={setCountry}
-                        placeholder="e.g., United Kingdom"
-                        placeholderTextColor="#94A3B8"
-                        style={styles.textInput}
-                        onFocus={() => setActiveField("country")}
-                        onBlur={() => setActiveField(null)}
-                      />
-                    </View>
-                  </View>
-
-                  {/* Contract Duration */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>{t("postJob.contractDuration", "Contract Duration")}</Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "contractDuration" && styles.inputWrapperActive,
-                      ]}
-                    >
-                      <TextInput
-                        value={contractDuration}
-                        onChangeText={setContractDuration}
-                        placeholder="e.g., 2 Years"
-                        placeholderTextColor="#94A3B8"
-                        style={styles.textInput}
-                        onFocus={() => setActiveField("contractDuration")}
-                        onBlur={() => setActiveField(null)}
-                      />
-                    </View>
-                  </View>
-
-                  {/* Visa Assistance Checkbox */}
-                  <TouchableOpacity
-                    style={styles.checkboxRow}
-                    activeOpacity={0.8}
-                    onPress={() => setVisaAssistance(!visaAssistance)}
-                  >
-                    <Ionicons
-                      name={visaAssistance ? "checkbox" : "square-outline"}
-                      size={24}
-                      color={visaAssistance ? PRIMARY_GREEN : "#94A3B8"}
-                    />
-                    <Text style={styles.checkboxLabel}>{t("postJob.visaAssistance", "Visa Assistance Provided")}</Text>
-                  </TouchableOpacity>
-
-                  {/* Accommodation Checkbox */}
-                  <TouchableOpacity
-                    style={styles.checkboxRow}
-                    activeOpacity={0.8}
-                    onPress={() => setAccommodationAvailable(!accommodationAvailable)}
-                  >
-                    <Ionicons
-                      name={accommodationAvailable ? "checkbox" : "square-outline"}
-                      size={24}
-                      color={accommodationAvailable ? PRIMARY_GREEN : "#94A3B8"}
-                    />
-                    <Text style={styles.checkboxLabel}>{t("postJob.accommodation", "Accommodation Available")}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* REFERRAL & ROLE INFORMATION */}
-              <View style={styles.fieldsCard}>
-                <Text style={[styles.inputLabel, { color: PRIMARY_GREEN }]}>{t("postJob.referralInfo", "Post Configuration")}</Text>
-
-                {/* Submit as Referral Checkbox */}
-                <TouchableOpacity
-                  style={styles.checkboxRow}
-                  activeOpacity={0.8}
-                  onPress={() => setIsReferral(!isReferral)}
+              {/* Phone Number Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.step3InputLabel}>Phone Number</Text>
+                <View
+                  style={[
+                    styles.step3InputWrapper,
+                    activeField === "phone" && styles.step3InputWrapperActive,
+                  ]}
                 >
-                  <Ionicons
-                    name={isReferral ? "checkbox" : "square-outline"}
-                    size={24}
-                    color={isReferral ? PRIMARY_GREEN : "#94A3B8"}
+                  <Ionicons name="call" size={18} color="#94A3B8" style={styles.step3InputIcon} />
+                  <TextInput
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    placeholder="+1 (555) 000-0000"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.step3TextInputField}
+                    keyboardType="phone-pad"
+                    onFocus={() => setActiveField("phone")}
+                    onBlur={() => setActiveField(null)}
                   />
-                  <Text style={styles.checkboxLabel}>{t("postJob.isReferral", "Submit as Referral")}</Text>
-                </TouchableOpacity>
+                </View>
+                <Text style={styles.step3InputNote}>We'll only show this to verified applicants.</Text>
+              </View>
 
-                {/* Submitted By Role Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.yourRole", "Your Role")}</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputWrapper,
-                      showRoleDropdown && styles.inputWrapperActive,
-                    ]}
-                    onPress={() => setShowRoleDropdown(!showRoleDropdown)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.textInput}>
-                      {roleOptions.find((r) => r.value === submittedByRole)?.label || submittedByRole}
-                    </Text>
-                    <Ionicons
-                      name={showRoleDropdown ? "chevron-up" : "chevron-down"}
-                      size={18}
-                      color="#64748B"
-                    />
-                  </TouchableOpacity>
-
-                  {showRoleDropdown && (
-                    <View style={styles.dropdownContainer}>
-                      {roleOptions.map((opt) => (
-                        <TouchableOpacity
-                          key={opt.value}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setSubmittedByRole(opt.value);
-                            setShowRoleDropdown(false);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              submittedByRole === opt.value && {
-                                color: PRIMARY_GREEN,
-                                fontWeight: "700",
-                              },
-                            ]}
-                          >
-                            {opt.label}
-                          </Text>
-                          {submittedByRole === opt.value && (
-                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
-                          )}
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+              {/* Email Address Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.step3InputLabel}>Email Address</Text>
+                <View
+                  style={[
+                    styles.step3InputWrapper,
+                    activeField === "email" && styles.step3InputWrapperActive,
+                  ]}
+                >
+                  <Ionicons name="mail" size={18} color="#94A3B8" style={styles.step3InputIcon} />
+                  <TextInput
+                    value={emailAddress}
+                    onChangeText={setEmailAddress}
+                    placeholder="manager@hospitalityhub.com"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.step3TextInputField}
+                    keyboardType="email-address"
+                    onFocus={() => setActiveField("email")}
+                    onBlur={() => setActiveField(null)}
+                  />
                 </View>
               </View>
 
               {/* Quick Review Header */}
-              <Text style={styles.reviewHeader}>{t("postJob.quickReview", "QUICK REVIEW")}</Text>
+              <Text style={styles.reviewHeader}>QUICK REVIEW</Text>
 
-              {/* Review Card */}
-              <View style={styles.reviewCardItem}>
-                <View style={styles.reviewIconContainer}>
-                  <Ionicons name="restaurant" size={20} color={PRIMARY_GREEN} />
+              {/* Position Card */}
+              <View style={styles.step3ReviewCard}>
+                <View style={styles.step3ReviewIconBox}>
+                  <Ionicons name="restaurant" size={20} color="#16A34A" />
                 </View>
                 <View style={styles.reviewTextContainer}>
-                  <Text style={styles.reviewCardLabel}>{t("postJob.positionLabel", "POSITION")}</Text>
+                  <Text style={styles.reviewCardLabel}>Position</Text>
                   <Text style={styles.reviewCardValue}>
-                    {title.trim() || "Job Title"}
+                    {title.trim() || "Senior Head Chef"}
                   </Text>
                 </View>
               </View>
 
+              {/* Location & Salary Side-by-Side Row */}
               <View style={styles.reviewCardRow}>
-                <View style={[styles.reviewCardItem, { flex: 1, marginRight: 8 }]}>
+                <View style={[styles.step3ReviewCard, { flex: 1, marginRight: 6 }]}>
                   <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>{t("postJob.companyLabel", "COMPANY")}</Text>
+                    <Text style={styles.reviewCardLabel}>Location</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
-                      {company.trim()}
+                      {location.trim() || "London, UK"}
                     </Text>
                   </View>
                 </View>
 
-                <View style={[styles.reviewCardItem, { flex: 1, marginLeft: 8 }]}>
+                <View style={[styles.step3ReviewCard, { flex: 1, marginLeft: 6 }]}>
                   <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel", "SALARY")}</Text>
+                    <Text style={styles.reviewCardLabel}>Salary</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
                       {salary.trim() || "Competitive"}
                     </Text>
@@ -924,90 +812,60 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Footer step 3 */}
-              <View style={[styles.footerContainer, { marginTop: 36 }]}>
-                <TouchableOpacity
-                  style={styles.primaryNextBtn}
-                  activeOpacity={0.8}
-                  onPress={handleSubmitJob}
-                >
-                  <Text style={styles.primaryNextBtnText}>{t("postJob.submitApproval", "Submit for Approval")}</Text>
-                  <Ionicons
-                    name="paper-plane-outline"
-                    size={16}
-                    color="#FFFFFF"
-                    style={{ marginLeft: 6 }}
-                  />
-                </TouchableOpacity>
+              {/* Submit Buttons */}
+              <TouchableOpacity
+                style={styles.step3SubmitBtn}
+                activeOpacity={0.8}
+                onPress={handleSubmitJob}
+              >
+                <Text style={styles.step3SubmitBtnText}>Submit For Approval</Text>
+                <Ionicons name="paper-plane" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.saveDraftLink}
-                  onPress={() => setStep(2)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.saveDraftLinkText}>{t("back", "Back")}</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.step3BackBtn}
+                onPress={() => navigation.navigate("Home")}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.step3BackBtnText}>Return to feed</Text>
+              </TouchableOpacity>
             </View>
           )}
 
-          {/* STEP 4: SUCCESS */}
-          {step === 4 && (
-            <View style={[styles.stepContainer, { alignItems: "center", paddingTop: 40 }]}>
-              {/* Checkmark Circle */}
-              <View style={styles.successIconOuter}>
-                <View style={styles.successIconInner}>
-                  <View style={styles.successIconCore}>
-                    <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+          {/* SUCCESS MODAL */}
+          <Modal
+            visible={showSuccessModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={handleDismissSuccessModal}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.modalCard}>
+                {/* Checkmark Circle */}
+                <View style={styles.successIconOuter}>
+                  <View style={styles.successIconInner}>
+                    <View style={styles.successIconCore}>
+                      <Ionicons name="checkmark" size={48} color="#FFFFFF" />
+                    </View>
                   </View>
                 </View>
-              </View>
 
-              <Text style={styles.successTitle}>🎉 {t("postJob.successTitle", "Job Submitted Successfully")}</Text>
+                <Text style={styles.modalSuccessTitle}>🎉 Job Submitted Successfully</Text>
+                
+                <Text style={styles.modalSuccessMessage}>
+                  Your job has been submitted for admin review. Once approved, it will be published in the community feed.
+                </Text>
 
-              {/* Success Info Card */}
-              <View style={styles.successInfoCard}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={24}
-                  color="#64748B"
-                  style={{ marginRight: 12 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.successInfoTitle}>
-                    {t("postJob.successTitle", "Pending Moderation")}
-                  </Text>
-                  <Text style={styles.successInfoText}>
-                    {t("postJob.successMessage", "Your job post has been submitted and is pending admin moderation. Approved jobs will be visible on the feed shortly.")}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Success Action Buttons */}
-              <View style={{ width: "100%", gap: 14, marginTop: 40 }}>
                 <TouchableOpacity
-                  style={styles.primaryNextBtn}
+                  style={styles.modalOkBtn}
                   activeOpacity={0.8}
-                  onPress={() => {
-                    handleReset();
-                  }}
+                  onPress={handleDismissSuccessModal}
                 >
-                  <Text style={styles.primaryNextBtnText}>{t("postJob.postNew", "Post Another Referral")}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.dashboardLink}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    handleReset();
-                    navigation.popToTop();
-                  }}
-                >
-                  <Text style={styles.dashboardLinkText}>{t("postJob.goDashboard", "Go to Feed")}</Text>
+                  <Text style={styles.modalOkBtnText}>OK</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          )}
+          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1325,18 +1183,101 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  step3Banner: {
+  step3BannerBox: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    padding: 14,
+    padding: 16,
     marginBottom: 20,
   },
   step3BannerText: {
-    fontSize: 13,
-    color: "#475569",
-    lineHeight: 19,
+    fontSize: 14,
+    color: "#334155",
+    lineHeight: 20,
+    fontWeight: "500",
+  },
+  step3InputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 8,
+  },
+  step3InputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: "#FFFFFF",
+  },
+  step3InputWrapperActive: {
+    borderColor: PRIMARY_GREEN,
+  },
+  step3InputIcon: {
+    marginRight: 10,
+  },
+  step3TextInputField: {
+    flex: 1,
+    fontSize: 15,
+    color: "#0F172A",
+    fontWeight: "500",
+  },
+  step3InputNote: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 6,
+  },
+  step3ReviewCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  step3ReviewIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#DCFCE7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  step3SubmitBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    height: 56,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    marginTop: 24,
+    shadowColor: PRIMARY_GREEN,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  step3SubmitBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 16,
+  },
+  step3BackBtn: {
+    alignSelf: "center",
+    paddingVertical: 14,
+    marginTop: 12,
+  },
+  step3BackBtnText: {
+    color: PRIMARY_GREEN,
+    fontSize: 15,
+    fontWeight: "700",
   },
   reviewHeader: {
     fontSize: 11,
@@ -1456,5 +1397,74 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "800",
     color: "#64748B",
+  },
+  infoBoxSub: {
+    fontSize: 10,
+    color: "#94A3B8",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  floatingHelpBtn: {
+    position: "absolute",
+    bottom: 80,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: PRIMARY_GREEN,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  modalSuccessTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#0F172A",
+    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  modalSuccessMessage: {
+    fontSize: 14,
+    color: "#475569",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  modalOkBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    width: "100%",
+    height: 50,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalOkBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });

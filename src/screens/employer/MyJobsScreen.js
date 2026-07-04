@@ -61,8 +61,11 @@ export default function MyJobsScreen({ navigation }) {
   }, [dispatch, isEmployer]);
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchAllData();
+    });
+    return unsubscribe;
+  }, [navigation, fetchAllData]);
 
   useEffect(() => {
     setLocalJobs(jobsToShow);

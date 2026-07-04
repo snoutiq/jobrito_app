@@ -344,6 +344,24 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Pressable>
 
+        {/* Item: Settings */}
+        <Pressable
+          style={styles.menuItem}
+          onPress={() => Alert.alert(t("upcoming", "Upcoming"), t("settingsUpcomingMsg", "Settings feature is coming soon!"))}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="settings-outline" size={18} color="#64748B" />
+            </View>
+            <View style={styles.menuTextGroup}>
+              <Text style={styles.menuItemLabel}>{t("profile.menu.settings", "Settings")}</Text>
+            </View>
+          </View>
+          <View style={styles.menuItemRight}>
+            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          </View>
+        </Pressable>
+
         {/* Item: Logout */}
         <Pressable
           style={[styles.menuItem, { borderBottomWidth: 0 }]}
