@@ -5,11 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
-import { fetchProfile, resetUser } from "../../redux/slices/userSlice";
+import { fetchProfile, resetUser, updateProfile } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { fetchSavedJobs, fetchMyJobs } from "../../redux/slices/jobSlice";
 import { fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 import { clearAuthStorage } from "../../services/storage";
+import * as ImagePicker from "expo-image-picker";
 
 export default function ProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -47,6 +48,92 @@ export default function ProfileScreen({ navigation }) {
     }
   }, [dispatch, profile]);
 
+  const handleAvatarPress = () => {
+    Alert.alert(
+      t("profile.uploadPhoto", "Upload Photo"),
+      t("profile.chooseSource", "Choose an option to upload your photo"),
+      [
+        {
+          text: t("profile.camera", "Camera"),
+          onPress: handleTakePhoto,
+        },
+        {
+          text: t("profile.library", "Gallery"),
+          onPress: handlePickImage,
+        },
+        {
+          text: t("cancel"),
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("permissionDenied", "Permission Denied"),
+          t("mediaLibraryPermissionRequired", "Sorry, we need camera roll permissions to upload a photo.")
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        uploadSelectedPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to select photo.");
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("permissionDenied", "Permission Denied"),
+          t("cameraPermissionRequired", "Sorry, we need camera permissions to take a photo.")
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        uploadSelectedPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open camera.");
+    }
+  };
+
+  const uploadSelectedPhoto = async (uri) => {
+    const payload = {
+      ...profile,
+      profile_photo_path: uri,
+    };
+    try {
+      await dispatch(updateProfile(payload)).unwrap();
+      dispatch(fetchProfile());
+      Alert.alert("Success", "Profile photo updated successfully!");
+    } catch (error) {
+      Alert.alert("Error", error?.message || "Failed to update profile photo.");
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { logout: logoutApi } = require("../../services/authApi");
@@ -80,7 +167,7 @@ export default function ProfileScreen({ navigation }) {
     >
       {/* Top Header */}
       <View style={styles.headerSection}>
-        <View style={styles.avatarContainer}>
+        <Pressable onPress={handleAvatarPress} style={styles.avatarContainer}>
           <View style={styles.avatarCircle}>
             {profile?.profile_photo_path ? (
               <Image
@@ -96,7 +183,7 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.cameraBadge}>
             <Ionicons name="camera" size={14} color="#FFFFFF" />
           </View>
-        </View>
+        </Pressable>
 
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{displayName}</Text>

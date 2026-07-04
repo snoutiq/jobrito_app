@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import apiClient from "./apiClient";
 
 export const updateLanguagePreference = async (language) => {
@@ -97,24 +98,38 @@ export const updateProfile = async (data) => {
       typeof profilePhotoPath === "string" &&
       (profilePhotoPath.startsWith("http://") || profilePhotoPath.startsWith("https://"));
 
-    const payload = {
-      full_name: pickValue(data, ["full_name", "fullName", "name"]),
-      email: pickValue(data, ["email"]),
-      city: pickValue(data, ["city"]),
-      experience_range: pickValue(data, ["experience_range", "experienceRange"]),
-      preferred_role: pickValue(data, ["preferred_role", "preferredRole"]),
-      current_employer: pickValue(data, ["current_employer", "currentEmployer"]),
-      skills: pickValue(data, ["skills"]),
-      gender: pickValue(data, ["gender"]),
-      job_type: pickValue(data, ["job_type", "jobType"]),
-      location_preference: pickValue(data, ["location_preference", "locationPreference"]),
-    };
+    const formData = new FormData();
+    formData.append("full_name", pickValue(data, ["full_name", "fullName", "name"]));
+    formData.append("email", pickValue(data, ["email"]));
+    formData.append("city", pickValue(data, ["city"]));
+    formData.append("experience_range", pickValue(data, ["experience_range", "experienceRange"]));
+    formData.append("preferred_role", pickValue(data, ["preferred_role", "preferredRole"]));
+    formData.append("current_employer", pickValue(data, ["current_employer", "currentEmployer"]));
+    formData.append("skills", pickValue(data, ["skills"]));
+    formData.append("gender", pickValue(data, ["gender"]));
+    formData.append("job_type", pickValue(data, ["job_type", "jobType"]));
+    formData.append("location_preference", pickValue(data, ["location_preference", "locationPreference"]));
 
-    if (isValidRemotePhoto) {
-      payload.profile_photo_path = profilePhotoPath;
+    if (profilePhotoPath) {
+      if (isValidRemotePhoto) {
+        formData.append("profile_photo_path", profilePhotoPath);
+      } else {
+        const uriParts = profilePhotoPath.split("/");
+        const fileName = uriParts[uriParts.length - 1];
+        const fileType = fileName.split(".").pop();
+        formData.append("profile_photo", {
+          uri: Platform.OS === "android" ? profilePhotoPath : profilePhotoPath.replace("file://", ""),
+          name: fileName,
+          type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
+        });
+      }
     }
 
-    const response = await apiClient.post("/profile/personal", payload);
+    const response = await apiClient.post("/profile/personal", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     const u = response.data?.user || response.data?.profile;
     if (u) {
       const profile = normalizeProfile(u);
