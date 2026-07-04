@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
+  Pressable,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -185,9 +187,7 @@ export default function CompleteProfileScreen({ navigation }) {
 
             <Text style={styles.title}>{t("completeProfileTitle")}</Text>
 
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.skip}>{t("skip")}</Text>
-            </TouchableOpacity>
+            <View style={{ width: 24 }} />
           </View>
 
           <View style={styles.progressRow}>
@@ -339,16 +339,29 @@ function PhotoStep({ next, t, photo, setPhoto }) {
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleUploadPhoto}>
-        <Text style={styles.buttonText}>{t("uploadPhoto")}</Text>
-      </TouchableOpacity>
+      <View style={styles.photoButtonsRow}>
+        <TouchableOpacity style={[styles.button, styles.rowButton, styles.uploadButton]} onPress={handleUploadPhoto}>
+          <Text style={[styles.buttonText, styles.uploadButtonText]}>{t("uploadPhoto")}</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-        <Text style={styles.buttonText}>{t("takePhoto")}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.rowButton, styles.takePhotoButton]} onPress={handleTakePhoto}>
+          <Text style={[styles.buttonText, styles.takePhotoButtonText]}>{t("takePhoto")}</Text>
+        </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity onPress={next}>
-        <Text style={styles.later}>{photo ? t("continue", "Continue") : t("maybeLater")}</Text>
+      <TouchableOpacity 
+        style={[
+          styles.actionHighlightBtn, 
+          photo ? styles.actionContinueBtn : styles.actionLaterBtn
+        ]} 
+        onPress={next}
+      >
+        <Text style={[
+          styles.actionHighlightText, 
+          photo ? styles.actionContinueText : styles.actionLaterText
+        ]}>
+          {photo ? t("continue", "Continue") : t("maybeLater", "Maybe Later")}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -442,7 +455,7 @@ function ExperienceStep({
   jobType,
   setJobType,
 }) {
-  const ranges = ["0-2 Years", "3-5 Years", "5+ Years"];
+  const ranges = ["0-2 Years", "3-5 Years", "5-10 Years", "10 to 25 Years", "25 Years and above"];
   const jobTypes = ["Full Time", "Part time", "Contract", "Freelance"];
   const [showPicker, setShowPicker] = useState(false);
 
@@ -520,49 +533,159 @@ function ExperienceStep({
   );
 }
 
+const statesOfIndia = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Delhi", "Mumbai", "Bengaluru", "Kochi"
+];
+
+const overseasRegions = [
+  "Dubai, UAE", "Abu Dhabi, UAE", "Riyadh, Saudi Arabia", "Jeddah, Saudi Arabia",
+  "Doha, Qatar", "Muscat, Oman", "Kuwait City, Kuwait", "Manama, Bahrain",
+  "Singapore", "London, UK", "Manchester, UK", "New York, USA", "California, USA",
+  "Sydney, Australia", "Melbourne, Australia", "Toronto, Canada", "Vancouver, Canada"
+];
+
 function LocationStep({ next, t, locationPreference, setLocationPreference, city, setCity }) {
-  const prefs = ["India", "Overseas", "Both"];
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState("state"); // "state" or "region"
+  const [searchText, setSearchText] = useState("");
+
+  const handleSelectPref = (pref) => {
+    setLocationPreference(pref);
+    if (pref === "Both") {
+      setCity("Both (Global & Domestic)");
+    } else {
+      setCity("");
+    }
+  };
+
+  const openSearchModal = (type) => {
+    setModalType(type);
+    setSearchText("");
+    setModalVisible(true);
+  };
+
+  const handleSelectItem = (item) => {
+    setCity(item);
+    setModalVisible(false);
+  };
+
+  const listItems = modalType === "state" ? statesOfIndia : overseasRegions;
+  const filteredItems = listItems.filter(item =>
+    item.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
     <View style={styles.content}>
       <Text style={styles.heading}>
         {t("completeProfile.location.heading")}
       </Text>
+      <Text style={styles.subHeadingText}>
+        Tell us your preference to match you with the right hospitality opportunities.
+      </Text>
 
-      <View style={{ gap: 8, marginBottom: 20 }}>
-        {prefs.map((pref) => {
-          const isSelected = locationPreference === pref;
-          return (
-            <TouchableOpacity
-              key={pref}
-              style={[styles.option, isSelected && styles.optionSelected]}
-              onPress={() => setLocationPreference(pref)}
+      <View style={styles.locationContainer}>
+        {/* Option 1: India */}
+        <Pressable
+          style={[styles.locationCard, locationPreference === "India" && styles.locationCardSelected]}
+          onPress={() => handleSelectPref("India")}
+        >
+          <View style={styles.locationRow}>
+            <View style={styles.locationLeft}>
+              <View style={styles.locationIconBox}>
+                <Ionicons name="location-sharp" size={22} color="#475569" />
+              </View>
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationTitle}>India</Text>
+                <Text style={styles.locationDesc}>Domestic hospitality roles</Text>
+              </View>
+            </View>
+            <View style={[styles.radioWrapper, locationPreference === "India" && styles.radioWrapperActive]}>
+              <View style={[styles.radioDot, locationPreference === "India" && styles.radioDotActive]} />
+            </View>
+          </View>
+
+          {locationPreference === "India" && (
+            <Pressable
+              style={styles.locationDropdownTrigger}
+              onPress={() => openSearchModal("state")}
             >
-              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{pref}</Text>
-              <Ionicons
-                name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                size={22}
-                color={isSelected ? PRIMARY : "#999"}
-              />
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+              <Text style={styles.locationDropdownText}>
+                {city && locationPreference === "India" ? city : "Select State"}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color="#64748B" />
+            </Pressable>
+          )}
+        </Pressable>
 
-      <Text style={styles.label}>City / Location</Text>
-      <TextInput
-        placeholder="e.g. London, UK or Mumbai, India"
-        placeholderTextColor="#94A3B8"
-        value={city}
-        onChangeText={setCity}
-        style={styles.input}
-      />
+        <View style={styles.locationDivider} />
+
+        {/* Option 2: Overseas */}
+        <Pressable
+          style={[styles.locationCard, locationPreference === "Overseas" && styles.locationCardSelected]}
+          onPress={() => handleSelectPref("Overseas")}
+        >
+          <View style={styles.locationRow}>
+            <View style={styles.locationLeft}>
+              <View style={styles.locationIconBox}>
+                <Ionicons name="earth-sharp" size={22} color="#475569" />
+              </View>
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationTitle}>Overseas</Text>
+                <Text style={styles.locationDesc}>International hospitality roles</Text>
+              </View>
+            </View>
+            <View style={[styles.radioWrapper, locationPreference === "Overseas" && styles.radioWrapperActive]}>
+              <View style={[styles.radioDot, locationPreference === "Overseas" && styles.radioDotActive]} />
+            </View>
+          </View>
+
+          {locationPreference === "Overseas" && (
+            <Pressable
+              style={styles.locationDropdownTrigger}
+              onPress={() => openSearchModal("region")}
+            >
+              <Text style={styles.locationDropdownText}>
+                {city && locationPreference === "Overseas" ? city : "Select Region"}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color="#64748B" />
+            </Pressable>
+          )}
+        </Pressable>
+
+        <View style={styles.locationDivider} />
+
+        {/* Option 3: Both */}
+        <Pressable
+          style={[styles.locationCard, locationPreference === "Both" && styles.locationCardSelected]}
+          onPress={() => handleSelectPref("Both")}
+        >
+          <View style={styles.locationRow}>
+            <View style={styles.locationLeft}>
+              <View style={styles.locationIconBox}>
+                <Ionicons name="compass-sharp" size={22} color="#475569" />
+              </View>
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationTitle}>Both</Text>
+                <Text style={styles.locationDesc}>Explore global & domestic roles</Text>
+              </View>
+            </View>
+            <View style={[styles.radioWrapper, locationPreference === "Both" && styles.radioWrapperActive]}>
+              <View style={[styles.radioDot, locationPreference === "Both" && styles.radioDotActive]} />
+            </View>
+          </View>
+        </Pressable>
+      </View>
 
       <TouchableOpacity
         style={[styles.button, !city && styles.buttonDisabled]}
         onPress={() => {
           if (!city) {
-            Alert.alert("Required Field", "Please enter your city/current location.");
+            Alert.alert("Required Field", "Please select your work location preference.");
             return;
           }
           next();
@@ -570,6 +693,58 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
       >
         <Text style={styles.buttonText}>{t("continue")}</Text>
       </TouchableOpacity>
+
+      {/* Search Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {modalType === "state" ? "Select State" : "Select Region"}
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Search Input */}
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <TextInput
+                placeholder="Search location..."
+                placeholderTextColor="#94A3B8"
+                value={searchText}
+                onChangeText={setSearchText}
+                style={styles.searchInputField}
+              />
+            </View>
+
+            {/* Items List */}
+            <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled">
+              {filteredItems.map((item, idx) => (
+                <TouchableOpacity
+                  key={`${item}-${idx}`}
+                  style={[styles.modalItem, city === item && styles.modalItemActive]}
+                  onPress={() => handleSelectItem(item)}
+                >
+                  <Text style={[styles.modalItemText, city === item && styles.modalItemTextActive]}>
+                    {item}
+                  </Text>
+                  {city === item && <Ionicons name="checkmark" size={18} color="#22C55E" />}
+                </TouchableOpacity>
+              ))}
+              {filteredItems.length === 0 && (
+                <Text style={styles.noResultsText}>No matching locations found.</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -911,5 +1086,224 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 18,
+  },
+  photoButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 25,
+    width: "100%",
+  },
+  rowButton: {
+    flex: 1,
+    marginTop: 0,
+  },
+  actionHighlightBtn: {
+    height: 56,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    width: "100%",
+  },
+  actionContinueBtn: {
+    backgroundColor: PRIMARY,
+  },
+  actionLaterBtn: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+  },
+  actionHighlightText: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  actionContinueText: {
+    color: "#FFFFFF",
+  },
+  actionLaterText: {
+    color: "#64748B",
+  },
+  uploadButton: {
+    backgroundColor: "#EEF2FF",
+    borderWidth: 1.5,
+    borderColor: "#C7D2FE",
+  },
+  uploadButtonText: {
+    color: "#4F46E5",
+  },
+  takePhotoButton: {
+    backgroundColor: "#F5F3FF",
+    borderWidth: 1.5,
+    borderColor: "#DDD6FE",
+  },
+  takePhotoButtonText: {
+    color: "#7C3AED",
+  },
+  subHeadingText: {
+    fontSize: 14,
+    color: "#64748B",
+    marginTop: 4,
+    marginBottom: 24,
+  },
+  locationContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 8,
+    marginBottom: 25,
+  },
+  locationCard: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  locationCardSelected: {
+    backgroundColor: "#F8FAFC",
+  },
+  locationRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  locationLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  locationIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  locationInfo: {
+    gap: 2,
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  locationDesc: {
+    fontSize: 13,
+    color: "#64748B",
+  },
+  radioWrapper: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioWrapperActive: {
+    borderColor: "#22C55E",
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "transparent",
+  },
+  radioDotActive: {
+    backgroundColor: "#22C55E",
+  },
+  locationDropdownTrigger: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+    marginLeft: 52,
+    backgroundColor: "#FFFFFF",
+  },
+  locationDropdownText: {
+    fontSize: 14,
+    color: "#1E293B",
+    fontWeight: "600",
+  },
+  locationDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "80%",
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    marginBottom: 15,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInputField: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1E293B",
+    paddingVertical: 8,
+  },
+  modalList: {
+    marginBottom: 10,
+  },
+  modalItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  modalItemActive: {
+    backgroundColor: "#F0FDF4",
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: "#334155",
+  },
+  modalItemTextActive: {
+    color: "#16A34A",
+    fontWeight: "600",
+  },
+  noResultsText: {
+    textAlign: "center",
+    color: "#64748B",
+    marginTop: 20,
+    fontSize: 14,
   },
 });
