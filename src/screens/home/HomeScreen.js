@@ -394,6 +394,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 0,
     paddingTop: 0,
+    gap: 0,
     flex: 1,
   },
   brandWrap: {
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
   },
   feedScroll: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 8,
     paddingBottom: 85,
   },
   separatorContainer: {
