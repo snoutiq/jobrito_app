@@ -62,7 +62,17 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
   const [showRelationDropdown, setShowRelationDropdown] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  const segments = ["Hospitality & Leisure", "Food & Beverage", "Cafe & QSR", "Retail", "Other"];
+  const segments = [
+    "Restaurant",
+    "Cafe",
+    "QSR",
+    "Cloud Kitchen",
+    "Catering",
+    "Bakery",
+    "Hotel",
+    "Food Production",
+    "Hospitality Consultancy",
+  ];
   const languages = ["English (UK)", "English (US)", "Hindi", "Arabic"];
   const relationships = ["Owner", "Manager", "HR Recruiter", "Operations Partner", "Other"];
 
@@ -471,6 +481,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={businessName}
                     onChangeText={setBusinessName}
                     placeholder="e.g. The Green Kitchen"
+                    placeholder="Enter business name"
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessName")}
@@ -492,7 +503,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                   ]}
                 >
                   <Text style={[styles.textInput, !industrySegment && { color: "#94A3B8" }]}>
-                    {industrySegment || "Select a segment"}
+                    {industrySegment || "Select an industry segment"}
                   </Text>
                   <Ionicons name={showSegmentDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
                 </TouchableOpacity>
@@ -529,6 +540,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={businessLocation}
                     onChangeText={setBusinessLocation}
                     placeholder="Search city or street"
+                    placeholder="Enter business location"
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessLocation")}
@@ -634,6 +646,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={contactPhone}
                     onChangeText={setContactPhone}
                     placeholder="+971 00 000 0000"
+                    placeholder="Enter business mobile number"
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
                     style={styles.textInput}
@@ -655,6 +668,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={contactEmail}
                     onChangeText={setContactEmail}
                     placeholder="example@business.com"
+                    placeholder="Enter business email address"
                     placeholderTextColor="#94A3B8"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -860,6 +874,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={managerName}
                     onChangeText={setManagerName}
                     placeholder="Full Name"
+                    placeholder="Enter full name"
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("managerName")}
@@ -917,6 +932,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                     value={managerPhone}
                     onChangeText={setManagerPhone}
                     placeholder="Mobile Number"
+                    placeholder="Enter mobile number"
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
                     style={[styles.textInput, { paddingLeft: 10 }]}
