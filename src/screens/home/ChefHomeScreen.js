@@ -27,6 +27,7 @@ export default function ChefHomeScreen({ navigation }) {
 
   const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [highlightedJobId, setHighlightedJobId] = useState(null);
 
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
@@ -136,17 +137,17 @@ export default function ChefHomeScreen({ navigation }) {
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#15803D" style={styles.pinIcon} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
-          {filters.map((f) => {
-            const isSelected = activeFilter === f.value;
+          {(feedJobs || []).filter(job => job.is_pinned).map((job, index) => {
+            const isSelected = highlightedJobId === job.id;
             return (
               <TouchableOpacity
-                key={f.value}
+                key={job.id}
                 style={[styles.filterPill, isSelected && styles.filterPillSelected]}
-                onPress={() => setActiveFilter(f.value)}
+                onPress={() => setHighlightedJobId((prev) => (prev === job.id ? null : job.id))}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterPillText, isSelected && styles.filterPillTextSelected]}>
-                  {f.label}
+                  {index + 1}
                 </Text>
               </TouchableOpacity>
             );
@@ -171,12 +172,13 @@ export default function ChefHomeScreen({ navigation }) {
           const isApplying = applyingJobId === job.id;
           const isCopied = copiedJobId === job.id;
           const isPinned = job.is_pinned || false;
+          const isHighlighted = highlightedJobId === job.id;
 
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
           return (
-            <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard]}>
+            <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard, isHighlighted && styles.highlightedCard]}>
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
@@ -475,6 +477,15 @@ const styles = StyleSheet.create({
   pinnedCard: {
     borderLeftWidth: 4,
     borderLeftColor: "#EF4444",
+  },
+  highlightedCard: {
+    borderColor: "#16A34A",
+    borderWidth: 2,
+    backgroundColor: "#F0FDF4",
+    shadowColor: "#16A34A",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   pinnedIndicator: {
     flexDirection: "row",

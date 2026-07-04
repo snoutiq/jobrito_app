@@ -250,23 +250,6 @@ export default function ChefProfileScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Active Project Requests Full Row */}
-        <TouchableOpacity
-          style={styles.fullWidthCardRow}
-          activeOpacity={0.7}
-          onPress={() => CustomAlert.show("Active Projects", `You have ${stats.active_project_requests} active project requests.`)}
-        >
-          <View style={styles.fullWidthCardLeft}>
-            <View style={[styles.analyticsIconBox, { marginRight: 12 }]}>
-              <Ionicons name="document-text-outline" size={18} color="#15803D" />
-            </View>
-            <Text style={styles.fullWidthCardText}>
-              <Text style={{ fontWeight: "800" }}>{stats.active_project_requests}</Text> {t("chefDashboard.activeProjectReq")}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#64748B" />
-        </TouchableOpacity>
-
         {/* My Activity */}
         <Text style={styles.sectionTitle}>{t("chefDashboard.myActivity")}</Text>
         <View style={styles.menuGroup}>
