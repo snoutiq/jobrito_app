@@ -1,15 +1,26 @@
 import React, { useState } from "react";
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  TextInput,
+  ScrollView,
+  TouchableOpacity
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import PhoneInput from "../../components/inputs/PhoneInput";
-import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 import { requestOtp } from "../../redux/slices/authSlice";
-import { ROLES } from "../../constants/roles";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
+
+const PRIMARY_GREEN = "#22C55E";
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -17,22 +28,27 @@ export default function LoginScreen({ navigation }) {
   const { loading } = useSelector((state) => state.auth);
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
+  const [countryFlag, setCountryFlag] = useState("🇮🇳");
   const [showCountryModal, setShowCountryModal] = useState(false);
- const role = useSelector((state) => state.user.activeRole);
- 
+  const [searchQuery, setSearchQuery] = useState("");
+  const role = useSelector((state) => state.user.activeRole);
+
   const countries = [
-    { label: "login.india", code: "+91" },
-    { label: "login.us", code: "+1" },
-    { label: "login.uk", code: "+44" },
-    { label: "login.unitedarabemirates", code: "+971" },
+    { name: "India", code: "+91", flag: "🇮🇳" },
+    { name: "United States", code: "+1", flag: "🇺🇸" },
+    { name: "United Kingdom", code: "+44", flag: "🇬🇧" },
+    { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" },
+    { name: "Saudi Arabia", code: "+966", flag: "🇸🇦" },
+    { name: "Canada", code: "+1", flag: "🇨🇦" },
+    { name: "Australia", code: "+61", flag: "🇦🇺" },
+    { name: "Singapore", code: "+65", flag: "🇸🇬" }
   ];
 
   const handleRequestOtp = async () => {
     if (!phone.trim()) {
-      Alert.alert(t("login.phoneRequiredTitle"), t("login.phoneRequiredMessage"));
+      Alert.alert(t("login.phoneRequiredTitle", "Phone Required"), t("login.phoneRequiredMessage", "Please enter your mobile number."));
       return;
     }
-   
 
     const result = await dispatch(
       requestOtp({
@@ -77,46 +93,67 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  const filteredCountries = countries.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.code.includes(searchQuery)
+  );
+
   return (
     <ScreenWrapper
-      style={{ backgroundColor: colors.background }}
+      style={{ backgroundColor: "#FFFFFF" }}
       contentStyle={styles.content}
     >
       <View style={styles.hero}>
         <View style={styles.iconWrap}>
-          <Ionicons name="briefcase" size={30} color="#fff" />
+          <Ionicons name="people" size={38} color="#FFFFFF" />
         </View>
-        <Text style={styles.title}>{t("login.title")}</Text>
-        <Text style={styles.subtitle}>{t("login.subtitle")}</Text>
+        <Text style={styles.title}>Jobrito</Text>
+        <Text style={styles.subtitle}>Empowering the Hospitality Community</Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>{t("login.phoneLabel")}</Text>
+      <View style={styles.inputSection}>
+        <Text style={styles.label}>Mobile Number</Text>
         <PhoneInput
           value={phone}
           onChangeText={(text) => {
             if (text.length <= 10) setPhone(text);
           }}
           prefix={countryCode}
-          onPrefixPress={() => setShowCountryModal(true)}
+          flag={countryFlag}
+          onPrefixPress={() => {
+            setSearchQuery("");
+            setShowCountryModal(true);
+          }}
         />
-        <AppButton
-          title={t("login.sendOtpButton")}
+        
+        <TouchableOpacity
           onPress={handleRequestOtp}
-          loading={loading}
-        />
+          disabled={loading}
+          style={[styles.sendOtpButton, loading && { opacity: 0.7 }]}
+          activeOpacity={0.8}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={styles.sendOtpButtonText}>Send OTP</Text>
+              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.terms}>
-        {t("login.termsPrefix")}{" "}
-        <Text style={styles.termsLink}>{t("login.termsOfService")}</Text> {t("login.termsAnd")}{" "}
-        <Text style={styles.termsLink}>{t("login.privacyPolicy")}</Text>
+        {t("login.termsPrefix", "By continuing, you agree to our")}{" "}
+        <Text style={styles.termsLink}>{t("login.termsOfService", "Terms of Service")}</Text>{" "}
+        {t("login.termsSuffix", "and")}{" "}
+        <Text style={styles.termsLink}>{t("login.privacyPolicy", "Privacy Policy")}</Text>.
       </Text>
 
       <Modal
         visible={showCountryModal}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setShowCountryModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -125,15 +162,34 @@ export default function LoginScreen({ navigation }) {
             onPress={() => setShowCountryModal(false)}
           />
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{t("login.modalTitle")}</Text>
-            <View style={styles.countryList}>
-              {countries.map((item) => {
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Country</Text>
+              <TouchableOpacity onPress={() => setShowCountryModal(false)}>
+                <Ionicons name="close-circle" size={26} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Search Box */}
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <TextInput
+                placeholder="Search country..."
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={styles.searchInputField}
+              />
+            </View>
+
+            <ScrollView style={styles.countryList} keyboardShouldPersistTaps="handled">
+              {filteredCountries.map((item) => {
                 const active = countryCode === item.code;
                 return (
                   <Pressable
-                    key={item.code}
+                    key={`${item.name}-${item.code}`}
                     onPress={() => {
                       setCountryCode(item.code);
+                      setCountryFlag(item.flag);
                       setShowCountryModal(false);
                     }}
                     style={[
@@ -141,34 +197,35 @@ export default function LoginScreen({ navigation }) {
                       active && styles.countryRowActive,
                     ]}
                   >
-                    <View>
+                    <View style={styles.countryRowLeft}>
+                      <Text style={styles.countryFlagText}>{item.flag}</Text>
                       <Text
                         style={[
                           styles.countryLabel,
                           active && styles.countryLabelActive,
                         ]}
                       >
-                        {t(item.label)}
+                        {item.name}
                       </Text>
-                      <Text style={styles.countryCode}>{item.code}</Text>
                     </View>
-                    {active ? (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color={colors.primary}
-                      />
-                    ) : null}
+                    <View style={styles.countryRowRight}>
+                      <Text style={styles.countryCodeText}>{item.code}</Text>
+                      {active && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color={PRIMARY_GREEN}
+                          style={{ marginLeft: 8 }}
+                        />
+                      )}
+                    </View>
                   </Pressable>
                 );
               })}
-            </View>
-            <Pressable
-              onPress={() => setShowCountryModal(false)}
-              style={styles.modalCloseButton}
-            >
-              <Text style={styles.modalCloseText}>{t("cancel")}</Text>
-            </Pressable>
+              {filteredCountries.length === 0 && (
+                <Text style={styles.noResultsText}>No matching countries found.</Text>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -178,125 +235,159 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    gap: 16,
+    padding: 24,
+    justifyContent: "center",
+    flexGrow: 1,
+    gap: 24,
   },
   hero: {
     alignItems: "center",
-    gap: 10,
-    paddingTop: 12,
+    gap: 8,
+    marginBottom: 10,
   },
   iconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#EAF2FF",
-    borderWidth: 1,
-    borderColor: "#C7D8FF",
+    width: 80,
+    height: 80,
+    borderRadius: 22,
+    backgroundColor: PRIMARY_GREEN,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
   },
   title: {
-    color: colors.text,
-    fontSize: 22,
-    lineHeight: 28,
+    color: "#0F7A37",
+    fontSize: 26,
     fontWeight: "900",
     textAlign: "center",
   },
   subtitle: {
-    color: colors.mutedText,
-    fontSize: 13,
-    lineHeight: 18,
+    color: "#64748B",
+    fontSize: 14,
     textAlign: "center",
-    maxWidth: 260,
   },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 14,
+  inputSection: {
     gap: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
   },
   label: {
-    color: colors.text,
-    fontSize: 12,
+    color: "#334155",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  sendOtpButton: {
+    backgroundColor: PRIMARY_GREEN,
+    height: 56,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  sendOtpButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "700",
   },
   terms: {
-    color: colors.mutedText,
+    color: "#64748B",
     fontSize: 12,
     lineHeight: 18,
     textAlign: "center",
-    paddingHorizontal: 10,
-    paddingTop: 4,
+    paddingHorizontal: 12,
+    marginTop: 8,
   },
   termsLink: {
-    color: colors.primary,
+    color: PRIMARY_GREEN,
     fontWeight: "700",
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.45)",
-    justifyContent: "center",
-    padding: 24,
+    justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "80%",
+    padding: 20,
     gap: 12,
   },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
   modalTitle: {
-    color: colors.text,
-    fontSize: 16,
+    color: "#1E293B",
+    fontSize: 18,
     fontWeight: "900",
-    textAlign: "center",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    marginBottom: 8,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInputField: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1E293B",
+    paddingVertical: 8,
   },
   countryList: {
-    gap: 8,
+    marginBottom: 10,
   },
   countryRow: {
-    minHeight: 48,
-    borderRadius: 14,
+    minHeight: 52,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "#E2E8F0",
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    marginVertical: 4,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   countryRowActive: {
-    borderColor: colors.primary,
-    backgroundColor: "#EEF4FF",
+    borderColor: PRIMARY_GREEN,
+    backgroundColor: "#F0FDF4",
+  },
+  countryRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  countryFlagText: {
+    fontSize: 22,
   },
   countryLabel: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  countryLabelActive: {
-    color: colors.primaryDark,
-  },
-  countryCode: {
-    color: colors.mutedText,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  modalCloseButton: {
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalCloseText: {
-    color: colors.mutedText,
+    color: "#334155",
     fontSize: 14,
     fontWeight: "700",
+  },
+  countryLabelActive: {
+    color: "#15803D",
+  },
+  countryRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  countryCodeText: {
+    color: "#64748B",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  noResultsText: {
+    textAlign: "center",
+    color: "#64748B",
+    marginTop: 20,
+    fontSize: 14,
   },
 });
