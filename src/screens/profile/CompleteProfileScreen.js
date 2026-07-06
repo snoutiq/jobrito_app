@@ -99,6 +99,10 @@ export default function CompleteProfileScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, step, t]);
 
+  const handleSkip = () => {
+    navigation.goBack();
+  };
+
   const next = () => {
     if (step < 6) setStep(step + 1);
   };
@@ -174,7 +178,30 @@ export default function CompleteProfileScreen({ navigation }) {
     });
   };
 
-  const progress = step === 6 ? 100 : ((step - 1) / 5) * 100;
+  // Determine progress text matching the design screenshot
+  let progressPercentage = 0;
+  let progressText = "";
+  if (step === 1) {
+    progressPercentage = 0;
+    progressText = "0% Complete (0 of 5 Answered)";
+  } else if (step === 2) {
+    progressPercentage = 20;
+    progressText = "20% Complete (1 of 5 Answered)";
+  } else if (step === 3) {
+    progressPercentage = 40;
+    progressText = "40% Complete (2 of 5 Answered)";
+  } else if (step === 4) {
+    progressPercentage = 60;
+    progressText = "60% Complete (3 of 5 Answered)";
+  } else if (step === 5) {
+    if (preferredRole) {
+      progressPercentage = 100;
+      progressText = "100% Complete (5 of 5 Answered)";
+    } else {
+      progressPercentage = 80;
+      progressText = "80% Complete (4 of 5 Answered)";
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -185,21 +212,21 @@ export default function CompleteProfileScreen({ navigation }) {
               <Ionicons name="arrow-back" size={24} color="#15803D" />
             </TouchableOpacity>
 
-            <Text style={styles.title}>{t("completeProfileTitle")}</Text>
+            <Text style={styles.title}>Question {step} of 5</Text>
 
-            <View style={{ width: 24 }} />
+            <TouchableOpacity onPress={handleSkip}>
+              <Text style={styles.skip}>Skip</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.progressRow}>
-            <Text style={styles.stepText}>{t("step", { current: step, total: 5 })}</Text>
-            <Text style={styles.complete}>
-              {Math.round(progress)}% Complete
-            </Text>
+            <Text style={styles.stepText}>Profile Completion</Text>
+            <Text style={styles.complete}>{progressText}</Text>
           </View>
 
           <View style={styles.progressBar}>
             <View
-              style={[styles.progressFill, { width: `${progress}%` }]}
+              style={[styles.progressFill, { width: `${progressPercentage}%` }]}
             />
           </View>
         </>
@@ -251,6 +278,7 @@ export default function CompleteProfileScreen({ navigation }) {
         {step === 5 && (
           <CategoryStep
             onSubmit={handleSubmit}
+            onSkip={handleSkip}
             t={t}
             preferredRole={preferredRole}
             setPreferredRole={setPreferredRole}
@@ -455,8 +483,16 @@ function ExperienceStep({
   jobType,
   setJobType,
 }) {
-  const ranges = ["0-2 Years", "3-5 Years", "5-10 Years", "10 to 25 Years", "25 Years and above"];
-  const jobTypes = ["Full Time", "Part time", "Contract", "Freelance"];
+  const ranges = ["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"];
+  const jobTypes = [
+    "Full Time",
+    "Part Time",
+    "Freelance Chef",
+    "Consultant",
+    "Project Based",
+    "Temporary Assignment",
+    "Overseas Ready"
+  ];
   const [showPicker, setShowPicker] = useState(false);
 
   return (
@@ -749,42 +785,143 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
   );
 }
 
-function CategoryStep({ onSubmit, t, preferredRole, setPreferredRole, skills, setSkills, loading }) {
-  const jobs = [
-    "Kitchen Production",
-    "Restaurant Operations",
-    "Cafe & Beverage",
-    "QSR & Fast Food",
-    "Catering & Banquet",
-  ];
+const categoryJobTitles = {
+  "Kitchen Production": [
+    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker", 
+    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker", 
+    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff", 
+    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew", 
+    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff", 
+    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff", 
+    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis", 
+    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward", 
+    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff", 
+    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook", 
+    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member", 
+    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker", 
+    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker", 
+    "Tea Maker", "Utility Worker", "Vegetable Cutter", "Wok Cook"
+  ],
+  "Restaurant Operations": [
+    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
+    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward", 
+    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker"
+  ],
+  "Café & Beverage": [
+    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker", 
+    "Juice Maker", "Smoothie Specialist", "Beverage Specialist"
+  ],
+  "QSR & Fast Food": [
+    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff", 
+    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew"
+  ],
+  "Catering & Banquet": [
+    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
+    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
+  ]
+};
+
+const categories = [
+  {
+    id: "Kitchen Production",
+    title: "Kitchen Production Job Titles - Community Members",
+    icon: "restaurant-outline"
+  },
+  {
+    id: "Restaurant Operations",
+    title: "Restaurant Operations",
+    icon: "business-outline"
+  },
+  {
+    id: "Café & Beverage",
+    title: "Café & Beverage",
+    icon: "cafe-outline"
+  },
+  {
+    id: "QSR & Fast Food",
+    title: "QSR & Fast Food",
+    icon: "tv-outline"
+  },
+  {
+    id: "Catering & Banquet",
+    title: "Catering & Banquet",
+    icon: "settings-outline"
+  }
+];
+
+function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, skills, setSkills, loading }) {
+  const [selectedCategory, setSelectedCategory] = useState("Kitchen Production");
+  const [jobTitleModalVisible, setJobTitleModalVisible] = useState(false);
+  const [jobTitleSearch, setJobTitleSearch] = useState("");
+
+  // Auto detect initial category
+  useEffect(() => {
+    const initialCat = Object.keys(categoryJobTitles).find(cat => 
+      categoryJobTitles[cat].includes(preferredRole)
+    ) || "Kitchen Production";
+    setSelectedCategory(initialCat);
+  }, []);
+
+  const jobTitlesList = categoryJobTitles[selectedCategory] || [];
+  const filteredJobTitles = jobTitlesList.filter(title => 
+    title.toLowerCase().includes(jobTitleSearch.toLowerCase())
+  );
 
   return (
     <View style={styles.content}>
       <Text style={styles.heading}>
-        {t("completeProfile.category.heading")}
+        Which position best matches your experience?
       </Text>
-
-      <View style={{ gap: 8, marginBottom: 20 }}>
-        {jobs.map((item) => {
-          const isSelected = preferredRole === item;
+      <Text style={styles.subHeadingText}>
+        Select the role that defines your expertise in the hospitality industry.
+      </Text>
+      
+      <View style={{ gap: 12, marginBottom: 20 }}>
+        {categories.map((item) => {
+          const isSelected = selectedCategory === item.id;
           return (
-            <TouchableOpacity
-              key={item}
-              style={[styles.option, isSelected && styles.optionSelected]}
-              onPress={() => setPreferredRole(item)}
-            >
-              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{item}</Text>
-              <Ionicons
-                name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                size={22}
-                color={isSelected ? PRIMARY : "#999"}
-              />
-            </TouchableOpacity>
+            <View key={item.id}>
+              <TouchableOpacity
+                style={[styles.roleCard, isSelected && styles.roleCardSelected]}
+                onPress={() => {
+                  setSelectedCategory(item.id);
+                  if (selectedCategory !== item.id) {
+                    setPreferredRole("");
+                  }
+                }}
+                activeOpacity={0.9}
+              >
+                <View style={styles.roleCardLeft}>
+                  <View style={[styles.roleIconCircle, isSelected && styles.roleIconCircleActive]}>
+                    <Ionicons name={item.icon} size={20} color={isSelected ? PRIMARY : "#0F7A37"} />
+                  </View>
+                  <Text style={styles.roleCardTitle}>{item.title}</Text>
+                </View>
+                <View style={[styles.radioOutline, isSelected && styles.radioActive]}>
+                  {isSelected && <View style={styles.radioDotInner} />}
+                </View>
+              </TouchableOpacity>
+
+              {isSelected && (
+                <Pressable
+                  style={styles.inlineDropdownTrigger}
+                  onPress={() => {
+                    setJobTitleSearch("");
+                    setJobTitleModalVisible(true);
+                  }}
+                >
+                  <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "#94A3B8" }]}>
+                    {preferredRole || "Select specific job title..."}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color="#64748B" />
+                </Pressable>
+              )}
+            </View>
           );
         })}
       </View>
 
-      <Text style={styles.label}>Additional Skills (comma separated)</Text>
+      <Text style={[styles.label, { marginTop: 14 }]}>Additional Skills (comma separated)</Text>
       <TextInput
         placeholder="e.g. Fine Dining, Chocolate tempering"
         placeholderTextColor="#94A3B8"
@@ -794,16 +931,76 @@ function CategoryStep({ onSubmit, t, preferredRole, setPreferredRole, skills, se
       />
 
       <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
+        style={[styles.button, (loading || !preferredRole) && styles.buttonDisabled]}
         onPress={onSubmit}
-        disabled={loading}
+        disabled={loading || !preferredRole}
       >
         {loading ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={styles.buttonText}>{t("saveAndContinue")}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={styles.buttonText}>{t("saveAndContinue")}</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </View>
         )}
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={onSkip} style={{ marginTop: 16 }}>
+        <Text style={styles.later}>Maybe Later</Text>
+      </TouchableOpacity>
+
+      {/* Specific Job Title Search Modal */}
+      <Modal
+        visible={jobTitleModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setJobTitleModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select {selectedCategory} Title</Text>
+              <TouchableOpacity onPress={() => setJobTitleModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Search Input */}
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <TextInput
+                placeholder="Search job titles..."
+                placeholderTextColor="#94A3B8"
+                value={jobTitleSearch}
+                onChangeText={setJobTitleSearch}
+                style={styles.searchInputField}
+              />
+            </View>
+
+            {/* Items List */}
+            <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled">
+              {filteredJobTitles.map((item, idx) => (
+                <TouchableOpacity
+                  key={`${item}-${idx}`}
+                  style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
+                  onPress={() => {
+                    setPreferredRole(item);
+                    setJobTitleModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
+                    {item}
+                  </Text>
+                  {preferredRole === item && <Ionicons name="checkmark" size={18} color="#22C55E" />}
+                </TouchableOpacity>
+              ))}
+              {filteredJobTitles.length === 0 && (
+                <Text style={styles.noResultsText}>No matching job titles found.</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1305,5 +1502,159 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 20,
     fontSize: 14,
+  },
+  roleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+  },
+  roleCardSelected: {
+    borderColor: "#22C55E",
+  },
+  roleCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+    paddingRight: 8,
+  },
+  roleIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8F5E9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roleIconCircleActive: {
+    backgroundColor: "#DCFCE7",
+  },
+  roleCardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1E293B",
+    flex: 1,
+  },
+  radioOutline: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioActive: {
+    borderColor: "#22C55E",
+  },
+  radioDotInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#22C55E",
+  },
+  inlineDropdownTrigger: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+    marginTop: 8,
+    marginBottom: 12,
+    marginLeft: 52,
+    backgroundColor: "#F8FAFC",
+  },
+  inlineDropdownTriggerText: {
+    fontSize: 14,
+    color: "#1E293B",
+    fontWeight: "600",
+  },
+  categoryChipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 16,
+  },
+  categoryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+  },
+  categoryChipActive: {
+    borderColor: PRIMARY,
+    backgroundColor: "#F0FDF4",
+  },
+  categoryChipText: {
+    fontSize: 13,
+    color: "#475569",
+    fontWeight: "600",
+  },
+  categoryChipTextActive: {
+    color: PRIMARY,
+    fontWeight: "700",
+  },
+  dropdownTrigger: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 52,
+    marginTop: 8,
+    marginBottom: 20,
+    backgroundColor: "#FFFFFF",
+  },
+  dropdownTriggerText: {
+    fontSize: 15,
+    color: "#1E293B",
+    fontWeight: "600",
+  },
+  filterSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  tagChipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 12,
+  },
+  tagChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+  },
+  tagChipActive: {
+    borderColor: PRIMARY,
+    backgroundColor: "#F0FDF4",
+  },
+  tagChipText: {
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "500",
+  },
+  tagChipTextActive: {
+    color: PRIMARY,
+    fontWeight: "600",
   },
 });

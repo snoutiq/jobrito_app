@@ -34,12 +34,62 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
   // Accordion toggle states
   const [expandedSection, setExpandedSection] = useState("employment");
 
-  const employmentOptions = ["Full Time", "Contract", "Freelance", "Project Based", "Consultant"];
-  const experienceOptions = ["1-2 Years", "2-5 Years", "5-10 Years", "10+ Years"];
-  const operationsOptions = ["Kitchen Setup", "Menu Engineering", "SOP Writer", "Team Builder", "Cost Control Expert"];
-  const cuisinesOptions = ["Italian", "Continental", "Indian", "Chinese", "Bakery", "Arabic", "Multi Cuisine", "Grill & BBQ"];
-  const businessOptions = ["Franchise Model", "Supply Chain", "Brand Scaling", "Restaurant Consultant"];
-  const regionalOptions = ["Saudi Arabia", "UAE", "GCC", "International", "India"];
+  const employmentOptions = [
+    "Full Time",
+    "Part Time",
+    "Freelance Chef",
+    "Consultant",
+    "Project Based",
+    "Temporary Assignment",
+    "Overseas Ready"
+  ];
+  const experienceOptions = ["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"];
+  const operationsOptions = [
+    "Soft Opening Consultant",
+    "Kitchen Setup Expert",
+    "Menu Engineering Specialist",
+    "SOP Writer",
+    "Recipe Standardization",
+    "Cost Control Specialist",
+    "Food Cost Analyst",
+    "Vendor Sourcing Expert",
+    "Hygiene & HACCP Specialist"
+  ];
+  const cuisinesOptions = [
+    "Italian Chef",
+    "Continental Chef",
+    "Multi Cuisine Chef",
+    "Indian Chef",
+    "South Indian Chef",
+    "North Indian Chef",
+    "Chinese Chef",
+    "Arabic Chef",
+    "Bakery Chef",
+    "Pastry Chef",
+    "Pizza Chef",
+    "Grill Chef",
+    "Tandoor Chef",
+    "BBQ Chef",
+    "Seafood Chef",
+    "Healthy Cuisine Chef",
+    "Fusion Chef"
+  ];
+  const businessOptions = [
+    "Brand Development Chef",
+    "Cloud Kitchen Consultant",
+    "Restaurant Turnaround Specialist",
+    "QSR Development Expert",
+    "Café Concept Creator",
+    "Menu Innovation Expert",
+    "New Product Development"
+  ];
+  const regionalOptions = [
+    "Saudi Arabia Experience",
+    "UAE Experience",
+    "GCC Experience",
+    "India Experience",
+    "International Experience"
+  ];
 
   const toggleFilter = (item, selectedList, setSelectedList) => {
     if (selectedList.includes(item)) {
