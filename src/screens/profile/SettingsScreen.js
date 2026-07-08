@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Updates from "expo-updates";
 import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
@@ -66,6 +67,47 @@ export default function SettingsScreen({ navigation }) {
     Linking.openURL("https://jobrito.com/privacy-policy").catch(() => {
       CustomAlert.show("Error", "Unable to open link.");
     });
+  };
+
+  const handleCheckUpdates = async () => {
+    if (__DEV__) {
+      Alert.alert(
+        "Development Mode",
+        "OTA updates are not active in the development environment."
+      );
+      return;
+    }
+
+    try {
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        Alert.alert(
+          "Update Available",
+          "A new version of the app is available. Would you like to update and reload now?",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Update Now",
+              onPress: async () => {
+                try {
+                  await Updates.fetchUpdateAsync();
+                  await Updates.reloadAsync();
+                } catch (error) {
+                  Alert.alert("Error", "Could not download the update. Please try again.");
+                }
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "App Up to Date",
+          "You are running the latest version of Jobrito."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to check for updates. Please try again.");
+    }
   };
 
   return (
@@ -140,6 +182,20 @@ export default function SettingsScreen({ navigation }) {
               <Ionicons name="help-circle-outline" size={20} color="#0891B2" />
             </View>
             <Text style={styles.itemLabel}>{t("helpSupport")}</Text>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity
+            style={styles.settingsItem}
+            activeOpacity={0.7}
+            onPress={handleCheckUpdates}
+          >
+            <View style={[styles.iconBox, { backgroundColor: "#F5F3FF" }]}>
+              <Ionicons name="cloud-download-outline" size={20} color="#8B5CF6" />
+            </View>
+            <Text style={styles.itemLabel}>{t("checkForUpdates", "Check for Updates")}</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 

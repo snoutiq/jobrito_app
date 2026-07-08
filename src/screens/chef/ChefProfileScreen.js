@@ -8,6 +8,7 @@ import {
   Image,
   Linking,
   Share,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -15,11 +16,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import colors from "../../constants/colors";
-import { resetUser } from "../../redux/slices/userSlice";
+import { resetUser, setProfileData } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
-import { clearAuthStorage } from "../../services/storage";
+import { clearAuthStorage, setStoredProfile } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
-import { getChefAppointments, getChefDashboardStats } from "../../services/chefApi";
+import { getChefAppointments, getChefDashboardStats, saveChefOnboarding } from "../../services/chefApi";
 import { getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
@@ -132,11 +133,54 @@ export default function ChefProfileScreen({ navigation }) {
 
   const handleShareProfile = async () => {
     try {
+      const cuisines = profile?.cuisines?.join(", ") || profile?.cuisine_specializations?.join(", ") || "Multi Cuisine";
+      const experience = profile?.experience || profile?.years_of_experience || profile?.experienceYears || "N/A";
+      const operations = profile?.operations?.join(", ") || profile?.operational_expertises?.join(", ") || "Kitchen Operations";
+      
+      const shareText = `
+🍳 *CHEF PROFESSIONAL PROFILE* 🍳
+----------------------------------
+👤 *Name:* Chef ${displayName}
+💼 *Title:* ${displayTitle}
+📍 *Location:* ${displayCity}
+⏱️ *Experience:* ${experience}
+🍽️ *Cuisines:* ${cuisines}
+⚙️ *Operational Expertise:* ${operations}
+🟢 *Status:* ${displayAvailability}
+----------------------------------
+🔗 View full profile & book consultation on JobRito app:
+http://jobrito.com/chefs/${profile?.id || "profile"}
+`;
+      
       await Share.share({
-        message: `Check out Chef ${displayName}'s culinary professional profile on Jobrito!`,
+        message: shareText.trim(),
       });
     } catch (error) {
       CustomAlert.show("Error", "Unable to share profile.");
+    }
+  };
+
+  const handleToggleAvailability = async (value) => {
+    const newStatus = value ? "Available" : "Unavailable";
+    
+    // 1. Update Redux store
+    dispatch(setProfileData({ availability: newStatus }));
+    
+    // 2. Update Storage
+    try {
+      const updatedProfile = { ...profile, availability: newStatus };
+      await setStoredProfile(updatedProfile);
+    } catch (e) {
+      console.warn("Failed to store updated availability locally:", e);
+    }
+
+    // 3. Update server API
+    try {
+      const formData = new FormData();
+      formData.append("availability", newStatus);
+      await saveChefOnboarding(formData);
+    } catch (err) {
+      console.warn("Failed to update availability on server:", err);
     }
   };
 
@@ -379,17 +423,18 @@ export default function ChefProfileScreen({ navigation }) {
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => CustomAlert.show("Availability", `Your availability: ${displayAvailability}`)}
-          >
+          <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="time-outline" size={20} color="#15803D" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.availability")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
-          </TouchableOpacity>
+            <Switch
+              value={displayAvailability === "Available" || displayAvailability === "Available for Consultation"}
+              onValueChange={handleToggleAvailability}
+              trackColor={{ false: "#CBD5E1", true: "#86EFAC" }}
+              thumbColor={displayAvailability === "Available" || displayAvailability === "Available for Consultation" ? PRIMARY_GREEN : "#94A3B8"}
+            />
+          </View>
 
           <View style={styles.menuDivider} />
 
