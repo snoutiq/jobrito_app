@@ -303,7 +303,7 @@
     "location": "الموقع",
     "locationPlaceholder": "ابحث عن مدينة أو عنوان فندق",
     "salaryRange": "نطاق الراتب",
-    "salaryPlaceholder": "3 آلاف دولار - 5 آلاف دولار",
+    "salaryPlaceholder": "أدخل نطاق الراتب",
     "openPositions": "الوظائف الشاغرة",
     "experienceRequired": "الخبرة المطلوبة",
     "jobDescription": "الوصف الوظيفي",
@@ -363,5 +363,14 @@
   "applyNow": "قدّم الآن",
   "applied": "تم التقديم",
   "copyJobLink": "نسخ رابط الوظيفة",
-  "linkCopied": "تم نسخ الرابط"
+  "linkCopied": "تم نسخ الرابط",
+  "jobDetails": "تفاصيل الوظيفة",
+  "jobDescription": "الوصف الوظيفي",
+  "jobRequirements": "متطلبات الوظيفة",
+  "jobResponsibilities": "مسؤوليات الوظيفة",  
+  "employmentPreference": "تفضيلات التوظيف",
+  "jobLocationPreference": "تفضيلات موقع الوظيفة",
+  "jobLocationPreferencePlaceholder": "اختر موقع الوظيفة المفضل لديك",
+  "jobLocationPreferenceIndia": "الهند",
+  "jobLocationPreferenceOverseas": "الخارج"
 }

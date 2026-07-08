@@ -632,7 +632,7 @@ export default function PostJobScreen({ navigation, route }) {
                     <TextInput
                       value={jobDescription}
                       onChangeText={setJobDescription}
-                      placeholder={t("postJob.descriptionPlaceholder")}
+                      placeholder={t("postJob.jobDescriptionPlaceholder")}
                       placeholderTextColor="#94A3B8"
                       style={[styles.textInput, styles.multilineInput]}
                       multiline
@@ -647,7 +647,7 @@ export default function PostJobScreen({ navigation, route }) {
               {/* Tip Box */}
               <View style={styles.tipBox}>
                 <Ionicons name="bulb-outline" size={20} color="#64748B" style={styles.tipBoxIcon} />
-                <Text style={styles.tipBoxText}>{t("postJob.descriptionTip")}</Text>
+                <Text style={styles.tipBoxText}>{t("postJob.tipText")}</Text>
               </View>
 
               {/* Footer actions for Step 2 */}

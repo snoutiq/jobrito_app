@@ -526,7 +526,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={salary}
                         onChangeText={setSalary}
-                        placeholder={t("postJob.salaryPlaceholder", "e.g., £35k - £42k / yr")}
+                        placeholder={t("postJob.salaryPlaceholder")}
                         placeholderTextColor="#94A3B8"
                         style={styles.textInput}
                         onFocus={() => setActiveField("salary")}

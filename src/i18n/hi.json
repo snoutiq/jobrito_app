@@ -322,7 +322,7 @@
     "location": "स्थान",
     "locationPlaceholder": "शहर या होटल का पता खोजें",
     "salaryRange": "वेतन सीमा",
-    "salaryPlaceholder": "$3k - $5k",
+    "salaryPlaceholder": "वेतन सीमा दर्ज करें",
     "openPositions": "रिक्त पद",
     "experienceRequired": "अनुभव आवश्यक",
     "jobDescription": "नौकरी का विवरण",
@@ -530,5 +530,14 @@
   "applyNow": "आवेदन करें",
   "applied": "आवेदन किया",
   "copyJobLink": "जॉब लिंक कॉपी करें",
-  "linkCopied": "लिंक कॉपी हो गया"
+  "linkCopied": "लिंक कॉपी हो गया",
+   "jobDetails": "नौकरी विवरण",
+  "jobDescription": "नौकरी विवरण",
+  "jobRequirements": "नौकरी की आवश्यकताएँ",
+  "jobResponsibilities": "नौकरी की जिम्मेदारियाँ",  
+  "employmentPreference": "रोज़गार की प्राथमिकता",
+  "jobLocationPreference": "नौकरी स्थान की प्राथमिकता",
+  "jobLocationPreferencePlaceholder": "अपनी पसंदीदा नौकरी का स्थान चुनें",
+  "jobLocationPreferenceIndia": "भारत",
+  "jobLocationPreferenceOverseas": "विदेश"
 }

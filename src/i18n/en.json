@@ -312,7 +312,7 @@
     "location": "Location",
     "locationPlaceholder": "Search city or hotel address",
     "salaryRange": "Salary Range",
-    "salaryPlaceholder": "$3k - $5k",
+    "salaryPlaceholder": "Enter salary range",
     "openPositions": "Open Positions",
     "experienceRequired": "Experience Required",
     "jobDescription": "Job Description",
@@ -519,5 +519,14 @@
   "applyNow": "Apply Now",
   "applied": "Applied",
   "copyJobLink": "Copy job link",
-  "linkCopied": "Link copied"
+  "linkCopied": "Link copied",
+  "jobDetails": "Job Details",
+  "jobDescription": "Job Description",
+  "jobRequirements": "Job Requirements",
+  "jobResponsibilities": "Job Responsibilities",  
+  "employmentPreference": "Employment Preference",
+  "jobLocationPreference": "Job Location Preference",
+  "jobLocationPreferencePlaceholder": "Select your preferred job location",
+  "jobLocationPreferenceIndia": "India",
+  "jobLocationPreferenceOverseas": "Overseas"
 }

@@ -303,7 +303,7 @@
     "location": "स्थान",
     "locationPlaceholder": "शहर किंवा हॉटेलचा पत्ता शोधा",
     "salaryRange": "वेतन श्रेणी",
-    "salaryPlaceholder": "$3k - $5k",
+    "salaryPlaceholder": "वेतन श्रेणी प्रविष्ट करा",
     "openPositions": "रिक्त पदे",
     "experienceRequired": "अनुभव आवश्यक",
     "jobDescription": "नोकरीचे वर्णन",
@@ -363,5 +363,14 @@
   "applyNow": "अर्ज करा",
   "applied": "अर्ज केला",
   "copyJobLink": "नोकरीची लिंक कॉपी करा",
-  "linkCopied": "लिंक कॉपी झाली"
+  "linkCopied": "लिंक कॉपी झाली",
+   "jobDetails": "नोकरीचे तपशील",
+  "jobDescription": "नोकरीचे वर्णन",
+  "jobRequirements": "नोकरीसाठी आवश्यक अटी",
+  "jobResponsibilities": "नोकरीच्या जबाबदाऱ्या",  
+  "employmentPreference": "रोजगार प्राधान्य",
+  "jobLocationPreference": "नोकरीच्या ठिकाणाचे प्राधान्य",
+  "jobLocationPreferencePlaceholder": "आपल्या पसंतीच्या नोकरीच्या ठिकाणाची निवड करा",
+  "jobLocationPreferenceIndia": "भारत",
+  "jobLocationPreferenceOverseas": "परदेश"
 }

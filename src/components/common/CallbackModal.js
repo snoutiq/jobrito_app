@@ -43,6 +43,10 @@ export default function CallbackModal({
     }, 300);
   };
 
+  const handleSuccessClose = () => {
+    handleClose();
+  };
+
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
@@ -151,7 +155,7 @@ export default function CallbackModal({
 
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
-              onPress={onClose}
+              onPress={handleSuccessClose}
               activeOpacity={0.8}
             >
               <Text style={styles.modalConfirmBtnText}>Got it</Text>
@@ -262,3 +266,4 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 });
+
