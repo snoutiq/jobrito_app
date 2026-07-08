@@ -1,26 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Alert,
-  Modal,
-  Pressable,
   StyleSheet,
   Text,
   View,
   Image,
   TouchableOpacity,
   ScrollView,
-  Linking,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Updates from "expo-updates";
 import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
-import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#22C55E";
 
@@ -28,13 +23,27 @@ export default function SettingsScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.user);
-  
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const businessName = profile?.business_name || profile?.businessName || profile?.current_employer || profile?.company || "";
-  const contactName = profile?.contact_person_name || profile?.contactName || profile?.full_name || profile?.name || "";
+  const businessName =
+    profile?.business_name ||
+    profile?.businessName ||
+    profile?.current_employer ||
+    profile?.company ||
+    "";
+  const contactName =
+    profile?.contact_person_name ||
+    profile?.contactName ||
+    profile?.full_name ||
+    profile?.name ||
+    "";
+  const mobileNumber =
+    profile?.mobile_number ||
+    profile?.phone ||
+    profile?.contact_number ||
+    "";
+  const email = profile?.email || profile?.contactEmail || "";
+  const location = profile?.location || profile?.business_location || profile?.city || "";
 
-  // Helper to determine the company logo source URL
   const getLogoSource = () => {
     const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
     if (!uri) return null;
@@ -51,211 +60,164 @@ export default function SettingsScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const handleLogout = async () => {
-    try {
-      const { logout: logoutApi } = require("../../services/authApi");
-      await logoutApi();
-    } catch (e) {
-      // ignore network logout errors
-    }
-    await clearAuthStorage();
-    dispatch(logout());
-    dispatch(resetUser());
-  };
-
-  const handlePrivacyPolicy = () => {
-    Linking.openURL("https://jobrito.com/privacy-policy").catch(() => {
-      CustomAlert.show("Error", "Unable to open link.");
-    });
-  };
-
-  const handleCheckUpdates = async () => {
-    if (__DEV__) {
-      Alert.alert(
-        "Development Mode",
-        "OTA updates are not active in the development environment."
-      );
-      return;
-    }
-
-    try {
-      const update = await Updates.checkForUpdateAsync();
-      if (update.isAvailable) {
-        Alert.alert(
-          "Update Available",
-          "A new version of the app is available. Would you like to update and reload now?",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Update Now",
-              onPress: async () => {
-                try {
-                  await Updates.fetchUpdateAsync();
-                  await Updates.reloadAsync();
-                } catch (error) {
-                  Alert.alert("Error", "Could not download the update. Please try again.");
-                }
-              }
+  const handleLogout = () => {
+    Alert.alert(
+      t("logOut"),
+      t("logoutConfirm"),
+      [
+        { text: t("cancel"), style: "cancel" },
+        {
+          text: t("logOut"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { logout: logoutApi } = require("../../services/authApi");
+              await logoutApi();
+            } catch (e) {
+              // ignore network logout errors
             }
-          ]
-        );
-      } else {
-        Alert.alert(
-          "App Up to Date",
-          "You are running the latest version of Jobrito."
-        );
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to check for updates. Please try again.");
-    }
+            await clearAuthStorage();
+            dispatch(logout());
+            dispatch(resetUser());
+          },
+        },
+      ]
+    );
   };
+
+  const accountRows = [
+    {
+      label: "Business Name",
+      value: businessName || "-",
+      icon: "business-outline",
+    },
+    {
+      label: "Contact Person",
+      value: contactName || "-",
+      icon: "person-outline",
+    },
+    {
+      label: "Mobile Number",
+      value: mobileNumber || "-",
+      icon: "call-outline",
+    },
+    {
+      label: "Email",
+      value: email || "-",
+      icon: "mail-outline",
+    },
+    {
+      label: "Location",
+      value: location || "-",
+      icon: "location-outline",
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("settingsTitle")}</Text>
-        <View style={{ width: 32 }} />
+        <Text style={styles.headerTitle}>Profile</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card */}
         <View style={styles.profileCard}>
           {logoSource ? (
-            <Image
-              source={logoSource}
-              style={styles.avatar}
-            />
+            <Image source={logoSource} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="business" size={28} color="#64748B" />
+              <Ionicons name="business-outline" size={30} color={PRIMARY_GREEN} />
             </View>
           )}
           <View style={styles.profileInfo}>
-            <Text style={styles.businessName}>{businessName}</Text>
-            <Text style={styles.contactText}>{contactName}</Text>
+            <Text style={styles.profileName}>{contactName || businessName || "Employer"}</Text>
+            <Text style={styles.profileSub}>{businessName || "Business profile"}</Text>
           </View>
         </View>
 
-        {/* Section: Account Settings */}
-        <Text style={styles.sectionTitle}>{t("accountSettings")}</Text>
-        <View style={styles.settingsGroup}>
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("PersonalInformation")}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#EEF4FF" }]}>
-              <Ionicons name="person-outline" size={20} color="#3B82F6" />
-            </View>
-            <Text style={styles.itemLabel}>{t("companyInfo")}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("Language")}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#F0FDF4" }]}>
-              <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-            </View>
-            <Text style={styles.itemLabel}>{t("appLanguage")}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Business Information</Text>
+        <View style={styles.sectionCard}>
+          {accountRows.map((item, index) => (
+            <React.Fragment key={item.label}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconWrap}>
+                  <Ionicons name={item.icon} size={18} color={PRIMARY_GREEN} />
+                </View>
+                <View style={styles.infoTextWrap}>
+                  <Text style={styles.infoLabel}>{item.label}</Text>
+                  <Text style={styles.infoValue}>{item.value}</Text>
+                </View>
+              </View>
+              {index !== accountRows.length - 1 ? <View style={styles.divider} /> : null}
+            </React.Fragment>
+          ))}
         </View>
 
-        {/* Section: Information & Support */}
-        <Text style={styles.sectionTitle}>{t("supportLegal")}</Text>
-        <View style={styles.settingsGroup}>
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("HelpSupport")}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#ECFEFF" }]}>
-              <Ionicons name="help-circle-outline" size={20} color="#0891B2" />
+        <Text style={styles.sectionTitle}>Account Status & Activity</Text>
+        <View style={styles.sectionCard}>
+          <View style={styles.actionRow}>
+            <View style={styles.actionLeft}>
+              <View style={styles.actionIconWrap}>
+                <Ionicons name="speedometer-outline" size={18} color={PRIMARY_GREEN} />
+              </View>
+              <Text style={styles.actionLabel}>Dashboard</Text>
             </View>
-            <Text style={styles.itemLabel}>{t("helpSupport")}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-
+            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("Tabs")}>
+              <Text style={styles.pillButtonText}>Go to Dashboard</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={handleCheckUpdates}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#F5F3FF" }]}>
-              <Ionicons name="cloud-download-outline" size={20} color="#8B5CF6" />
+          <View style={styles.actionRow}>
+            <View style={styles.actionLeft}>
+              <View style={styles.actionIconWrap}>
+                <Ionicons name="people-outline" size={18} color={PRIMARY_GREEN} />
+              </View>
+              <Text style={styles.actionLabel}>Chef Connect</Text>
             </View>
-            <Text style={styles.itemLabel}>{t("checkForUpdates", "Check for Updates")}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingsItem}
-            activeOpacity={0.7}
-            onPress={handlePrivacyPolicy}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#F8FAFC" }]}>
-              <Ionicons name="shield-checkmark-outline" size={20} color="#64748B" />
-            </View>
-            <Text style={styles.itemLabel}>{t("privacyPolicy")}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("ChefConnectDiscovery")}>
+              <Text style={styles.pillButtonText}>View Profiles</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          activeOpacity={0.8}
-          onPress={() => setShowLogoutModal(true)}
-        >
-          <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-          <Text style={styles.logoutText}>{t("logOut")}</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Settings & Support</Text>
+        <View style={styles.sectionCard}>
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("PersonalInformation")}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="create-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>Edit Profile</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Language")}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="globe-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>Change Language</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("HelpSupport")}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="help-circle-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>Help & Support</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={showLogoutModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Ionicons name="log-out" size={40} color="#EF4444" />
-            </View>
-            <Text style={styles.modalTitle}>{t("logOut")}</Text>
-            <Text style={styles.modalSubtitle}>{t("logoutConfirm")}</Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                style={[styles.modalBtn, styles.modalCancelBtn]}
-                onPress={() => setShowLogoutModal(false)}
-              >
-                <Text style={styles.modalCancelBtnText}>{t("cancel")}</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalBtn, styles.modalConfirmBtn]}
-                onPress={handleLogout}
-              >
-                <Text style={styles.modalConfirmBtnText}>{t("logOut")}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -276,7 +238,12 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   backButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
   },
   headerTitle: {
     fontSize: 18,
@@ -292,16 +259,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    marginBottom: 24,
+    marginBottom: 18,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 16,
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    marginRight: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
@@ -313,136 +280,135 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
   },
-  businessName: {
-    fontSize: 16,
+  profileName: {
+    fontSize: 18,
     fontWeight: "800",
     color: "#0F172A",
     marginBottom: 4,
   },
-  contactText: {
+  profileSub: {
     fontSize: 13,
     color: "#64748B",
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "800",
-    color: "#64748B",
+    color: PRIMARY_GREEN,
     textTransform: "uppercase",
     marginBottom: 10,
     marginLeft: 4,
+    marginTop: 6,
   },
-  settingsGroup: {
+  sectionCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    marginBottom: 24,
     overflow: "hidden",
+    marginBottom: 18,
   },
-  settingsItem: {
+  infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    minHeight: 56,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 12,
   },
-  iconBox: {
-    width: 36,
-    height: 36,
+  infoIconWrap: {
+    width: 34,
+    height: 34,
     borderRadius: 10,
+    backgroundColor: "#F0FDF4",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
   },
-  itemLabel: {
+  infoTextWrap: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: "#64748B",
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 16,
+    color: "#0F172A",
+    fontWeight: "500",
   },
   divider: {
     height: 1,
     backgroundColor: "#E2E8F0",
     marginHorizontal: 14,
   },
-  logoutButton: {
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FEF2F2",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#FEE2E2",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
     paddingVertical: 14,
-    gap: 8,
-    marginTop: 8,
+    gap: 12,
+  },
+  actionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  actionIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#F0FDF4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  pillButton: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pillButtonText: {
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "700",
+  },
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 15,
+  },
+  menuLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  menuText: {
+    fontSize: 15,
+    color: "#1E293B",
+    fontWeight: "600",
+  },
+  logoutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 15,
   },
   logoutText: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 15,
     color: "#EF4444",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 24,
-    width: "100%",
-    maxWidth: 320,
-    alignItems: "center",
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
-  },
-  modalHeader: {
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: "#64748B",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  modalActions: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  modalBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalCancelBtn: {
-    backgroundColor: "#F1F5F9",
-  },
-  modalCancelBtnText: {
-    fontSize: 15,
     fontWeight: "700",
-    color: "#475569",
-  },
-  modalConfirmBtn: {
-    backgroundColor: "#EF4444",
-  },
-  modalConfirmBtnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
 });
+
+
+
+
