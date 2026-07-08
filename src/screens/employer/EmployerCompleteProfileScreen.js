@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setProfileData, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile, clearAuthStorage } from "../../services/storage";
@@ -28,32 +28,68 @@ import * as Location from "expo-location";
 
 const PRIMARY_GREEN = "#22C55E";
 
-export default function EmployerCompleteProfileScreen({ navigation }) {
+export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.user);
+
+  const isEditMode = route?.params?.isEditMode ?? false;
   const [step, setStep] = useState(1);
 
+  const getInitialLogoUri = () => {
+    const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
+    if (!uri) return null;
+    if (
+      uri.startsWith("http://") ||
+      uri.startsWith("https://") ||
+      uri.startsWith("file://") ||
+      uri.startsWith("data:")
+    ) {
+      return uri;
+    }
+    return `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`;
+  };
+
+  const getInitialLocations = () => {
+    const profileLocations = profile?.operational_locations || profile?.locations;
+    if (Array.isArray(profileLocations) && profileLocations.length > 0) {
+      return profileLocations.map((locStr, idx) => {
+        if (typeof locStr === "string") {
+          const lastCommaIndex = locStr.lastIndexOf(",");
+          if (lastCommaIndex !== -1) {
+            return {
+              id: idx + 1,
+              address: locStr.substring(0, lastCommaIndex).trim(),
+              cityPostcode: locStr.substring(lastCommaIndex + 1).trim()
+            };
+          }
+          return { id: idx + 1, address: locStr, cityPostcode: "" };
+        }
+        return { id: idx + 1, address: locStr?.address || "", cityPostcode: locStr?.cityPostcode || "" };
+      });
+    }
+    return [{ id: 1, address: "", cityPostcode: "" }];
+  };
+
   // Form State
-  const [businessName, setBusinessName] = useState("");
-  const [industrySegment, setIndustrySegment] = useState("");
-  const [businessLocation, setBusinessLocation] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [preferredLanguage, setPreferredLanguage] = useState("English (UK)");
+  const [businessName, setBusinessName] = useState(profile?.business_name || profile?.businessName || profile?.company || "");
+  const [industrySegment, setIndustrySegment] = useState(profile?.industry_segment || profile?.segment || "");
+  const [businessLocation, setBusinessLocation] = useState(profile?.business_location || profile?.location || "");
+  const [contactName, setContactName] = useState(profile?.contact_person_name || profile?.contactName || profile?.name || profile?.full_name || "");
+  const [contactPhone, setContactPhone] = useState(profile?.business_mobile || profile?.contactPhone || profile?.phone || profile?.mobile_number || "");
+  const [contactEmail, setContactEmail] = useState(profile?.business_email || profile?.contactEmail || profile?.email || "");
+  const [preferredLanguage, setPreferredLanguage] = useState(profile?.preferred_language || profile?.preferredLanguage || "English (UK)");
   const [privacyChecked, setPrivacyChecked] = useState(true);
-  const [logoUploaded, setLogoUploaded] = useState(false);
-  const [logoUri, setLogoUri] = useState(null);
+  const [logoUploaded, setLogoUploaded] = useState(!!(profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path));
+  const [logoUri, setLogoUri] = useState(getInitialLogoUri());
 
   // Operational Locations state
-  const [locations, setLocations] = useState([
-    { id: 1, address: "", cityPostcode: "" }
-  ]);
+  const [locations, setLocations] = useState(getInitialLocations());
 
   // Talent Manager Details state
-  const [managerName, setManagerName] = useState("");
-  const [managerRelationship, setManagerRelationship] = useState("");
-  const [managerPhone, setManagerPhone] = useState("");
+  const [managerName, setManagerName] = useState(profile?.nominee_name || profile?.managerName || "");
+  const [managerRelationship, setManagerRelationship] = useState(profile?.nominee_relationship || profile?.managerRelationship || "");
+  const [managerPhone, setManagerPhone] = useState(profile?.nominee_mobile || profile?.managerPhone || "");
 
   // UI state
   const [activeInput, setActiveInput] = useState(null);
@@ -408,12 +444,16 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
 
       Alert.alert(
         t("success"),
-        "Profile onboarding completed successfully!",
+        isEditMode ? "Profile updated successfully!" : "Profile onboarding completed successfully!",
         [
           {
             text: "OK",
             onPress: () => {
-              navigation.navigate("Post Job", { isOnboarding: true });
+              if (isEditMode) {
+                navigation.goBack();
+              } else {
+                navigation.navigate("Post Job", { isOnboarding: true });
+              }
             }
           }
         ]
@@ -438,7 +478,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
           <TouchableOpacity onPress={prev} style={styles.backButton}>
             <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Complete Profile</Text>
+          <Text style={styles.headerTitle}>{isEditMode ? "Edit Profile" : "Complete Profile"}</Text>
           <View style={styles.stepBadge}>
             <Text style={styles.stepBadgeText}>
               {step === 5 ? "100%" : `Step ${step} of 5`}
@@ -1072,7 +1112,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
                 onPress={finishOnboarding}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>Start Posting Jobs</Text>
+                <Text style={styles.continueButtonText}>{isEditMode ? "Save Profile" : "Start Posting Jobs"}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
             </View>

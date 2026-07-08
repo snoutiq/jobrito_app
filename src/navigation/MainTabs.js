@@ -294,6 +294,13 @@ export default function MainTabs() {
         }}
       />
       <Stack.Screen
+        name="EmployerCompleteProfile"
+        component={EmployerCompleteProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="Profile"
         component={ProfileScreen}
         options={{ title: t("profileTab") }}
