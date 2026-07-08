@@ -86,13 +86,12 @@ export default function EmployerHomeScreen({ navigation }) {
           )}
           <View style={styles.headerInfo}>
             <Text style={styles.businessName}>{contactName}</Text>
-            <Text style={styles.contactText}>{mobileNumber}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={() => CustomAlert.show(t("notifications"), t("noNotifications"))}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate("EmployerNotifications")}>
             <Ionicons name="notifications-outline" size={22} color="#1E293B" />
-            <View style={styles.notifBadge} />
+            {/* <View style={styles.notifBadge} /> */}
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate("Settings")}>
             <Ionicons name="settings-outline" size={22} color="#1E293B" />

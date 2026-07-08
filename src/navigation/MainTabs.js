@@ -29,6 +29,7 @@ import EmployerHomeScreen from "../screens/home/EmployerHomeScreen";
 import ChefHomeScreen from "../screens/home/ChefHomeScreen";
 import EmployerCompleteProfileScreen from "../screens/employer/EmployerCompleteProfileScreen";
 import MyJobsScreen from "../screens/employer/MyJobsScreen";
+import EmployerNotificationsScreen from "../screens/employer/EmployerNotificationsScreen";
 import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
 import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
 import SplashScreen from "../screens/auth/SplashScreen";
@@ -318,6 +319,11 @@ export default function MainTabs() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="EmployerNotifications"
+        component={EmployerNotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{ headerShown: false }}
@@ -335,3 +341,5 @@ export default function MainTabs() {
     </Stack.Navigator>
   );
 }
+
+
