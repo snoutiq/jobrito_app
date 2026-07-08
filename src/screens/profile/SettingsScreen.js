@@ -177,7 +177,7 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <Text style={styles.actionLabel}>Chef Connect</Text>
             </View>
-            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("ChefConnectDiscovery")}>
+            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("ChefConnectFilters")}>
               <Text style={styles.pillButtonText}>View Profiles</Text>
             </TouchableOpacity>
           </View>

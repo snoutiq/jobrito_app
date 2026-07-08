@@ -68,7 +68,7 @@ export default function LoginScreen({ navigation }) {
         const profileToStore = {
           ...user,
           name: user?.full_name || user?.name || user?.mobile_number || "",
-          phone: user?.mobile_number || user?.phone,
+          phone: user?.mobile_number || user?.phone || phone.trim(),
           role: role,
           employerOnboardingCompleted: isEmp ? hasCompletedOnboarding : false,
           chefOnboardingCompleted: isChef ? hasCompletedOnboarding : false,
@@ -391,3 +391,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+
