@@ -54,7 +54,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const rejectedCount = applicantsList.filter((a) => a.status?.toLowerCase() === "rejected").length;
   const pendingCount = applicantsList.filter((a) => a.status?.toLowerCase() === "new" || a.status?.toLowerCase() === "pending").length;
 
-  const headerStatsText = `${totalApplied} Applied | ${shortlistedCount} shortlisted | ${contactedCount} contacted | ${rejectedCount} rejected | ${pendingCount} pending`;
+  const headerStatsText = `${totalApplied} ${t("applied")} | ${shortlistedCount} ${t("shortlisted")} | ${contactedCount} ${t("contacted")} | ${rejectedCount} ${t("rejected")} | ${pendingCount} ${t("pending")}`;
 
   const displayName = applicant.name || applicant.mobile_number || "";
   const displayCity = applicant.city || "";

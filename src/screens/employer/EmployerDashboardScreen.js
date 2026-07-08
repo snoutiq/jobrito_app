@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import DashboardStatCard from "../../components/cards/DashboardStatCard";
 import StatusBadge from "../../components/common/StatusBadge";
@@ -9,6 +10,7 @@ import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 import AppButton from "../../components/buttons/AppButton";
 
 export default function EmployerDashboardScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { stats, submittedJobs } = useSelector((state) => state.employer);
 
@@ -19,8 +21,8 @@ export default function EmployerDashboardScreen({ navigation }) {
   return (
     <ScreenWrapper>
       <View style={styles.header}>
-        <Text style={styles.title}>Employer Dashboard</Text>
-        <Text style={styles.subtitle}>Review job submissions and applicant progress.</Text>
+        <Text style={styles.title}>{t("employerDashboardTitle", "Employer Dashboard")}</Text>
+        <Text style={styles.subtitle}>{t("employerDashboardSubtitle", "Review job submissions and applicant progress.")}</Text>
       </View>
 
       <View style={styles.statsGrid}>
@@ -39,9 +41,9 @@ export default function EmployerDashboardScreen({ navigation }) {
               </View>
               <StatusBadge status={job.status} />
             </View>
-            <Text style={styles.meta}>Applicants: {job.applicants}</Text>
+            <Text style={styles.meta}>{t("applicants", "Applicants")}: {job.applicants}</Text>
             <AppButton
-              title="View Applicants"
+              title={t("viewApplicants", "View Applicants")}
               onPress={() => navigation.navigate("ApplicantList", { jobId: job.id, jobTitle: job.title })}
             />
           </View>

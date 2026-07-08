@@ -201,8 +201,8 @@ export default function EmployerHomeScreen({ navigation }) {
               <Ionicons name="people-outline" size={22} color="#F97316" />
             </View>
             <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>Chef Connect</Text>
-              <Text style={styles.actionSubtitle}>Discover and connect with talented chefs</Text>
+              <Text style={styles.actionTitle}>{t("chefConnect", "Chef Connect")}</Text>
+              <Text style={styles.actionSubtitle}>{t("chefConnectSubtitle", "Discover and connect with talented chefs")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>

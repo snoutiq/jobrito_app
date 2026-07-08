@@ -85,9 +85,9 @@ export default function HomeScreen({ navigation }) {
     const isFav = !favorites[id];
     setFavorites((prev) => ({ ...prev, [id]: isFav }));
     if (isFav) {
-      Alert.alert("Liked", "Job added to your favorites list.");
+      Alert.alert(t("liked", "Liked"), t("jobAddedFavs", "Job added to your favorites list."));
     } else {
-      Alert.alert("Removed", "Job removed from your favorites list.");
+      Alert.alert(t("removed", "Removed"), t("jobRemovedFavs", "Job removed from your favorites list."));
     }
 
     try {
@@ -95,7 +95,7 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       // Rollback on error
       setFavorites((prev) => ({ ...prev, [id]: !isFav }));
-      Alert.alert("Error", error || "Failed to save job.");
+      Alert.alert(t("error", "Error"), error || t("failedToSaveJob", "Failed to save job."));
     }
   };
 
@@ -113,29 +113,29 @@ export default function HomeScreen({ navigation }) {
   const handleCall = (job) => {
     const phoneNumber = job.creator?.mobile_number || job.mobile_number || job.phone || "+919876543210";
     Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert("Error", "Could not open dialer: " + err.message);
+      Alert.alert(t("error", "Error"), t("couldNotOpenDialer", "Could not open dialer: ") + err.message);
     });
   };
 
   const handleShare = async (title, company) => {
     try {
       await Share.share({
-        message: `Check out this opening on Jobrito: ${title} at ${company}!`,
+        message: `${t("checkOutOpening", "Check out this opening on Jobrito:")} ${title} ${t("at", "at")} ${company}!`,
       });
     } catch (error) {
-      Alert.alert("Unable to share", "Please try again.");
+      Alert.alert(t("unableToShare", "Unable to share"), t("pleaseTryAgain", "Please try again."));
     }
   };
 
   const formatPostedTime = (postedDate) => {
-    if (!postedDate) return "Today";
+    if (!postedDate) return t("today", "Today");
     const posted = new Date(postedDate);
-    if (Number.isNaN(posted.getTime())) return "Today";
+    if (Number.isNaN(posted.getTime())) return t("today", "Today");
     const diffMs = Date.now() - posted.getTime();
     const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "1 day ago";
-    return `${diffDays} days ago`;
+    if (diffDays === 0) return t("today", "Today");
+    if (diffDays === 1) return t("oneDayAgo", "1 day ago");
+    return `${diffDays} ${t("daysAgo", "days ago")}`;
   };
 
   return (

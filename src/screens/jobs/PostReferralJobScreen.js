@@ -423,7 +423,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
               {/* Company Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Business / Agency Name</Text>
+                <Text style={styles.inputLabel}>{t("postJob.businessName", "Business / Agency Name")}</Text>
                 <View
                   style={[
                     styles.inputWrapper,
@@ -433,7 +433,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <TextInput
                     value={company}
                     onChangeText={setCompany}
-                    placeholder="e.g. The Grand Bistro"
+                    placeholder={t("postJob.businessNamePlaceholder", "e.g. The Grand Bistro")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveField("company")}
@@ -444,7 +444,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
               {/* Contact Person Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Contact Person Name</Text>
+                <Text style={styles.inputLabel}>{t("postJob.contactPerson", "Contact Person Name")}</Text>
                 <View
                   style={[
                     styles.inputWrapper,
@@ -455,7 +455,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <TextInput
                     value={contactPerson}
                     onChangeText={setContactPerson}
-                    placeholder="Full name of hiring manager"
+                    placeholder={t("postJob.contactPersonPlaceholder", "Full name of hiring manager")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveField("contactPerson")}
@@ -474,9 +474,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 />
                 <View style={styles.imageCardOverlay} />
                 <View style={styles.imageCardContent}>
-                  <Text style={styles.imageCardStepLabel}>Step 1 of 3</Text>
+                  <Text style={styles.imageCardStepLabel}>{t("step", { current: 1, total: 3 })}</Text>
                   <Text style={styles.imageCardTitleLabel}>
-                    Identity & Trust
+                    {t("postJob.identityTrust", "Identity & Trust")}
                   </Text>
                 </View>
               </View>
@@ -835,14 +835,13 @@ export default function PostReferralJobScreen({ navigation, route }) {
               {/* Top Banner Card */}
               <View style={styles.step3BannerBox}>
                 <Text style={styles.step3BannerText}>
-                  Almost done! We just need your Contact Information so
-                  applicants know how to reach you or where to send their CVs.
+                  {t("postJob.contactInfoBanner", "Almost done! We just need your Contact Information so applicants know how to reach you or where to send their CVs.")}
                 </Text>
               </View>
 
               {/* Phone Number Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.step3InputLabel}>Phone Number</Text>
+                <Text style={styles.step3InputLabel}>{t("postJob.phoneNumber", "Phone Number")}</Text>
                 <View
                   style={[
                     styles.step3InputWrapper,
@@ -858,7 +857,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <TextInput
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
-                    placeholder="+1 (555) 000-0000"
+                    placeholder={t("postJob.phonePlaceholder", "+1 (555) 000-0000")}
                     placeholderTextColor="#94A3B8"
                     style={styles.step3TextInputField}
                     keyboardType="phone-pad"
@@ -868,13 +867,13 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   />
                 </View>
                 <Text style={styles.step3InputNote}>
-                  We'll only show this to verified applicants.
+                  {t("postJob.phoneCaption", "We'll only show this to verified applicants.")}
                 </Text>
               </View>
 
               {/* Email Address Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.step3InputLabel}>Email Address</Text>
+                <Text style={styles.step3InputLabel}>{t("postJob.emailAddress", "Email Address")}</Text>
                 <View
                   style={[
                     styles.step3InputWrapper,
@@ -890,7 +889,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <TextInput
                     value={emailAddress}
                     onChangeText={setEmailAddress}
-                    placeholder="manager@hospitalityhub.com"
+                    placeholder={t("postJob.emailPlaceholder", "manager@hospitalityhub.com")}
                     placeholderTextColor="#94A3B8"
                     style={styles.step3TextInputField}
                     keyboardType="email-address"
@@ -901,7 +900,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
               </View>
 
               {/* Quick Review Header */}
-              <Text style={styles.reviewHeader}>QUICK REVIEW</Text>
+              <Text style={styles.reviewHeader}>{t("postJob.quickReview", "QUICK REVIEW")}</Text>
 
               {/* Position Card */}
               <View style={styles.step3ReviewCard}>
@@ -909,7 +908,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <Ionicons name="restaurant" size={20} color="#16A34A" />
                 </View>
                 <View style={styles.reviewTextContainer}>
-                  <Text style={styles.reviewCardLabel}>Position</Text>
+                  <Text style={styles.reviewCardLabel}>{t("postJob.positionLabel", "Position")}</Text>
                   <Text style={styles.reviewCardValue}>
                     {title.trim() || "Senior Head Chef"}
                   </Text>
@@ -922,7 +921,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   style={[styles.step3ReviewCard, { flex: 1, marginRight: 6 }]}
                 >
                   <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>Location</Text>
+                    <Text style={styles.reviewCardLabel}>{t("postJob.locationLabel", "Location")}</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
                       {location.trim() || "London, UK"}
                     </Text>
@@ -933,7 +932,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   style={[styles.step3ReviewCard, { flex: 1, marginLeft: 6 }]}
                 >
                   <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>Salary</Text>
+                    <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel", "Salary")}</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
                       {salary.trim() || "Competitive"}
                     </Text>
@@ -948,7 +947,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 onPress={handleSubmitJob}
               >
                 <Text style={styles.step3SubmitBtnText}>
-                  Submit For Approval
+                  {t("postJob.submitApproval", "Submit For Approval")}
                 </Text>
                 <Ionicons
                   name="paper-plane"
@@ -963,7 +962,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 onPress={() => navigation.navigate("Home")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.step3BackBtnText}>Return to feed</Text>
+                <Text style={styles.step3BackBtnText}>{t("postJob.returnFeed", "Return to feed")}</Text>
               </TouchableOpacity>
             </View>
           )}

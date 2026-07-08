@@ -49,7 +49,7 @@ export default function ApplicantListScreen({ route, navigation }) {
   const rejectedCount = applicants.filter((a) => a.status?.toLowerCase() === "rejected").length;
   const pendingCount = applicants.filter((a) => a.status?.toLowerCase() === "new" || a.status?.toLowerCase() === "pending").length;
 
-  const headerStatsText = `${totalApplied} Applied | ${shortlistedCount} shortlisted | ${contactedCount} contacted | ${rejectedCount} rejected | ${pendingCount} pending`;
+  const headerStatsText = `${totalApplied} ${t("applied")} | ${shortlistedCount} ${t("shortlisted")} | ${contactedCount} ${t("contacted")} | ${rejectedCount} ${t("rejected")} | ${pendingCount} ${t("pending")}`;
 
   // Filter applicants based on active status filter
   const filteredApplicants = applicants.filter((item) => {

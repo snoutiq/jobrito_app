@@ -24,7 +24,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.title}>{t("notifications", "Notifications")}</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -39,7 +39,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.summaryTitle}>{t("notifications", "Notifications")}</Text>
               <Text style={styles.summaryText}>
-                Stay updated on applicants, profile status, and job posts.
+                {t("notificationsSummary", "Stay updated on applicants, profile status, and job posts.")}
               </Text>
             </View>
           </View>
@@ -61,8 +61,8 @@ export default function EmployerNotificationsScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="notifications-off-outline" size={44} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No notifications yet</Text>
-            <Text style={styles.emptyText}>You will see applicant and job updates here.</Text>
+            <Text style={styles.emptyTitle}>{t("noNotificationsYet", "No notifications yet")}</Text>
+            <Text style={styles.emptyText}>{t("noNotificationsText", "You will see applicant and job updates here.")}</Text>
           </View>
         }
       />
