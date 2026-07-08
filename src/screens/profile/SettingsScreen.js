@@ -23,6 +23,8 @@ export default function SettingsScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.user);
+  const activeRole = useSelector((state) => state.auth.user?.active_role ?? state.user?.activeRole);
+  const isEmployer = activeRole === "employer";
 
   const businessName =
     profile?.business_name ||
@@ -185,7 +187,8 @@ export default function SettingsScreen({ navigation }) {
 
         <Text style={styles.sectionTitle}>Settings & Support</Text>
         <View style={styles.sectionCard}>
-          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("PersonalInformation")}>
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate(isEmployer ? "EmployerCompleteProfile" : "PersonalInformation", 
+            isEmployer ? { isEditMode: true } : undefined)}>
             <View style={styles.menuLeft}>
               <Ionicons name="create-outline" size={18} color={colors.text} />
               <Text style={styles.menuText}>Edit Profile</Text>
@@ -408,6 +411,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+
 
 
 
