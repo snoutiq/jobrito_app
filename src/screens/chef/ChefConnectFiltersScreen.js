@@ -314,7 +314,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
       {/* Apply Button */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.applyButton} onPress={handleApply} activeOpacity={0.8}>
-          <Text style={styles.applyButtonText}>{t("applyFilters")}</Text>
+          <Text style={styles.applyButtonText}>{t("applyfilters")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

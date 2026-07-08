@@ -528,5 +528,7 @@
   "jobLocationPreference": "Job Location Preference",
   "jobLocationPreferencePlaceholder": "Select your preferred job location",
   "jobLocationPreferenceIndia": "India",
-  "jobLocationPreferenceOverseas": "Overseas"
+  "jobLocationPreferenceOverseas": "Overseas",
+  "applyfilters": "Apply Filter",
+  "resetfilter": "Reset Filter"
 }

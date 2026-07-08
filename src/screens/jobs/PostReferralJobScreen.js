@@ -28,7 +28,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const activeRole = useSelector(
-    (state) => state.auth.user?.active_role ?? state.user?.activeRole
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
 
   const [step, setStep] = useState(1); // 1: Business Basics, 2: Job Details, 3: Contact & Extras, 4: Success
@@ -50,12 +50,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [emailAddress, setEmailAddress] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [description, setDescription] = useState("");
-  
+
   // Optional Fields
   const [salary, setSalary] = useState("");
   const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState("Full-time");
-  const [experienceRange, setExperienceRange] = useState("Mid-Level (3-5 years)");
+  const [experienceRange, setExperienceRange] = useState(
+    "Mid-Level (3-5 years)",
+  );
   const [requirements, setRequirements] = useState("");
   const [benefits, setBenefits] = useState("");
   const [openPositions, setOpenPositions] = useState("1");
@@ -126,7 +128,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
   // Autofill role
   useEffect(() => {
     if (activeRole) {
-      const normalized = activeRole.toLowerCase().replace(" ", "").replace("_", "");
+      const normalized = activeRole
+        .toLowerCase()
+        .replace(" ", "")
+        .replace("_", "");
       if (normalized === "chef") {
         setSubmittedByRole("chef");
       } else if (normalized === "jobseeker" || normalized === "job_seeker") {
@@ -153,11 +158,17 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
   const handleNextStep2 = () => {
     if (!title.trim()) {
-      Alert.alert(t("error"), t("postJob.jobTitleRequired", "Please enter a Job Title."));
+      Alert.alert(
+        t("error"),
+        t("postJob.jobTitleRequired", "Please enter a Job Title."),
+      );
       return;
     }
     if (!description.trim()) {
-      Alert.alert(t("error"), t("postJob.descriptionRequired", "Please enter a Job Description."));
+      Alert.alert(
+        t("error"),
+        t("postJob.descriptionRequired", "Please enter a Job Description."),
+      );
       return;
     }
     setStep(3);
@@ -173,15 +184,27 @@ export default function PostReferralJobScreen({ navigation, route }) {
       return;
     }
     if (category === "overseas" && !country.trim()) {
-      Alert.alert(t("error"), t("postJob.countryRequired", "Country is required when category is Overseas."));
+      Alert.alert(
+        t("error"),
+        t(
+          "postJob.countryRequired",
+          "Country is required when category is Overseas.",
+        ),
+      );
       return;
     }
 
     const requirementsArray = requirements
-      ? requirements.split(",").map((r) => r.trim()).filter(Boolean)
+      ? requirements
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean)
       : null;
     const benefitsArray = benefits
-      ? benefits.split(",").map((b) => b.trim()).filter(Boolean)
+      ? benefits
+          .split(",")
+          .map((b) => b.trim())
+          .filter(Boolean)
       : null;
 
     const combinedContact = `Phone: ${phoneNumber.trim()} | Email: ${emailAddress.trim()}`;
@@ -213,7 +236,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
     // Filter out empty/null fields
     const payload = Object.keys(jobData).reduce((acc, key) => {
-      if (jobData[key] !== "" && jobData[key] !== null && jobData[key] !== undefined) {
+      if (
+        jobData[key] !== "" &&
+        jobData[key] !== null &&
+        jobData[key] !== undefined
+      ) {
         acc[key] = jobData[key];
       }
       return acc;
@@ -222,16 +249,22 @@ export default function PostReferralJobScreen({ navigation, route }) {
     try {
       console.log("Posting job payload:", payload);
       const result = await dispatch(createJobPost(payload));
-      
+
       if (createJobPost.fulfilled.match(result)) {
         setShowSuccessModal(true);
       } else {
         const serverError = result.payload;
-        let errorMessage = t("postJob.submitFailed", "Failed to submit job posting. Please try again.");
+        let errorMessage = t(
+          "postJob.submitFailed",
+          "Failed to submit job posting. Please try again.",
+        );
         if (serverError && typeof serverError === "object") {
           if (serverError.errors && typeof serverError.errors === "object") {
             errorMessage = Object.entries(serverError.errors)
-              .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(" ") : val}`)
+              .map(
+                ([key, val]) =>
+                  `${key}: ${Array.isArray(val) ? val.join(" ") : val}`,
+              )
               .join("\n");
           } else if (serverError.message) {
             errorMessage = serverError.message;
@@ -246,14 +279,20 @@ export default function PostReferralJobScreen({ navigation, route }) {
         // Log full action result and payload for debugging
         console.error("Job post failed - action result:", result);
         try {
-          console.error("Job post failed - payload:", JSON.stringify(result.payload, null, 2));
+          console.error(
+            "Job post failed - payload:",
+            JSON.stringify(result.payload, null, 2),
+          );
         } catch (e) {
           console.error("Job post failed - payload (raw):", result.payload);
         }
         Alert.alert(t("error"), errorMessage);
       }
     } catch (err) {
-      Alert.alert(t("error"), err.message || t("postJob.errorOccurred", "Something went wrong."));
+      Alert.alert(
+        t("error"),
+        err.message || t("postJob.errorOccurred", "Something went wrong."),
+      );
     }
   };
 
@@ -296,9 +335,21 @@ export default function PostReferralJobScreen({ navigation, route }) {
       <View style={styles.progressContainer}>
         <View style={styles.progressTextRow}>
           <Text style={styles.progressStepText}>{titleText}</Text>
-          {step === 1 && <Text style={styles.progressPercentText}>33% {t("completeProfile.complete", "Complete")}</Text>}
-          {step === 2 && <Text style={styles.progressPercentText}>66% {t("completeProfile.complete", "Complete")}</Text>}
-          {step === 3 && <Text style={styles.progressPercentText}>100% {t("completeProfile.complete", "Complete")}</Text>}
+          {step === 1 && (
+            <Text style={styles.progressPercentText}>
+              33% {t("completeProfile.complete", "Complete")}
+            </Text>
+          )}
+          {step === 2 && (
+            <Text style={styles.progressPercentText}>
+              66% {t("completeProfile.complete", "Complete")}
+            </Text>
+          )}
+          {step === 3 && (
+            <Text style={styles.progressPercentText}>
+              100% {t("completeProfile.complete", "Complete")}
+            </Text>
+          )}
         </View>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: percentage }]} />
@@ -308,7 +359,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -328,7 +382,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
             >
               <Ionicons name="arrow-back" size={24} color="#15803D" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t("postJob.title", "Post a Referral Job")}</Text>
+            <Text style={styles.headerTitle}>
+              {t("postJob.title", "Post a Referral Job")}
+            </Text>
             <View style={{ width: 24 }} />
           </View>
         </View>
@@ -353,9 +409,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoBoxText}>
-                    Let's start with your business basics. This information helps applicants identify who they'll be working for.
+                    Let's start with your business basics. This information
+                    helps applicants identify who they'll be working for.
                   </Text>
-                  <Text style={styles.infoBoxSub}>10:04 AM</Text>
+                  <Text style={styles.infoBoxSub}>
+                    {new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
                 </View>
               </View>
 
@@ -386,7 +448,8 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 <View
                   style={[
                     styles.inputWrapper,
-                    activeField === "contactPerson" && styles.inputWrapperActive,
+                    activeField === "contactPerson" &&
+                      styles.inputWrapperActive,
                   ]}
                 >
                   <TextInput
@@ -412,11 +475,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 <View style={styles.imageCardOverlay} />
                 <View style={styles.imageCardContent}>
                   <Text style={styles.imageCardStepLabel}>Step 1 of 3</Text>
-                  <Text style={styles.imageCardTitleLabel}>Identity & Trust</Text>
+                  <Text style={styles.imageCardTitleLabel}>
+                    Identity & Trust
+                  </Text>
                 </View>
               </View>
-
-
 
               {/* Footer actions */}
               <View style={[styles.footerContainer, { marginTop: 24 }]}>
@@ -425,8 +488,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   activeOpacity={0.8}
                   onPress={handleNextStep1}
                 >
-                  <Text style={styles.primaryNextBtnText}>{t("postJob.next", "Next")}</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 6 }} />
+                  <Text style={styles.primaryNextBtnText}>
+                    {t("postJob.next", "Next")}
+                  </Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color="#FFFFFF"
+                    style={{ marginLeft: 6 }}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -436,7 +506,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
           {step === 2 && (
             <View style={styles.stepContainer}>
               {/* Category Chips */}
-              <Text style={styles.inputLabel}>{t("postJob.category", "Category *")}</Text>
+              <Text style={styles.inputLabel}>
+                {t("postJob.category", "Category *")}
+              </Text>
               <View style={styles.regionRow}>
                 {categories.map((c) => {
                   const isActive = category === c.value;
@@ -467,7 +539,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
               <View style={styles.fieldsCard}>
                 {/* Job Title */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>{t("postJob.jobTitle", "Job Title *")}</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.jobTitle", "Job Title *")}
+                  </Text>
                   <View
                     style={[
                       styles.inputWrapper,
@@ -477,7 +551,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     <TextInput
                       value={title}
                       onChangeText={setTitle}
-                      placeholder={t("postJob.jobTitlePlaceholder", "e.g., Senior Pastry Chef")}
+                      placeholder={t(
+                        "postJob.jobTitlePlaceholder",
+                        "e.g., Senior Pastry Chef",
+                      )}
                       placeholderTextColor="#94A3B8"
                       style={styles.textInput}
                       onFocus={() => setActiveField("title")}
@@ -488,7 +565,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
                 {/* Location */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>{t("postJob.location", "Location")}</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.location", "Location")}
+                  </Text>
                   <View
                     style={[
                       styles.inputWrapper,
@@ -504,7 +583,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     <TextInput
                       value={location}
                       onChangeText={setLocation}
-                      placeholder={t("postJob.locationPlaceholder", "e.g., Mayfair, London")}
+                      placeholder={t(
+                        "postJob.locationPlaceholder",
+                        "e.g., Mayfair, London",
+                      )}
                       placeholderTextColor="#94A3B8"
                       style={styles.textInput}
                       onFocus={() => setActiveField("location")}
@@ -516,7 +598,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 {/* Salary & Positions */}
                 <View style={styles.inlineRow}>
                   <View style={{ flex: 1.1, marginRight: 8 }}>
-                    <Text style={styles.inputLabel}>{t("postJob.salaryRange", "Salary")}</Text>
+                    <Text style={styles.inputLabel}>
+                      {t("postJob.salaryRange", "Salary")}
+                    </Text>
                     <View
                       style={[
                         styles.inputWrapper,
@@ -536,11 +620,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
 
                   <View style={{ flex: 0.9, marginLeft: 8 }}>
-                    <Text style={styles.inputLabel}>{t("postJob.openPositions", "Open Positions")}</Text>
+                    <Text style={styles.inputLabel}>
+                      {t("postJob.openPositions", "Open Positions")}
+                    </Text>
                     <View
                       style={[
                         styles.inputWrapper,
-                        activeField === "openPositions" && styles.inputWrapperActive,
+                        activeField === "openPositions" &&
+                          styles.inputWrapperActive,
                       ]}
                     >
                       <TextInput
@@ -559,7 +646,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
                 {/* Experience Dropdown */}
                 <View style={[styles.inputGroup, { marginTop: 14 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.experienceRequired", "Experience Required")}</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.experienceRequired", "Experience Required")}
+                  </Text>
                   <TouchableOpacity
                     style={[
                       styles.inputWrapper,
@@ -599,7 +688,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                             {opt}
                           </Text>
                           {experienceRange === opt && (
-                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
+                            <Ionicons
+                              name="checkmark"
+                              size={16}
+                              color={PRIMARY_GREEN}
+                            />
                           )}
                         </TouchableOpacity>
                       ))}
@@ -609,7 +702,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
                 {/* Job Type Dropdown */}
                 <View style={[styles.inputGroup, { marginTop: 14 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.jobType", "Job Type")}</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.jobType", "Job Type")}
+                  </Text>
                   <TouchableOpacity
                     style={[
                       styles.inputWrapper,
@@ -649,7 +744,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                             {opt}
                           </Text>
                           {jobType === opt && (
-                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
+                            <Ionicons
+                              name="checkmark"
+                              size={16}
+                              color={PRIMARY_GREEN}
+                            />
                           )}
                         </TouchableOpacity>
                       ))}
@@ -659,18 +758,24 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
                 {/* Job Description */}
                 <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                  <Text style={styles.inputLabel}>{t("postJob.jobDescription", "Job Description *")}</Text>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.jobDescription", "Job Description *")}
+                  </Text>
                   <View
                     style={[
                       styles.inputWrapper,
                       styles.multilineWrapper,
-                      activeField === "description" && styles.inputWrapperActive,
+                      activeField === "description" &&
+                        styles.inputWrapperActive,
                     ]}
                   >
                     <TextInput
                       value={description}
                       onChangeText={setDescription}
-                      placeholder={t("postJob.jobDescriptionPlaceholder", "Describe the job role and responsibilities...")}
+                      placeholder={t(
+                        "postJob.jobDescriptionPlaceholder",
+                        "Describe the job role and responsibilities...",
+                      )}
                       placeholderTextColor="#94A3B8"
                       multiline
                       numberOfLines={5}
@@ -692,7 +797,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 />
                 <Text style={styles.tipBoxText}>
                   Detailed job descriptions attract{" "}
-                  <Text style={{ color: PRIMARY_GREEN, fontWeight: "700" }}>40% more</Text>{" "}
+                  <Text style={{ color: PRIMARY_GREEN, fontWeight: "700" }}>
+                    40% more
+                  </Text>{" "}
                   qualified applicants. Be sure to mention specific benefits!
                 </Text>
               </View>
@@ -704,7 +811,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   onPress={() => setStep(1)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.saveDraftLinkText}>{t("back", "Back")}</Text>
+                  <Text style={styles.saveDraftLinkText}>
+                    {t("back", "Back")}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -712,7 +821,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   activeOpacity={0.8}
                   onPress={handleNextStep2}
                 >
-                  <Text style={styles.primaryNextBtnText}>{t("postJob.next", "Next")}</Text>
+                  <Text style={styles.primaryNextBtnText}>
+                    {t("postJob.next", "Next")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -724,7 +835,8 @@ export default function PostReferralJobScreen({ navigation, route }) {
               {/* Top Banner Card */}
               <View style={styles.step3BannerBox}>
                 <Text style={styles.step3BannerText}>
-                  Almost done! We just need your Contact Information so applicants know how to reach you or where to send their CVs.
+                  Almost done! We just need your Contact Information so
+                  applicants know how to reach you or where to send their CVs.
                 </Text>
               </View>
 
@@ -737,7 +849,12 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     activeField === "phone" && styles.step3InputWrapperActive,
                   ]}
                 >
-                  <Ionicons name="call" size={18} color="#94A3B8" style={styles.step3InputIcon} />
+                  <Ionicons
+                    name="call"
+                    size={18}
+                    color="#94A3B8"
+                    style={styles.step3InputIcon}
+                  />
                   <TextInput
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
@@ -750,7 +867,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
-                <Text style={styles.step3InputNote}>We'll only show this to verified applicants.</Text>
+                <Text style={styles.step3InputNote}>
+                  We'll only show this to verified applicants.
+                </Text>
               </View>
 
               {/* Email Address Input */}
@@ -762,7 +881,12 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     activeField === "email" && styles.step3InputWrapperActive,
                   ]}
                 >
-                  <Ionicons name="mail" size={18} color="#94A3B8" style={styles.step3InputIcon} />
+                  <Ionicons
+                    name="mail"
+                    size={18}
+                    color="#94A3B8"
+                    style={styles.step3InputIcon}
+                  />
                   <TextInput
                     value={emailAddress}
                     onChangeText={setEmailAddress}
@@ -794,7 +918,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
               {/* Location & Salary Side-by-Side Row */}
               <View style={styles.reviewCardRow}>
-                <View style={[styles.step3ReviewCard, { flex: 1, marginRight: 6 }]}>
+                <View
+                  style={[styles.step3ReviewCard, { flex: 1, marginRight: 6 }]}
+                >
                   <View style={styles.reviewTextContainer}>
                     <Text style={styles.reviewCardLabel}>Location</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
@@ -803,7 +929,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                <View style={[styles.step3ReviewCard, { flex: 1, marginLeft: 6 }]}>
+                <View
+                  style={[styles.step3ReviewCard, { flex: 1, marginLeft: 6 }]}
+                >
                   <View style={styles.reviewTextContainer}>
                     <Text style={styles.reviewCardLabel}>Salary</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
@@ -819,8 +947,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 activeOpacity={0.8}
                 onPress={handleSubmitJob}
               >
-                <Text style={styles.step3SubmitBtnText}>Submit For Approval</Text>
-                <Ionicons name="paper-plane" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                <Text style={styles.step3SubmitBtnText}>
+                  Submit For Approval
+                </Text>
+                <Ionicons
+                  name="paper-plane"
+                  size={18}
+                  color="#FFFFFF"
+                  style={{ marginLeft: 8 }}
+                />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -851,10 +986,13 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                <Text style={styles.modalSuccessTitle}>🎉 Job Submitted Successfully</Text>
-                
+                <Text style={styles.modalSuccessTitle}>
+                  🎉 Job Submitted Successfully
+                </Text>
+
                 <Text style={styles.modalSuccessMessage}>
-                  Your job has been submitted for admin review. Once approved, it will be published in the community feed.
+                  Your job has been submitted for admin review. Once approved,
+                  it will be published in the community feed.
                 </Text>
 
                 <TouchableOpacity

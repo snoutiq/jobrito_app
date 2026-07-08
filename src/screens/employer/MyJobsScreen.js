@@ -12,7 +12,10 @@ import { CustomAlert } from "../../components/common/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEmployerDashboard, closeEmployerJob } from "../../redux/slices/employerSlice";
+import {
+  fetchEmployerDashboard,
+  closeEmployerJob,
+} from "../../redux/slices/employerSlice";
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
 
@@ -34,24 +37,27 @@ const formatDate = (dateStr) => {
 export default function MyJobsScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  
+
   // Redux Selectors
   const submittedJobs = useSelector((state) => state.employer.submittedJobs);
   const myJobs = useSelector((state) => state.job.myJobs);
   const jobLoading = useSelector((state) => state.job.loading);
   const employerLoading = useSelector((state) => state.employer.loading);
   const activeRole = useSelector(
-    (state) => state.auth.user?.active_role ?? state.user?.activeRole
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
 
   const [activeTab, setActiveTab] = useState("active");
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const isEmployer = activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
-  const jobsToShow = isEmployer 
-    ? (submittedJobs?.length ? submittedJobs : (myJobs || [])) 
-    : (myJobs || []);
+  const isEmployer =
+    activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
+  const jobsToShow = isEmployer
+    ? submittedJobs?.length
+      ? submittedJobs
+      : myJobs || []
+    : myJobs || [];
 
   const fetchAllData = React.useCallback(() => {
     if (isEmployer) {
@@ -90,15 +96,22 @@ export default function MyJobsScreen({ navigation }) {
     return status === "active" || status === "approved";
   });
 
-  const pendingJobs = localJobs.filter((job) => normalizeStatus(job.status) === "pending");
-  const closedJobs = localJobs.filter((job) => normalizeStatus(job.status) === "closed");
+  const pendingJobs = localJobs.filter(
+    (job) => normalizeStatus(job.status) === "pending",
+  );
+  const closedJobs = localJobs.filter(
+    (job) => normalizeStatus(job.status) === "closed",
+  );
 
-  const getApplicationsCount = (job) => job?.applicants?.length || job?.applicationsCount || 0;
+  const getApplicationsCount = (job) =>
+    job?.applicants?.length || job?.applicationsCount || 0;
 
   const getJobStats = (job) => {
     const applicants = job?.applicants || [];
     const countByStatus = (status) =>
-      applicants.filter((applicant) => normalizeStatus(applicant.status) === status).length;
+      applicants.filter(
+        (applicant) => normalizeStatus(applicant.status) === status,
+      ).length;
 
     return {
       pending: countByStatus("new") || countByStatus("pending"),
@@ -120,21 +133,30 @@ export default function MyJobsScreen({ navigation }) {
           onPress: async () => {
             try {
               await dispatch(closeEmployerJob(jobId)).unwrap();
-              CustomAlert.show(t("success"), t("jobClosed", "Job has been closed."));
+              CustomAlert.show(
+                t("success"),
+                t("jobClosed", "Job has been closed."),
+              );
               fetchAllData();
             } catch (err) {
-              CustomAlert.show(t("error"), err || t("failCloseJob", "Failed to close the job."));
+              CustomAlert.show(
+                t("error"),
+                err || t("failCloseJob", "Failed to close the job."),
+              );
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const deletePendingJob = (jobId) => {
     CustomAlert.show(
       t("deleteDraftConfirmTitle", "Delete Draft"),
-      t("deleteDraftConfirm", "Are you sure you want to delete this job posting?"),
+      t(
+        "deleteDraftConfirm",
+        "Are you sure you want to delete this job posting?",
+      ),
       [
         { text: t("cancel"), style: "cancel" },
         {
@@ -142,18 +164,20 @@ export default function MyJobsScreen({ navigation }) {
           style: "destructive",
           onPress: () => {
             setLocalJobs((current) =>
-              current.filter((job) => String(job.id) !== String(jobId))
+              current.filter((job) => String(job.id) !== String(jobId)),
             );
           },
         },
-      ]
+      ],
     );
   };
 
   const renderJobCard = (job, isActive = false) => {
     const jobOpenings = job.open_positions ?? job.openings ?? 0;
     const jobType = job.job_type ?? job.type ?? "Full-time";
-    const jobDate = job.created_at ? formatDate(job.created_at) : (job.date_posted || job.date || "");
+    const jobDate = job.created_at
+      ? formatDate(job.created_at)
+      : job.date_posted || job.date || "";
     const isReferral = job.is_referral || job.isReferral;
     const stats = getJobStats(job);
 
@@ -161,27 +185,29 @@ export default function MyJobsScreen({ navigation }) {
       <View key={String(job.id)} style={styles.jobCard}>
         <View style={styles.jobHeader}>
           <View style={styles.jobTitleWrapper}>
-            <View style={[
-              styles.iconContainer, 
-              activeTab === "pending" && { backgroundColor: "#FEF3C7" },
-              activeTab === "closed" && { backgroundColor: "#F1F5F9" }
-            ]}>
-              <Ionicons 
+            <View
+              style={[
+                styles.iconContainer,
+                activeTab === "pending" && { backgroundColor: "#FEF3C7" },
+                activeTab === "closed" && { backgroundColor: "#F1F5F9" },
+              ]}
+            >
+              <Ionicons
                 name={
-                  activeTab === "pending" 
-                    ? "hourglass-outline" 
-                    : activeTab === "closed" 
-                      ? "archive-outline" 
+                  activeTab === "pending"
+                    ? "hourglass-outline"
+                    : activeTab === "closed"
+                      ? "archive-outline"
                       : "restaurant-outline"
-                } 
-                size={22} 
+                }
+                size={22}
                 color={
-                  activeTab === "pending" 
-                    ? "#D97706" 
-                    : activeTab === "closed" 
-                      ? "#64748B" 
+                  activeTab === "pending"
+                    ? "#D97706"
+                    : activeTab === "closed"
+                      ? "#64748B"
                       : PRIMARY_GREEN
-                } 
+                }
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -199,19 +225,25 @@ export default function MyJobsScreen({ navigation }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             {isReferral && (
               <View style={styles.referralBadge}>
-                <Text style={styles.referralBadgeText}>{t("referral", "Referral")}</Text>
+                <Text style={styles.referralBadgeText}>
+                  {t("referral", "Referral")}
+                </Text>
               </View>
             )}
-            <View style={[
-              styles.statusBadge,
-              activeTab === "pending" && { backgroundColor: "#FEF3C7" },
-              activeTab === "closed" && { backgroundColor: "#F1F5F9" }
-            ]}>
-              <Text style={[
-                styles.statusBadgeText,
-                activeTab === "pending" && { color: "#D97706" },
-                activeTab === "closed" && { color: "#64748B" }
-              ]}>
+            <View
+              style={[
+                styles.statusBadge,
+                activeTab === "pending" && { backgroundColor: "#FEF3C7" },
+                activeTab === "closed" && { backgroundColor: "#F1F5F9" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  activeTab === "pending" && { color: "#D97706" },
+                  activeTab === "closed" && { color: "#64748B" },
+                ]}
+              >
                 {(normalizeStatus(job.status) || activeTab).toUpperCase()}
               </Text>
             </View>
@@ -291,7 +323,10 @@ export default function MyJobsScreen({ navigation }) {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.pendingInfoText}>
-                {t("pendingReviewMessage", "This job is currently under review by our admin team.")}
+                {t(
+                  "pendingReviewMessage",
+                  "This job is currently under review by our admin team.",
+                )}
               </Text>
             </View>
           </>
@@ -335,37 +370,66 @@ export default function MyJobsScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+          >
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("allJobs", "My Posted Jobs")}</Text>
+          <Text style={styles.headerTitle}>
+            {t("allJobs", "My Posted Jobs")}
+          </Text>
         </View>
       </View>
 
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "active" && styles.tabButtonActive]}
+          style={[
+            styles.tabButton,
+            activeTab === "active" && styles.tabButtonActive,
+          ]}
           onPress={() => setActiveTab("active")}
         >
-          <Text style={[styles.tabText, activeTab === "active" && styles.tabTextActive]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "active" && styles.tabTextActive,
+            ]}
+          >
             {t("active")} ({activeJobs.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "pending" && styles.tabButtonActive]}
+          style={[
+            styles.tabButton,
+            activeTab === "pending" && styles.tabButtonActive,
+          ]}
           onPress={() => setActiveTab("pending")}
         >
-          <Text style={[styles.tabText, activeTab === "pending" && styles.tabTextActive]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "pending" && styles.tabTextActive,
+            ]}
+          >
             {t("pending")} ({pendingJobs.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "closed" && styles.tabButtonActive]}
+          style={[
+            styles.tabButton,
+            activeTab === "closed" && styles.tabButtonActive,
+          ]}
           onPress={() => setActiveTab("closed")}
         >
-          <Text style={[styles.tabText, activeTab === "closed" && styles.tabTextActive]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "closed" && styles.tabTextActive,
+            ]}
+          >
             {t("closed")} ({closedJobs.length})
           </Text>
         </TouchableOpacity>
@@ -374,7 +438,9 @@ export default function MyJobsScreen({ navigation }) {
       {isLoading && localJobs.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={PRIMARY_GREEN} />
-          <Text style={styles.loadingText}>{t("loading", "Loading jobs...")}</Text>
+          <Text style={styles.loadingText}>
+            {t("loading", "Loading jobs...")}
+          </Text>
         </View>
       ) : (
         <ScrollView
@@ -392,7 +458,9 @@ export default function MyJobsScreen({ navigation }) {
           {activeTab === "active" && (
             <>
               {activeJobs.length === 0 ? (
-                <EmptyState message={t("noActiveJobs", "No active jobs found")} />
+                <EmptyState
+                  message={t("noActiveJobs", "No active jobs found")}
+                />
               ) : (
                 activeJobs.map((job) => renderJobCard(job, true))
               )}
@@ -402,7 +470,9 @@ export default function MyJobsScreen({ navigation }) {
           {activeTab === "pending" && (
             <>
               {pendingJobs.length === 0 ? (
-                <EmptyState message={t("noPendingJobs", "No pending jobs found")} />
+                <EmptyState
+                  message={t("noPendingJobs", "No pending jobs found")}
+                />
               ) : (
                 pendingJobs.map((job) => renderJobCard(job, false))
               )}
@@ -412,7 +482,9 @@ export default function MyJobsScreen({ navigation }) {
           {activeTab === "closed" && (
             <>
               {closedJobs.length === 0 ? (
-                <EmptyState message={t("noClosedJobs", "No closed jobs found")} />
+                <EmptyState
+                  message={t("noClosedJobs", "No closed jobs found")}
+                />
               ) : (
                 closedJobs.map((job) => renderJobCard(job, false))
               )}
@@ -425,7 +497,9 @@ export default function MyJobsScreen({ navigation }) {
         style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
         activeOpacity={0.8}
         onPress={() => {
-          navigation.navigate("Post Referral Job");
+          isEmployer
+            ? navigation.navigate("Post Job")
+            : navigation.navigate("Post Referral Job");
         }}
       >
         <Ionicons name="add" size={28} color="#fff" />
@@ -717,3 +791,5 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 });
+
+

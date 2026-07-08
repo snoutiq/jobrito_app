@@ -28,8 +28,14 @@ export default function PostJobScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
+  const savedBusinessName = profile?.businessName || profile?.company || "";
+  const savedContactName = profile?.name || profile?.full_name || profile?.contactName || "";
 
-  const [step, setStep] = useState(1); // 1: Business Info, 2: Job Details, 3: Contact & Review, 4: Success
+  const [step, setStep] = useState(() => {
+    return savedBusinessName.trim() && savedContactName.trim() ? 2 : 1;
+  }); // 1: Business Info, 2: Job Details, 3: Contact & Review, 4: Success
+  const hasSavedBusinessBasics = savedBusinessName.trim() && savedContactName.trim();
+  const visibleStep = hasSavedBusinessBasics ? Math.max(step, 2) : step;
 
   // Step 1: Business Basics
   const [businessName, setBusinessName] = useState("");
@@ -205,13 +211,13 @@ export default function PostJobScreen({ navigation, route }) {
     let percentage = "0%";
     let title = "";
 
-    if (step === 1) {
+    if (visibleStep === 1) {
       percentage = "33%";
       title = t("step", { current: 1, total: 3 });
-    } else if (step === 2) {
+    } else if (visibleStep === 2) {
       percentage = "66%";
       title = t("step", { current: 2, total: 3 });
-    } else if (step === 3) {
+    } else if (visibleStep === 3) {
       percentage = "100%";
       title = t("step", { current: 3, total: 3 });
     }
@@ -220,8 +226,8 @@ export default function PostJobScreen({ navigation, route }) {
       <View style={styles.progressContainer}>
         <View style={styles.progressTextRow}>
           <Text style={styles.progressStepText}>{title}</Text>
-          {step === 2 && <Text style={styles.progressPercentText}>66% {t("completeProfile.complete", "Complete")}</Text>}
-          {step === 3 && <Text style={styles.progressPercentText}>100%</Text>}
+          {visibleStep === 2 && <Text style={styles.progressPercentText}>66% {t("completeProfile.complete", "Complete")}</Text>}
+          {visibleStep === 3 && <Text style={styles.progressPercentText}>100%</Text>}
         </View>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: percentage }]} />
@@ -241,8 +247,8 @@ export default function PostJobScreen({ navigation, route }) {
           <View style={styles.headerRow}>
             <TouchableOpacity
               onPress={() => {
-                if (step > 1 && step < 4) {
-                  setStep(step - 1);
+                if (visibleStep > 2 && visibleStep < 4) {
+                  setStep(visibleStep - 1);
                 } else {
                   navigation.goBack();
                 }
@@ -262,12 +268,12 @@ export default function PostJobScreen({ navigation, route }) {
                 </TouchableOpacity>
               ) : (
                 <>
-                  {step === 2 && (
+                  {visibleStep === 2 && (
                     <TouchableOpacity style={styles.headerIcon}>
-                      <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+                      {/* <Ionicons name="notifications-outline" size={22} color="#1E293B" /> */}
                     </TouchableOpacity>
                   )}
-                  {profile?.profile_photo_path ? (
+                  {/* {profile?.profile_photo_path ? (
                     <Image
                       source={{ uri: profile.profile_photo_path }}
                       style={styles.headerAvatar}
@@ -276,14 +282,14 @@ export default function PostJobScreen({ navigation, route }) {
                     <View style={styles.headerAvatarFallback}>
                       <Ionicons name="person-outline" size={16} color="#64748B" />
                     </View>
-                  )}
+                  )} */}
                 </>
               )}
             </View>
           </View>
         </View>
 
-        {step < 4 && renderProgress()}
+        {visibleStep < 4 && renderProgress()}
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -291,7 +297,7 @@ export default function PostJobScreen({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* STEP 1: BUSINESS BASICS */}
-          {step === 1 && (
+          {visibleStep === 1 && (
             <View style={styles.stepContainer}>
               {/* Info Card */}
               <View style={styles.infoBox}>
@@ -400,7 +406,7 @@ export default function PostJobScreen({ navigation, route }) {
           )}
 
           {/* STEP 2: JOB DETAILS */}
-          {step === 2 && (
+          {visibleStep === 2 && (
             <View style={styles.stepContainer}>
               {/* Target Region Label */}
               <Text style={styles.inputLabel}>{t("postJob.targetRegion")}</Text>
@@ -669,7 +675,7 @@ export default function PostJobScreen({ navigation, route }) {
           )}
 
           {/* STEP 3: CONTACT & REVIEW */}
-          {step === 3 && (
+          {visibleStep === 3 && (
             <View style={styles.stepContainer}>
 
               {/* Top Banner Card */}
@@ -1338,6 +1344,12 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 });
+
+
+
+
+
+
 
 
 
