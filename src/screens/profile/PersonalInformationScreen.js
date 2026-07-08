@@ -58,7 +58,7 @@ export default function PersonalInformationScreen() {
   const pickFromCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Permission required", "Camera permission is needed to take a photo.");
+      Alert.alert(t("permissionRequired", "Permission required"), t("cameraPermissionRequired", "Camera permission is needed to take a photo."));
       return;
     }
 
@@ -77,7 +77,7 @@ export default function PersonalInformationScreen() {
   const pickFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Permission required", "Gallery permission is needed to choose a photo.");
+      Alert.alert(t("permissionRequired", "Permission required"), t("galleryPermissionRequired", "Gallery permission is needed to choose a photo."));
       return;
     }
 
@@ -94,13 +94,13 @@ export default function PersonalInformationScreen() {
   };
 
   const handleSave = () => {
-    Alert.alert("Saved", "Profile details saved locally.");
+    Alert.alert(t("success", "Saved"), t("profileSavedLocally", "Profile details saved locally."));
   };
 
   return (
     <ScreenWrapper contentStyle={styles.page}>
       <View style={styles.progressHeader}>
-        <Text style={styles.progressLabel}>Profile Completion</Text>
+        <Text style={styles.progressLabel}>{t("profile.profileComplete", "Profile Complete {{completion}}%", { completion: "" }).replace("{{completion}}%", "")}</Text>
         <Text style={styles.progressValue}>{profileCompletion}%</Text>
       </View>
       <View style={styles.progressTrack}>
@@ -121,35 +121,35 @@ export default function PersonalInformationScreen() {
           </View>
         </Pressable>
 
-        <Text style={styles.title}>Create your profile</Text>
-        <Text style={styles.subtitle}>Tell us a bit about your professional self</Text>
+        <Text style={styles.title}>{t("profile.title", "Basic Profile")}</Text>
+        <Text style={styles.subtitle}>{t("profile.subtitle", "Please provide your basic information to complete your profile.")}</Text>
       </View>
 
       <View style={styles.card}>
         <AppInput
-          label="Full Name"
+          label={t("fullName", "Full Name")}
           value={form.fullName}
           onChangeText={(value) => updateField("fullName", value)}
-          placeholder="Enter full name"
+          placeholder={t("enterFullName", "Enter your full name")}
         />
         <AppInput
-          label="Email Address"
+          label={t("profile.email", "Email Address")}
           value={form.email}
           onChangeText={(value) => updateField("email", value)}
           keyboardType="email-address"
-          placeholder="Enter email address"
+          placeholder={t("enterEmailAddress", "Enter email address")}
         />
         <AppInput
-          label="City"
+          label={t("profile.city", "City")}
           value={form.city}
           onChangeText={(value) => updateField("city", value)}
-          placeholder="Enter city"
+          placeholder={t("enterCity", "Enter city")}
         />
         <AppInput
-          label="Current Employer"
+          label={t("currentEmployer", "Current Employer")}
           value={form.currentEmployer}
           onChangeText={(value) => updateField("currentEmployer", value)}
-          placeholder="Enter current employer"
+          placeholder={t("enterCurrentEmployer", "Enter current employer")}
         />
 
         <View style={styles.selectField}>
@@ -176,10 +176,10 @@ export default function PersonalInformationScreen() {
         </View>
 
         <AppInput
-          label="Preferred Role"
+          label={t("preferredRole", "Preferred Role")}
           value={form.preferredRole}
           onChangeText={(value) => updateField("preferredRole", value)}
-          placeholder="Enter preferred role"
+          placeholder={t("enterPreferredRole", "Enter preferred role")}
         />
 
         <View style={styles.skillsHeader}>
@@ -193,10 +193,10 @@ export default function PersonalInformationScreen() {
         {showSkillInput ? (
           <View style={styles.skillInputRow}>
             <AppInput
-              label="Skill"
+              label={t("skill", "Skill")}
               value={newSkill}
               onChangeText={setNewSkill}
-              placeholder="Enter skill"
+              placeholder={t("enterSkill", "Enter skill")}
               containerStyle={styles.skillInput}
             />
             <Pressable onPress={confirmAddSkill} style={styles.skillAddButton}>

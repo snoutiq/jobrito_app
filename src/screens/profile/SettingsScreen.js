@@ -89,27 +89,27 @@ export default function SettingsScreen({ navigation }) {
 
   const accountRows = [
     {
-      label: "Business Name",
+      label: isEmployer ? t("postJob.businessName", "Business Name") : t("currentEmployer", "Current Employer"),
       value: businessName || "-",
       icon: "business-outline",
     },
     {
-      label: "Contact Person",
+      label: isEmployer ? t("postJob.contactPerson", "Contact Person") : t("fullName", "Full Name"),
       value: contactName || "-",
       icon: "person-outline",
     },
     {
-      label: "Mobile Number",
+      label: t("postJob.phoneNumber", "Mobile Number"),
       value: mobileNumber || "-",
       icon: "call-outline",
     },
     {
-      label: "Email",
+      label: t("postJob.emailAddress", "Email"),
       value: email || "-",
       icon: "mail-outline",
     },
     {
-      label: "Location",
+      label: t("postJob.location", "Location"),
       value: location || "-",
       icon: "location-outline",
     },
@@ -121,7 +121,7 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>{t("profileTab", "Profile")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -135,12 +135,14 @@ export default function SettingsScreen({ navigation }) {
             </View>
           )}
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{contactName || businessName || "Employer"}</Text>
-            <Text style={styles.profileSub}>{businessName || "Business profile"}</Text>
+            <Text style={styles.profileName}>{contactName || businessName || t("guest", "Guest User")}</Text>
+            <Text style={styles.profileSub}>{isEmployer ? (businessName || t("businessProfile", "Business profile")) : t("chef", "Chef")}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Business Information</Text>
+        <Text style={styles.sectionTitle}>
+          {isEmployer ? t("postJob.businessBasics", "Business Information") : t("personalInformation", "Personal Information")}
+        </Text>
         <View style={styles.sectionCard}>
           {accountRows.map((item, index) => (
             <React.Fragment key={item.label}>
@@ -158,17 +160,17 @@ export default function SettingsScreen({ navigation }) {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Account Status & Activity</Text>
+        <Text style={styles.sectionTitle}>{t("accountStatusActivity", "Account Status & Activity")}</Text>
         <View style={styles.sectionCard}>
           <View style={styles.actionRow}>
             <View style={styles.actionLeft}>
               <View style={styles.actionIconWrap}>
                 <Ionicons name="speedometer-outline" size={18} color={PRIMARY_GREEN} />
               </View>
-              <Text style={styles.actionLabel}>Dashboard</Text>
+              <Text style={styles.actionLabel}>{t("dashboard", "Dashboard")}</Text>
             </View>
             <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("Tabs")}>
-              <Text style={styles.pillButtonText}>Go to Dashboard</Text>
+              <Text style={styles.pillButtonText}>{t("postJob.goDashboard", "Go to Dashboard")}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
@@ -177,21 +179,21 @@ export default function SettingsScreen({ navigation }) {
               <View style={styles.actionIconWrap}>
                 <Ionicons name="people-outline" size={18} color={PRIMARY_GREEN} />
               </View>
-              <Text style={styles.actionLabel}>Chef Connect</Text>
+              <Text style={styles.actionLabel}>{t("chefConnect", "Chef Connect")}</Text>
             </View>
             <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("ChefConnectFilters")}>
-              <Text style={styles.pillButtonText}>View Profiles</Text>
+              <Text style={styles.pillButtonText}>{t("viewProfiles")}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Settings & Support</Text>
+        <Text style={styles.sectionTitle}>{t("chefDashboard.settingsSupport", "Settings & Support")}</Text>
         <View style={styles.sectionCard}>
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate(isEmployer ? "EmployerCompleteProfile" : "PersonalInformation", 
             isEmployer ? { isEditMode: true } : undefined)}>
             <View style={styles.menuLeft}>
               <Ionicons name="create-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>Edit Profile</Text>
+              <Text style={styles.menuText}>{t("editProfile", "Edit Profile")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
@@ -199,7 +201,7 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Language")}>
             <View style={styles.menuLeft}>
               <Ionicons name="globe-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>Change Language</Text>
+              <Text style={styles.menuText}>{t("profile.menu.language", "Change Language")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
@@ -207,7 +209,7 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("HelpSupport")}>
             <View style={styles.menuLeft}>
               <Ionicons name="help-circle-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>Help & Support</Text>
+              <Text style={styles.menuText}>{t("helpSupport", "Help & Support")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
@@ -215,7 +217,7 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
             <View style={styles.menuLeft}>
               <Ionicons name="log-out-outline" size={18} color="#EF4444" />
-              <Text style={styles.logoutText}>Logout</Text>
+              <Text style={styles.logoutText}>{t("logout", "Logout")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#EF4444" />
           </TouchableOpacity>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
@@ -8,6 +9,7 @@ import { ROLE_LIST } from "../../constants/roles";
 import { switchUserRole } from "../../redux/slices/userSlice";
 
 export default function RoleSwitcherScreen({ navigation }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.user.activeRole);
   const [selectedRole, setSelectedRole] = useState(currentRole);
@@ -19,11 +21,18 @@ export default function RoleSwitcherScreen({ navigation }) {
     }
   };
 
+  const getRoleLabel = (role) => {
+    if (role === "job_seeker") return t("roleSelection.jobseeker", "Talent");
+    if (role === "employer") return t("roleSelection.employer", "Post a Job");
+    if (role === "chef") return t("roleSelection.chef", "Register as Chef");
+    return role;
+  };
+
   return (
     <ScreenWrapper>
       <View style={styles.header}>
-        <Text style={styles.title}>Switch Role</Text>
-        <Text style={styles.subtitle}>Select the active workspace role.</Text>
+        <Text style={styles.title}>{t("switchRole", "Switch Role")}</Text>
+        <Text style={styles.subtitle}>{t("selectActiveWorkspaceRole", "Select the active workspace role.")}</Text>
       </View>
 
       <View style={{ gap: 12 }}>
@@ -35,13 +44,15 @@ export default function RoleSwitcherScreen({ navigation }) {
               onPress={() => setSelectedRole(role)}
               style={[styles.option, active && styles.optionActive]}
             >
-              <Text style={[styles.optionText, active && styles.optionTextActive]}>{role}</Text>
+              <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                {getRoleLabel(role)}
+              </Text>
             </Pressable>
           );
         })}
       </View>
 
-      <AppButton title="Save Role" onPress={handleSave} />
+      <AppButton title={t("saveRole", "Save Role")} onPress={handleSave} />
     </ScreenWrapper>
   );
 }

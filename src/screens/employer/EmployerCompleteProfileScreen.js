@@ -478,10 +478,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           <TouchableOpacity onPress={prev} style={styles.backButton}>
             <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{isEditMode ? "Edit Profile" : "Complete Profile"}</Text>
+          <Text style={styles.headerTitle}>{isEditMode ? t("editProfile", "Edit Profile") : t("completeProfileTitle", "Complete Profile")}</Text>
           <View style={styles.stepBadge}>
             <Text style={styles.stepBadgeText}>
-              {step === 5 ? "100%" : `Step ${step} of 5`}
+              {step === 5 ? "100%" : t("step", { current: step, total: 5 }).replace("{{current}}", step).replace("{{total}}", 5)}
             </Text>
           </View>
         </View>
@@ -489,7 +489,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         {/* Progress Bar */}
         <View style={styles.progressSection}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Onboarding Progress</Text>
+            <Text style={styles.progressLabel}>{t("onboardingProgress", "Onboarding Progress")}</Text>
             <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{progress}%</Text>
           </View>
           <View style={styles.progressBarBg}>
@@ -505,14 +505,14 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           {/* STEP 1: BUSINESS INFORMATION */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Business Information</Text>
+              <Text style={styles.stepTitle}>{t("businessInformation", "Business Information")}</Text>
               <Text style={styles.stepSubtitle}>
-                Tell us about your establishment to help us find the right talent for your team.
+                {t("employerCompleteProfile.step1Subtitle", "Tell us about your establishment to help us find the right talent for your team.")}
               </Text>
 
               {/* Business Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Business Name <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("postJob.businessName", "Business Name")} <Text style={styles.required}>*</Text></Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "businessName" && styles.inputWrapperActive
@@ -520,8 +520,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={businessName}
                     onChangeText={setBusinessName}
-                    placeholder="e.g. The Green Kitchen"
-                    placeholder="Enter business name"
+                    placeholder={t("employerCompleteProfile.enterBusinessName", "Enter business name")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessName")}
@@ -533,7 +532,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Industry Segment Dropdown */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Industry Segment <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("industrySegment", "Industry Segment")} <Text style={styles.required}>*</Text></Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowSegmentDropdown(!showSegmentDropdown)}
@@ -543,7 +542,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   ]}
                 >
                   <Text style={[styles.textInput, !industrySegment && { color: "#94A3B8" }]}>
-                    {industrySegment || "Select an industry segment"}
+                    {industrySegment || t("employerCompleteProfile.selectIndustrySegment", "Select an industry segment")}
                   </Text>
                   <Ionicons name={showSegmentDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
                 </TouchableOpacity>
@@ -570,7 +569,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Business Location */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Business Location <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("businessLocation", "Business Location")} <Text style={styles.required}>*</Text></Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "businessLocation" && styles.inputWrapperActive
@@ -579,8 +578,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={businessLocation}
                     onChangeText={setBusinessLocation}
-                    placeholder="Search city or street"
-                    placeholder="Enter business location"
+                    placeholder={t("employerCompleteProfile.enterBusinessLocation", "Enter business location")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessLocation")}
@@ -600,7 +598,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <View style={[styles.mapRoad, { left: 120, width: 22, height: "100%" }]} />
                   {/* Pin */}
                   <View style={styles.mapPin}>
-                    <Ionicons name="location" size={38} color={PRIMARY_GREEN} />
+                     <Ionicons name="location" size={38} color={PRIMARY_GREEN} />
                   </View>
                 </View>
 
@@ -617,7 +615,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Ionicons name="locate" size={18} color={PRIMARY_GREEN} />
                   )}
                   <Text style={styles.gpsButtonText}>
-                    {isLocating ? "Fetching location..." : "Use current location"}
+                    {isLocating ? t("fetchingLocation", "Fetching location...") : t("useCurrentLocation", "Use current location")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -626,7 +624,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               <View style={styles.infoCard}>
                 <Ionicons name="information-circle-outline" size={22} color="#0284C7" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardText}>
-                  This information will be visible to potential candidates to help them understand your brand and location proximity.
+                  {t("employerCompleteProfile.infoCardText1", "This information will be visible to potential candidates to help them understand your brand and location proximity.")}
                 </Text>
               </View>
 
@@ -639,24 +637,24 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={next}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.footerText}>You can edit these details later in your dashboard.</Text>
+              <Text style={styles.footerText}>{t("editDetailsLaterMsg", "You can edit these details later in your dashboard.")}</Text>
             </View>
           )}
 
           {/* STEP 2: BUSINESS INFORMATION (CONTACT) */}
           {step === 2 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Business Information</Text>
+              <Text style={styles.stepTitle}>{t("businessInformation", "Business Information")}</Text>
               <Text style={styles.stepSubtitle}>
-                Provide details so we can reach out regarding high-quality candidates and updates.
+                {t("employerCompleteProfile.step2Subtitle", "Provide details so we can reach out regarding high-quality candidates and updates.")}
               </Text>
 
               {/* Contact Person Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Contact Person Name</Text>
+                <Text style={styles.inputLabel}>{t("postJob.contactPerson", "Contact Person Name")}</Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "contactName" && styles.inputWrapperActive
@@ -665,7 +663,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={contactName}
                     onChangeText={setContactName}
-                    placeholder="Enter full name"
+                    placeholder={t("enterFullName", "Enter full name")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("contactName")}
@@ -676,7 +674,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Mobile Number */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Business Mobile Number</Text>
+                <Text style={styles.inputLabel}>{t("postJob.phoneNumber", "Business Mobile Number")}</Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "contactPhone" && styles.inputWrapperActive
@@ -685,8 +683,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={contactPhone}
                     onChangeText={setContactPhone}
-                    placeholder="+971 00 000 0000"
-                    placeholder="Enter business mobile number"
+                    placeholder={t("employerCompleteProfile.enterBusinessMobile", "Enter business mobile number")}
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
                     maxLength={10}
@@ -699,7 +696,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Email Address */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Business Email Address</Text>
+                <Text style={styles.inputLabel}>{t("postJob.emailAddress", "Business Email Address")}</Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "contactEmail" && styles.inputWrapperActive
@@ -708,8 +705,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={contactEmail}
                     onChangeText={setContactEmail}
-                    placeholder="example@business.com"
-                    placeholder="Enter business email address"
+                    placeholder={t("employerCompleteProfile.enterBusinessEmail", "Enter business email address")}
                     placeholderTextColor="#94A3B8"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -722,7 +718,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Preferred Language */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Preferred Language</Text>
+                <Text style={styles.inputLabel}>{t("preferredLanguage", "Preferred Language")}</Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowLangDropdown(!showLangDropdown)}
@@ -771,7 +767,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   {privacyChecked && <Ionicons name="checkmark" size={14} color="#fff" />}
                 </View>
                 <Text style={styles.checkboxLabel}>
-                  Your information is protected and will only be used for reachout and applicant notifications.
+                  {t("employerCompleteProfile.privacyText", "Your information is protected and will only be used for reachout and applicant notifications.")}
                 </Text>
               </TouchableOpacity>
 
@@ -784,7 +780,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={next}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -793,13 +789,13 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           {/* STEP 3: BUSINESS PROFILE */}
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Business Profile</Text>
+              <Text style={styles.stepTitle}>{t("businessProfile", "Business Profile")}</Text>
               <Text style={styles.stepSubtitle}>
-                Upload your logo and add the physical locations where your hospitality team will be working.
+                {t("employerCompleteProfile.step3Subtitle", "Upload your logo and add the physical locations where your hospitality team will be working.")}
               </Text>
 
               {/* Company Logo Upload */}
-              <Text style={styles.sectionHeaderTitle}>Company Logo</Text>
+              <Text style={styles.sectionHeaderTitle}>{t("companyLogo", "Company Logo")}</Text>
               <TouchableOpacity
                 style={styles.logoUploadBox}
                 activeOpacity={0.7}
@@ -815,23 +811,23 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   ) : (
                     <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
                   )}
-                  <Text style={styles.logoUploadText}>{logoUploaded ? "Change Logo" : "Upload"}</Text>
+                  <Text style={styles.logoUploadText}>{logoUploaded ? t("changeLogo", "Change Logo") : t("upload", "Upload")}</Text>
                 </View>
               </TouchableOpacity>
-              <Text style={styles.logoSubtext}>PNG, JPG up to 5MB. Recommended square format.</Text>
+              <Text style={styles.logoSubtext}>{t("logoRecommendedFormat", "PNG, JPG up to 5MB. Recommended square format.")}</Text>
 
               {/* Operational Locations Section */}
               <View style={styles.rowSpaceBetween}>
-                <Text style={styles.sectionHeaderTitle}>Operational Locations</Text>
+                <Text style={styles.sectionHeaderTitle}>{t("operationalLocations", "Operational Locations")}</Text>
                 <View style={styles.mandatoryBadge}>
-                  <Text style={styles.mandatoryBadgeText}>MANDATORY</Text>
+                  <Text style={styles.mandatoryBadgeText}>{t("mandatory", "MANDATORY")}</Text>
                 </View>
               </View>
 
               {locations.map((loc, idx) => (
                 <View key={loc.id} style={styles.locationCard}>
                   <View style={styles.locationCardHeader}>
-                    <Text style={styles.locationCardTitle}>Location #{idx + 1}</Text>
+                    <Text style={styles.locationCardTitle}>{t("location", "Location")} #{idx + 1}</Text>
                     {locations.length > 1 && (
                       <TouchableOpacity onPress={() => removeLocation(loc.id)}>
                         <Ionicons name="trash-outline" size={18} color="#EF4444" />
@@ -845,7 +841,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                       <TextInput
                         value={loc.address}
                         onChangeText={(val) => handleLocationChange(loc.id, "address", val)}
-                        placeholder="Enter building, street or venue name"
+                        placeholder={t("employerCompleteProfile.enterLocationAddress", "Enter building, street or venue name")}
                         placeholderTextColor="#94A3B8"
                         style={styles.textInput}
                       />
@@ -857,7 +853,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                       <TextInput
                         value={loc.cityPostcode}
                         onChangeText={(val) => handleLocationChange(loc.id, "cityPostcode", val)}
-                        placeholder="City, Postcode"
+                        placeholder={t("employerCompleteProfile.enterCityPostcode", "City, Postcode")}
                         placeholderTextColor="#94A3B8"
                         style={[styles.textInput, { paddingLeft: 12 }]}
                       />
@@ -873,14 +869,14 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={addLocation}
               >
                 <Ionicons name="add" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.addLocationButtonText}>Add Another Location</Text>
+                <Text style={styles.addLocationButtonText}>{t("addAnotherLocation", "Add Another Location")}</Text>
               </TouchableOpacity>
 
               {/* Info Card */}
               <View style={styles.infoCard}>
                 <Ionicons name="information-circle-outline" size={22} color="#0284C7" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardText}>
-                  Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.
+                  {t("employerCompleteProfile.infoCardText2", "Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.")}
                 </Text>
               </View>
 
@@ -890,7 +886,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={next}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -899,9 +895,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           {/* STEP 4: TALENT MANAGER DETAILS */}
           {step === 4 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Talent Manager Details</Text>
+              <Text style={styles.stepTitle}>{t("talentManagerDetails", "Talent Manager Details")}</Text>
               <Text style={styles.stepSubtitle}>
-                Please provide the contact details for your business nominee or secondary contact person.
+                {t("employerCompleteProfile.step4Subtitle", "Please provide the contact details for your business nominee or secondary contact person.")}
               </Text>
 
               {/* Full Name */}
@@ -914,15 +910,14 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={managerName}
                     onChangeText={setManagerName}
-                    placeholder="Full Name"
-                    placeholder="Enter full name"
+                    placeholder={t("enterFullName", "Enter full name")}
                     placeholderTextColor="#94A3B8"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("managerName")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
-                <Text style={styles.inputSubtext}>Legal name as per identity documents.</Text>
+                <Text style={styles.inputSubtext}>{t("legalNameAsPerIdentity", "Legal name as per identity documents.")}</Text>
               </View>
 
               {/* Select Relationship Dropdown */}
@@ -937,7 +932,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 >
                   <Ionicons name="people-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
                   <Text style={[styles.textInput, !managerRelationship && { color: "#94A3B8" }]}>
-                    {managerRelationship || "Select Relationship"}
+                    {managerRelationship || t("employerCompleteProfile.selectRelationship", "Select Relationship")}
                   </Text>
                   <Ionicons name={showRelationDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
                 </TouchableOpacity>
@@ -972,8 +967,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <TextInput
                     value={managerPhone}
                     onChangeText={setManagerPhone}
-                    placeholder="Mobile Number"
-                    placeholder="Enter mobile number"
+                    placeholder={t("employerCompleteProfile.enterMobileNumber", "Enter mobile number")}
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
                     maxLength={10}
@@ -982,16 +976,16 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
-                <Text style={styles.inputSubtext}>Used for emergency and business verification.</Text>
+                <Text style={styles.inputSubtext}>{t("employerCompleteProfile.verificationMobileNote", "Used for emergency and business verification.")}</Text>
               </View>
 
               {/* Secure Verification Box */}
               <View style={styles.secureCard}>
                 <Ionicons name="shield-checkmark" size={28} color={PRIMARY_GREEN} style={styles.secureCardIcon} />
                 <View style={styles.secureCardContent}>
-                  <Text style={styles.secureCardTitle}>Secure Verification</Text>
+                  <Text style={styles.secureCardTitle}>{t("employerCompleteProfile.secureVerificationTitle", "Secure Verification")}</Text>
                   <Text style={styles.secureCardText}>
-                    We prioritize data privacy. Nominee details are only used for legal compliance and essential platform updates.
+                    {t("employerCompleteProfile.secureVerificationText", "We prioritize data privacy. Nominee details are only used for legal compliance and essential platform updates.")}
                   </Text>
                 </View>
               </View>
@@ -1005,10 +999,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={next}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.footerNoteText}>All fields are mandatory to proceed</Text>
+              <Text style={styles.footerNoteText}>{t("employerCompleteProfile.allFieldsMandatory", "All fields are mandatory to proceed")}</Text>
             </View>
           )}
 
@@ -1024,9 +1018,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              <Text style={[styles.stepTitle, { textAlign: "center" }]}>All Set!</Text>
+              <Text style={[styles.stepTitle, { textAlign: "center" }]}>{t("allSet", "All Set!")}</Text>
               <Text style={[styles.stepSubtitle, { textAlign: "center", marginBottom: 24 }]}>
-                Your employer profile has been completed successfully. You can now start posting jobs and reviewing applicants.
+                {t("employerProfileSuccessMsg", "Your employer profile has been completed successfully. You can now start posting jobs and reviewing applicants.")}
               </Text>
 
               {/* Card 1: Business Card */}
@@ -1048,7 +1042,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Card 2: Operational Locations */}
               <View style={styles.summaryCard}>
                 <Text style={styles.summarySectionTitle}>
-                  <Ionicons name="location-outline" size={16} color="#64748B" /> Operational Locations
+                  <Ionicons name="location-outline" size={16} color="#64748B" /> {t("operationalLocations", "Operational Locations")}
                 </Text>
                 <View style={styles.locationPillsRow}>
                   {locations.slice(0, 3).map((loc, index) => (
@@ -1061,7 +1055,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   {locations.length > 3 && (
                     <View style={[styles.locationPill, { backgroundColor: "#F1F5F9" }]}>
                       <Text style={[styles.locationPillText, { color: "#64748B" }]}>
-                        +{locations.length - 3} others
+                        +{locations.length - 3} {t("others", "others")}
                       </Text>
                     </View>
                   )}
@@ -1073,7 +1067,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 {/* Contact Column */}
                 <View style={[styles.summaryCard, { flex: 1, marginRight: 8 }]}>
                   <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="person-outline" size={16} color="#64748B" /> Contact
+                    <Ionicons name="person-outline" size={16} color="#64748B" /> {t("postJob.contactPerson", "Contact")}
                   </Text>
                   <Text style={styles.columnNameText}>{contactName || "Aryan Jain"}</Text>
                   <Text style={styles.columnSubtitleText}>Operations Manager</Text>
@@ -1082,7 +1076,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 {/* Language Column */}
                 <View style={[styles.summaryCard, { flex: 1, marginLeft: 8 }]}>
                   <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="globe-outline" size={16} color="#64748B" /> Language
+                    <Ionicons name="globe-outline" size={16} color="#64748B" /> {t("language", "Language")}
                   </Text>
                   <Text style={styles.columnNameText}>{preferredLanguage || "English (UK)"}</Text>
                   <Text style={styles.columnSubtitleText}>Primary Interface</Text>
@@ -1096,12 +1090,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Ionicons name="business-outline" size={20} color={PRIMARY_GREEN} />
                   </View>
                   <View>
-                    <Text style={styles.columnSubtitleText}>Business Type</Text>
+                    <Text style={styles.columnSubtitleText}>{t("employerCompleteProfile.businessType", "Business Type")}</Text>
                     <Text style={styles.businessTypeText}>{industrySegment || "Luxury Hotel Chain"}</Text>
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
-                  <Text style={styles.editButtonText}>Edit</Text>
+                  <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
                   <Ionicons name="pencil" size={14} color={PRIMARY_GREEN} />
                 </TouchableOpacity>
               </View>
@@ -1112,7 +1106,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 onPress={finishOnboarding}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>{isEditMode ? "Save Profile" : "Start Posting Jobs"}</Text>
+                <Text style={styles.continueButtonText}>{isEditMode ? t("saveProfile", "Save Profile") : t("postJob.postNew", "Start Posting Jobs")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
