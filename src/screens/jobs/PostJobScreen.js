@@ -18,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { submitCommunityJob, storeEmployerJob } from "../../redux/slices/jobSlice";
 import { setProfileData } from "../../redux/slices/userSlice";
-import { setEmployerOnboardingCompleted } from "../../services/storage";
+import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import colors from "../../constants/colors";
 
 const PRIMARY_GREEN = "#22C55E";
@@ -121,15 +121,20 @@ export default function PostJobScreen({ navigation, route }) {
     setStep(3);
   };
   
+    const persistEmployerOnboardingComplete = async () => {
+    const updatedProfile = {
+      ...profile,
+      employerOnboardingCompleted: true,
+    };
+
+    await setStoredProfile(updatedProfile);
+    await setEmployerOnboardingCompleted();
+    dispatch(setProfileData(updatedProfile));
+  };
+
   const handleExitOnboarding = async () => {
     try {
-      await setEmployerOnboardingCompleted();
-      dispatch(
-        setProfileData({
-          ...profile,
-          employerOnboardingCompleted: true,
-        })
-      );
+      await persistEmployerOnboardingComplete();
     } catch (err) {
       console.warn("Failed to complete onboarding:", err);
     }
@@ -163,9 +168,9 @@ export default function PostJobScreen({ navigation, route }) {
       const result = await dispatch(storeEmployerJob(jobData));
 
       if (storeEmployerJob.fulfilled.match(result)) {
-        if (route.params?.isOnboarding) {
-          // Save completion in local storage (so restart doesn't reload onboarding screen)
-          await setEmployerOnboardingCompleted();
+                if (route.params?.isOnboarding) {
+          // Save completion in local storage and profile storage so restart doesn''t reload onboarding screen.
+          await persistEmployerOnboardingComplete();
         }
         setStep(4);
       } else {
@@ -1333,3 +1338,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 });
+
+
+

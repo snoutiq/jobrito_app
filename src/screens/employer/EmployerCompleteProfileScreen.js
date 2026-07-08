@@ -396,7 +396,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
         nominee_mobile: managerPhone,
         company_logo: logoUri,
         role: "employer",
-        employerOnboardingCompleted: false,
+        employerOnboardingCompleted: true,
         ...(apiResponse?.data || apiResponse || {}),
       };
 
@@ -413,7 +413,7 @@ export default function EmployerCompleteProfileScreen({ navigation }) {
           {
             text: "OK",
             onPress: () => {
-              navigation.navigate("EmployerFirstJobPost", { isOnboarding: true });
+              navigation.navigate("Post Job", { isOnboarding: true });
             }
           }
         ]
@@ -1618,3 +1618,6 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
   },
 });
+
+
+
