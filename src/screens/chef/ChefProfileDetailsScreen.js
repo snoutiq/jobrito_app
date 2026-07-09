@@ -9,6 +9,8 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  Alert,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -45,6 +47,20 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       </SafeAreaView>
     );
   }
+
+  const handleOpenBooking = () => {
+    const url = chef?.calendly_link || chef?.calendlyUrl;
+    if (url && url.trim()) {
+      Linking.openURL(url).catch((err) => {
+        Alert.alert("Error", "Could not open Calendly link: " + err.message);
+      });
+    } else {
+      Alert.alert(
+        "Calendly Not Linked", 
+        "This chef has not integrated their Calendly calendar yet. Please contact them directly."
+      );
+    }
+  };
 
   const displayName = chef.full_name || chef.name || "Chef Rajesh Kumar";
   const displayTitle = chef.cuisine_specialty || "Culinary Consultant";
@@ -329,7 +345,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           <TouchableOpacity
             style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
             activeOpacity={0.8}
-            onPress={() => setBookingVisible(true)}
+            onPress={handleOpenBooking}
           >
             <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
