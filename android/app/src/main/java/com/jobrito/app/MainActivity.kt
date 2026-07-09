@@ -1,4 +1,4 @@
-package com.ankit8602.jobconnecthospitalityworkforce
+package com.jobrito.app
 
 import android.os.Build
 import android.os.Bundle
