@@ -13,7 +13,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.ankit8602.jobconnecthospitalityworkforce"
+      "package": "com.jobrito.app"
     },
     "web": {}
   }
