@@ -13,6 +13,8 @@ import {
   BackHandler,
   ActivityIndicator,
   Modal,
+  Clipboard,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -20,7 +22,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
 import { setProfileData, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
-import { setChefOnboardingCompleted, setStoredProfile, clearAuthStorage } from "../../services/storage";
+import { 
+  setChefOnboardingCompleted, 
+  setStoredProfile, 
+  clearAuthStorage,
+  getChefOnboardingStep,
+  setChefOnboardingStep,
+  removeChefOnboardingStep
+} from "../../services/storage";
 import * as ImagePicker from "expo-image-picker";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
@@ -105,6 +114,34 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     }
   }, []);
 
+  useEffect(() => {
+    const loadSavedStep = async () => {
+      try {
+        const savedStep = await getChefOnboardingStep();
+        if (savedStep) {
+          const parsedStep = parseInt(savedStep, 10);
+          if (parsedStep >= 1 && parsedStep <= 7) {
+            setStep(parsedStep);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load onboarding step:", e);
+      }
+    };
+    loadSavedStep();
+  }, []);
+
+  useEffect(() => {
+    const saveCurrentStep = async () => {
+      try {
+        await setChefOnboardingStep(step);
+      } catch (e) {
+        console.error("Failed to save onboarding step:", e);
+      }
+    };
+    saveCurrentStep();
+  }, [step]);
+
   // --- Step 2 State ---
   const [selectedCuisines, setSelectedCuisines] = useState([]);
   const [selectedOperations, setSelectedOperations] = useState([]);
@@ -140,7 +177,31 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
   // --- Step 4 State ---
   const [calendlyLink, setCalendlyLink] = useState("");
-  const [calendlyConnected, setCalendlyConnected] = useState(false);
+
+  const handleCreateCalendlyAccount = () => {
+    Linking.openURL("https://calendly.com/signup").catch((err) => {
+      Alert.alert("Error", "Could not open browser: " + err.message);
+    });
+  };
+
+  const handleCopyCalendlySignupLink = () => {
+    Clipboard.setString("https://calendly.com/signup");
+    Alert.alert("Link Copied", "Calendly signup URL copied to clipboard!");
+  };
+
+  const handlePasteCalendlyLink = async () => {
+    try {
+      const content = await Clipboard.getString();
+      if (content && content.trim()) {
+        setCalendlyLink(content.trim());
+        Alert.alert("Success", "Calendly link pasted successfully!");
+      } else {
+        Alert.alert("Clipboard Empty", "No content found in clipboard to paste.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to paste from clipboard.");
+    }
+  };
 
   // --- Step 5 State ---
   const [linkedinLink, setLinkedinLink] = useState("");
@@ -507,6 +568,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     dispatch(setProfileData(profilePayload));
     await setChefOnboardingCompleted();
     await setStoredProfile(profilePayload);
+    await removeChefOnboardingStep();
 
     try {
       if (targetTab === "Profile") {
@@ -1190,17 +1252,17 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   </View>
                   <View style={[
                     styles.connectBadge, 
-                    calendlyConnected ? styles.connectBadgeSuccess : styles.connectBadgePending
+                    calendlyLink.trim() ? styles.connectBadgeSuccess : styles.connectBadgePending
                   ]}>
                     <View style={[
                       styles.connectBadgeDot, 
-                      calendlyConnected ? { backgroundColor: "#16A34A" } : { backgroundColor: "#94A3B8" }
+                      calendlyLink.trim() ? { backgroundColor: "#16A34A" } : { backgroundColor: "#94A3B8" }
                     ]} />
                     <Text style={[
                       styles.connectBadgeText,
-                      calendlyConnected ? { color: "#16A34A" } : { color: "#64748B" }
+                      calendlyLink.trim() ? { color: "#16A34A" } : { color: "#64748B" }
                     ]}>
-                      {calendlyConnected ? "Connected" : "Not Connected"}
+                      {calendlyLink.trim() ? "Link Added" : "Not Connected"}
                     </Text>
                   </View>
                 </View>
@@ -1212,10 +1274,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     <Ionicons name="link-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
                     <TextInput
                       value={calendlyLink}
-                      onChangeText={(val) => {
-                        setCalendlyLink(val);
-                        if (!val.trim()) setCalendlyConnected(false);
-                      }}
+                      onChangeText={setCalendlyLink}
                       placeholder="calendly.com/your-name"
                       placeholderTextColor="#94A3B8"
                       autoCapitalize="none"
@@ -1227,27 +1286,37 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   <Text style={styles.inputSubtext}>
                     Paste your personal Calendly scheduling link to enable direct booking for hospitality shifts.
                   </Text>
-                </View>
 
-                {/* Connect Button */}
-                <TouchableOpacity
-                  style={[
-                    styles.connectButton,
-                    !calendlyLink.trim() && styles.connectButtonDisabled
-                  ]}
-                  onPress={() => {
-                    if (calendlyLink.trim()) {
-                      setCalendlyConnected(true);
-                      Alert.alert("Success", "Calendly link connected successfully!");
-                    }
-                  }}
-                  disabled={!calendlyLink.trim()}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.connectButtonText}>
-                    {calendlyConnected ? "Connected" : "Connect"}
-                  </Text>
-                </TouchableOpacity>
+                  {/* Calendly Helper Actions */}
+                  <View style={styles.helperActionsRow}>
+                    <TouchableOpacity
+                      style={styles.helperActionButton}
+                      onPress={handleCreateCalendlyAccount}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="open-outline" size={16} color="#2563EB" />
+                      <Text style={[styles.helperActionText, { color: "#2563EB" }]}>Create Account</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.helperActionButton}
+                      onPress={handleCopyCalendlySignupLink}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="copy-outline" size={16} color="#475569" />
+                      <Text style={[styles.helperActionText, { color: "#475569" }]}>Copy Link</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.helperActionButton}
+                      onPress={handlePasteCalendlyLink}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="clipboard-outline" size={16} color="#16A34A" />
+                      <Text style={[styles.helperActionText, { color: "#16A34A" }]}>Paste Link</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
 
               {/* Why Connect Info Card */}
@@ -1319,7 +1388,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                           <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
                         </View>
                       ) : (
-                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
                     <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
@@ -1358,7 +1427,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                           <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
                         </View>
                       ) : (
-                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
                     <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
@@ -1397,7 +1466,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                           <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
                         </View>
                       ) : (
-                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
                     <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
@@ -1417,8 +1486,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   }}
                 >
                   <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#1DA1F2" }]}>
-                      <Ionicons name="logo-twitter" size={20} color="#fff" />
+                    <View style={[styles.socialIconBox, { backgroundColor: "#64748B" }]}>
+                      <Ionicons name="add-outline" size={20} color="#fff" />
                     </View>
                     <View style={{ marginLeft: 12 }}>
                       <Text style={styles.socialPlatformTitle}>Add More</Text>
@@ -1436,7 +1505,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                           <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
                         </View>
                       ) : (
-                        <Text style={styles.socialStatusBadgeText}>Connect</Text>
+                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
                     <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
@@ -2533,5 +2602,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  helperActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+    gap: 8,
+  },
+  helperActionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  helperActionText: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });

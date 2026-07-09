@@ -10,6 +10,7 @@ const KEYS = {
   seenRoleSelection: "@jobconnect/seen_role_selection",
   employerOnboardingCompleted: "@jobconnect/employer_onboarding_completed",
   chefOnboardingCompleted: "@jobconnect/chef_onboarding_completed",
+  chefOnboardingStep: "@jobconnect/chef_onboarding_step",
 };
 
 export const getToken = () => AsyncStorage.getItem(KEYS.token);
@@ -62,6 +63,13 @@ export const setChefOnboardingCompleted = () =>
 export const removeChefOnboardingCompleted = () =>
   AsyncStorage.removeItem(KEYS.chefOnboardingCompleted);
 
+export const getChefOnboardingStep = () =>
+  AsyncStorage.getItem(KEYS.chefOnboardingStep);
+export const setChefOnboardingStep = (step) =>
+  AsyncStorage.setItem(KEYS.chefOnboardingStep, String(step));
+export const removeChefOnboardingStep = () =>
+  AsyncStorage.removeItem(KEYS.chefOnboardingStep);
+
 export const clearAuthStorage = async () => {
   await AsyncStorage.multiRemove([
     KEYS.token,
@@ -73,6 +81,7 @@ export const clearAuthStorage = async () => {
     KEYS.seenRoleSelection,
     KEYS.employerOnboardingCompleted,
     KEYS.chefOnboardingCompleted,
+    KEYS.chefOnboardingStep,
   ]);
 };
 
