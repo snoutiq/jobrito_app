@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#D7E3F6",
-    backgroundColor: "#F8FBFF",
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
   },
   languageButtonActive: {
-    borderColor: colors.primary,
-    backgroundColor: "#EEF5FF",
+    borderColor: "#22C55E",
+    backgroundColor: "#F0FDF4",
   },
   buttonTextBlock: {
     flex: 1,
@@ -215,31 +215,31 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   buttonLabelActive: {
-    color: colors.primaryDark,
+    color: "#15803D",
   },
   buttonSubtitle: {
     color: colors.mutedText,
     fontSize: 12,
   },
   buttonSubtitleActive: {
-    color: colors.primary,
+    color: "#22C55E",
   },
   radio: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#B8C9E8",
+    borderColor: "#CBD5E1",
     alignItems: "center",
     justifyContent: "center",
   },
   radioActive: {
-    borderColor: colors.primary,
+    borderColor: "#22C55E",
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.primary,
+    backgroundColor: "#22C55E",
   },
 });

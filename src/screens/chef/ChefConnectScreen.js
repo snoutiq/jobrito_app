@@ -73,6 +73,19 @@ export default function ChefConnectScreen({ navigation }) {
     Alert.alert(toolName, `Opening settings for ${toolName}`);
   };
 
+  const LANGUAGE_LABELS = {
+    en: "English",
+    hi: "हिन्दी",
+    mr: "मराठी",
+    ar_AE: "العربية (UAE)",
+    ar_SA: "العربية (KSA)",
+    en_EU: "English (Europe)",
+    ml: "മലയാളം",
+    kn: "ಕನ್ನಡ",
+    te: "తెలుగు",
+    ta: "தமிழ்"
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}

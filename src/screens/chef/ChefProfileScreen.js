@@ -202,7 +202,11 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
     mr: "मराठी",
     ar_AE: "العربية (UAE)",
     ar_SA: "العربية (KSA)",
-    en_EU: "English (Europe)"
+    en_EU: "English (Europe)",
+    ml: "മലയാളം",
+    kn: "ಕನ್ನಡ",
+    te: "తెలుగు",
+    ta: "தமிழ்"
   };
 
   const currentLanguageName = LANGUAGE_LABELS[i18n.language] || "English";
