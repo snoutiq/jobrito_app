@@ -193,7 +193,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     try {
       const content = await Clipboard.getString();
       if (content && content.trim()) {
-        setCalendlyLink(content.trim());
+        let cleaned = content.trim().replace(/\s+/g, "");
+        if (!/^https?:\/\//i.test(cleaned)) {
+          cleaned = "https://" + cleaned;
+        }
+        setCalendlyLink(cleaned);
         Alert.alert("Success", "Calendly link pasted successfully!");
       } else {
         Alert.alert("Clipboard Empty", "No content found in clipboard to paste.");
@@ -394,6 +398,16 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       }
     }
 
+    if (step === 4) {
+      if (calendlyLink && calendlyLink.trim()) {
+        let cleaned = calendlyLink.trim().replace(/\s+/g, "");
+        if (!/^https?:\/\//i.test(cleaned)) {
+          cleaned = "https://" + cleaned;
+        }
+        setCalendlyLink(cleaned);
+      }
+    }
+
     if (step < 7) {
       setStep(step + 1);
     }
@@ -448,7 +462,13 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       formData.append("experience_range", experienceYears);
       formData.append("cuisine_specialty", selectedCuisines.join(", "));
       formData.append("bio", bio);
-      formData.append("calendly_link", calendlyLink || "");
+
+      let formattedCalendly = (calendlyLink || "").trim().replace(/\s+/g, "");
+      if (formattedCalendly && !/^https?:\/\//i.test(formattedCalendly)) {
+        formattedCalendly = "https://" + formattedCalendly;
+      }
+      setCalendlyLink(formattedCalendly);
+      formData.append("calendly_link", formattedCalendly || "");
 
       // Append social links
       if (linkedinLink) formData.append("linkedin", linkedinLink);
@@ -1274,7 +1294,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     <Ionicons name="link-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
                     <TextInput
                       value={calendlyLink}
-                      onChangeText={setCalendlyLink}
+                      onChangeText={(val) => setCalendlyLink(val.replace(/\s+/g, ""))}
                       placeholder="calendly.com/your-name"
                       placeholderTextColor="#94A3B8"
                       autoCapitalize="none"
