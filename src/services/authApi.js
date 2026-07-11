@@ -79,8 +79,8 @@ export const requestOtp = async (phone, role) => {
 //   }
 // };
 
-export const verifyOtp = async (phone, otp, role, language) => {
-  console.log( phone, otp, role, language ,"ankit3");
+export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
+  console.log( phone, otp, role, language, fcmToken ,"ankit3");
   
   try {
     const response = await apiClient.post("/verify-otp", toFormUrlEncoded({
@@ -88,6 +88,7 @@ export const verifyOtp = async (phone, otp, role, language) => {
       login_role: ROLE_API_MAP[role],
       otp,
       selected_language: language,
+      fcm_token: fcmToken || "",
     }), {
       skipAuth: true,
       headers: {

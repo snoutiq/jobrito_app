@@ -7,11 +7,41 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import * as Updates from "expo-updates";
+import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
 
+// Configure how notifications are handled when the app is in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export default function App() {
+  useEffect(() => {
+    // Listen for notifications received while the app is in the foreground
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      console.log("🔔 [Foreground Notification Received]:", JSON.stringify(notification, null, 2));
+      console.log("🔔 [Notification Data]:", JSON.stringify(notification.request.content.data, null, 2));
+    });
+
+    // Listen for when a user interacts with/taps a notification
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log("🔔 [Notification Interacted/Tapped]:", JSON.stringify(response, null, 2));
+      console.log("🔔 [Interacted Notification Data]:", JSON.stringify(response.notification.request.content.data, null, 2));
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
+
   useEffect(() => {
     async function onFetchUpdateAsync() {
       try {

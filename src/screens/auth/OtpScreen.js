@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
@@ -17,6 +19,7 @@ export default function OtpScreen({ navigation, route }) {
   const { loading, phone: storedPhone } = useSelector((state) => state.auth);
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [fcmToken, setFcmToken] = useState("");
   const phone = route?.params?.phone || storedPhone;
   const role = useSelector((state) => state.auth.role);
 
@@ -27,6 +30,35 @@ export default function OtpScreen({ navigation, route }) {
     }, 1000);
     return () => clearInterval(interval);
   }, [countdown]);
+
+  useEffect(() => {
+    async function fetchToken() {
+      if (!Device.isDevice) {
+        console.log("Must use physical device for Push Notifications");
+        return;
+      }
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== 'granted') {
+          console.log("Failed to get push token for push notification!");
+          return;
+        }
+        const tokenData = await Notifications.getDevicePushTokenAsync();
+        if (tokenData && tokenData.data) {
+          setFcmToken(tokenData.data);
+          console.log("FCM Token retrieved successfully:", tokenData.data);
+        }
+      } catch (error) {
+        console.warn("Error retrieving FCM Token:", error);
+      }
+    }
+    fetchToken();
+  }, []);
 
   const maskPhone = (phoneStr) => {
     if (!phoneStr) return "";
@@ -70,7 +102,7 @@ export default function OtpScreen({ navigation, route }) {
       return;
     }
 
-    const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role, language: i18n.language }));
+    const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role, language: i18n.language, fcmToken }));
     console.log("Verify OTP API Full Response:", result);
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
