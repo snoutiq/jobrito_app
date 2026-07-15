@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.mutedText,
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: "600",
   },
 });
