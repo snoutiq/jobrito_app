@@ -11,6 +11,61 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { Text, TextInput } from "react-native";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black
+} from "@expo-google-fonts/inter";
+
+// Map font weights to specific Inter fonts
+const getFontFamilyForWeight = (weight) => {
+  if (weight === "bold" || weight === "700") return "Inter_700Bold";
+  if (weight === "500") return "Inter_500Medium";
+  if (weight === "600") return "Inter_600SemiBold";
+  if (weight === "800") return "Inter_800ExtraBold";
+  if (weight === "900") return "Inter_900Black";
+  return "Inter_400Regular";
+};
+
+// Monkey patch Text render to automatically apply Inter font based on weight
+if (Text.render) {
+  const originalTextRender = Text.render;
+  Text.render = function (...args) {
+    const origin = originalTextRender.apply(this, args);
+    const style = origin.props.style;
+    const flatStyle = Array.isArray(style) ? Object.assign({}, ...style) : (style || {});
+    const fontFamily = getFontFamilyForWeight(flatStyle.fontWeight);
+    return React.cloneElement(origin, {
+      style: [{ fontFamily }, style],
+    });
+  };
+} else {
+  if (!Text.defaultProps) Text.defaultProps = {};
+  Text.defaultProps.style = { fontFamily: "Inter_400Regular", ...Text.defaultProps.style };
+}
+
+// Monkey patch TextInput render to automatically apply Inter font based on weight
+if (TextInput.render) {
+  const originalTextInputRender = TextInput.render;
+  TextInput.render = function (...args) {
+    const origin = originalTextInputRender.apply(this, args);
+    const style = origin.props.style;
+    const flatStyle = Array.isArray(style) ? Object.assign({}, ...style) : (style || {});
+    const fontFamily = getFontFamilyForWeight(flatStyle.fontWeight);
+    return React.cloneElement(origin, {
+      style: [{ fontFamily }, style],
+    });
+  };
+} else {
+  if (!TextInput.defaultProps) TextInput.defaultProps = {};
+  TextInput.defaultProps.style = { fontFamily: "Inter_400Regular", ...TextInput.defaultProps.style };
+}
+
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -23,6 +78,15 @@ Notifications.setNotificationHandler({
 });
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Inter_900Black,
+  });
+
   useEffect(() => {
     // Listen for notifications received while the app is in the foreground
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
@@ -75,6 +139,10 @@ export default function App() {
       onFetchUpdateAsync();
     }
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

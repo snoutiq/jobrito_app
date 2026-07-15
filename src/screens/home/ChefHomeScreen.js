@@ -129,13 +129,13 @@ export default function ChefHomeScreen({ navigation }) {
           </View>
         </View>
         <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
-          <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
+          <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
         </TouchableOpacity>
       </View>
 
       {/* Filter Timeline Bar */}
       <View style={styles.filterBar}>
-        <Ionicons name="pin" size={18} color="#15803D" style={styles.pinIcon} />
+        <Ionicons name="pin" size={18} color="#153e69" style={styles.pinIcon} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
           {(feedJobs || []).filter(job => job.is_pinned).map((job, index) => {
             const isSelected = highlightedJobId === job.id;
@@ -182,7 +182,7 @@ export default function ChefHomeScreen({ navigation }) {
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
-                  <Ionicons name="pin" size={14} color="#EF4444" style={{ marginRight: 4 }} />
+                  <Ionicons name="pin" size={14} color="#f57f20" style={{ marginRight: 4 }} />
                   <Text style={styles.pinnedLabelText}>Pinned</Text>
                 </View>
               )}
@@ -200,25 +200,25 @@ export default function ChefHomeScreen({ navigation }) {
                   <Ionicons
                     name={isFav ? "star" : "star-outline"}
                     size={22}
-                    color={isFav ? "#EAB308" : "#94A3B8"}
+                    color={isFav ? "#f2c879" : "rgba(10, 5, 4, 0.4)"}
                   />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.detailsBlock}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="location-outline" size={16} color="#64748B" />
+                  <Ionicons name="location-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
                   <Text style={styles.detailText}>{t("location", "Location")}: {job.location}</Text>
                 </View>
                 {job.salary && (
                   <View style={styles.detailItem}>
-                    <Ionicons name="cash-outline" size={16} color="#64748B" />
+                    <Ionicons name="cash-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
                     <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
                   </View>
                 )}
                 {job.experience && (
                   <View style={styles.detailItem}>
-                    <Ionicons name="calendar-outline" size={16} color="#64748B" />
+                    <Ionicons name="calendar-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
                     <Text style={styles.detailText}>{t("contract", "Contract")}: {job.experience}</Text>
                   </View>
                 )}
@@ -234,7 +234,7 @@ export default function ChefHomeScreen({ navigation }) {
                     onPress={() => handleCall(job)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="call" size={16} color="#15803D" style={{ marginRight: 6 }} />
+                    <Ionicons name="call" size={16} color="#153e69" style={{ marginRight: 6 }} />
                     <Text style={styles.actionBtnTextGreen}>{t("call", "Call")}</Text>
                   </TouchableOpacity>
 
@@ -243,7 +243,7 @@ export default function ChefHomeScreen({ navigation }) {
                     onPress={() => handleShare(job.title, job.company)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="share-social" size={16} color="#15803D" style={{ marginRight: 6 }} />
+                    <Ionicons name="share-social" size={16} color="#153e69" style={{ marginRight: 6 }} />
                     <Text style={styles.actionBtnTextGreen}>{t("share", "Share")}</Text>
                   </TouchableOpacity>
                 </View>
@@ -257,7 +257,7 @@ export default function ChefHomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       {isApplying ? (
-                        <ActivityIndicator size="small" color="#15803D" />
+                        <ActivityIndicator size="small" color="#153e69" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
                           {isApplied ? `✓ ${t("applied", "Applied")}` : t("applyNow", "Apply Now")}
@@ -268,20 +268,20 @@ export default function ChefHomeScreen({ navigation }) {
 
                   <View style={[styles.twoActionsRow, { marginTop: 12 }]}>
                     <TouchableOpacity
-                      style={[styles.actionBtnLight, { backgroundColor: "#F1F5F9" }]}
+                      style={[styles.actionBtnLight, { backgroundColor: "#f2f2f3" }]}
                       onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="call" size={16} color="#475569" style={{ marginRight: 6 }} />
+                      <Ionicons name="call" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 6 }} />
                       <Text style={styles.actionBtnTextGrey}>{t("call", "Call")}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionBtnLight, { backgroundColor: "#F1F5F9" }]}
+                      style={[styles.actionBtnLight, { backgroundColor: "#f2f2f3" }]}
                       onPress={() => handleShare(job.title, job.company)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="share-social" size={16} color="#475569" style={{ marginRight: 6 }} />
+                      <Ionicons name="share-social" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 6 }} />
                       <Text style={styles.actionBtnTextGrey}>{t("share", "Share")}</Text>
                     </TouchableOpacity>
                   </View>
@@ -296,7 +296,7 @@ export default function ChefHomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       {isApplying ? (
-                        <ActivityIndicator size="small" color="#15803D" />
+                        <ActivityIndicator size="small" color="#153e69" />
                       ) : (
                         <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
                           {isApplied ? `✓ ${t("applied", "Applied")}` : t("applyNow", "Apply Now")}
@@ -306,7 +306,7 @@ export default function ChefHomeScreen({ navigation }) {
                   </View>
 
                   <TouchableOpacity style={styles.linkCopiedBox} onPress={() => copyToClipboard(job.id)}>
-                    <Ionicons name="link" size={16} color="#64748B" />
+                    <Ionicons name="link" size={16} color="rgba(10, 5, 4, 0.6)" />
                     <Text style={styles.linkCopiedText}>
                       {isCopied ? t("linkCopied", "Link copied") : t("copyLink", "Copy job link")}
                     </Text>
@@ -354,7 +354,7 @@ export default function ChefHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -362,9 +362,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -374,24 +374,24 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#15803D",
+    backgroundColor: "#153e69",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
   avatarText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 18,
     fontWeight: "800",
   },
   communityName: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   memberCount: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   headerRight: {
     padding: 6,
@@ -399,11 +399,11 @@ const styles = StyleSheet.create({
   filterBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   pinIcon: {
     marginRight: 12,
@@ -416,20 +416,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
   filterPillSelected: {
-    backgroundColor: "#15803D",
+    backgroundColor: "#153e69",
   },
   filterPillText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   filterPillTextSelected: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   feedScroll: {
     paddingHorizontal: 16,
@@ -445,10 +445,10 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   separatorBadge: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
@@ -457,16 +457,16 @@ const styles = StyleSheet.create({
   separatorText: {
     fontSize: 10,
     fontWeight: "800",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     letterSpacing: 0.5,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     position: "relative",
     shadowColor: "#000",
     shadowOpacity: 0.02,
@@ -476,13 +476,13 @@ const styles = StyleSheet.create({
   },
   pinnedCard: {
     borderLeftWidth: 4,
-    borderLeftColor: "#EF4444",
+    borderLeftColor: "#f57f20",
   },
   highlightedCard: {
-    borderColor: "#16A34A",
+    borderColor: "#153e69",
     borderWidth: 2,
-    backgroundColor: "#F0FDF4",
-    shadowColor: "#16A34A",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    shadowColor: "#153e69",
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 4,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   pinnedLabelText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#EF4444",
+    color: "#f57f20",
   },
   cardHeaderRow: {
     flexDirection: "row",
@@ -507,25 +507,25 @@ const styles = StyleSheet.create({
   employerNameGreen: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
     marginBottom: 2,
   },
   referralHeader: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#EF4444",
+    color: "#f57f20",
     marginBottom: 2,
   },
   jobTitle: {
     fontSize: 15,
     fontWeight: "750",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   favBtn: {
     padding: 2,
   },
   detailsBlock: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 8,
     padding: 8,
     marginVertical: 6,
@@ -538,12 +538,12 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
   },
   jobDescription: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
     marginBottom: 8,
   },
@@ -554,25 +554,25 @@ const styles = StyleSheet.create({
   },
   applyBtn: {
     flex: 1,
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#C8E6C9",
+    borderColor: "rgba(21, 62, 105, 0.18)",
   },
   appliedBtn: {
-    backgroundColor: "#E2E8F0",
-    borderColor: "#CBD5E1",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   applyBtnText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   appliedBtnText: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   twoActionsRow: {
     flexDirection: "row",
@@ -584,50 +584,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderRadius: 8,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "#C8E6C9",
+    borderColor: "rgba(21, 62, 105, 0.18)",
   },
   actionBtnTextGreen: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   actionBtnTextGrey: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   linkCopiedBox: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     gap: 6,
   },
   linkCopiedText: {
     fontSize: 12,
     fontWeight: "650",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   timeText: {
     fontSize: 11,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     textAlign: "right",
     marginTop: 4,
   },
   bottomBanner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F0F9FF",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
-    borderColor: "#BAE6FD",
+    borderColor: "rgba(21, 62, 105, 0.18)",
     borderRadius: 10,
     padding: 12,
     justifyContent: "center",
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   },
   bottomBannerText: {
     fontSize: 12,
-    color: "#0369A1",
+    color: "#153e69",
     fontWeight: "600",
   },
   fab: {
@@ -645,10 +645,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#22C55E",
+    shadowColor: "#153e69",
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 20,
     width: "100%",
@@ -676,12 +676,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 6,
   },
   modalSubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
     marginBottom: 20,
   },
@@ -696,12 +696,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   slotItemSelected: {
-    borderColor: "#22C55E",
-    backgroundColor: "#F2FBF5",
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotLeft: {
     flexDirection: "row",
@@ -710,14 +710,14 @@ const styles = StyleSheet.create({
   slotLabelText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   slotLabelTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "700",
   },
   modalConfirmBtn: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalConfirmBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -747,9 +747,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 40,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,

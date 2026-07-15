@@ -125,7 +125,7 @@ export default function SavedJobsScreen({ navigation }) {
               <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
             ) : (
               <View style={styles.avatarFallback}>
-                <Ionicons name="business-outline" size={24} color="#64748B" />
+                <Ionicons name="business-outline" size={24} color="rgba(10, 5, 4, 0.6)" />
               </View>
             )}
           </View>
@@ -142,13 +142,13 @@ export default function SavedJobsScreen({ navigation }) {
             {/* Salary and Location Row */}
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Ionicons name="cash-outline" size={14} color="#94A3B8" />
+                <Ionicons name="cash-outline" size={14} color="rgba(10, 5, 4, 0.4)" />
                 <Text style={styles.metaText} numberOfLines={1}>
                   {item.salary || "Competitive Salary"}
                 </Text>
               </View>
               <View style={styles.metaItem}>
-                <Ionicons name="location-outline" size={14} color="#94A3B8" />
+                <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.4)" />
                 <Text style={styles.metaText} numberOfLines={1}>
                   {item.location || "Flexible"}
                 </Text>
@@ -174,7 +174,7 @@ export default function SavedJobsScreen({ navigation }) {
             onPress={() => handleUnsave(item.id, item.title)}
             style={styles.starContainer}
           >
-            <Ionicons name="star" size={22} color="#22C55E" />
+            <Ionicons name="star" size={22} color="#153e69" />
           </TouchableOpacity>
         </Pressable>
       </View>
@@ -187,7 +187,7 @@ export default function SavedJobsScreen({ navigation }) {
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#15803D" />
+            <Ionicons name="arrow-back" size={24} color="#153e69" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("savedJobs.title", "Saved Jobs")}</Text>
         </View>
@@ -246,7 +246,7 @@ export default function SavedJobsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF", // identical background
+    backgroundColor: "#ffffff", // identical background
   },
   header: {
     flexDirection: "row",
@@ -254,9 +254,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   profileAvatar: {
     width: 38,
@@ -280,29 +280,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
   summaryBar: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "rgba(10, 5, 4, 0.15)",
   },
   summaryText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   listContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   cardPressable: {
     flexDirection: "row",
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     overflow: "hidden",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
   },
   detailsContainer: {
     flex: 1,
@@ -339,12 +339,12 @@ const styles = StyleSheet.create({
   jobTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 2,
   },
   companyName: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 4,
   },
   metaRow: {
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
   cardFooter: {
     flexDirection: "row",
@@ -372,14 +372,14 @@ const styles = StyleSheet.create({
   applyBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0A7B32", // green apply button matching image
+    color: "#153e69", // green apply button matching image
   },
   appliedBtnText: {
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
   timeText: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
   starContainer: {
     position: "absolute",

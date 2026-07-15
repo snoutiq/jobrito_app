@@ -26,7 +26,7 @@ import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
 import * as Location from "expo-location";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -476,7 +476,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={prev} style={styles.backButton}>
-            <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#1E293B" />
+            <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{isEditMode ? t("editProfile", "Edit Profile") : t("completeProfileTitle", "Complete Profile")}</Text>
           <View style={styles.stepBadge}>
@@ -521,12 +521,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     value={businessName}
                     onChangeText={setBusinessName}
                     placeholder={t("employerCompleteProfile.enterBusinessName", "Enter business name")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessName")}
                     onBlur={() => setActiveInput(null)}
                   />
-                  <Ionicons name="business-outline" size={20} color="#64748B" style={styles.inputIconRight} />
+                  <Ionicons name="business-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
                 </View>
               </View>
 
@@ -541,10 +541,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     showSegmentDropdown && styles.inputWrapperActive
                   ]}
                 >
-                  <Text style={[styles.textInput, !industrySegment && { color: "#94A3B8" }]}>
+                  <Text style={[styles.textInput, !industrySegment && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {industrySegment || t("employerCompleteProfile.selectIndustrySegment", "Select an industry segment")}
                   </Text>
-                  <Ionicons name={showSegmentDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
+                  <Ionicons name={showSegmentDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
                 </TouchableOpacity>
 
                 {showSegmentDropdown && (
@@ -574,12 +574,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   styles.inputWrapper,
                   activeInput === "businessLocation" && styles.inputWrapperActive
                 ]}>
-                  <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={businessLocation}
                     onChangeText={setBusinessLocation}
                     placeholder={t("employerCompleteProfile.enterBusinessLocation", "Enter business location")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("businessLocation")}
                     onBlur={() => setActiveInput(null)}
@@ -622,7 +622,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Info Card */}
               <View style={styles.infoCard}>
-                <Ionicons name="information-circle-outline" size={22} color="#0284C7" style={styles.infoCardIcon} />
+                <Ionicons name="information-circle-outline" size={22} color="#153e69" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardText}>
                   {t("employerCompleteProfile.infoCardText1", "This information will be visible to potential candidates to help them understand your brand and location proximity.")}
                 </Text>
@@ -659,12 +659,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   styles.inputWrapper,
                   activeInput === "contactName" && styles.inputWrapperActive
                 ]}>
-                  <Ionicons name="person-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={contactName}
                     onChangeText={setContactName}
                     placeholder={t("enterFullName", "Enter full name")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("contactName")}
                     onBlur={() => setActiveInput(null)}
@@ -679,12 +679,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   styles.inputWrapper,
                   activeInput === "contactPhone" && styles.inputWrapperActive
                 ]}>
-                  <Ionicons name="call-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="call-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={contactPhone}
                     onChangeText={setContactPhone}
                     placeholder={t("employerCompleteProfile.enterBusinessMobile", "Enter business mobile number")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="phone-pad"
                     maxLength={10}
                     style={styles.textInput}
@@ -701,12 +701,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   styles.inputWrapper,
                   activeInput === "contactEmail" && styles.inputWrapperActive
                 ]}>
-                  <Ionicons name="mail-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="mail-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={contactEmail}
                     onChangeText={setContactEmail}
                     placeholder={t("employerCompleteProfile.enterBusinessEmail", "Enter business email address")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={styles.textInput}
@@ -727,11 +727,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     showLangDropdown && styles.inputWrapperActive
                   ]}
                 >
-                  <Ionicons name="globe-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <Text style={styles.textInput}>
                     {preferredLanguage}
                   </Text>
-                  <Ionicons name={showLangDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
+                  <Ionicons name={showLangDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
                 </TouchableOpacity>
 
                 {showLangDropdown && (
@@ -830,19 +830,19 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Text style={styles.locationCardTitle}>{t("location", "Location")} #{idx + 1}</Text>
                     {locations.length > 1 && (
                       <TouchableOpacity onPress={() => removeLocation(loc.id)}>
-                        <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                        <Ionicons name="trash-outline" size={18} color="#f57f20" />
                       </TouchableOpacity>
                     )}
                   </View>
 
                   <View style={styles.inputGroup}>
                     <View style={styles.inputWrapper}>
-                      <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                      <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                       <TextInput
                         value={loc.address}
                         onChangeText={(val) => handleLocationChange(loc.id, "address", val)}
                         placeholder={t("employerCompleteProfile.enterLocationAddress", "Enter building, street or venue name")}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                       />
                     </View>
@@ -854,7 +854,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                         value={loc.cityPostcode}
                         onChangeText={(val) => handleLocationChange(loc.id, "cityPostcode", val)}
                         placeholder={t("employerCompleteProfile.enterCityPostcode", "City, Postcode")}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={[styles.textInput, { paddingLeft: 12 }]}
                       />
                     </View>
@@ -874,7 +874,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Info Card */}
               <View style={styles.infoCard}>
-                <Ionicons name="information-circle-outline" size={22} color="#0284C7" style={styles.infoCardIcon} />
+                <Ionicons name="information-circle-outline" size={22} color="#153e69" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardText}>
                   {t("employerCompleteProfile.infoCardText2", "Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.")}
                 </Text>
@@ -906,12 +906,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   styles.inputWrapper,
                   activeInput === "managerName" && styles.inputWrapperActive
                 ]}>
-                  <Ionicons name="person-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={managerName}
                     onChangeText={setManagerName}
                     placeholder={t("enterFullName", "Enter full name")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("managerName")}
                     onBlur={() => setActiveInput(null)}
@@ -930,11 +930,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     showRelationDropdown && styles.inputWrapperActive
                   ]}
                 >
-                  <Ionicons name="people-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
-                  <Text style={[styles.textInput, !managerRelationship && { color: "#94A3B8" }]}>
+                  <Ionicons name="people-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                  <Text style={[styles.textInput, !managerRelationship && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {managerRelationship || t("employerCompleteProfile.selectRelationship", "Select Relationship")}
                   </Text>
-                  <Ionicons name={showRelationDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" style={styles.inputIconRight} />
+                  <Ionicons name={showRelationDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
                 </TouchableOpacity>
 
                 {showRelationDropdown && (
@@ -968,7 +968,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     value={managerPhone}
                     onChangeText={setManagerPhone}
                     placeholder={t("employerCompleteProfile.enterMobileNumber", "Enter mobile number")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="phone-pad"
                     maxLength={10}
                     style={[styles.textInput, { paddingLeft: 10 }]}
@@ -1042,7 +1042,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Card 2: Operational Locations */}
               <View style={styles.summaryCard}>
                 <Text style={styles.summarySectionTitle}>
-                  <Ionicons name="location-outline" size={16} color="#64748B" /> {t("operationalLocations", "Operational Locations")}
+                  <Ionicons name="location-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("operationalLocations", "Operational Locations")}
                 </Text>
                 <View style={styles.locationPillsRow}>
                   {locations.slice(0, 3).map((loc, index) => (
@@ -1053,8 +1053,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     </View>
                   ))}
                   {locations.length > 3 && (
-                    <View style={[styles.locationPill, { backgroundColor: "#F1F5F9" }]}>
-                      <Text style={[styles.locationPillText, { color: "#64748B" }]}>
+                    <View style={[styles.locationPill, { backgroundColor: "#f2f2f3" }]}>
+                      <Text style={[styles.locationPillText, { color: "rgba(10, 5, 4, 0.6)" }]}>
                         +{locations.length - 3} {t("others", "others")}
                       </Text>
                     </View>
@@ -1067,7 +1067,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 {/* Contact Column */}
                 <View style={[styles.summaryCard, { flex: 1, marginRight: 8 }]}>
                   <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="person-outline" size={16} color="#64748B" /> {t("postJob.contactPerson", "Contact")}
+                    <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("postJob.contactPerson", "Contact")}
                   </Text>
                   <Text style={styles.columnNameText}>{contactName || "Aryan Jain"}</Text>
                   <Text style={styles.columnSubtitleText}>Operations Manager</Text>
@@ -1076,7 +1076,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 {/* Language Column */}
                 <View style={[styles.summaryCard, { flex: 1, marginLeft: 8 }]}>
                   <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="globe-outline" size={16} color="#64748B" /> {t("language", "Language")}
+                    <Ionicons name="globe-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("language", "Language")}
                   </Text>
                   <Text style={styles.columnNameText}>{preferredLanguage || "English (UK)"}</Text>
                   <Text style={styles.columnSubtitleText}>Primary Interface</Text>
@@ -1120,7 +1120,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -1128,9 +1128,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
     padding: 4,
@@ -1138,10 +1138,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   stepBadge: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 99,
@@ -1149,14 +1149,14 @@ const styles = StyleSheet.create({
   stepBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   progressSection: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   progressRow: {
     flexDirection: "row",
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   progressPct: {
     fontSize: 12,
@@ -1175,7 +1175,7 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 99,
     overflow: "hidden",
   },
@@ -1194,12 +1194,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 24,
     fontWeight: "900",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 20,
     marginBottom: 24,
   },
@@ -1209,18 +1209,18 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 8,
   },
   required: {
-    color: "#EF4444",
+    color: "#f57f20",
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     minHeight: 52,
     paddingHorizontal: 14,
@@ -1232,7 +1232,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 15,
     paddingVertical: 8,
   },
@@ -1245,22 +1245,22 @@ const styles = StyleSheet.create({
   countryCode: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#0a0504",
     marginRight: 4,
     borderRightWidth: 1,
-    borderRightColor: "#E2E8F0",
+    borderRightColor: "rgba(10, 5, 4, 0.15)",
     paddingRight: 10,
   },
   inputSubtext: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 6,
     paddingLeft: 4,
   },
   dropdownContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     marginTop: 4,
     paddingVertical: 4,
@@ -1274,36 +1274,36 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   dropdownItemText: {
     fontSize: 14,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   mapContainer: {
     height: 170,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 14,
     overflow: "hidden",
     position: "relative",
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   mapGridBg: {
     flex: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   mapLine: {
     position: "absolute",
     width: "120%",
     height: 1,
-    backgroundColor: "#94A3B8",
+    backgroundColor: "rgba(10, 5, 4, 0.4)",
     left: "-10%",
   },
   mapRoad: {
     position: "absolute",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     width: "120%",
     left: "-10%",
   },
@@ -1318,7 +1318,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 99,
@@ -1331,14 +1331,14 @@ const styles = StyleSheet.create({
   gpsButtonText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     marginLeft: 6,
   },
   infoCard: {
     flexDirection: "row",
-    backgroundColor: "#F0F9FF",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
-    borderColor: "#BAE6FD",
+    borderColor: "rgba(21, 62, 105, 0.18)",
     borderRadius: 12,
     padding: 12,
     marginBottom: 24,
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
   infoCardText: {
     flex: 1,
     fontSize: 12,
-    color: "#0369A1",
+    color: "#153e69",
     lineHeight: 18,
   },
   continueButton: {
@@ -1368,18 +1368,18 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   continueButtonDisabled: {
-    backgroundColor: "#CBD5E1",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     shadowOpacity: 0,
     elevation: 0,
   },
   continueButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   footerText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     marginTop: 14,
   },
@@ -1393,7 +1393,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -1402,13 +1402,13 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     flex: 1,
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   sectionHeaderTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 10,
     marginTop: 8,
   },
@@ -1417,12 +1417,12 @@ const styles = StyleSheet.create({
     width: 90,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   logoUploadInner: {
     alignItems: "center",
@@ -1430,12 +1430,12 @@ const styles = StyleSheet.create({
   logoUploadText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 4,
   },
   logoSubtext: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 24,
   },
   rowSpaceBetween: {
@@ -1444,7 +1444,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mandatoryBadge: {
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
     borderColor: "#BDECCB",
     paddingHorizontal: 8,
@@ -1457,11 +1457,11 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
   },
   locationCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 14,
   },
   locationCardHeader: {
@@ -1473,7 +1473,7 @@ const styles = StyleSheet.create({
   locationCardTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   addLocationButton: {
     flexDirection: "row",
@@ -1485,7 +1485,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 24,
     borderStyle: "dashed",
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   addLocationButtonText: {
     fontSize: 14,
@@ -1495,7 +1495,7 @@ const styles = StyleSheet.create({
   },
   secureCard: {
     flexDirection: "row",
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
     borderColor: "#BDECCB",
     borderRadius: 12,
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
   secureCardTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
     marginBottom: 2,
   },
   secureCardText: {
@@ -1522,7 +1522,7 @@ const styles = StyleSheet.create({
   },
   footerNoteText: {
     fontSize: 11,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     textAlign: "center",
     marginTop: 12,
   },
@@ -1545,9 +1545,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   summaryCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
@@ -1570,7 +1570,7 @@ const styles = StyleSheet.create({
   businessNameText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 4,
   },
   badgeRow: {
@@ -1586,7 +1586,7 @@ const styles = StyleSheet.create({
   summarySectionTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
@@ -1598,7 +1598,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   locationPill: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1606,7 +1606,7 @@ const styles = StyleSheet.create({
   locationPillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   twoColumnRow: {
     flexDirection: "row",
@@ -1615,12 +1615,12 @@ const styles = StyleSheet.create({
   columnNameText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   columnSubtitleText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   businessTypeDetails: {
     flexDirection: "row",
@@ -1637,7 +1637,7 @@ const styles = StyleSheet.create({
   businessTypeText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   editButton: {
     flexDirection: "row",

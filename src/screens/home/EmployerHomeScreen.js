@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function EmployerHomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -75,7 +75,7 @@ export default function EmployerHomeScreen({ navigation }) {
             <Image source={logoSource} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="business" size={24} color="#64748B" />
+              <Ionicons name="business" size={24} color="rgba(10, 5, 4, 0.6)" />
             </View>
           )}
           <View style={styles.headerInfo}>
@@ -88,13 +88,13 @@ export default function EmployerHomeScreen({ navigation }) {
             style={styles.headerIconBtn}
             onPress={() => navigation.navigate("EmployerNotifications")}
           >
-            <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+            <Ionicons name="notifications-outline" size={22} color="#0a0504" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
             onPress={() => navigation.navigate("Settings")}
           >
-            <Ionicons name="person-circle-outline" size={24} color="#1E293B" />
+            <Ionicons name="person-circle-outline" size={24} color="#0a0504" />
           </TouchableOpacity>
         </View>
       </View>
@@ -126,12 +126,12 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#EF4444" }]}>{rejectedCount}</Text>
+              <Text style={[styles.subStatValue, { color: "#f57f20" }]}>{rejectedCount}</Text>
               <Text style={styles.subStatLabel}>{t("rejected")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#1E293B" }]}>{contactedCount}</Text>
+              <Text style={[styles.subStatValue, { color: "#0a0504" }]}>{contactedCount}</Text>
               <Text style={styles.subStatLabel}>{t("contacted")}</Text>
             </View>
           </View>
@@ -139,8 +139,8 @@ export default function EmployerHomeScreen({ navigation }) {
 
         <View style={styles.smallStatsRow}>
           <View style={styles.smallStatCard}>
-            <View style={[styles.smallStatIconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons name="hourglass-outline" size={20} color="#D97706" />
+            <View style={[styles.smallStatIconBox, { backgroundColor: "rgba(242, 200, 121, 0.12)" }]}>
+              <Ionicons name="hourglass-outline" size={20} color="#f2c879" />
             </View>
             <View>
               <Text style={styles.smallStatLabel}>{t("pending")}</Text>
@@ -150,7 +150,7 @@ export default function EmployerHomeScreen({ navigation }) {
 
           <View style={styles.smallStatCard}>
             <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
-              <Ionicons name="briefcase-outline" size={20} color="#3B82F6" />
+              <Ionicons name="briefcase-outline" size={20} color="#153e69" />
             </View>
             <View>
               <Text style={styles.smallStatLabel}>{t("activeJobs")}</Text>
@@ -174,7 +174,7 @@ export default function EmployerHomeScreen({ navigation }) {
               <Text style={styles.actionTitle}>{t("postJobAction")}</Text>
               <Text style={styles.actionSubtitle}>{t("postJobActionSubtitle")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -182,14 +182,14 @@ export default function EmployerHomeScreen({ navigation }) {
             activeOpacity={0.7}
             onPress={() => navigation.navigate("MyJobs")}
           >
-            <View style={[styles.actionIconBox, { backgroundColor: "#F1F5F9" }]}>
-              <Ionicons name="briefcase" size={22} color="#64748B" />
+            <View style={[styles.actionIconBox, { backgroundColor: "#f2f2f3" }]}>
+              <Ionicons name="briefcase" size={22} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <View style={styles.actionDetails}>
               <Text style={styles.actionTitle}>{t("myJobs")}</Text>
               <Text style={styles.actionSubtitle}>{t("myJobsSubtitle")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -204,7 +204,7 @@ export default function EmployerHomeScreen({ navigation }) {
               <Text style={styles.actionTitle}>{t("chefConnect", "Chef Connect")}</Text>
               <Text style={styles.actionSubtitle}>{t("chefConnectSubtitle", "Discover and connect with talented chefs")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -215,7 +215,7 @@ export default function EmployerHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -223,9 +223,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -238,10 +238,10 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -249,12 +249,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   businessName: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 16,
     fontWeight: "800",
   },
   contactText: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
     marginTop: 2,
   },
@@ -269,17 +269,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   mainStatsCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
     marginBottom: 16,
   },
@@ -289,12 +289,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   statsCardLabel: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
     fontWeight: "700",
   },
   statsCardValue: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 34,
     fontWeight: "900",
     marginTop: 6,
@@ -321,13 +321,13 @@ const styles = StyleSheet.create({
   },
   subStatLabel: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 4,
   },
   verticalDivider: {
     width: 1,
     height: 36,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   smallStatsRow: {
     flexDirection: "row",
@@ -338,10 +338,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 14,
   },
   smallStatIconBox: {
@@ -352,18 +352,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   smallStatLabel: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 12,
     fontWeight: "700",
   },
   smallStatValue: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 18,
     fontWeight: "800",
     marginTop: 2,
   },
   sectionTitle: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
     fontWeight: "800",
     textTransform: "uppercase",
@@ -376,10 +376,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 14,
   },
   actionIconBox: {
@@ -393,12 +393,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionTitle: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 15,
     fontWeight: "800",
   },
   actionSubtitle: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 12,
     marginTop: 3,
   },

@@ -3,25 +3,25 @@ import { StyleSheet, Text, View } from "react-native";
 import colors from "../../constants/colors";
 
 const palette = {
-  New: { bg: "#E0F2FE", fg: "#0369A1" },
-  Contacted: { bg: "#FEF3C7", fg: "#B45309" },
-  Shortlisted: { bg: "#DCFCE7", fg: "#15803D" },
-  Hired: { bg: "#D1FAE5", fg: "#047857" },
-  Rejected: { bg: "#FEE2E2", fg: "#B91C1C" },
-  Pending: { bg: "#F8FAFC", fg: colors.mutedText },
-  Approved: { bg: "#DCFCE7", fg: "#15803D" },
-  "Pending Approval": { bg: "#FEF3C7", fg: "#B45309" },
-  "UNDER REVIEW": { bg: "#FEF3C7", fg: "#B45309" },
-  "SHORTLISTED": { bg: "#DCFCE7", fg: "#15803D" },
-  "CONTACTED": { bg: "#E0F2FE", fg: "#0369A1" },
-  "DECISION PENDING": { bg: "#F1F5F9", fg: "#475569" },
-  "JOB CLOSED": { bg: "#FEE2E2", fg: "#B91C1C" },
+  New: { bg: "rgba(21, 62, 105, 0.08)", fg: "#153e69" },
+  Contacted: { bg: "rgba(242, 200, 121, 0.12)", fg: "#f2c879" },
+  Shortlisted: { bg: "rgba(21, 62, 105, 0.08)", fg: "#153e69" },
+  Hired: { bg: "rgba(21, 62, 105, 0.08)", fg: "#153e69" },
+  Rejected: { bg: "rgba(245, 127, 32, 0.12)", fg: "#f57f20" },
+  Pending: { bg: "rgba(242, 200, 121, 0.12)", fg: "#f2c879" },
+  Approved: { bg: "rgba(21, 62, 105, 0.08)", fg: "#153e69" },
+  "Pending Approval": { bg: "rgba(242, 200, 121, 0.12)", fg: "#f2c879" },
+  "UNDER REVIEW": { bg: "rgba(242, 200, 121, 0.12)", fg: "#f2c879" },
+  "SHORTLISTED": { bg: "rgba(21, 62, 105, 0.08)", fg: "#153e69" },
+  "CONTACTED": { bg: "rgba(242, 200, 121, 0.12)", fg: "#f2c879" },
+  "DECISION PENDING": { bg: "rgba(10, 5, 4, 0.08)", fg: "#0a0504" },
+  "JOB CLOSED": { bg: "rgba(245, 127, 32, 0.12)", fg: "#f57f20" },
 };
 
 export default function StatusBadge({ status }) {
   const norm = String(status || "").toLowerCase().trim();
   const matchKey = Object.keys(palette).find((k) => k.toLowerCase() === norm);
-  const style = (matchKey && palette[matchKey]) || { bg: "#E2E8F0", fg: colors.text };
+  const style = (matchKey && palette[matchKey]) || { bg: "rgba(10, 5, 4, 0.15)", fg: colors.text };
   
   // Display the status capitalized nicely
   const displayStatus = matchKey || status || "";
@@ -43,5 +43,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 12,
     fontWeight: "700",
+    color: "",
   },
 });

@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ChefConnectFiltersScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -134,7 +134,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
         <Ionicons
           name={isExpanded ? "chevron-up" : "chevron-down"}
           size={18}
-          color={isExpanded ? PRIMARY_GREEN : "#64748B"}
+          color={isExpanded ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.6)"}
         />
       </TouchableOpacity>
     );
@@ -146,7 +146,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefConnectFilters")}</Text>
         </View>
@@ -324,7 +324,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#f2f2f3",
   },
   headerLeft: {
     flexDirection: "row",
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   resetButton: {
     paddingVertical: 4,
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   resetButtonText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#22C55E",
+    color: "#153e69",
   },
   scrollContent: {
     paddingBottom: 40,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   sectionTitleText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   pillsContainer: {
     flexDirection: "row",
@@ -385,8 +385,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   pillSelected: {
     borderColor: PRIMARY_GREEN,
@@ -395,21 +395,21 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   pillTextSelected: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontWeight: "700",
   },
   divider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderColor: "#F1F5F9",
-    backgroundColor: "#FFFFFF",
+    borderColor: "#f2f2f3",
+    backgroundColor: "#ffffff",
   },
   applyButton: {
     backgroundColor: PRIMARY_GREEN,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   applyButtonText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },

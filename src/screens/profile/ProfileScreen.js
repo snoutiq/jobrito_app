@@ -186,7 +186,7 @@ export default function ProfileScreen({ navigation }) {
   return (
     <ScreenWrapper
       edges={["left", "right", "bottom"]}
-      style={{ backgroundColor: "#FFFFFF" }}
+      style={{ backgroundColor: "#ffffff" }}
       contentStyle={[styles.page, { padding: 0, gap: 0 }]}
       scroll={true}
     >
@@ -201,12 +201,12 @@ export default function ProfileScreen({ navigation }) {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={42} color="#16A34A" />
+                <Ionicons name="person" size={42} color="#153e69" />
               </View>
             )}
           </View>
           <View style={styles.cameraBadge}>
-            <Ionicons name="camera" size={14} color="#FFFFFF" />
+            <Ionicons name="camera" size={14} color="#ffffff" />
           </View>
         </Pressable>
 
@@ -234,7 +234,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={[styles.progressTooltip, { left: `${completion}%` }]}>
               <View style={styles.tooltipInner}>
-                <Text style={styles.tooltipText}>T</Text>
+                <Text style={styles.tooltipText}>{initials}</Text>
               </View>
             </View>
           </View>
@@ -248,7 +248,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name={completion >= 100 ? "checkmark-circle" : "add-circle"} 
               size={18} 
-              color="#22C55E" 
+              color="#153e69" 
             />
           </Pressable>
         </View>
@@ -263,7 +263,7 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="paper-plane-outline" size={18} color="#64748B" />
+              <Ionicons name="paper-plane-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <Text style={styles.menuItemLabel}>{t("profile.menu.myApplications", "My Applications")}</Text>
           </View>
@@ -273,7 +273,7 @@ export default function ProfileScreen({ navigation }) {
                 {applicationsCount}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
 
@@ -284,7 +284,7 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="megaphone-outline" size={18} color="#64748B" />
+              <Ionicons name="megaphone-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <Text style={styles.menuItemLabel}>{t("profile.menu.myPostedJobs", "My Posted Jobs")}</Text>
           </View>
@@ -294,7 +294,7 @@ export default function ProfileScreen({ navigation }) {
                 {myJobsCount}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
 
@@ -305,7 +305,7 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="star-outline" size={18} color="#64748B" />
+              <Ionicons name="star-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <Text style={styles.menuItemLabel}>{t("profile.menu.savedJobs", "My Saved Jobs")}</Text>
           </View>
@@ -315,7 +315,7 @@ export default function ProfileScreen({ navigation }) {
                 {savedJobsCount}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
       </View>
@@ -332,7 +332,7 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="globe-outline" size={18} color="#64748B" />
+              <Ionicons name="globe-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <View style={styles.menuTextGroup}>
               <Text style={styles.menuItemLabel}>{t("profile.menu.language", "Language")}</Text>
@@ -340,7 +340,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.menuItemRight}>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
 
@@ -351,14 +351,14 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="settings-outline" size={18} color="#64748B" />
+              <Ionicons name="settings-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <View style={styles.menuTextGroup}>
               <Text style={styles.menuItemLabel}>{t("profile.menu.settings", "Settings")}</Text>
             </View>
           </View>
           <View style={styles.menuItemRight}>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
 
@@ -369,12 +369,12 @@ export default function ProfileScreen({ navigation }) {
         >
           <View style={styles.menuItemLeft}>
             <View style={[styles.iconCircle, styles.iconCircleRed]}>
-              <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+              <Ionicons name="log-out-outline" size={18} color="#f57f20" />
             </View>
             <Text style={[styles.menuItemLabel, styles.logoutLabel]}>{t("logout", "Logout")}</Text>
           </View>
           <View style={styles.menuItemRight}>
-            <Ionicons name="chevron-forward" size={16} color="#EF4444" />
+            <Ionicons name="chevron-forward" size={16} color="#f57f20" />
           </View>
         </Pressable>
       </View>
@@ -424,7 +424,7 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingBottom: 20,
   },
   headerSection: {
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     borderWidth: 2.5,
-    borderColor: "#22C55E",
+    borderColor: "#153e69",
     padding: 2,
     alignItems: "center",
     justifyContent: "center",
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 45,
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -466,9 +466,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -479,18 +479,18 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   userPhone: {
     fontSize: 14,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     marginBottom: 4,
   },
   userTag: {
     fontSize: 13,
-    color: "#16A34A",
+    color: "#153e69",
     fontWeight: "600",
   },
   completionCardContainer: {
@@ -498,9 +498,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   completionCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 18,
     padding: 16,
   },
@@ -513,12 +513,12 @@ const styles = StyleSheet.create({
   completionTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   completionPercent: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#22C55E",
+    color: "#153e69",
   },
   progressContainer: {
     position: "relative",
@@ -529,13 +529,13 @@ const styles = StyleSheet.create({
   progressBarTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     width: "100%",
   },
   progressBarFill: {
     height: "100%",
     borderRadius: 4,
-    backgroundColor: "#047857",
+    backgroundColor: "#153e69",
   },
   progressTooltip: {
     position: "absolute",
@@ -546,9 +546,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#A21CAF", // purple color matching screenshot
+    backgroundColor: "#153e69", // purple color matching screenshot
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -560,13 +560,13 @@ const styles = StyleSheet.create({
   tooltipText: {
     fontSize: 14,
     fontWeight: "900",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   addSkillsBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -574,11 +574,11 @@ const styles = StyleSheet.create({
   },
   addSkillsText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   menuList: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   menuItem: {
     flexDirection: "row",
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   menuItemLeft: {
     flexDirection: "row",
@@ -597,28 +597,28 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
   iconCircleRed: {
-    backgroundColor: "#FEE2E2",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
   },
   menuItemLabel: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#0F172A",
+    color: "#0a0504",
     marginLeft: 12,
   },
   logoutLabel: {
-    color: "#EF4444",
+    color: "#f57f20",
   },
   menuTextGroup: {
     marginLeft: 12,
   },
   menuItemSublabel: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 2,
   },
   menuItemRight: {
@@ -635,39 +635,39 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badgeRed: {
-    backgroundColor: "#FEE2E2",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
   },
   badgeGreen: {
-    backgroundColor: "#DCFCE7",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   badgeBlue: {
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "750",
   },
   badgeTextRed: {
-    color: "#EF4444",
+    color: "#f57f20",
   },
   badgeTextGreen: {
-    color: "#16A34A",
+    color: "#153e69",
   },
   badgeTextBlue: {
-    color: "#2563EB",
+    color: "#153e69",
   },
   screenDivider: {
     height: 12,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     width: "100%",
     marginVertical: 10,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   footerVersion: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     textAlign: "center",
     marginVertical: 24,
     fontWeight: "500",
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 340,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 22,
     padding: 20,
     alignItems: "center",
@@ -697,20 +697,20 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#FECACA",
   },
   modalTitle: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 18,
     fontWeight: "900",
     textAlign: "center",
   },
   modalText: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalCancelButton: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -737,12 +737,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger,
   },
   modalCancelText: {
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 14,
     fontWeight: "800",
   },
   modalConfirmText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "800",
   },

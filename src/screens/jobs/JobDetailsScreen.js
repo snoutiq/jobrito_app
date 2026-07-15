@@ -263,7 +263,7 @@ export default function JobDetailsScreen({ route }) {
           disabled={isApplied || isApplying}
           style={[
             styles.applyButton,
-            isApplied && { backgroundColor: "#94A3B8" }
+            isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" }
           ]}
         />
         <Pressable onPress={handleShare} style={styles.chatButton}>
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     borderRadius: 14,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     height: 190,
     borderRadius: 18,
     overflow: "hidden",
-    backgroundColor: "#0F172A",
+    backgroundColor: "#0a0504",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 46,
     borderRadius: 24,
-    backgroundColor: "#D97706",
+    backgroundColor: "#f2c879",
     position: "absolute",
     bottom: 18,
   },

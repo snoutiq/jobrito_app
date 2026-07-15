@@ -30,7 +30,7 @@ export default function ApplicantCard({
           </Text>
           {displayCity ? (
             <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={14} color="#64748B" />
+              <Ionicons name="location-outline" size={14} color={colors.mutedText} />
               <Text style={styles.infoText} numberOfLines={1}>
                 {displayCity}
               </Text>
@@ -44,21 +44,21 @@ export default function ApplicantCard({
       <View style={styles.detailsContainer}>
         {displayPhone ? (
           <View style={styles.infoRow}>
-            <Ionicons name="call-outline" size={14} color="#475569" />
+            <Ionicons name="call-outline" size={14} color={colors.mutedText} />
             <Text style={styles.phoneText}>{displayPhone}</Text>
           </View>
         ) : null}
 
         {displayExperience ? (
           <View style={styles.infoRow}>
-            <Ionicons name="briefcase-outline" size={14} color="#475569" />
+            <Ionicons name="briefcase-outline" size={14} color={colors.mutedText} />
             <Text style={styles.infoText}>{t("experience", "Experience")}: {displayExperience}</Text>
           </View>
         ) : null}
 
         {displayCuisine ? (
           <View style={styles.infoRow}>
-            <Ionicons name="restaurant-outline" size={14} color="#475569" />
+            <Ionicons name="restaurant-outline" size={14} color={colors.mutedText} />
             <Text style={styles.infoText}>{t("cuisine", "Cuisine")}: {displayCuisine}</Text>
           </View>
         ) : null}
@@ -80,7 +80,7 @@ export default function ApplicantCard({
         </Text>
         <View style={styles.hintContainer}>
           <Text style={styles.hintText}>{t("viewProfile", "View profile")}</Text>
-          <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
+          <Ionicons name="chevron-forward" size={14} color={colors.mutedText} />
         </View>
       </View>
     </TouchableOpacity>
@@ -89,13 +89,13 @@ export default function ApplicantCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: colors.border,
     gap: 12,
-    shadowColor: "#0F172A",
+    shadowColor: colors.shadow,
     shadowOpacity: 0.03,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: "#1E293B",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "800",
     marginBottom: 4,
   },
   nameNotSpecified: {
-    color: "#94A3B8",
+    color: colors.mutedText,
     fontStyle: "italic",
     fontWeight: "600",
   },
@@ -124,17 +124,17 @@ const styles = StyleSheet.create({
     marginVertical: 1,
   },
   infoText: {
-    color: "#64748B",
+    color: colors.mutedText,
     fontSize: 13,
   },
   phoneText: {
-    color: "#1E293B",
+    color: colors.text,
     fontWeight: "700",
     fontSize: 13,
   },
   detailsContainer: {
     gap: 6,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: colors.primarySoft,
     padding: 10,
     borderRadius: 8,
   },
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   skillPill: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: colors.border,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   skillPillText: {
     fontSize: 11,
-    color: "#475569",
+    color: colors.mutedText,
     fontWeight: "600",
   },
   body: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   appliedDate: {
-    color: "#94A3B8",
+    color: colors.mutedText,
     fontSize: 12,
   },
   footer: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: colors.border,
     paddingTop: 10,
     marginTop: 2,
   },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   hintText: {
-    color: "#94A3B8",
+    color: colors.mutedText,
     fontSize: 12,
     fontWeight: "700",
   },

@@ -21,7 +21,7 @@ import { setProfileData } from "../../redux/slices/userSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import colors from "../../constants/colors";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 const { width } = Dimensions.get("window");
 
 export default function PostJobScreen({ navigation, route }) {
@@ -255,7 +255,7 @@ export default function PostJobScreen({ navigation, route }) {
               }}
               style={styles.backBtn}
             >
-              <Ionicons name="arrow-back" size={24} color="#15803D" />
+              <Ionicons name="arrow-back" size={24} color="#153e69" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t("postJob.title")}</Text>
             <View style={styles.headerRight}>
@@ -264,13 +264,13 @@ export default function PostJobScreen({ navigation, route }) {
                   onPress={handleExitOnboarding}
                   style={{ padding: 4 }}
                 >
-                  <Ionicons name="close" size={28} color="#EF4444" />
+                  <Ionicons name="close" size={28} color="#f57f20" />
                 </TouchableOpacity>
               ) : (
                 <>
                   {visibleStep === 2 && (
                     <TouchableOpacity style={styles.headerIcon}>
-                      {/* <Ionicons name="notifications-outline" size={22} color="#1E293B" /> */}
+                      {/* <Ionicons name="notifications-outline" size={22} color="#0a0504" /> */}
                     </TouchableOpacity>
                   )}
                   {/* {profile?.profile_photo_path ? (
@@ -280,7 +280,7 @@ export default function PostJobScreen({ navigation, route }) {
                     />
                   ) : (
                     <View style={styles.headerAvatarFallback}>
-                      <Ionicons name="person-outline" size={16} color="#64748B" />
+                      <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
                     </View>
                   )} */}
                 </>
@@ -328,7 +328,7 @@ export default function PostJobScreen({ navigation, route }) {
                     value={businessName}
                     onChangeText={setBusinessName}
                     placeholder={t("postJob.businessNamePlaceholder")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveField("businessName")}
                     onBlur={() => setActiveField(null)}
@@ -349,7 +349,7 @@ export default function PostJobScreen({ navigation, route }) {
                     value={contactPerson}
                     onChangeText={setContactPerson}
                     placeholder={t("postJob.contactPersonPlaceholder")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveField("contactPerson")}
                     onBlur={() => setActiveField(null)}
@@ -380,7 +380,7 @@ export default function PostJobScreen({ navigation, route }) {
                 }
                 activeOpacity={0.8}
               >
-                <Ionicons name="help-circle-outline" size={26} color="#FFFFFF" />
+                <Ionicons name="help-circle-outline" size={26} color="#ffffff" />
               </TouchableOpacity> */}
 
               {/* Footer actions */}
@@ -391,7 +391,7 @@ export default function PostJobScreen({ navigation, route }) {
                   onPress={handleNextStep1}
                 >
                   <Text style={styles.primaryNextBtnText}>{t("postJob.next")}</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                  <Ionicons name="arrow-forward" size={18} color="#ffffff" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -451,7 +451,7 @@ export default function PostJobScreen({ navigation, route }) {
                       value={jobTitle}
                       onChangeText={setJobTitle}
                       placeholder={t("postJob.jobTitlePlaceholder")}
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={() => setActiveField("jobTitle")}
                       onBlur={() => setActiveField(null)}
@@ -471,14 +471,14 @@ export default function PostJobScreen({ navigation, route }) {
                     <Ionicons
                       name="location-outline"
                       size={18}
-                      color="#64748B"
+                      color="rgba(10, 5, 4, 0.6)"
                       style={{ marginRight: 8 }}
                     />
                     <TextInput
                       value={location}
                       onChangeText={setLocation}
                       placeholder={t("postJob.locationPlaceholder")}
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={() => setActiveField("location")}
                       onBlur={() => setActiveField(null)}
@@ -500,7 +500,7 @@ export default function PostJobScreen({ navigation, route }) {
                         value={salaryRange}
                         onChangeText={setSalaryRange}
                         placeholder={t("postJob.salaryPlaceholder")}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         onFocus={() => setActiveField("salaryRange")}
                         onBlur={() => setActiveField(null)}
@@ -520,7 +520,7 @@ export default function PostJobScreen({ navigation, route }) {
                         value={openPositions}
                         onChangeText={setOpenPositions}
                         placeholder="1"
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         keyboardType="number-pad"
                         style={styles.textInput}
                         onFocus={() => setActiveField("openPositions")}
@@ -545,7 +545,7 @@ export default function PostJobScreen({ navigation, route }) {
                     <Ionicons
                       name={showExpDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
-                      color="#64748B"
+                      color="rgba(10, 5, 4, 0.6)"
                     />
                   </TouchableOpacity>
 
@@ -595,7 +595,7 @@ export default function PostJobScreen({ navigation, route }) {
                     <Ionicons
                       name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
-                      color="#64748B"
+                      color="rgba(10, 5, 4, 0.6)"
                     />
                   </TouchableOpacity>
 
@@ -644,7 +644,7 @@ export default function PostJobScreen({ navigation, route }) {
                       value={jobDescription}
                       onChangeText={setJobDescription}
                       placeholder={t("postJob.jobDescriptionPlaceholder")}
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={[styles.textInput, styles.multilineInput]}
                       multiline
                       numberOfLines={4}
@@ -657,7 +657,7 @@ export default function PostJobScreen({ navigation, route }) {
 
               {/* Tip Box */}
               <View style={styles.tipBox}>
-                <Ionicons name="bulb-outline" size={20} color="#64748B" style={styles.tipBoxIcon} />
+                <Ionicons name="bulb-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.tipBoxIcon} />
                 <Text style={styles.tipBoxText}>{t("postJob.tipText")}</Text>
               </View>
 
@@ -697,14 +697,14 @@ export default function PostJobScreen({ navigation, route }) {
                   <Ionicons
                     name="call-outline"
                     size={18}
-                    color="#64748B"
+                    color="rgba(10, 5, 4, 0.6)"
                     style={{ marginRight: 8 }}
                   />
                   <TextInput
                     value={contactPhone}
                     onChangeText={setContactPhone}
                     placeholder={t("postJob.phonePlaceholder")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="phone-pad"
                     maxLength={10}
                     style={styles.textInput}
@@ -729,14 +729,14 @@ export default function PostJobScreen({ navigation, route }) {
                   <Ionicons
                     name="mail-outline"
                     size={18}
-                    color="#64748B"
+                    color="rgba(10, 5, 4, 0.6)"
                     style={{ marginRight: 8 }}
                   />
                   <TextInput
                     value={contactEmail}
                     onChangeText={setContactEmail}
                     placeholder={t("postJob.emailPlaceholder")}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={styles.textInput}
@@ -794,7 +794,7 @@ export default function PostJobScreen({ navigation, route }) {
                   <Ionicons
                     name="paper-plane-outline"
                     size={16}
-                    color="#FFFFFF"
+                    color="#ffffff"
                     style={{ marginLeft: 6 }}
                   />
                 </TouchableOpacity>
@@ -820,7 +820,7 @@ export default function PostJobScreen({ navigation, route }) {
               <View style={styles.successIconOuter}>
                 <View style={styles.successIconInner}>
                   <View style={styles.successIconCore}>
-                    <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+                    <Ionicons name="checkmark" size={56} color="#ffffff" />
                   </View>
                 </View>
               </View>
@@ -883,14 +883,14 @@ export default function PostJobScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerRow: {
     flexDirection: "row",
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   headerRight: {
     flexDirection: "row",
@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerAvatarFallback: {
     width: 32,
@@ -927,12 +927,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "#EFF6FF",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
   progressContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 20,
     paddingBottom: 10,
     paddingTop: 8,
@@ -948,16 +948,16 @@ const styles = StyleSheet.create({
   progressStepText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   progressPercentText: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#15803D",
+    color: "#153e69",
   },
   progressBarBg: {
     height: 4,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 99,
   },
   progressBarFill: {
@@ -975,11 +975,11 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 20,
     alignItems: "flex-start",
   },
@@ -989,12 +989,12 @@ const styles = StyleSheet.create({
   },
   infoBoxText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   infoBoxTime: {
     fontSize: 10,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     marginTop: 6,
     fontWeight: "600",
   },
@@ -1004,15 +1004,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     minHeight: 50,
     paddingHorizontal: 14,
@@ -1020,11 +1020,11 @@ const styles = StyleSheet.create({
   inputWrapperActive: {
     borderColor: PRIMARY_GREEN,
     borderWidth: 1.5,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   textInput: {
     flex: 1,
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 15,
     paddingVertical: 8,
   },
@@ -1051,13 +1051,13 @@ const styles = StyleSheet.create({
     left: 16,
   },
   imageCardStepLabel: {
-    color: "#F1F5F9",
+    color: "#f2f2f3",
     fontSize: 11,
     fontWeight: "600",
     marginBottom: 2,
   },
   imageCardTitleLabel: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -1095,7 +1095,7 @@ const styles = StyleSheet.create({
   primaryNextBtnText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   saveDraftLink: {
     paddingVertical: 8,
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
   saveDraftLinkText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0A7B32",
+    color: "#153e69",
   },
   regionRow: {
     flexDirection: "row",
@@ -1114,8 +1114,8 @@ const styles = StyleSheet.create({
   regionChip: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
     borderRadius: 10,
     paddingVertical: 8,
     alignItems: "center",
@@ -1123,21 +1123,21 @@ const styles = StyleSheet.create({
   },
   regionChipActive: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   regionChipText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   regionChipTextActive: {
-    color: "#15803D",
+    color: "#153e69",
   },
   fieldsCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
     marginBottom: 16,
   },
@@ -1145,9 +1145,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   dropdownContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     marginTop: 4,
     paddingVertical: 4,
@@ -1168,11 +1168,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   dropdownItemText: {
     fontSize: 14,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   multilineWrapper: {
     alignItems: "flex-start",
@@ -1184,9 +1184,9 @@ const styles = StyleSheet.create({
   },
   tipBox: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     padding: 12,
     alignItems: "flex-start",
@@ -1199,7 +1199,7 @@ const styles = StyleSheet.create({
   tipBoxText: {
     flex: 1,
     fontSize: 12,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   footerRowStep2: {
@@ -1217,28 +1217,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   step3Banner: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 14,
     marginBottom: 20,
   },
   step3BannerText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 19,
   },
   phoneCaption: {
     fontSize: 11,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     marginTop: 6,
     marginLeft: 2,
   },
   reviewHeader: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 20,
     marginBottom: 10,
     letterSpacing: 1,
@@ -1246,9 +1246,9 @@ const styles = StyleSheet.create({
   reviewCardItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -1269,13 +1269,13 @@ const styles = StyleSheet.create({
   reviewCardLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     marginBottom: 2,
   },
   reviewCardValue: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   reviewCardRow: {
     flexDirection: "row",
@@ -1308,16 +1308,16 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 20,
     fontWeight: "900",
-    color: "#0F172A",
+    color: "#0a0504",
     textAlign: "center",
     marginBottom: 16,
   },
   successInfoCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 14,
     padding: 16,
     width: "100%",
@@ -1325,12 +1325,12 @@ const styles = StyleSheet.create({
   successInfoTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 4,
   },
   successInfoText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
   },
   dashboardLink: {
@@ -1341,7 +1341,7 @@ const styles = StyleSheet.create({
   dashboardLinkText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
 });
 

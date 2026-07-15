@@ -20,7 +20,7 @@ import colors from "../../constants/colors";
 import { bookChefAppointment } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ChefProfileDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -217,7 +217,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefProfile")}</Text>
         </View>
@@ -230,12 +230,12 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             <Image source={logoSource} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="person" size={32} color="#64748B" />
+              <Ionicons name="person" size={32} color="rgba(10, 5, 4, 0.6)" />
             </View>
           )}
           <Text style={styles.chefName}>{displayName}</Text>
           <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color="#64748B" />
+            <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
             <Text style={styles.locationText}>{displayCity}</Text>
           </View>
           <View style={styles.statusBadge}>
@@ -253,12 +253,12 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
         {/* Info Grid */}
         <View style={styles.infoGridRow}>
           <View style={styles.infoGridBadge}>
-            <Ionicons name="time-outline" size={20} color="#15803D" style={{ marginBottom: 4 }} />
+            <Ionicons name="time-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
             <Text style={styles.badgeLabel}>{t("experience")}</Text>
             <Text style={styles.badgeValue}>{displayExperience}</Text>
           </View>
           <View style={styles.infoGridBadge}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#15803D" style={{ marginBottom: 4 }} />
+            <Ionicons name="checkmark-circle-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
             <Text style={styles.badgeLabel}>{t("identity")}</Text>
             <Text style={styles.badgeValue}>{t("verified")}</Text>
           </View>
@@ -319,13 +319,13 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
         <Text style={styles.sectionTitleCap}>{t("socialProfiles")}</Text>
         <View style={styles.socialRow}>
           <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="link-outline" size={20} color="#475569" />
+            <Ionicons name="link-outline" size={20} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="logo-linkedin" size={20} color="#475569" />
+            <Ionicons name="logo-linkedin" size={20} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="mail-outline" size={20} color="#475569" />
+            <Ionicons name="mail-outline" size={20} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -338,7 +338,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             activeOpacity={0.8}
             onPress={() => navigation.navigate("ChefCompleteProfile")}
           >
-            <Ionicons name="create-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Ionicons name="create-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
             <Text style={styles.appointmentBtnText}>{t("editProfile", "Edit Profile")}</Text>
           </TouchableOpacity>
         ) : (
@@ -347,7 +347,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             activeOpacity={0.8}
             onPress={handleOpenBooking}
           >
-            <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Ionicons name="calendar-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
             <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
           </TouchableOpacity>
         )}
@@ -366,7 +366,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>{t("bookConsultation")}</Text>
               <TouchableOpacity onPress={() => setBookingVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={24} color="rgba(10, 5, 4, 0.6)" />
               </TouchableOpacity>
             </View>
 
@@ -444,7 +444,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
                 multiline
                 numberOfLines={3}
                 style={styles.modalTextInput}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(10, 5, 4, 0.4)"
               />
             </ScrollView>
 
@@ -455,7 +455,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
               disabled={bookingLoading}
             >
               {bookingLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <Text style={styles.modalBookButtonText}>{t("bookAppointment")}</Text>
               )}
@@ -470,7 +470,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -478,9 +478,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   menuIcon: {
     padding: 4,
@@ -504,13 +504,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileHeaderCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 20,
     alignItems: "center",
-    shadowColor: "#0F172A",
+    shadowColor: "#0a0504",
     shadowOpacity: 0.02,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -522,17 +522,17 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
   chefName: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 4,
   },
   locationRow: {
@@ -543,13 +543,13 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -558,30 +558,30 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     marginRight: 6,
   },
   statusText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   sectionCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
   },
   bioText: {
     fontSize: 13,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 20,
     fontWeight: "500",
   },
@@ -592,16 +592,16 @@ const styles = StyleSheet.create({
   },
   infoGridBadge: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 12,
     alignItems: "center",
   },
   badgeLabel: {
     fontSize: 10,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     fontWeight: "700",
     textTransform: "uppercase",
     marginBottom: 2,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   badgeValue: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   pillsContainer: {
     flexDirection: "row",
@@ -617,44 +617,44 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pillGrey: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   pillText: {
     fontSize: 11,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   pillGreenLight: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#e7eff7",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   pillTextGreen: {
     fontSize: 11,
-    color: "#10B981",
+    color: "#153e69",
     fontWeight: "700",
   },
   pillOutline: {
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   pillTextGrey: {
     fontSize: 11,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   sectionTitleCap: {
     fontSize: 11,
     fontWeight: "850",
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     textTransform: "uppercase",
     marginLeft: 4,
     marginTop: 8,
@@ -669,15 +669,15 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   appointmentBtn: {
     flexDirection: "row",
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   appointmentBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -710,13 +710,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#f2f2f3",
     paddingBottom: 14,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   modalScrollBody: {
     paddingVertical: 16,
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
   modalLabel: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
   },
   modalDateRow: {
@@ -732,23 +732,23 @@ const styles = StyleSheet.create({
   },
   slotPill: {
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   slotPillSelected: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotPillText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   slotPillTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "750",
   },
   modalTimeGrid: {
@@ -760,40 +760,40 @@ const styles = StyleSheet.create({
   timeSlotCell: {
     width: "23%",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   timeSlotCellSelected: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   timeSlotText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   timeSlotTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "750",
   },
   noSlotsText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     paddingHorizontal: 4,
   },
   modalTextInput: {
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     padding: 12,
     fontSize: 13,
-    color: "#1E293B",
+    color: "#0a0504",
     textAlignVertical: "top",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   modalBookButton: {
     backgroundColor: PRIMARY_GREEN,
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   modalBookButtonText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },

@@ -24,7 +24,7 @@ import { getChefAppointments, getChefDashboardStats, saveChefOnboarding } from "
 import { getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ChefProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -217,7 +217,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefProfile", "Chef Profile")}</Text>
         </View>
@@ -231,14 +231,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
               <Image source={logoSource} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Ionicons name="person" size={28} color="#64748B" />
+                <Ionicons name="person" size={28} color="rgba(10, 5, 4, 0.6)" />
               </View>
             )}
             <View style={styles.profileTextInfo}>
               <Text style={styles.profileName}>{displayName}</Text>
               <Text style={styles.profileTitle}>{displayTitle}</Text>
               <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={14} color="#64748B" style={{ marginRight: 4 }} />
+                <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
                 <Text style={styles.locationText}>{displayCity}</Text>
               </View>
               <View style={styles.statusRow}>
@@ -264,7 +264,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           {/* Card 1 */}
           <View style={styles.analyticsCard}>
             <View style={styles.analyticsIconBox}>
-              <Ionicons name="eye-outline" size={18} color="#15803D" />
+              <Ionicons name="eye-outline" size={18} color="#153e69" />
             </View>
             <Text style={styles.analyticsValue}>{stats.profile_views}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.profileViews")}</Text>
@@ -273,7 +273,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           {/* Card 2 */}
           <View style={styles.analyticsCard}>
             <View style={styles.analyticsIconBox}>
-              <Ionicons name="calendar-outline" size={18} color="#15803D" />
+              <Ionicons name="calendar-outline" size={18} color="#153e69" />
             </View>
             <Text style={styles.analyticsValue}>{stats.appointment_requests || appointmentCount}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.appointmentReq")}</Text>
@@ -282,7 +282,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           {/* Card 3 */}
           <View style={styles.analyticsCard}>
             <View style={styles.analyticsIconBox}>
-              <Ionicons name="paper-plane-outline" size={18} color="#15803D" />
+              <Ionicons name="paper-plane-outline" size={18} color="#153e69" />
             </View>
             <Text style={styles.analyticsValue}>{stats.referrals_posted}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.referralsPosted")}</Text>
@@ -291,7 +291,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           {/* Card 4 */}
           <View style={styles.analyticsCard}>
             <View style={styles.analyticsIconBox}>
-              <Ionicons name="checkmark-done-circle-outline" size={18} color="#15803D" />
+              <Ionicons name="checkmark-done-circle-outline" size={18} color="#153e69" />
             </View>
             <Text style={styles.analyticsValue}>{stats.upcoming_consultations}</Text>
             <Text style={styles.analyticsLabel}>{t("chefDashboard.upcomingConsult")}</Text>
@@ -308,14 +308,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("Applications")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="mail-open-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="mail-open-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.myApplications")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{applicationsCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
 
@@ -328,14 +328,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("SavedJobs")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="bookmark-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="bookmark-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.mySavedJobs")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{savedJobsCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
 
@@ -348,14 +348,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("MyJobs")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="share-social-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="share-social-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.myPostedJobs")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.referrals_posted}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
 
@@ -368,14 +368,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("AppointmentRequests")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.appointmentRequests")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.appointment_requests || appointmentCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
 
@@ -388,14 +388,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => CustomAlert.show("Consultations", `You have ${stats.upcoming_consultations} upcoming consultations.`)}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-number-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="calendar-number-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.upcomingConsultations")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.upcoming_consultations}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
         </View>
@@ -405,10 +405,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
         <View style={styles.menuGroup}>
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleOpenCalendly}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.calendlyIntegration")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
@@ -419,24 +419,24 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => CustomAlert.show("Social Links", "Social media links feature is coming soon.")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="globe-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="globe-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.socialMediaLinks")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="time-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="time-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.availability")}</Text>
             </View>
             <Switch
               value={displayAvailability === "Available" || displayAvailability === "Available for Consultation"}
               onValueChange={handleToggleAvailability}
-              trackColor={{ false: "#CBD5E1", true: "#86EFAC" }}
-              thumbColor={displayAvailability === "Available" || displayAvailability === "Available for Consultation" ? PRIMARY_GREEN : "#94A3B8"}
+              trackColor={{ false: "rgba(10, 5, 4, 0.15)", true: "#f2c879" }}
+              thumbColor={displayAvailability === "Available" || displayAvailability === "Available for Consultation" ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
             />
           </View>
 
@@ -444,10 +444,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleShareProfile}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="share-outline" size={20} color="#15803D" style={styles.menuIcon} />
+              <Ionicons name="share-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.shareProfile")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
         </View>
 
@@ -460,12 +460,12 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("Language")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="language-outline" size={20} color="#64748B" style={styles.menuIcon} />
+              <Ionicons name="language-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("language")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <Text style={styles.langValueText}>{currentLanguageName}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#64748B" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
           </TouchableOpacity>
 
@@ -477,10 +477,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("Settings")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="settings-outline" size={20} color="#64748B" style={styles.menuIcon} />
+              <Ionicons name="settings-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("settingsTitle")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity> */}
 
           <View style={styles.menuDivider} />
@@ -491,20 +491,20 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("HelpSupport")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="help-circle-outline" size={20} color="#64748B" style={styles.menuIcon} />
+              <Ionicons name="help-circle-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("customerSupport")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleLogout}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="log-out-outline" size={20} color="#EF4444" style={styles.menuIcon} />
-              <Text style={[styles.menuItemLabel, { color: "#EF4444" }]}>{t("logOut")}</Text>
+              <Ionicons name="log-out-outline" size={20} color="#f57f20" style={styles.menuIcon} />
+              <Text style={[styles.menuItemLabel, { color: "#f57f20" }]}>{t("logOut")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -515,7 +515,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -523,9 +523,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   bellButton: {
     padding: 4,
@@ -548,12 +548,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     padding: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#0F172A",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    shadowColor: "#0a0504",
     shadowOpacity: 0.03,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -571,10 +571,10 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -584,12 +584,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   profileTitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 6,
     lineHeight: 16,
   },
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   statusRow: {
@@ -611,12 +611,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     marginRight: 6,
   },
   statusText: {
     fontSize: 11,
-    color: "#22C55E",
+    color: "#153e69",
     fontWeight: "700",
   },
   viewProfileBtn: {
@@ -626,14 +626,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   viewProfileBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     textTransform: "uppercase",
     marginBottom: 12,
     marginLeft: 4,
@@ -647,17 +647,17 @@ const styles = StyleSheet.create({
   },
   analyticsCard: {
     width: "48%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 12,
   },
   analyticsIconBox: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
@@ -665,21 +665,21 @@ const styles = StyleSheet.create({
   analyticsValue: {
     fontSize: 20,
     fontWeight: "900",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   analyticsLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   fullWidthCardRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 16,
     padding: 12,
     marginBottom: 20,
@@ -690,14 +690,14 @@ const styles = StyleSheet.create({
   },
   fullWidthCardText: {
     fontSize: 12,
-    color: "#1E293B",
+    color: "#0a0504",
     fontWeight: "500",
   },
   menuGroup: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 20,
     overflow: "hidden",
   },
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
   menuItemLabel: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   menuItemRight: {
     flexDirection: "row",
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   badgeContainer: {
-    backgroundColor: "#FEE2E2",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -737,16 +737,16 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: "800",
-    color: "#EF4444",
+    color: "#f57f20",
   },
   menuDivider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     marginLeft: 16,
   },
   langValueText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
 });

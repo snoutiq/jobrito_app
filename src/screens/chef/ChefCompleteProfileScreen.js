@@ -34,7 +34,7 @@ import * as ImagePicker from "expo-image-picker";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 const countriesList = [
   "India",
@@ -613,17 +613,17 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         <View style={styles.header}>
           {step < 7 ? (
             <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
-              <Ionicons name="arrow-back" size={24} color="#1E293B" />
+              <Ionicons name="arrow-back" size={24} color="#0a0504" />
             </TouchableOpacity>
           ) : (
             <View style={{ width: 32 }} />
           )}
-          <Text style={[styles.headerTitle, step >= 6 && { color: "#15803D" }]}>
+          <Text style={[styles.headerTitle, step >= 6 && { color: "#153e69" }]}>
             {step === 7 ? "Jobrito" : "Professional Profile"}
           </Text>
           {step < 7 ? (
             <TouchableOpacity style={styles.headerIconBtn} onPress={() => Alert.alert("Help", "Fill in your chef professional credentials to sync your profile with top employers.")}>
-              <Ionicons name="help-circle-outline" size={24} color="#64748B" />
+              <Ionicons name="help-circle-outline" size={24} color="rgba(10, 5, 4, 0.6)" />
             </TouchableOpacity>
           ) : (
             <View style={{ width: 32 }} />
@@ -683,12 +683,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Full Name</Text>
                 <View style={[styles.inputWrapper, activeInput === "fullName" && styles.inputWrapperActive]}>
-                  <Ionicons name="person-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={fullName}
                     onChangeText={setFullName}
                     placeholder="Enter your full name"
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("fullName")}
                     onBlur={() => setActiveInput(null)}
@@ -700,12 +700,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Professional Title</Text>
                 <View style={[styles.inputWrapper, activeInput === "professionalTitle" && styles.inputWrapperActive]}>
-                  <Ionicons name="restaurant-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                  <Ionicons name="restaurant-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={professionalTitle}
                     onChangeText={setProfessionalTitle}
                     placeholder="e.g. Executive Chef, Sous Chef"
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("professionalTitle")}
                     onBlur={() => setActiveInput(null)}
@@ -725,11 +725,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   }}
                   style={[styles.inputWrapper, showCountryDropdown && styles.inputWrapperActive]}
                 >
-                  <Ionicons name="globe-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
-                  <Text style={[styles.textInput, !selectedCountry && { color: "#94A3B8" }]}>
+                  <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                  <Text style={[styles.textInput, !selectedCountry && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {selectedCountry || "Select Country"}
                   </Text>
-                  <Ionicons name={showCountryDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
+                  <Ionicons name={showCountryDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
                 </TouchableOpacity>
 
                 {showCountryDropdown && (
@@ -767,12 +767,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Enter Country Name</Text>
                   <View style={[styles.inputWrapper, activeInput === "customCountry" && styles.inputWrapperActive]}>
-                    <Ionicons name="globe-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                     <TextInput
                       value={country}
                       onChangeText={setCountry}
                       placeholder="Enter country name"
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={() => setActiveInput("customCountry")}
                       onBlur={() => setActiveInput(null)}
@@ -786,12 +786,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <Text style={styles.inputLabel}>Current City</Text>
                 {selectedCountry === "Other" ? (
                   <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
-                    <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                     <TextInput
                       value={currentCity}
                       onChangeText={setCurrentCity}
                       placeholder="Enter city name"
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={() => setActiveInput("city")}
                       onBlur={() => setActiveInput(null)}
@@ -811,19 +811,19 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       }}
                       style={[
                         styles.inputWrapper,
-                        !selectedCountry && { backgroundColor: "#F1F5F9", borderColor: "#E2E8F0" },
+                        !selectedCountry && { backgroundColor: "#f2f2f3", borderColor: "rgba(10, 5, 4, 0.15)" },
                         showCityDropdown && styles.inputWrapperActive
                       ]}
                       disabled={!selectedCountry}
                     >
-                      <Ionicons name="location-outline" size={20} color={selectedCountry ? "#64748B" : "#94A3B8"} style={styles.inputIconLeft} />
-                      <Text style={[styles.textInput, (!selectedCity || !currentCity) && { color: "#94A3B8" }]}>
+                      <Ionicons name="location-outline" size={20} color={selectedCountry ? "rgba(10, 5, 4, 0.6)" : "rgba(10, 5, 4, 0.4)"} style={styles.inputIconLeft} />
+                      <Text style={[styles.textInput, (!selectedCity || !currentCity) && { color: "rgba(10, 5, 4, 0.4)" }]}>
                         {!selectedCountry 
                           ? "Select Country First" 
                           : (selectedCity === "Other" ? (currentCity || "Type your city name") : (currentCity || "Select City"))
                         }
                       </Text>
-                      <Ionicons name={showCityDropdown ? "chevron-up" : "chevron-down"} size={20} color={selectedCountry ? "#64748B" : "#94A3B8"} />
+                      <Ionicons name={showCityDropdown ? "chevron-up" : "chevron-down"} size={20} color={selectedCountry ? "rgba(10, 5, 4, 0.6)" : "rgba(10, 5, 4, 0.4)"} />
                     </TouchableOpacity>
 
                     {showCityDropdown && selectedCountry && (
@@ -860,12 +860,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Enter City Name</Text>
                   <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
-                    <Ionicons name="location-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                     <TextInput
                       value={currentCity}
                       onChangeText={setCurrentCity}
                       placeholder="e.g. Pune"
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={() => setActiveInput("city")}
                       onBlur={() => setActiveInput(null)}
@@ -911,7 +911,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                         <View key={lang} style={styles.languageTag}>
                           <Text style={styles.languageTagText}>{lang}</Text>
                           <TouchableOpacity onPress={() => handleRemoveLanguage(lang)} style={styles.languageTagClose}>
-                            <Ionicons name="close" size={14} color="#64748B" />
+                            <Ionicons name="close" size={14} color="rgba(10, 5, 4, 0.6)" />
                           </TouchableOpacity>
                         </View>
                       ))}
@@ -926,7 +926,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                         value={newLanguage}
                         onChangeText={setNewLanguage}
                         placeholder="Type custom language (e.g. German)"
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         autoFocus
                         onSubmitEditing={handleAddLanguage}
@@ -1049,10 +1049,10 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   onPress={() => setShowExpDropdown(!showExpDropdown)}
                   style={[styles.inputWrapper, showExpDropdown && styles.inputWrapperActive]}
                 >
-                  <Text style={[styles.textInput, !experienceYears && { color: "#94A3B8" }]}>
+                  <Text style={[styles.textInput, !experienceYears && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {experienceYears || "Select total years in industry"}
                   </Text>
-                  <Ionicons name={showExpDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
+                  <Ionicons name={showExpDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
                 </TouchableOpacity>
 
                 {showExpDropdown && (
@@ -1178,10 +1178,10 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   onPress={() => setShowAvailDropdown(!showAvailDropdown)}
                   style={[styles.inputWrapper, showAvailDropdown && styles.inputWrapperActive]}
                 >
-                  <Text style={[styles.textInput, !availability && { color: "#94A3B8" }]}>
+                  <Text style={[styles.textInput, !availability && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {availability || "Select availability"}
                   </Text>
-                  <Ionicons name={showAvailDropdown ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
+                  <Ionicons name={showAvailDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
                 </TouchableOpacity>
 
                 {showAvailDropdown && (
@@ -1214,7 +1214,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   value={bio}
                   onChangeText={setBio}
                   placeholder="Briefly describe your expertise, career highlights, and what you bring to the kitchen..."
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
                   multiline
                   numberOfLines={5}
                   style={[styles.textInput, styles.multilineInput]}
@@ -1247,8 +1247,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   <View style={styles.syncLogoBox}>
                     <Ionicons name="calendar" size={24} color={PRIMARY_GREEN} />
                   </View>
-                  <Ionicons name="repeat-outline" size={20} color="#94A3B8" style={{ marginHorizontal: 12 }} />
-                  <View style={[styles.syncLogoBox, { backgroundColor: "#0284C7" }]}>
+                  <Ionicons name="repeat-outline" size={20} color="rgba(10, 5, 4, 0.4)" style={{ marginHorizontal: 12 }} />
+                  <View style={[styles.syncLogoBox, { backgroundColor: "#153e69" }]}>
                     <Text style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>C</Text>
                   </View>
                 </View>
@@ -1263,7 +1263,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={styles.cardHeaderRow}>
                   <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
                     <View style={styles.calendarIconBg}>
-                      <Ionicons name="calendar-outline" size={24} color="#16A34A" />
+                      <Ionicons name="calendar-outline" size={24} color="#153e69" />
                     </View>
                     <View style={{ marginLeft: 12 }}>
                       <Text style={styles.cardSectionTitle}>Calendly Integration</Text>
@@ -1276,11 +1276,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   ]}>
                     <View style={[
                       styles.connectBadgeDot, 
-                      calendlyLink.trim() ? { backgroundColor: "#16A34A" } : { backgroundColor: "#94A3B8" }
+                      calendlyLink.trim() ? { backgroundColor: "#153e69" } : { backgroundColor: "rgba(10, 5, 4, 0.4)" }
                     ]} />
                     <Text style={[
                       styles.connectBadgeText,
-                      calendlyLink.trim() ? { color: "#16A34A" } : { color: "#64748B" }
+                      calendlyLink.trim() ? { color: "#153e69" } : { color: "rgba(10, 5, 4, 0.6)" }
                     ]}>
                       {calendlyLink.trim() ? "Link Added" : "Not Connected"}
                     </Text>
@@ -1291,12 +1291,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={[styles.inputGroup, { marginTop: 20 }]}>
                   <Text style={styles.inputLabel}>Your Calendly Link</Text>
                   <View style={[styles.inputWrapper, activeInput === "calendly" && styles.inputWrapperActive]}>
-                    <Ionicons name="link-outline" size={20} color="#64748B" style={styles.inputIconLeft} />
+                    <Ionicons name="link-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                     <TextInput
                       value={calendlyLink}
                       onChangeText={(val) => setCalendlyLink(val.replace(/\s+/g, ""))}
                       placeholder="calendly.com/your-name"
-                      placeholderTextColor="#94A3B8"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       autoCapitalize="none"
                       style={styles.textInput}
                       onFocus={() => setActiveInput("calendly")}
@@ -1314,8 +1314,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       onPress={handleCreateCalendlyAccount}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="open-outline" size={16} color="#2563EB" />
-                      <Text style={[styles.helperActionText, { color: "#2563EB" }]}>Create Account</Text>
+                      <Ionicons name="open-outline" size={16} color="#153e69" />
+                      <Text style={[styles.helperActionText, { color: "#153e69" }]}>Create Account</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -1323,8 +1323,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       onPress={handleCopyCalendlySignupLink}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="copy-outline" size={16} color="#475569" />
-                      <Text style={[styles.helperActionText, { color: "#475569" }]}>Copy Link</Text>
+                      <Ionicons name="copy-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
+                      <Text style={[styles.helperActionText, { color: "rgba(10, 5, 4, 0.6)" }]}>Copy Link</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -1332,8 +1332,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       onPress={handlePasteCalendlyLink}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="clipboard-outline" size={16} color="#16A34A" />
-                      <Text style={[styles.helperActionText, { color: "#16A34A" }]}>Paste Link</Text>
+                      <Ionicons name="clipboard-outline" size={16} color="#153e69" />
+                      <Text style={[styles.helperActionText, { color: "#153e69" }]}>Paste Link</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1341,7 +1341,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
               {/* Why Connect Info Card */}
               <View style={styles.whyConnectCard}>
-                <Ionicons name="bulb-outline" size={20} color="#16A34A" style={{ marginRight: 10, marginTop: 2 }} />
+                <Ionicons name="bulb-outline" size={20} color="#153e69" style={{ marginRight: 10, marginTop: 2 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.whyConnectTitle}>Why connect?</Text>
                   <Text style={styles.whyConnectText}>
@@ -1389,7 +1389,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   }}
                 >
                   <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#0A66C2" }]}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "#153e69" }]}>
                       <Ionicons name="logo-linkedin" size={20} color="#fff" />
                     </View>
                     <View style={{ marginLeft: 12 }}>
@@ -1404,14 +1404,14 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     ]}>
                       {linkedinLink ? (
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
                         </View>
                       ) : (
                         <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
                   </View>
                 </TouchableOpacity>
 
@@ -1443,14 +1443,14 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     ]}>
                       {instagramLink ? (
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
                         </View>
                       ) : (
                         <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
                   </View>
                 </TouchableOpacity>
 
@@ -1482,14 +1482,14 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     ]}>
                       {facebookLink ? (
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
                         </View>
                       ) : (
                         <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
                   </View>
                 </TouchableOpacity>
 
@@ -1506,7 +1506,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   }}
                 >
                   <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#64748B" }]}>
+                    <View style={[styles.socialIconBox, { backgroundColor: "rgba(10, 5, 4, 0.6)" }]}>
                       <Ionicons name="add-outline" size={20} color="#fff" />
                     </View>
                     <View style={{ marginLeft: 12 }}>
@@ -1521,21 +1521,21 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                     ]}>
                       {twitterLink ? (
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#16A34A" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#16A34A" }]}>Connected</Text>
+                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
+                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
                         </View>
                       ) : (
                         <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
                       )}
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="#64748B" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
                   </View>
                 </TouchableOpacity>
               </View>
 
               {/* Finish Setup Button */}
               <TouchableOpacity
-                style={[styles.finishSetupButton, { backgroundColor: "#15803D" }]}
+                style={[styles.finishSetupButton, { backgroundColor: "#153e69" }]}
                 onPress={next}
                 activeOpacity={0.8}
               >
@@ -1568,7 +1568,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       {fullName ? `${fullName.toLowerCase().replace(/\s+/g, ".")}@chefconnect.com` : "marcus.sterling@chefconnect.com"}
                     </Text>
                     <View style={styles.reviewBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#15803D" />
+                      <Ionicons name="checkmark-circle" size={14} color="#153e69" />
                       <Text style={styles.reviewBadgeText}>{t("chefOnboarding.identityVerified")}</Text>
                     </View>
                   </View>
@@ -1579,14 +1579,14 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               <View style={styles.reviewGridRow}>
                 <View style={[styles.reviewGridCol, { marginRight: 6 }]}>
                   <View style={styles.reviewGridLabelRow}>
-                    <Ionicons name="star" size={14} color="#15803D" style={{ marginRight: 4 }} />
+                    <Ionicons name="star" size={14} color="#153e69" style={{ marginRight: 4 }} />
                     <Text style={styles.reviewGridLabel}>{t("chefOnboarding.currentTitle")}</Text>
                   </View>
                   <Text style={styles.reviewGridValue}>{professionalTitle || "Executive Sous Chef"}</Text>
                 </View>
                 <View style={[styles.reviewGridCol, { marginLeft: 6 }]}>
                   <View style={styles.reviewGridLabelRow}>
-                    <Ionicons name="calendar" size={14} color="#15803D" style={{ marginRight: 4 }} />
+                    <Ionicons name="calendar" size={14} color="#153e69" style={{ marginRight: 4 }} />
                     <Text style={styles.reviewGridLabel}>{t("chefOnboarding.experience")}</Text>
                   </View>
                   <Text style={styles.reviewGridValue}>{experienceYears || "12 Years"}</Text>
@@ -1596,7 +1596,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               {/* Professional Bio Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="document-text" size={18} color="#15803D" />
+                  <Ionicons name="document-text" size={18} color="#153e69" />
                   <Text style={styles.reviewSecTitle}>{t("chefOnboarding.professionalBio")}</Text>
                 </View>
                 <Text style={styles.reviewSecBioText}>
@@ -1607,7 +1607,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               {/* Cuisine Specialization Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="restaurant" size={18} color="#15803D" />
+                  <Ionicons name="restaurant" size={18} color="#153e69" />
                   <Text style={styles.reviewSecTitle}>{t("chefOnboarding.cuisineSpecialization")}</Text>
                 </View>
                 <View style={styles.reviewPillContainer}>
@@ -1622,7 +1622,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               {/* Operational Expertise Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="stats-chart" size={18} color="#15803D" />
+                  <Ionicons name="stats-chart" size={18} color="#153e69" />
                   <Text style={styles.reviewSecTitle}>{t("chefOnboarding.operationalExpertise")}</Text>
                 </View>
                 <View style={styles.reviewPillContainer}>
@@ -1637,7 +1637,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               {/* Regions Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="globe" size={18} color="#15803D" />
+                  <Ionicons name="globe" size={18} color="#153e69" />
                   <Text style={styles.reviewSecTitle}>{t("chefOnboarding.regions")}</Text>
                 </View>
                 <View style={styles.reviewBulletContainer}>
@@ -1652,7 +1652,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
               {/* Complete Profile Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { backgroundColor: "#22C55E" }, submitting && styles.continueButtonDisabled]}
+                style={[styles.continueButton, { backgroundColor: "#153e69" }, submitting && styles.continueButtonDisabled]}
                 onPress={handleCompleteProfile}
                 activeOpacity={0.8}
                 disabled={submitting}
@@ -1683,7 +1683,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
             <View style={[styles.stepContainer, { alignItems: "center", paddingTop: 40 }]}>
               {/* Success Circle Icon */}
               <View style={styles.successIconBox}>
-                <Ionicons name="checkmark-circle" size={80} color="#22C55E" />
+                <Ionicons name="checkmark-circle" size={80} color="#153e69" />
               </View>
 
               {/* Heading & Subheading */}
@@ -1694,7 +1694,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
               {/* Status Pending Approval Pill */}
               <View style={styles.statusPill}>
-                <Ionicons name="time-outline" size={14} color="#64748B" style={{ marginRight: 4 }} />
+                <Ionicons name="time-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
                 <Text style={styles.statusPillText}>{t("chefOnboarding.statusPending")}</Text>
               </View>
 
@@ -1708,7 +1708,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
               {/* Action Buttons */}
               <TouchableOpacity
-                style={[styles.continueButton, { width: "100%", backgroundColor: "#22C55E" }]}
+                style={[styles.continueButton, { width: "100%", backgroundColor: "#153e69" }]}
                 onPress={() => handleFinishOnboarding("Home")}
                 activeOpacity={0.8}
               >
@@ -1733,12 +1733,12 @@ export default function ChefCompleteProfileScreen({ navigation }) {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{editingPlatform} Link/Handle</Text>
               <View style={[styles.inputWrapper, { minHeight: 46 }]}>
-                <Ionicons name="link-outline" size={18} color="#64748B" style={styles.inputIconLeft} />
+                <Ionicons name="link-outline" size={18} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                 <TextInput
                   value={tempLink}
                   onChangeText={setTempLink}
                   placeholder={`Enter your ${editingPlatform} URL`}
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
                   autoCapitalize="none"
                   style={styles.textInput}
                 />
@@ -1785,7 +1785,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -1793,9 +1793,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerIconBtn: {
     padding: 4,
@@ -1803,14 +1803,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   progressSection: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   progressRow: {
     flexDirection: "row",
@@ -1821,7 +1821,7 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   progressPct: {
     fontSize: 12,
@@ -1829,7 +1829,7 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 99,
     overflow: "hidden",
   },
@@ -1853,9 +1853,9 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderWidth: 1.5,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderStyle: "dashed",
     position: "relative",
     overflow: "visible",
@@ -1892,17 +1892,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: "#ffffff",
   },
   stepTitle: {
     fontSize: 20,
     fontWeight: "850",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 6,
   },
   stepSubtitle: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
     marginBottom: 24,
   },
@@ -1912,15 +1912,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     minHeight: 50,
     paddingHorizontal: 14,
@@ -1932,7 +1932,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: "#0F172A",
+    color: "#0a0504",
     fontSize: 15,
     paddingVertical: 8,
   },
@@ -1941,7 +1941,7 @@ const styles = StyleSheet.create({
   },
   inputSubtext: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 6,
     paddingLeft: 4,
   },
@@ -1952,9 +1952,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     padding: 10,
     minHeight: 50,
@@ -1963,17 +1963,17 @@ const styles = StyleSheet.create({
   languageTag: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   languageTagText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     marginRight: 4,
   },
   languageTagClose: {
@@ -2000,7 +2000,7 @@ const styles = StyleSheet.create({
   addLangInput: {
     flex: 1,
     fontSize: 12,
-    color: "#0F172A",
+    color: "#0a0504",
     paddingVertical: 2,
   },
   addLangSubmit: {
@@ -2024,14 +2024,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   continueButtonDisabled: {
-    backgroundColor: "#CBD5E1",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     shadowOpacity: 0,
     elevation: 0,
   },
   continueButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   bannerContainer: {
     height: 140,
@@ -2057,7 +2057,7 @@ const styles = StyleSheet.create({
   bannerText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -2068,11 +2068,11 @@ const styles = StyleSheet.create({
   sectionTitleText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   sectionSubtitleText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
     marginBottom: 12,
     paddingLeft: 28,
@@ -2085,9 +2085,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   pill: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 99,
@@ -2099,16 +2099,16 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   pillTextSelected: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontWeight: "700",
   },
   dropdownContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     marginTop: 4,
     paddingVertical: 4,
@@ -2122,11 +2122,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   dropdownItemText: {
     fontSize: 14,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   multilineWrapper: {
     alignItems: "flex-start",
@@ -2140,21 +2140,21 @@ const styles = StyleSheet.create({
   reviewMainTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 6,
   },
   reviewMainSubtitle: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
     marginBottom: 20,
   },
   reviewCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#f2f2f3",
     marginBottom: 12,
     shadowColor: "#000",
     shadowOpacity: 0.02,
@@ -2179,18 +2179,18 @@ const styles = StyleSheet.create({
   reviewName: {
     fontSize: 18,
     fontWeight: "750",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   reviewEmail: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 4,
   },
   reviewBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -2199,7 +2199,7 @@ const styles = StyleSheet.create({
   reviewBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
     marginLeft: 4,
   },
   reviewGridRow: {
@@ -2208,11 +2208,11 @@ const styles = StyleSheet.create({
   },
   reviewGridCol: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#f2f2f3",
   },
   reviewGridLabelRow: {
     flexDirection: "row",
@@ -2222,13 +2222,13 @@ const styles = StyleSheet.create({
   reviewGridLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     letterSpacing: 0.5,
   },
   reviewGridValue: {
     fontSize: 14,
     fontWeight: "750",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   reviewSecTitleRow: {
     flexDirection: "row",
@@ -2238,12 +2238,12 @@ const styles = StyleSheet.create({
   reviewSecTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginLeft: 8,
   },
   reviewSecBioText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   reviewPillContainer: {
@@ -2252,17 +2252,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   reviewPill: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   reviewPillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   reviewBulletContainer: {
     gap: 6,
@@ -2275,12 +2275,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     marginRight: 10,
   },
   reviewBulletText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   editInfoBtn: {
     paddingVertical: 14,
@@ -2290,7 +2290,7 @@ const styles = StyleSheet.create({
   editInfoBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   successIconBox: {
     marginBottom: 20,
@@ -2298,12 +2298,12 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 8,
   },
   successSubtitle: {
     fontSize: 14,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     lineHeight: 20,
     paddingHorizontal: 20,
@@ -2312,37 +2312,37 @@ const styles = StyleSheet.create({
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 99,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   statusPillText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   nextStepsCard: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     width: "100%",
     marginBottom: 28,
   },
   nextStepsTitle: {
     fontSize: 15,
     fontWeight: "750",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 6,
   },
   nextStepsText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   viewDraftBtn: {
@@ -2354,16 +2354,16 @@ const styles = StyleSheet.create({
   viewDraftBtnText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   // --- New Styles ---
   syncIllustrationCard: {
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 20,
     shadowColor: "#000",
     shadowOpacity: 0.02,
@@ -2379,31 +2379,31 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   illustrationTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 8,
     textAlign: "center",
   },
   illustrationSubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     lineHeight: 18,
   },
   cardContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     shadowColor: "#000",
     shadowOpacity: 0.02,
     shadowRadius: 8,
@@ -2418,18 +2418,18 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   cardSectionTitle: {
     fontSize: 15,
     fontWeight: "750",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   cardSectionSubtitle: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   connectBadge: {
     flexDirection: "row",
@@ -2439,10 +2439,10 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   connectBadgePending: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
   },
   connectBadgeSuccess: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   connectBadgeDot: {
     width: 6,
@@ -2455,7 +2455,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   connectButton: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     minHeight: 48,
     borderRadius: 12,
     alignItems: "center",
@@ -2463,47 +2463,47 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   connectButtonDisabled: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   connectButtonText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   whyConnectCard: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginTop: 20,
   },
   whyConnectTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 4,
   },
   whyConnectText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
   },
   shareIconCircle: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   socialListCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     overflow: "hidden",
   },
   socialRow: {
@@ -2527,11 +2527,11 @@ const styles = StyleSheet.create({
   socialPlatformTitle: {
     fontSize: 14,
     fontWeight: "750",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   socialPlatformSubtitle: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   socialRowRight: {
     flexDirection: "row",
@@ -2543,26 +2543,26 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   socialStatusBadgeConnect: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
   },
   socialStatusBadgeConnected: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   socialStatusBadgeText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   socialRowDivider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     marginHorizontal: 16,
   },
   finishSetupButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#15803D",
+    backgroundColor: "#153e69",
     minHeight: 52,
     borderRadius: 12,
     gap: 8,
@@ -2591,7 +2591,7 @@ const styles = StyleSheet.create({
   socialModalTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     textAlign: "center",
     marginBottom: 4,
   },
@@ -2608,20 +2608,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   socialModalCancel: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
   },
   socialModalCancelText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   socialModalSave: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
   },
   socialModalSaveText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   helperActionsRow: {
     flexDirection: "row",
@@ -2635,11 +2635,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   helperActionText: {
     fontSize: 12,

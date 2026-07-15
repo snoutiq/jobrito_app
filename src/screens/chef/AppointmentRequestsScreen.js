@@ -16,7 +16,7 @@ import colors from "../../constants/colors";
 import { getChefAppointments } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function AppointmentRequestsScreen({ navigation }) {
   const { t } = useTranslation();
@@ -47,11 +47,11 @@ export default function AppointmentRequestsScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Appointment Requests</Text>
         <TouchableOpacity onPress={fetchAppointments} style={styles.refreshButton}>
-          <Ionicons name="refresh" size={20} color="#1E293B" />
+          <Ionicons name="refresh" size={20} color="#0a0504" />
         </TouchableOpacity>
       </View>
 
@@ -62,7 +62,7 @@ export default function AppointmentRequestsScreen({ navigation }) {
       ) : appointments.length === 0 ? (
         <View style={styles.centerContainer}>
           <View style={styles.emptyIconBox}>
-            <Ionicons name="calendar-outline" size={64} color="#CBD5E1" />
+            <Ionicons name="calendar-outline" size={64} color="rgba(10, 5, 4, 0.15)" />
           </View>
           <Text style={styles.emptyTitle}>No Requests Yet</Text>
           <Text style={styles.emptySubtitle}>
@@ -99,17 +99,17 @@ export default function AppointmentRequestsScreen({ navigation }) {
             const slot = item.meeting_time || item.preferred_call_time || item.time_slot || item.time || "Not specified";
             
             // Determine status badge color
-            let statusColor = "#E2E8F0";
-            let statusTextColor = "#64748B";
+            let statusColor = "rgba(10, 5, 4, 0.15)";
+            let statusTextColor = "rgba(10, 5, 4, 0.6)";
             if (status.toLowerCase() === "pending") {
-              statusColor = "#FEF3C7";
-              statusTextColor = "#D97706";
+              statusColor = "rgba(242, 200, 121, 0.12)";
+              statusTextColor = "#f2c879";
             } else if (status.toLowerCase() === "scheduled" || status.toLowerCase() === "confirmed") {
-              statusColor = "#DCFCE7";
-              statusTextColor = "#16A34A";
+              statusColor = "rgba(21, 62, 105, 0.08)";
+              statusTextColor = "#153e69";
             } else if (status.toLowerCase() === "completed") {
-              statusColor = "#DBEAFE";
-              statusTextColor = "#2563EB";
+              statusColor = "rgba(21, 62, 105, 0.08)";
+              statusTextColor = "#153e69";
             }
 
             return (
@@ -128,24 +128,24 @@ export default function AppointmentRequestsScreen({ navigation }) {
 
                 <View style={styles.cardBody}>
                   <View style={styles.bodyDetailRow}>
-                    <Ionicons name="time-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                    <Ionicons name="time-outline" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 8 }} />
                     <Text style={styles.bodyDetailText}>Preferred Call Time: {slot}</Text>
                   </View>
                   {purpose ? (
                     <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
-                      <Ionicons name="restaurant-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                      <Ionicons name="restaurant-outline" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 8 }} />
                       <Text style={styles.bodyDetailText} numberOfLines={2}>Purpose: {purpose}</Text>
                     </View>
                   ) : null}
                   {email ? (
                     <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
-                      <Ionicons name="mail-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                      <Ionicons name="mail-outline" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 8 }} />
                       <Text style={styles.bodyDetailText}>Email: {email}</Text>
                     </View>
                   ) : null}
                   {phone ? (
                     <View style={[styles.bodyDetailRow, { marginTop: 6 }]}>
-                      <Ionicons name="call-outline" size={16} color="#64748B" style={{ marginRight: 8 }} />
+                      <Ionicons name="call-outline" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 8 }} />
                       <Text style={styles.bodyDetailText}>Phone: {phone}</Text>
                     </View>
                   ) : null}
@@ -161,21 +161,21 @@ export default function AppointmentRequestsScreen({ navigation }) {
                         });
                       }}
                     >
-                      <Ionicons name="call" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Ionicons name="call" size={16} color="#ffffff" style={{ marginRight: 8 }} />
                       <Text style={styles.actionBtnText}>Call Recruiter</Text>
                     </TouchableOpacity>
                   ) : null}
                   
                   {email ? (
                     <TouchableOpacity
-                      style={[styles.actionBtn, { backgroundColor: "#3B82F6", marginLeft: phone ? 10 : 0 }]}
+                      style={[styles.actionBtn, { backgroundColor: "#153e69", marginLeft: phone ? 10 : 0 }]}
                       onPress={() => {
                         Linking.openURL(`mailto:${email}`).catch(() => {
                           CustomAlert.show("Error", "Could not open mail client.");
                         });
                       }}
                     >
-                      <Ionicons name="mail" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Ionicons name="mail" size={16} color="#ffffff" style={{ marginRight: 8 }} />
                       <Text style={styles.actionBtnText}>Email Recruiter</Text>
                     </TouchableOpacity>
                   ) : null}
@@ -192,7 +192,7 @@ export default function AppointmentRequestsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -200,9 +200,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
     padding: 4,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   refreshButton: {
     padding: 4,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
@@ -237,22 +237,22 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     lineHeight: 18,
   },
   appointmentCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
-    shadowColor: "#0F172A",
+    shadowColor: "#0a0504",
     shadowOpacity: 0.02,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
   clientNameText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   appointmentDateText: {
     fontSize: 11,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   cardBody: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   bodyDetailText: {
     fontSize: 12,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   callActionButton: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   callActionButtonText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   actionBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
   },

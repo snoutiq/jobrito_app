@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   optionActive: {
-    backgroundColor: "#EEF5FF",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   optionText: {
     flex: 1,

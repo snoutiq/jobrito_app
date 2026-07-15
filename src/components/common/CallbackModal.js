@@ -97,7 +97,7 @@ export default function CallbackModal({
                       <Ionicons
                         name={slot.icon}
                         size={18}
-                        color={isSelected ? "#15803D" : "#64748B"}
+                        color={isSelected ? "#153e69" : "rgba(10, 5, 4, 0.6)"}
                         style={{ marginRight: 10 }}
                       />
                       <Text style={[styles.slotLabelText, isSelected && styles.slotLabelTextSelected]}>
@@ -107,7 +107,7 @@ export default function CallbackModal({
                     <Ionicons
                       name={isSelected ? "radio-button-on" : "radio-button-off"}
                       size={20}
-                      color={isSelected ? "#22C55E" : "#CBD5E1"}
+                      color={isSelected ? "#153e69" : "rgba(10, 5, 4, 0.15)"}
                     />
                   </TouchableOpacity>
                 );
@@ -122,7 +122,7 @@ export default function CallbackModal({
               activeOpacity={0.8}
             >
               {isSubmitting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <Text style={styles.modalConfirmBtnText}>Confirm Time</Text>
               )}
@@ -140,7 +140,7 @@ export default function CallbackModal({
         ) : (
           <View style={[styles.modalContainer, { alignItems: "center", paddingVertical: 28 }]}>
             <View style={styles.successIconCircle}>
-              <Ionicons name="checkmark-circle" size={64} color="#22C55E" />
+              <Ionicons name="checkmark-circle" size={64} color="#153e69" />
             </View>
             
             <Text style={[styles.modalTitle, { textAlign: "center", marginBottom: 8 }]}>
@@ -148,7 +148,7 @@ export default function CallbackModal({
             </Text>
             <Text style={[styles.modalSubtitle, { textAlign: "center", marginBottom: 20 }]}>
               Your application has been submitted. The recruiter will contact you during {"\n"}
-              <Text style={{ fontWeight: "700", color: "#1E293B" }}>
+              <Text style={{ fontWeight: "700", color: "#0a0504" }}>
                 {getSlotLabel(selectedTimeSlot)}
               </Text>.
             </Text>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 20,
     width: "100%",
@@ -190,12 +190,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 6,
   },
   modalSubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
     marginBottom: 20,
   },
@@ -210,12 +210,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   slotItemSelected: {
-    borderColor: "#22C55E",
-    backgroundColor: "#F2FBF5",
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotLeft: {
     flexDirection: "row",
@@ -224,14 +224,14 @@ const styles = StyleSheet.create({
   slotLabelText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   slotLabelTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "700",
   },
   modalConfirmBtn: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#A7F3D0",
   },
   modalConfirmBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   modalSkipBtnText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   successIconCircle: {
     width: 80,

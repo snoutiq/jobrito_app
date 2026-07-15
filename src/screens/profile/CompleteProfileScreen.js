@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as ImagePicker from "expo-image-picker";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 
-const PRIMARY = "#22C55E";
+const PRIMARY = "#153e69";
 
 export default function CompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
@@ -209,7 +209,7 @@ export default function CompleteProfileScreen({ navigation }) {
         <>
           <View style={styles.header}>
             <TouchableOpacity onPress={prev}>
-              <Ionicons name="arrow-back" size={24} color="#15803D" />
+              <Ionicons name="arrow-back" size={24} color="#153e69" />
             </TouchableOpacity>
 
             <Text style={styles.title}>Question {step} of 5</Text>
@@ -401,7 +401,7 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
       <Text style={styles.label}>{t("fullName")}</Text>
       <TextInput
         placeholder={t("enterFullName", "Enter full name")}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={fullName}
         onChangeText={setFullName}
         style={styles.input}
@@ -412,7 +412,7 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
       </Text>
       <TextInput
         placeholder="Enter your email address"
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -467,7 +467,7 @@ function GenderCard({ icon, title, selected, onPress }) {
       style={[styles.genderCard, selected && styles.genderCardSelected]}
       onPress={onPress}
     >
-      <Ionicons name={icon} size={28} color={selected ? "#FFFFFF" : "#0F7A37"} />
+      <Ionicons name={icon} size={28} color={selected ? "#ffffff" : "#0F7A37"} />
       <Text style={[styles.genderText, selected && styles.genderTextSelected]}>{title}</Text>
     </TouchableOpacity>
   );
@@ -506,7 +506,7 @@ function ExperienceStep({
         onPress={() => setShowPicker(!showPicker)}
       >
         <Text style={styles.pickerTriggerText}>{experienceRange || t("selectYearsOfExperience")}</Text>
-        <Ionicons name={showPicker ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
+        <Ionicons name={showPicker ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
       </TouchableOpacity>
 
       {showPicker && (
@@ -532,7 +532,7 @@ function ExperienceStep({
 
       <TextInput
         placeholder={t("typeCurrentEmployer", "Enter current employer")}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={currentEmployer}
         onChangeText={setCurrentEmployer}
         style={styles.input}
@@ -633,7 +633,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           <View style={styles.locationRow}>
             <View style={styles.locationLeft}>
               <View style={styles.locationIconBox}>
-                <Ionicons name="location-sharp" size={22} color="#475569" />
+                <Ionicons name="location-sharp" size={22} color="rgba(10, 5, 4, 0.6)" />
               </View>
               <View style={styles.locationInfo}>
                 <Text style={styles.locationTitle}>India</Text>
@@ -653,7 +653,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
               <Text style={styles.locationDropdownText}>
                 {city && locationPreference === "India" ? city : "Select State"}
               </Text>
-              <Ionicons name="chevron-down" size={18} color="#64748B" />
+              <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
             </Pressable>
           )}
         </Pressable>
@@ -668,7 +668,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           <View style={styles.locationRow}>
             <View style={styles.locationLeft}>
               <View style={styles.locationIconBox}>
-                <Ionicons name="earth-sharp" size={22} color="#475569" />
+                <Ionicons name="earth-sharp" size={22} color="rgba(10, 5, 4, 0.6)" />
               </View>
               <View style={styles.locationInfo}>
                 <Text style={styles.locationTitle}>Overseas</Text>
@@ -688,7 +688,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
               <Text style={styles.locationDropdownText}>
                 {city && locationPreference === "Overseas" ? city : "Select Region"}
               </Text>
-              <Ionicons name="chevron-down" size={18} color="#64748B" />
+              <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
             </Pressable>
           )}
         </Pressable>
@@ -703,7 +703,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           <View style={styles.locationRow}>
             <View style={styles.locationLeft}>
               <View style={styles.locationIconBox}>
-                <Ionicons name="compass-sharp" size={22} color="#475569" />
+                <Ionicons name="compass-sharp" size={22} color="rgba(10, 5, 4, 0.6)" />
               </View>
               <View style={styles.locationInfo}>
                 <Text style={styles.locationTitle}>Both</Text>
@@ -744,16 +744,16 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
                 {modalType === "state" ? "Select State" : "Select Region"}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close-circle" size={28} color="#94A3B8" />
+                <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
             </View>
 
             {/* Search Input */}
             <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <Ionicons name="search" size={20} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
               <TextInput
                 placeholder="Search location..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={searchText}
                 onChangeText={setSearchText}
                 style={styles.searchInputField}
@@ -771,7 +771,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
                   <Text style={[styles.modalItemText, city === item && styles.modalItemTextActive]}>
                     {item}
                   </Text>
-                  {city === item && <Ionicons name="checkmark" size={18} color="#22C55E" />}
+                  {city === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
                 </TouchableOpacity>
               ))}
               {filteredItems.length === 0 && (
@@ -910,10 +910,10 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
                     setJobTitleModalVisible(true);
                   }}
                 >
-                  <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "#94A3B8" }]}>
+                  <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "rgba(10, 5, 4, 0.4)" }]}>
                     {preferredRole || "Select specific job title..."}
                   </Text>
-                  <Ionicons name="chevron-down" size={18} color="#64748B" />
+                  <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
                 </Pressable>
               )}
             </View>
@@ -924,7 +924,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
       <Text style={[styles.label, { marginTop: 14 }]}>Additional Skills (comma separated)</Text>
       <TextInput
         placeholder="e.g. Fine Dining, Chocolate tempering"
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={skills}
         onChangeText={setSkills}
         style={styles.input}
@@ -936,11 +936,11 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
         disabled={loading || !preferredRole}
       >
         {loading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color="#ffffff" />
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text style={styles.buttonText}>{t("saveAndContinue")}</Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            <Ionicons name="arrow-forward" size={18} color="#ffffff" />
           </View>
         )}
       </TouchableOpacity>
@@ -961,16 +961,16 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select {selectedCategory} Title</Text>
               <TouchableOpacity onPress={() => setJobTitleModalVisible(false)}>
-                <Ionicons name="close-circle" size={28} color="#94A3B8" />
+                <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
             </View>
 
             {/* Search Input */}
             <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <Ionicons name="search" size={20} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
               <TextInput
                 placeholder="Search job titles..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={jobTitleSearch}
                 onChangeText={setJobTitleSearch}
                 style={styles.searchInputField}
@@ -991,7 +991,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
                   <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
                     {item}
                   </Text>
-                  {preferredRole === item && <Ionicons name="checkmark" size={18} color="#22C55E" />}
+                  {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
                 </TouchableOpacity>
               ))}
               {filteredJobTitles.length === 0 && (
@@ -1042,14 +1042,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   title: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   skip: {
     color: "#0F7A37",
@@ -1127,12 +1127,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 56,
     marginTop: 10,
-    color: "#1E293B",
+    color: "#0a0504",
     fontSize: 15,
   },
   label: {
     fontWeight: "600",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   genderRow: {
     flexDirection: "row",
@@ -1146,7 +1146,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   genderCardSelected: {
     backgroundColor: "#0F7A37",
@@ -1155,11 +1155,11 @@ const styles = StyleSheet.create({
   genderText: {
     marginTop: 6,
     fontSize: 14,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   genderTextSelected: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontWeight: "700",
   },
   question: {
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 20,
     marginBottom: 10,
-    color: "#1E293B",
+    color: "#0a0504",
   },
   pickerTrigger: {
     flexDirection: "row",
@@ -1179,29 +1179,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 56,
     marginTop: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   pickerTriggerText: {
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
   },
   dropdown: {
     marginTop: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
     overflow: "hidden",
   },
   dropdownItem: {
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   dropdownText: {
     fontSize: 15,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   boldText: {
     fontWeight: "700",
@@ -1216,15 +1216,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   optionSelected: {
     borderColor: PRIMARY,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   optionText: {
     fontSize: 15,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   optionTextSelected: {
@@ -1252,7 +1252,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 18,
     fontWeight: "600",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   success: {
     flex: 1,
@@ -1265,7 +1265,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "700",
     marginTop: 20,
-    color: "#1E293B",
+    color: "#0a0504",
   },
   successText: {
     textAlign: "center",
@@ -1307,19 +1307,19 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
   },
   actionLaterBtn: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   actionHighlightText: {
     fontSize: 16,
     fontWeight: "800",
   },
   actionContinueText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   actionLaterText: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   uploadButton: {
     backgroundColor: "#EEF2FF",
@@ -1327,7 +1327,7 @@ const styles = StyleSheet.create({
     borderColor: "#C7D2FE",
   },
   uploadButtonText: {
-    color: "#4F46E5",
+    color: "#153e69",
   },
   takePhotoButton: {
     backgroundColor: "#F5F3FF",
@@ -1339,15 +1339,15 @@ const styles = StyleSheet.create({
   },
   subHeadingText: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 4,
     marginBottom: 24,
   },
   locationContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 8,
     marginBottom: 25,
   },
@@ -1357,7 +1357,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   locationCardSelected: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   locationRow: {
     flexDirection: "row",
@@ -1373,7 +1373,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1383,23 +1383,23 @@ const styles = StyleSheet.create({
   locationTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   locationDesc: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   radioWrapper: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     justifyContent: "center",
     alignItems: "center",
   },
   radioWrapperActive: {
-    borderColor: "#22C55E",
+    borderColor: "#153e69",
   },
   radioDot: {
     width: 10,
@@ -1408,29 +1408,29 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   radioDotActive: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
   },
   locationDropdownTrigger: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 12,
     marginLeft: 52,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   locationDropdownText: {
     fontSize: 14,
-    color: "#1E293B",
+    color: "#0a0504",
     fontWeight: "600",
   },
   locationDivider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     marginVertical: 4,
   },
   modalOverlay: {
@@ -1439,7 +1439,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "80%",
@@ -1454,12 +1454,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
@@ -1471,7 +1471,7 @@ const styles = StyleSheet.create({
   searchInputField: {
     flex: 1,
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
     paddingVertical: 8,
   },
   modalList: {
@@ -1484,22 +1484,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   modalItemActive: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   modalItemText: {
     fontSize: 15,
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   modalItemTextActive: {
-    color: "#16A34A",
+    color: "#153e69",
     fontWeight: "600",
   },
   noResultsText: {
     textAlign: "center",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 20,
     fontSize: 14,
   },
@@ -1508,13 +1508,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 16,
     padding: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   roleCardSelected: {
-    borderColor: "#22C55E",
+    borderColor: "#153e69",
   },
   roleCardLeft: {
     flexDirection: "row",
@@ -1527,17 +1527,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   roleIconCircleActive: {
-    backgroundColor: "#DCFCE7",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   roleCardTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     flex: 1,
   },
   radioOutline: {
@@ -1545,36 +1545,36 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
   radioActive: {
-    borderColor: "#22C55E",
+    borderColor: "#153e69",
   },
   radioDotInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
   },
   inlineDropdownTrigger: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 48,
     marginTop: 8,
     marginBottom: 12,
     marginLeft: 52,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   inlineDropdownTriggerText: {
     fontSize: 14,
-    color: "#1E293B",
+    color: "#0a0504",
     fontWeight: "600",
   },
   categoryChipsContainer: {
@@ -1589,16 +1589,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#F8FAFC",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#f2f2f3",
   },
   categoryChipActive: {
     borderColor: PRIMARY,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   categoryChipText: {
     fontSize: 13,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   categoryChipTextActive: {
@@ -1610,23 +1610,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 52,
     marginTop: 8,
     marginBottom: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   dropdownTriggerText: {
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
     fontWeight: "600",
   },
   filterSectionTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginTop: 14,
     marginBottom: 8,
   },
@@ -1641,16 +1641,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   tagChipActive: {
     borderColor: PRIMARY,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   tagChipText: {
     fontSize: 12,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   tagChipTextActive: {

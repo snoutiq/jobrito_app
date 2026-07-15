@@ -1,6 +1,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import colors from "../../constants/colors";
 
 // Global reference holder for triggering the alert from anywhere
 let customAlertRef = null;
@@ -63,7 +64,7 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
       lowercaseMessage.includes("error") ||
       lowercaseMessage.includes("failed")
     ) {
-      return <Ionicons name="alert-circle" size={44} color="#EF4444" />;
+      return <Ionicons name="alert-circle" size={44} color={colors.danger} />;
     }
     // Check if success/complete related
     if (
@@ -74,10 +75,10 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
       lowercaseMessage.includes("success") ||
       lowercaseMessage.includes("complete")
     ) {
-      return <Ionicons name="checkmark-circle" size={44} color="#10B981" />;
+      return <Ionicons name="checkmark-circle" size={44} color={colors.success} />;
     }
     // Default info icon
-    return <Ionicons name="information-circle" size={44} color="#3B82F6" />;
+    return <Ionicons name="information-circle" size={44} color={colors.primary} />;
   };
 
   return (
@@ -132,19 +133,19 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: colors.overlay,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   alertCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.card,
     borderRadius: 24,
     padding: 24,
     width: "100%",
     maxWidth: 320,
     alignItems: "center",
-    shadowColor: "#0F172A",
+    shadowColor: colors.shadow,
     shadowOpacity: 0.1,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -156,13 +157,13 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#0F172A",
+    color: colors.text,
     textAlign: "center",
     marginBottom: 8,
   },
   messageText: {
     fontSize: 14,
-    color: "#64748B",
+    color: colors.mutedText,
     textAlign: "center",
     lineHeight: 20,
     marginBottom: 24,
@@ -187,23 +188,23 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   defaultBtn: {
-    backgroundColor: "#22C55E",
+    backgroundColor: colors.primary,
   },
   defaultBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   cancelBtn: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: colors.border,
   },
   cancelBtnText: {
-    color: "#475569",
+    color: colors.mutedText,
   },
   destructiveBtn: {
-    backgroundColor: "#EF4444",
+    backgroundColor: colors.danger,
   },
   destructiveBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
 });

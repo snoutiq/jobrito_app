@@ -1,7 +1,7 @@
 export const ROLES = {
-  JOB_SEEKER: "Job Seeker",
-  EMPLOYER: "Employer",
-  CHEF: "Chef",
+  JOB_SEEKER: "job_seeker",
+  EMPLOYER: "employer",
+  CHEF: "chef",
 };
 
 export const ROLE_LIST = [ROLES.JOB_SEEKER, ROLES.EMPLOYER, ROLES.CHEF];

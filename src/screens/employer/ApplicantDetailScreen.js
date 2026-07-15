@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { updateApplicantStatus, fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ApplicantDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -35,12 +35,12 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("talentDetails", "Talent Details")}</Text>
         </View>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24 }}>
-          <Text style={{ color: "#64748B" }}>{t("applicantNotFound", "Applicant details not found.")}</Text>
+          <Text style={{ color: "rgba(10, 5, 4, 0.6)" }}>{t("applicantNotFound", "Applicant details not found.")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -97,7 +97,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>{displayName || t("applicantProfile")}</Text>
@@ -113,14 +113,14 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarCircle}>
-              <Ionicons name="person" size={40} color="#94A3B8" />
+              <Ionicons name="person" size={40} color="rgba(10, 5, 4, 0.4)" />
             </View>
           </View>
           <View style={styles.profileDetails}>
             <Text style={styles.profileName}>{displayName}</Text>
             {displayCity ? (
               <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={14} color="#64748B" />
+                <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                 <Text style={styles.locationText}>{displayCity}</Text>
               </View>
             ) : null}
@@ -153,7 +153,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         <View style={styles.detailList}>
           {displayCity ? (
             <View style={styles.detailRow}>
-              <Ionicons name="map-outline" size={20} color="#64748B" style={styles.detailIcon} />
+              <Ionicons name="map-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.detailIcon} />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>{t("preferredLocation")}</Text>
                 <Text style={styles.detailValue}>{displayCity}</Text>
@@ -164,7 +164,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           {displayCity ? <View style={styles.detailDivider} /> : null}
 
           <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={20} color="#64748B" style={styles.detailIcon} />
+            <Ionicons name="time-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.detailIcon} />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>{t("preferredCallback")}</Text>
               <Text style={styles.detailValue}>{displayCallback}</Text>
@@ -174,7 +174,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <View style={styles.detailDivider} />
 
           <View style={styles.detailRow}>
-            <Ionicons name="language-outline" size={20} color="#64748B" style={styles.detailIcon} />
+            <Ionicons name="language-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.detailIcon} />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>{t("preferredLanguage")}</Text>
               <Text style={styles.detailValue}>{displayLanguage}</Text>
@@ -192,7 +192,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
               </View>
             ))
           ) : (
-            <Text style={{ fontSize: 13, color: "#64748B", fontStyle: "italic", marginLeft: 4 }}>
+            <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.6)", fontStyle: "italic", marginLeft: 4 }}>
               {t("noSkillsSpecified")}
             </Text>
           )}
@@ -220,14 +220,14 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           style={[styles.footerRoundBtn, styles.rejectBtn]}
           onPress={() => handleStatusUpdate("rejected")}
         >
-          <Ionicons name="close" size={28} color="#EF4444" />
+          <Ionicons name="close" size={28} color="#f57f20" />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.callTalentBtn}
           onPress={handleCall}
         >
-          <Ionicons name="call" size={18} color="#FFFFFF" />
+          <Ionicons name="call" size={18} color="#ffffff" />
           <Text style={styles.callTalentText}>{t("callTalent")}</Text>
         </TouchableOpacity>
 
@@ -235,7 +235,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           style={[styles.footerRoundBtn, styles.shortlistBtn]}
           onPress={() => handleStatusUpdate("shortlisted")}
         >
-          <Ionicons name="heart" size={24} color="#0D9488" />
+          <Ionicons name="heart" size={24} color="#153e69" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -245,16 +245,16 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
     marginRight: 12,
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   headerSubtitle: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 2,
     lineHeight: 14,
   },
@@ -286,11 +286,11 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 16,
   },
   avatarContainer: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 4,
   },
   locationRow: {
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   matchBadge: {
     backgroundColor: PRIMARY_GREEN,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   matchText: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   infoGrid: {
     flexDirection: "row",
@@ -340,26 +340,26 @@ const styles = StyleSheet.create({
   },
   infoGridCard: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   infoGridLabel: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   infoGridValue: {
     fontSize: 14,
     fontWeight: "900",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   bioCard: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#e7eff7",
     borderLeftWidth: 3,
     borderLeftColor: PRIMARY_GREEN,
     borderRadius: 8,
@@ -369,14 +369,14 @@ const styles = StyleSheet.create({
   bioText: {
     fontSize: 13,
     fontStyle: "italic",
-    color: "#065F46",
+    color: "#153e69",
     lineHeight: 18,
   },
   detailList: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
     marginBottom: 20,
   },
@@ -394,23 +394,23 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     marginBottom: 4,
   },
   detailValue: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   detailDivider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     marginVertical: 12,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "900",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 10,
     marginTop: 10,
   },
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   pill: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 99,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   footerActions: {
     position: "absolute",
@@ -437,9 +437,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 76,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -454,12 +454,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rejectBtn: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FEF2F2",
+    borderColor: "#f57f20",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
   },
   shortlistBtn: {
-    borderColor: "#0D9488",
-    backgroundColor: "#F0FDFA",
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   callTalentBtn: {
     flex: 1,
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   callTalentText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   centered: {
     flex: 1,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 15,
-    color: "#EF4444",
+    color: "#f57f20",
     fontWeight: "600",
   },
 });

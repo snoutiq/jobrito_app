@@ -19,7 +19,7 @@ import colors from "../../constants/colors";
 import { getEmployerChefs, bookChefAppointment } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -284,7 +284,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefConnect")}</Text>
         </View>
@@ -306,13 +306,13 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 
       {/* Search Input Box */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#64748B" style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.searchIcon} />
         <TextInput
           placeholder={t("searchPlaceholder")}
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor="rgba(10, 5, 4, 0.4)"
         />
       </View>
 
@@ -363,7 +363,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
         </View>
       ) : filteredChefs.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Ionicons name="sad-outline" size={64} color="#CBD5E1" style={{ marginBottom: 12 }} />
+          <Ionicons name="sad-outline" size={64} color="rgba(10, 5, 4, 0.15)" style={{ marginBottom: 12 }} />
           <Text style={styles.emptyTitle}>{t("noChefsFound")}</Text>
           <Text style={styles.emptySubtitle}>{t("adjustFilters")}</Text>
         </View>
@@ -381,7 +381,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                     <Image source={logo} style={styles.avatar} />
                   ) : (
                     <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                      <Ionicons name="person" size={24} color="#64748B" />
+                      <Ionicons name="person" size={24} color="rgba(10, 5, 4, 0.6)" />
                     </View>
                   )}
                   <View style={styles.chefBrief}>
@@ -392,16 +392,16 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                       </View>
                     </View>
                     <View style={styles.detailRow}>
-                      <Ionicons name="location-outline" size={14} color="#64748B" />
+                      <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                       <Text style={styles.detailText}>{chef.city || "Dubai, UAE"}</Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Ionicons name="briefcase-outline" size={14} color="#64748B" />
+                      <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                       <Text style={styles.detailText}>{chef.experience_range || "10"} {t("experience")}</Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Ionicons name="restaurant-outline" size={14} color="#15803D" />
-                      <Text style={[styles.detailText, { color: "#15803D", fontWeight: "700" }]}>
+                      <Ionicons name="restaurant-outline" size={14} color="#153e69" />
+                      <Text style={[styles.detailText, { color: "#153e69", fontWeight: "700" }]}>
                         {chef.cuisine_specialty || "Continental & Asian Fusion"}
                       </Text>
                     </View>
@@ -458,7 +458,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                 )}
               </View>
               <TouchableOpacity onPress={() => setBookingVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={24} color="rgba(10, 5, 4, 0.6)" />
               </TouchableOpacity>
             </View>
 
@@ -536,7 +536,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                 multiline
                 numberOfLines={3}
                 style={styles.modalTextInput}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(10, 5, 4, 0.4)"
               />
             </ScrollView>
 
@@ -547,7 +547,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
               disabled={bookingLoading}
             >
               {bookingLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <Text style={styles.modalBookButtonText}>{t("bookAppointment")}</Text>
               )}
@@ -562,7 +562,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -570,9 +570,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -585,13 +585,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   menuIcon: {
     padding: 4,
   },
   titleBanner: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -599,12 +599,12 @@ const styles = StyleSheet.create({
   bannerMainTitle: {
     fontSize: 20,
     fontWeight: "900",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 4,
   },
   bannerSubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   metricsRow: {
@@ -613,18 +613,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   metricsText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#16A34A",
+    color: "#153e69",
   },
   advancedFiltersBtn: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -632,17 +632,17 @@ const styles = StyleSheet.create({
   advancedFiltersText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 12,
   },
   searchIcon: {
@@ -652,11 +652,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 13,
-    color: "#1E293B",
+    color: "#0a0504",
   },
   quickFiltersContainer: {
     paddingVertical: 12,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   quickFiltersList: {
     paddingHorizontal: 16,
@@ -666,18 +666,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   quickFilterPillActive: {
-    backgroundColor: "#15803D",
+    backgroundColor: "#153e69",
   },
   quickFilterPillText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   quickFilterPillTextActive: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   chefsList: {
     padding: 16,
@@ -685,12 +685,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   chefCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 16,
-    shadowColor: "#0F172A",
+    shadowColor: "#0a0504",
     shadowOpacity: 0.02,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -706,10 +706,10 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -726,10 +726,10 @@ const styles = StyleSheet.create({
   chefName: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   tagBadge: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
   tagBadgeText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   detailRow: {
     flexDirection: "row",
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   skillsRow: {
@@ -756,16 +756,16 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   skillPill: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   skillPillText: {
     fontSize: 10,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   cardActions: {
@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   bookBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
   },
   viewProfileLinkText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "700",
     textDecorationLine: "underline",
   },
@@ -802,12 +802,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 4,
   },
   emptySubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
   },
 
@@ -818,7 +818,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -829,17 +829,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#f2f2f3",
     paddingBottom: 14,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   modalSubtitle: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     marginTop: 2,
   },
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   modalLabel: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
   },
   modalDateRow: {
@@ -857,23 +857,23 @@ const styles = StyleSheet.create({
   },
   slotPill: {
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   slotPillSelected: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotPillText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   slotPillTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "750",
   },
   modalTimeGrid: {
@@ -885,40 +885,40 @@ const styles = StyleSheet.create({
   timeSlotCell: {
     width: "23%",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   timeSlotCellSelected: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   timeSlotText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   timeSlotTextSelected: {
-    color: "#15803D",
+    color: "#153e69",
     fontWeight: "750",
   },
   noSlotsText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     paddingHorizontal: 4,
   },
   modalTextInput: {
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
     padding: 12,
     fontSize: 13,
-    color: "#1E293B",
+    color: "#0a0504",
     textAlignVertical: "top",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   modalBookButton: {
     backgroundColor: PRIMARY_GREEN,
@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   modalBookButtonText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },

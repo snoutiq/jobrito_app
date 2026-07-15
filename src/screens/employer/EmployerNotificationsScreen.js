@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 const NOTIFICATIONS = [];
 
@@ -60,7 +60,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="notifications-off-outline" size={44} color="#CBD5E1" />
+            <Ionicons name="notifications-off-outline" size={44} color="rgba(10, 5, 4, 0.15)" />
             <Text style={styles.emptyTitle}>{t("noNotificationsYet", "No notifications yet")}</Text>
             <Text style={styles.emptyText}>{t("noNotificationsText", "You will see applicant and job updates here.")}</Text>
           </View>
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   title: {
     flex: 1,

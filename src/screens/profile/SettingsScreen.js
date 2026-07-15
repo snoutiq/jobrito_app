@@ -17,7 +17,7 @@ import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function SettingsScreen({ navigation }) {
   const { t } = useTranslation();
@@ -195,7 +195,7 @@ export default function SettingsScreen({ navigation }) {
               <Ionicons name="create-outline" size={18} color={colors.text} />
               <Text style={styles.menuText}>{t("editProfile", "Edit Profile")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Language")}>
@@ -203,7 +203,7 @@ export default function SettingsScreen({ navigation }) {
               <Ionicons name="globe-outline" size={18} color={colors.text} />
               <Text style={styles.menuText}>{t("profile.menu.language", "Change Language")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("HelpSupport")}>
@@ -211,15 +211,15 @@ export default function SettingsScreen({ navigation }) {
               <Ionicons name="help-circle-outline" size={18} color={colors.text} />
               <Text style={styles.menuText}>{t("helpSupport", "Help & Support")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
             <View style={styles.menuLeft}>
-              <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+              <Ionicons name="log-out-outline" size={18} color="#f57f20" />
               <Text style={styles.logoutText}>{t("logout", "Logout")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#EF4444" />
+            <Ionicons name="chevron-forward" size={18} color="#f57f20" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -230,7 +230,7 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -238,9 +238,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
     width: 40,
@@ -248,12 +248,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   scrollContent: {
     padding: 16,
@@ -262,11 +262,11 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 18,
   },
   avatar: {
@@ -275,10 +275,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginRight: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -288,12 +288,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 4,
   },
   profileSub: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   sectionTitle: {
     fontSize: 13,
@@ -305,10 +305,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     overflow: "hidden",
     marginBottom: 18,
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -332,17 +332,17 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 16,
-    color: "#0F172A",
+    color: "#0a0504",
     fontWeight: "500",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     marginHorizontal: 14,
   },
   actionRow: {
@@ -363,24 +363,24 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   actionLabel: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   pillButton: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   pillButtonText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "700",
   },
   menuRow: {
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
     fontWeight: "600",
   },
   logoutRow: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 15,
-    color: "#EF4444",
+    color: "#f57f20",
     fontWeight: "700",
   },
 });

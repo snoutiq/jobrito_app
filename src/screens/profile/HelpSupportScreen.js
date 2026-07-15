@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function HelpSupportScreen({ navigation }) {
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ export default function HelpSupportScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("helpSupportTitle")}</Text>
         </View>
@@ -48,14 +48,14 @@ export default function HelpSupportScreen({ navigation }) {
             activeOpacity={0.8}
             onPress={handleCall}
           >
-            <View style={[styles.iconBox, { backgroundColor: "#ECFDF5" }]}>
+            <View style={[styles.iconBox, { backgroundColor: "#e7eff7" }]}>
               <Ionicons name="call-outline" size={22} color={PRIMARY_GREEN} />
             </View>
             <View style={styles.contactInfo}>
               <Text style={styles.contactLabel}>{t("callUs")}</Text>
               <Text style={styles.contactValue}>{supportPhone}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -66,13 +66,13 @@ export default function HelpSupportScreen({ navigation }) {
             onPress={handleEmail}
           >
             <View style={[styles.iconBox, { backgroundColor: "#EEF4FF" }]}>
-              <Ionicons name="mail-outline" size={22} color="#3B82F6" />
+              <Ionicons name="mail-outline" size={22} color="#153e69" />
             </View>
             <View style={styles.contactInfo}>
               <Text style={styles.contactLabel}>{t("emailSupport")}</Text>
               <Text style={styles.contactValue}>{supportEmail}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
         </View>
 
@@ -87,14 +87,14 @@ export default function HelpSupportScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   content: {
     flex: 1,
@@ -114,16 +114,16 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 20,
     marginBottom: 24,
     textAlign: "center",
   },
   contactGroup: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 24,
     overflow: "hidden",
   },
@@ -146,23 +146,23 @@ const styles = StyleSheet.create({
   contactLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     marginBottom: 4,
     textTransform: "uppercase",
   },
   contactValue: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     marginHorizontal: 16,
   },
   footerNote: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     textAlign: "center",
     lineHeight: 18,
     paddingHorizontal: 16,

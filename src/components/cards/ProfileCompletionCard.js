@@ -53,9 +53,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: colors.primarySoft,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: colors.primarySoftBorder,
   },
   percentage: {
     color: colors.primaryDark,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   track: {
     height: 10,
     borderRadius: 999,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: colors.progressTrack,
     overflow: "hidden",
   },
   fill: {

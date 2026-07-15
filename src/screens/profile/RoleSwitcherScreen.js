@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, Image } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
@@ -31,6 +31,11 @@ export default function RoleSwitcherScreen({ navigation }) {
   return (
     <ScreenWrapper>
       <View style={styles.header}>
+        <Image
+          source={require("../../assets/Jobrito full logo.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.title}>{t("switchRole", "Switch Role")}</Text>
         <Text style={styles.subtitle}>{t("selectActiveWorkspaceRole", "Select the active workspace role.")}</Text>
       </View>
@@ -60,6 +65,13 @@ export default function RoleSwitcherScreen({ navigation }) {
 const styles = StyleSheet.create({
   header: {
     gap: 6,
+    marginBottom: 20,
+  },
+  logoImage: {
+    width: 200,
+    height: 70,
+    alignSelf: "center",
+    marginBottom: 10,
   },
   title: {
     color: colors.text,
@@ -79,7 +91,7 @@ const styles = StyleSheet.create({
   },
   optionActive: {
     borderColor: colors.primary,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   optionText: {
     color: colors.text,
@@ -87,6 +99,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   optionTextActive: {
-    color: colors.primaryDark,
+    color: colors.primary,
   },
 });

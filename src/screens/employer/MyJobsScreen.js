@@ -19,7 +19,7 @@ import {
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 const normalizeStatus = (status) => String(status || "").toLowerCase();
 
@@ -188,8 +188,8 @@ export default function MyJobsScreen({ navigation }) {
             <View
               style={[
                 styles.iconContainer,
-                activeTab === "pending" && { backgroundColor: "#FEF3C7" },
-                activeTab === "closed" && { backgroundColor: "#F1F5F9" },
+                activeTab === "pending" && { backgroundColor: "rgba(242, 200, 121, 0.12)" },
+                activeTab === "closed" && { backgroundColor: "#f2f2f3" },
               ]}
             >
               <Ionicons
@@ -203,9 +203,9 @@ export default function MyJobsScreen({ navigation }) {
                 size={22}
                 color={
                   activeTab === "pending"
-                    ? "#D97706"
+                    ? "#f2c879"
                     : activeTab === "closed"
-                      ? "#64748B"
+                      ? "rgba(10, 5, 4, 0.6)"
                       : PRIMARY_GREEN
                 }
               />
@@ -216,7 +216,7 @@ export default function MyJobsScreen({ navigation }) {
                 <Text style={styles.jobCompanyText}>{job.company}</Text>
               ) : null}
               <Text style={styles.jobMetaText}>
-                <Ionicons name="location-outline" size={13} color="#64748B" />{" "}
+                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
                 {job.location || "N/A"} • {jobDate}
               </Text>
             </View>
@@ -233,15 +233,15 @@ export default function MyJobsScreen({ navigation }) {
             <View
               style={[
                 styles.statusBadge,
-                activeTab === "pending" && { backgroundColor: "#FEF3C7" },
-                activeTab === "closed" && { backgroundColor: "#F1F5F9" },
+                activeTab === "pending" && { backgroundColor: "rgba(242, 200, 121, 0.12)" },
+                activeTab === "closed" && { backgroundColor: "#f2f2f3" },
               ]}
             >
               <Text
                 style={[
                   styles.statusBadgeText,
-                  activeTab === "pending" && { color: "#D97706" },
-                  activeTab === "closed" && { color: "#64748B" },
+                  activeTab === "pending" && { color: "#f2c879" },
+                  activeTab === "closed" && { color: "rgba(10, 5, 4, 0.6)" },
                 ]}
               >
                 {(normalizeStatus(job.status) || activeTab).toUpperCase()}
@@ -252,16 +252,16 @@ export default function MyJobsScreen({ navigation }) {
 
         <View style={styles.detailsRow}>
           <Text style={styles.detailsText}>
-            <Ionicons name="people-outline" size={14} color="#64748B" />{" "}
+            <Ionicons name="people-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
             {t("openings_count", { count: jobOpenings })}
           </Text>
           <Text style={styles.detailsText}>
-            <Ionicons name="briefcase-outline" size={14} color="#64748B" />{" "}
+            <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
             {jobType}
           </Text>
           {job.salary ? (
             <Text style={styles.detailsText}>
-              <Ionicons name="card-outline" size={14} color="#64748B" />{" "}
+              <Ionicons name="card-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
               {job.salary}
             </Text>
           ) : null}
@@ -284,7 +284,7 @@ export default function MyJobsScreen({ navigation }) {
               </Text>
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#3B82F6" }]}>
+                  <Text style={[styles.statValue, { color: "#153e69" }]}>
                     {stats.pending}
                   </Text>
                   <Text style={styles.statLabel}>{t("pending")}</Text>
@@ -296,13 +296,13 @@ export default function MyJobsScreen({ navigation }) {
                   <Text style={styles.statLabel}>{t("shortlisted")}</Text>
                 </View>
                 <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#F59E0B" }]}>
+                  <Text style={[styles.statValue, { color: "#f2c879" }]}>
                     {stats.contact}
                   </Text>
                   <Text style={styles.statLabel}>{t("contacted")}</Text>
                 </View>
                 <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#EF4444" }]}>
+                  <Text style={[styles.statValue, { color: "#f57f20" }]}>
                     {stats.rejected}
                   </Text>
                   <Text style={styles.statLabel}>{t("rejected")}</Text>
@@ -319,7 +319,7 @@ export default function MyJobsScreen({ navigation }) {
               <Ionicons
                 name="information-circle-outline"
                 size={18}
-                color="#D97706"
+                color="#f2c879"
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.pendingInfoText}>
@@ -374,7 +374,7 @@ export default function MyJobsScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             style={styles.backBtn}
           >
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {t("allJobs", "My Posted Jobs")}
@@ -511,7 +511,7 @@ export default function MyJobsScreen({ navigation }) {
 function EmptyState({ message }) {
   return (
     <View style={styles.emptyContainer}>
-      <Ionicons name="folder-open-outline" size={48} color="#CBD5E1" />
+      <Ionicons name="folder-open-outline" size={48} color="rgba(10, 5, 4, 0.15)" />
       <Text style={styles.emptyText}>{message}</Text>
     </View>
   );
@@ -520,14 +520,14 @@ function EmptyState({ message }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -539,15 +539,15 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   tabButton: {
     flex: 1,
@@ -555,9 +555,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginHorizontal: 4,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   tabButtonActive: {
     backgroundColor: PRIMARY_GREEN,
@@ -566,21 +566,21 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   tabTextActive: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 100,
   },
   jobCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 16,
     shadowColor: "#000",
     shadowOpacity: 0.03,
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 10,
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -611,21 +611,21 @@ const styles = StyleSheet.create({
   jobTitleText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   jobCompanyText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 2,
   },
   jobMetaText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   statusBadge: {
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
   },
   referralBadge: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
   referralBadgeText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#0369A1",
+    color: "#153e69",
   },
   detailsRow: {
     flexDirection: "row",
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   },
   detailsText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     flexDirection: "row",
     alignItems: "center",
   },
@@ -666,13 +666,13 @@ const styles = StyleSheet.create({
   },
   jobDescriptionText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
     fontStyle: "italic",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     marginVertical: 12,
   },
   progressSection: {
@@ -681,15 +681,15 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
   },
   statsGrid: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     paddingVertical: 8,
   },
   statBox: {
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   actionsRow: {
@@ -721,26 +721,26 @@ const styles = StyleSheet.create({
   viewTalentBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   closeJobBtn: {
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 10,
     height: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   closeJobBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     paddingHorizontal: 16,
   },
   pendingInfoCard: {
     flexDirection: "row",
-    backgroundColor: "#FEF3C7",
+    backgroundColor: "rgba(242, 200, 121, 0.12)",
     padding: 10,
     borderRadius: 8,
     alignItems: "center",
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
   pendingInfoText: {
     flex: 1,
     fontSize: 11,
-    color: "#92400E",
+    color: "#f2c879",
     lineHeight: 16,
   },
   emptyContainer: {
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
     fontWeight: "600",
   },
   loadingContainer: {
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   fab: {

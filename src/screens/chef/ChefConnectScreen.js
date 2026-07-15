@@ -92,7 +92,7 @@ export default function ChefConnectScreen({ navigation }) {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Chef Connect</Text>
         <TouchableOpacity style={styles.bellBtn} onPress={() => Alert.alert("Notifications", "You have no new notifications.")}>
-          <Ionicons name="notifications-outline" size={22} color="#1E293B" />
+          <Ionicons name="notifications-outline" size={22} color="#0a0504" />
         </TouchableOpacity>
       </View>
 
@@ -111,7 +111,7 @@ export default function ChefConnectScreen({ navigation }) {
               <Text style={styles.profileTitle} numberOfLines={2}>{chefTitle}</Text>
               
               <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={14} color="#64748B" />
+                <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                 <Text style={styles.locationText}>{chefLocation}</Text>
               </View>
 
@@ -130,22 +130,22 @@ export default function ChefConnectScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Performance Analytics</Text>
         <View style={styles.analyticsGrid}>
           <View style={styles.analyticsCard}>
-            <Ionicons name="eye-outline" size={20} color="#15803D" style={styles.cardIcon} />
+            <Ionicons name="eye-outline" size={20} color="#153e69" style={styles.cardIcon} />
             <Text style={styles.analyticsNumber}>12</Text>
             <Text style={styles.analyticsLabel}>Profile Views</Text>
           </View>
           <View style={styles.analyticsCard}>
-            <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.cardIcon} />
+            <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.cardIcon} />
             <Text style={styles.analyticsNumber}>3</Text>
             <Text style={styles.analyticsLabel}>Appointment Req.</Text>
           </View>
           <View style={styles.analyticsCard}>
-            <Ionicons name="mail-outline" size={20} color="#15803D" style={styles.cardIcon} />
+            <Ionicons name="mail-outline" size={20} color="#153e69" style={styles.cardIcon} />
             <Text style={styles.analyticsNumber}>3</Text>
             <Text style={styles.analyticsLabel}>Referrals Posted</Text>
           </View>
           <View style={styles.analyticsCard}>
-            <Ionicons name="calendar-clear-outline" size={20} color="#15803D" style={styles.cardIcon} />
+            <Ionicons name="calendar-clear-outline" size={20} color="#153e69" style={styles.cardIcon} />
             <Text style={styles.analyticsNumber}>1</Text>
             <Text style={styles.analyticsLabel}>Upcoming Consults</Text>
           </View>
@@ -154,11 +154,11 @@ export default function ChefConnectScreen({ navigation }) {
         {/* Active Project Requests Banner */}
         <TouchableOpacity style={styles.bannerCard} onPress={() => handleToolAction("Active Project Requests")}>
           <View style={styles.bannerLeft}>
-            <Ionicons name="document-text-outline" size={20} color="#15803D" style={{ marginRight: 10 }} />
+            <Ionicons name="document-text-outline" size={20} color="#153e69" style={{ marginRight: 10 }} />
             <Text style={styles.bannerNumber}>3</Text>
             <Text style={styles.bannerLabel}>Active Project Requests</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#64748B" />
+          <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.6)" />
         </TouchableOpacity>
 
         {/* My Activity Section */}
@@ -166,56 +166,56 @@ export default function ChefConnectScreen({ navigation }) {
         <View style={styles.actionList}>
           <TouchableOpacity style={styles.listItem} onPress={() => navigation.navigate("Applications")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="bookmark-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="bookmark-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>My Applications</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>1</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("My Saved Jobs")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="star-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="star-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>My Saved Jobs</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>2</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("My Posted Jobs")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="share-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="share-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>My Posted Jobs</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>3</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Appointment Requests")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Appointment Requests</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>3</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Upcoming Consultations")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="time-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="time-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Upcoming Consultations</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>1</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
         </View>
@@ -225,34 +225,34 @@ export default function ChefConnectScreen({ navigation }) {
         <View style={styles.actionList}>
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Calendly Integration")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Calendly Integration</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Social Media Links")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="globe-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="globe-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Social Media Links</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Availability")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="time-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="time-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Availability</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Share Professional Profile")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="share-social-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="share-social-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Share Professional Profile</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
         </View>
 
@@ -261,37 +261,37 @@ export default function ChefConnectScreen({ navigation }) {
         <View style={styles.actionList}>
           <TouchableOpacity style={styles.listItem} onPress={() => navigation.navigate("Language")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="language-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="language-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Language</Text>
             </View>
             <View style={styles.rightValueRow}>
               <Text style={styles.rightValueText}>{LANGUAGE_LABELS[i18n.language] || "English"}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Settings")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="settings-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="settings-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Settings</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={() => handleToolAction("Help & Support")}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="help-circle-outline" size={20} color="#15803D" style={styles.listIcon} />
+              <Ionicons name="help-circle-outline" size={20} color="#153e69" style={styles.listIcon} />
               <Text style={styles.listItemText}>Help & Support</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.listItem} onPress={handleLogout}>
             <View style={styles.listItemLeft}>
-              <Ionicons name="log-out-outline" size={20} color="#EF4444" style={styles.listIcon} />
-              <Text style={[styles.listItemText, { color: "#EF4444" }]}>Logout</Text>
+              <Ionicons name="log-out-outline" size={20} color="#f57f20" style={styles.listIcon} />
+              <Text style={[styles.listItemText, { color: "#f57f20" }]}>Logout</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -302,7 +302,7 @@ export default function ChefConnectScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -310,14 +310,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#15803D",
+    color: "#153e69",
   },
   bellBtn: {
     padding: 4,
@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     marginBottom: 20,
     shadowColor: "#000",
     shadowOpacity: 0.02,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   profileTextContainer: {
     flex: 1,
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: "750",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 3,
   },
   profileTitle: {
     fontSize: 12,
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
     marginBottom: 6,
   },
@@ -375,12 +375,12 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2FBF5",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -390,16 +390,16 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     marginRight: 6,
   },
   statusText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#15803D",
+    color: "#153e69",
   },
   viewProfileBtn: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
@@ -407,14 +407,14 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   viewProfileBtnText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: "750",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 10,
     marginTop: 8,
   },
@@ -427,10 +427,10 @@ const styles = StyleSheet.create({
   analyticsCard: {
     flex: 1,
     minWidth: "45%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 12,
     shadowColor: "#000",
     shadowOpacity: 0.01,
@@ -444,22 +444,22 @@ const styles = StyleSheet.create({
   analyticsNumber: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginBottom: 2,
   },
   analyticsLabel: {
     fontSize: 11,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
   },
   bannerCard: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     padding: 14,
     marginBottom: 20,
     shadowColor: "#000",
@@ -475,19 +475,19 @@ const styles = StyleSheet.create({
   bannerNumber: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
     marginRight: 6,
   },
   bannerLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   actionList: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     overflow: "hidden",
     marginBottom: 20,
   },
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   listItemLeft: {
     flexDirection: "row",
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   listItemText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   badgeContainer: {
     flexDirection: "row",
@@ -520,8 +520,8 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#15803D",
-    backgroundColor: "#E8F5E9",
+    color: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   rightValueText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
   },
 });

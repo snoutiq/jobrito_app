@@ -19,32 +19,32 @@ export default function ChefIntroductionScreen({ navigation }) {
     {
       key: "consulting",
       icon: "analytics-outline",
-      iconColor: "#0891B2",
-      bgColor: "#ECFEFF",
+      iconColor: "#153e69",
+      bgColor: "rgba(21, 62, 105, 0.08)",
       title: t("chefIntro.consultingTitle"),
       desc: t("chefIntro.consultingDesc"),
     },
     {
       key: "projects",
       icon: "business-outline",
-      iconColor: "#047857",
-      bgColor: "#E6F7ED",
+      iconColor: "#f57f20",
+      bgColor: "rgba(245, 127, 32, 0.08)",
       title: t("chefIntro.projectsTitle"),
       desc: t("chefIntro.projectsDesc"),
     },
     {
       key: "networking",
       icon: "people-outline",
-      iconColor: "#4B5563",
-      bgColor: "#F3F4F6",
+      iconColor: "#0a0504",
+      bgColor: "#f2f2f3",
       title: t("chefIntro.networkingTitle"),
       desc: t("chefIntro.networkingDesc"),
     },
     {
       key: "visibility",
       icon: "checkmark-circle-outline",
-      iconColor: "#10B981",
-      bgColor: "#ECFDF5",
+      iconColor: "#f2c879",
+      bgColor: "rgba(242, 200, 121, 0.1)",
       title: t("chefIntro.visibilityTitle"),
       desc: t("chefIntro.visibilityDesc"),
     },
@@ -53,7 +53,7 @@ export default function ChefIntroductionScreen({ navigation }) {
   return (
     <ScreenWrapper
       scroll={true}
-      style={{ backgroundColor: "#F7F9FB" }}
+      style={{ backgroundColor: "#f2f2f3" }}
       contentStyle={styles.content}
     >
       {/* Premium Header Image Card */}
@@ -65,7 +65,7 @@ export default function ChefIntroductionScreen({ navigation }) {
         >
           <View style={styles.imageOverlay}>
             <View style={styles.pillBadge}>
-              <Text style={styles.pillBadgeText}>{t("chefIntro.badge")}</Text>
+              <Text style={styles.pillBadgeText}>{t("chefIntro.badge") || "CHEF CONNECT"}</Text>
             </View>
             <Text style={styles.headerTitle}>{t("chefIntro.mainTitle")}</Text>
           </View>
@@ -75,11 +75,11 @@ export default function ChefIntroductionScreen({ navigation }) {
       {/* Grid: Side-by-Side Statistics/Highlights */}
       <View style={styles.statsContainer}>
         <View style={styles.greenCard}>
-          <Ionicons name="restaurant" size={24} color="#047857" />
+          <Ionicons name="restaurant" size={24} color="#153e69" />
           <Text style={styles.greenCardText}>{t("chefIntro.verifiedChefs")}</Text>
         </View>
         <View style={styles.greyCard}>
-          <Ionicons name="globe-outline" size={24} color="#4B5563" />
+          <Ionicons name="globe-outline" size={24} color="#0a0504" />
           <Text style={styles.greyCardText}>{t("chefIntro.countries")}</Text>
         </View>
       </View>
@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     paddingBottom: 24,
-    backgroundColor: "#F7F9FB",
+    backgroundColor: "#f2f2f3",
   },
   imageCardContainer: {
     borderRadius: 24,
     overflow: "hidden",
     height: 220,
-    backgroundColor: "#000",
-    shadowColor: "#000",
+    backgroundColor: "#0a0504",
+    shadowColor: "#0a0504",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -135,13 +135,13 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    backgroundColor: "rgba(10, 5, 4, 0.45)",
     padding: 20,
     justifyContent: "flex-end",
   },
   pillBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#047857",
+    backgroundColor: "#153e69",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 999,
@@ -150,13 +150,13 @@ const styles = StyleSheet.create({
   pillBadgeText: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#A7F3D0",
+    color: "#f2f2f3",
     letterSpacing: 0.5,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#FFFFFF",
+    color: "#f2f2f3",
     lineHeight: 28,
   },
   statsContainer: {
@@ -166,40 +166,40 @@ const styles = StyleSheet.create({
   },
   greenCard: {
     flex: 1,
-    backgroundColor: "#E6F7ED",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderRadius: 16,
     padding: 16,
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#D1FAE5",
+    borderColor: "rgba(21, 62, 105, 0.18)",
   },
   greenCardText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#047857",
+    color: "#153e69",
     marginTop: 12,
     lineHeight: 18,
   },
   greyCard: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "rgba(10, 5, 4, 0.04)",
     borderRadius: 16,
     padding: 16,
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "rgba(10, 5, 4, 0.1)",
   },
   greyCardText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#374151",
+    color: "#0a0504",
     marginTop: 12,
     lineHeight: 18,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1e293b",
+    color: "#0a0504",
     marginBottom: 14,
   },
   benefitsList: {
@@ -208,13 +208,13 @@ const styles = StyleSheet.create({
   benefitCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f2f2f3",
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: "rgba(10, 5, 4, 0.1)",
     borderRadius: 16,
     padding: 14,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: "#0a0504",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
     shadowRadius: 4,
@@ -234,23 +234,23 @@ const styles = StyleSheet.create({
   benefitTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#1e293b",
+    color: "#0a0504",
     marginBottom: 3,
   },
   benefitDesc: {
     fontSize: 12,
-    color: "#64748b",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 16,
   },
   button: {
-    backgroundColor: "#047857",
+    backgroundColor: "#153e69",
     height: 52,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 8,
     marginBottom: 16,
-    shadowColor: "#047857",
+    shadowColor: "#153e69",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

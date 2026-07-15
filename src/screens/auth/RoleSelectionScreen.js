@@ -62,14 +62,14 @@ export default function RoleSelectionScreen({ navigation }) {
   return (
     <ScreenWrapper
       scroll={true}
-      style={{ backgroundColor: "#F7F9FB" }}
+      style={{ backgroundColor: "#f2f2f3" }}
       contentStyle={styles.content}
     >
       <View style={styles.hero}>
         <Image
-          source={{ uri: chefGroupImage }}
+          source={require("../../assets/Jobrito full logo.png")}
           style={styles.heroImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
         <Text style={styles.title}>{t("intro.title")}</Text>
         <Text style={styles.subtitle}>{t("intro.subtitle")}</Text>
@@ -88,17 +88,17 @@ export default function RoleSelectionScreen({ navigation }) {
               ]}
             >
               <View style={[styles.iconCircle, active && styles.iconCircleActive]}>
-                <Ionicons name={getRoleIcon(role)} size={22} color={active ? "#FFFFFF" : "#22C55E"} />
+                <Ionicons name={getRoleIcon(role)} size={22} color={active ? "#ffffff" : "#153e69"} />
               </View>
               <View style={styles.optionText}>
                 <Text style={[styles.optionTitle, active && styles.optionTitleActive]}>
-                  {t(`roleSelection.${role.toLowerCase().replace(" ", "")}`)}
+                  {t(`roleSelection.${role.toLowerCase().replace(/_/g, "").replace(" ", "")}`)}
                 </Text>
                 <Text style={[styles.optionDesc, active && styles.optionDescActive]}>
-                  {t(`roleSelection.description.${role.toLowerCase().replace(" ", "")}`)}
+                  {t(`roleSelection.description.${role.toLowerCase().replace(/_/g, "").replace(" ", "")}`)}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={active ? "#22C55E" : "#cbd5e1"} />
+              <Ionicons name="chevron-forward" size={18} color={active ? "#153e69" : "rgba(10, 5, 4, 0.15)"} />
             </Pressable>
           );
         })}
@@ -112,29 +112,28 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     paddingBottom: 24,
-    backgroundColor: "#F7F9FB",
+    backgroundColor: "#f2f2f3",
   },
   hero: {
     alignItems: "center",
     marginBottom: 8,
   },
   heroImage: {
-    width: "100%",
-    height: 190,
-    borderRadius: 16,
+    width: 350,
+    height: 150,
+    alignSelf: "center",
     marginBottom: 20,
-    backgroundColor: "#e2e8f0",
   },
   title: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#0f172a",
+    color: "#0a0504",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
-    color: "#64748b",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     marginBottom: 16,
     fontWeight: "500",
@@ -154,29 +153,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   optionCardActive: {
-    borderColor: "#22C55E",
-    backgroundColor: "#F0FDF4",
-    shadowColor: "#22C55E",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   optionCardInactive: {
-    borderColor: "#e2e8f0",
-    shadowColor: "transparent",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   iconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#E6F7ED",
+    backgroundColor: "#e7eff7",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 16,
   },
   iconCircleActive: {
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
   },
   optionText: {
     flex: 1,
@@ -185,18 +178,18 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1e293b",
+    color: "#0a0504",
     marginBottom: 4,
   },
   optionTitleActive: {
-    color: "#15803d",
+    color: "#153e69",
   },
   optionDesc: {
     fontSize: 13,
-    color: "#64748b",
+    color: "rgba(10, 5, 4, 0.6)",
     lineHeight: 18,
   },
   optionDescActive: {
-    color: "#166534",
+    color: "#153e69",
   },
 });

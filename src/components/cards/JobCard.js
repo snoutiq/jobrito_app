@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
 import { applyJob } from "../../redux/slices/jobSlice";
+import colors from "../../constants/colors";
 
 export default function JobCard({ job, onPress }) {
   const isReferral =
@@ -47,14 +48,14 @@ export default function JobCard({ job, onPress }) {
         </Pressable>
 
         <Pressable style={styles.iconBtn}>
-          <Ionicons name="star-outline" size={16} color="#555" />
+          <Ionicons name="star-outline" size={16} color={colors.mutedText} />
         </Pressable>
       </View>
 
       <View style={styles.divider} />
 
       <Pressable style={styles.linkBox}>
-        <Ionicons name="link-outline" size={15} color="#444" />
+        <Ionicons name="link-outline" size={15} color={colors.mutedText} />
         <Text style={styles.linkText}>Link copied</Text>
       </Pressable>
     </Pressable>
@@ -63,18 +64,18 @@ export default function JobCard({ job, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: colors.border,
   },
   referralCard: {
     borderLeftWidth: 4,
-    borderLeftColor: "#EF4444",
+    borderLeftColor: colors.danger,
   },
   company: {
-    color: "#0A7B32",
+    color: colors.primary,
     fontWeight: "700",
     fontSize: 12,
     marginBottom: 4,
@@ -82,18 +83,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#222",
+    color: colors.text,
     marginBottom: 6,
   },
   info: {
     fontSize: 15,
-    color: "#333",
+    color: colors.mutedText,
     marginBottom: 2,
   },
   description: {
     marginTop: 8,
     fontSize: 15,
-    color: "#444",
+    color: colors.mutedText,
     fontStyle: "italic",
     lineHeight: 22,
   },
@@ -103,23 +104,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   appliedBtn: {
-    backgroundColor: "#EFC29F",
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 8,
   },
   appliedText: {
-    color: "#0A7B32",
+    color: colors.primary,
     fontWeight: "700",
   },
   applyBtn: {
-    backgroundColor: "#0A7B32",
+    backgroundColor: colors.primary,
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 8,
   },
   applyText: {
-    color: "#fff",
+    color: colors.white,
     fontWeight: "700",
   },
   iconBtn: {
@@ -127,26 +128,26 @@ const styles = StyleSheet.create({
     height: 34,
     marginLeft: 8,
     borderRadius: 8,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: colors.border,
     marginVertical: 12,
   },
   linkBox: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F3F4F6",
+    backgroundColor: colors.background,
     borderRadius: 8,
     paddingVertical: 10,
   },
   linkText: {
     marginLeft: 6,
     fontWeight: "600",
-    color: "#333",
+    color: colors.mutedText,
   },
 });

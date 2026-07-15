@@ -9,7 +9,7 @@ import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 import { useTranslation } from "react-i18next";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function ApplicantListScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -64,46 +64,46 @@ export default function ApplicantListScreen({ route, navigation }) {
       key: "all",
       label: t("all", "All"),
       count: totalApplied,
-      activeColor: "#6366F1",
-      inactiveBg: "#EEF2FF",
-      inactiveBorder: "#E0E7FF",
-      inactiveText: "#4F46E5",
+      activeColor: "#153e69",
+      inactiveBg: "rgba(21, 62, 105, 0.08)",
+      inactiveBorder: "rgba(21, 62, 105, 0.18)",
+      inactiveText: "#153e69",
     },
     {
       key: "new",
       label: t("new", "New"),
       count: pendingCount,
-      activeColor: "#3B82F6",
-      inactiveBg: "#EFF6FF",
-      inactiveBorder: "#DBEAFE",
-      inactiveText: "#2563EB",
+      activeColor: "#153e69",
+      inactiveBg: "rgba(21, 62, 105, 0.08)",
+      inactiveBorder: "rgba(21, 62, 105, 0.18)",
+      inactiveText: "#153e69",
     },
     {
       key: "shortlisted",
       label: t("shortlisted", "Shortlisted"),
       count: shortlistedCount,
-      activeColor: "#10B981",
-      inactiveBg: "#ECFDF5",
-      inactiveBorder: "#D1FAE5",
-      inactiveText: "#059669",
+      activeColor: "#153e69",
+      inactiveBg: "#e7eff7",
+      inactiveBorder: "#cfe0f0",
+      inactiveText: "#153e69",
     },
     {
       key: "contacted",
       label: t("contacted", "Contacted"),
       count: contactedCount,
-      activeColor: "#F59E0B",
-      inactiveBg: "#FEF3C7",
-      inactiveBorder: "#FEEBAD",
-      inactiveText: "#D97706",
+      activeColor: "#f2c879",
+      inactiveBg: "rgba(242, 200, 121, 0.12)",
+      inactiveBorder: "rgba(242, 200, 121, 0.22)",
+      inactiveText: "#f2c879",
     },
     {
       key: "rejected",
       label: t("rejected", "Rejected"),
       count: rejectedCount,
-      activeColor: "#EF4444",
-      inactiveBg: "#FEF2F2",
-      inactiveBorder: "#FEE2E2",
-      inactiveText: "#DC2626",
+      activeColor: "#f57f20",
+      inactiveBg: "rgba(245, 127, 32, 0.08)",
+      inactiveBorder: "rgba(245, 127, 32, 0.18)",
+      inactiveText: "#f57f20",
     },
   ];
 
@@ -113,7 +113,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("applicantList")}</Text>
         </View>
@@ -143,7 +143,7 @@ export default function ApplicantListScreen({ route, navigation }) {
                 <Text
                   style={[
                     styles.filterLabel,
-                    isActive ? { color: "#FFFFFF" } : { color: tab.inactiveText },
+                    isActive ? { color: "#ffffff" } : { color: tab.inactiveText },
                   ]}
                 >
                   {tab.label}
@@ -159,7 +159,7 @@ export default function ApplicantListScreen({ route, navigation }) {
                   <Text
                     style={[
                       styles.countText,
-                      isActive ? { color: "#FFFFFF" } : { color: tab.inactiveText },
+                      isActive ? { color: "#ffffff" } : { color: tab.inactiveText },
                     ]}
                   >
                     {tab.count}
@@ -189,7 +189,7 @@ export default function ApplicantListScreen({ route, navigation }) {
           />
         ) : (
           <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={48} color="#94A3B8" />
+            <Ionicons name="people-outline" size={48} color="rgba(10, 5, 4, 0.4)" />
             <Text style={styles.emptyText}>{t("noApplicantsCategory")}</Text>
           </View>
         )}
@@ -201,14 +201,14 @@ export default function ApplicantListScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -220,13 +220,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   filterSection: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   filterScrollContent: {
     paddingHorizontal: 16,
@@ -242,22 +242,22 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterPillActive: {
-    backgroundColor: "#1E293B",
-    borderColor: "#1E293B",
+    backgroundColor: "#0a0504",
+    borderColor: "#0a0504",
   },
   filterPillInactive: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "#f2f2f3",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   filterLabel: {
     fontSize: 13,
     fontWeight: "700",
   },
   filterLabelActive: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   filterLabelInactive: {
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   countBadge: {
     paddingHorizontal: 6,
@@ -271,17 +271,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   countBadgeInactive: {
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   countText: {
     fontSize: 10,
     fontWeight: "800",
   },
   countTextActive: {
-    color: "#FFFFFF",
+    color: "#ffffff",
   },
   countTextInactive: {
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   content: {
     flex: 1,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
     textAlign: "center",
   },

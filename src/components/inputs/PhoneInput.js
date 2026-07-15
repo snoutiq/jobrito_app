@@ -12,7 +12,7 @@ export default function PhoneInput({ value, onChangeText, prefix = "+91", flag =
       >
         <Text style={styles.flagText}>{flag}</Text>
         <Text style={styles.prefixText}>{prefix}</Text>
-        <Ionicons name="chevron-down" size={14} color="#64748B" />
+        <Ionicons name="chevron-down" size={14} color="rgba(10, 5, 4, 0.6)" />
       </Pressable>
       <View style={styles.divider} />
       <TextInput
@@ -20,7 +20,7 @@ export default function PhoneInput({ value, onChangeText, prefix = "+91", flag =
         value={value}
         onChangeText={onChangeText}
         placeholder="Enter mobile number"
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="rgba(10, 5, 4, 0.4)"
         keyboardType="phone-pad"
         maxLength={10}
       />
@@ -33,10 +33,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 14,
     height: 56,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 8,
   },
   prefix: {
@@ -55,18 +55,18 @@ const styles = StyleSheet.create({
   prefixText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   divider: {
     width: 1,
     height: 24,
-    backgroundColor: "#CBD5E1",
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
     marginHorizontal: 4,
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
     height: "100%",
     paddingHorizontal: 8,
   },

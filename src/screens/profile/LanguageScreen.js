@@ -105,7 +105,7 @@ export default function LanguageScreen({ navigation }) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </Pressable>
         <Text style={styles.headerTitle}>{t("languageScreen.title")}</Text>
         <View style={{ width: 32 }} />
@@ -113,8 +113,8 @@ export default function LanguageScreen({ navigation }) {
 
       <ScreenWrapper
         edges={["left", "right", "bottom"]}
-        style={{ backgroundColor: "#F8FAFC", flex: 1 }}
-        contentStyle={{ backgroundColor: "#F8FAFC", padding: 16 }}
+        style={{ backgroundColor: "#f2f2f3", flex: 1 }}
+        contentStyle={{ backgroundColor: "#f2f2f3", padding: 16 }}
       >
         <View style={styles.card}>
           <Text style={styles.description}>
@@ -154,7 +154,7 @@ export default function LanguageScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -162,9 +162,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
     padding: 4,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   card: {
     backgroundColor: colors.card,
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
   },
   languageButtonActive: {
-    borderColor: "#22C55E",
-    backgroundColor: "#F0FDF4",
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   buttonTextBlock: {
     flex: 1,
@@ -215,31 +215,31 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   buttonLabelActive: {
-    color: "#15803D",
+    color: "#153e69",
   },
   buttonSubtitle: {
     color: colors.mutedText,
     fontSize: 12,
   },
   buttonSubtitleActive: {
-    color: "#22C55E",
+    color: "#153e69",
   },
   radio: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#CBD5E1",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
   radioActive: {
-    borderColor: "#22C55E",
+    borderColor: "#153e69",
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
   },
 });

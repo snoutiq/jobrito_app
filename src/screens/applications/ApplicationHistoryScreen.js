@@ -113,7 +113,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
             <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
           ) : (
             <View style={styles.avatarFallback}>
-              <Ionicons name="business-outline" size={24} color="#64748B" />
+              <Ionicons name="business-outline" size={24} color="rgba(10, 5, 4, 0.6)" />
             </View>
           )}
         </View>
@@ -130,13 +130,13 @@ export default function ApplicationHistoryScreen({ navigation }) {
           {/* Salary and Location Row */}
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <Ionicons name="cash-outline" size={14} color="#94A3B8" style={{ marginRight: 2 }} />
+              <Ionicons name="cash-outline" size={14} color="rgba(10, 5, 4, 0.4)" style={{ marginRight: 2 }} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {item.job?.salary || "Competitive"}
               </Text>
             </View>
             <View style={styles.metaItem}>
-              <Ionicons name="location-outline" size={14} color="#94A3B8" style={{ marginRight: 2 }} />
+              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.4)" style={{ marginRight: 2 }} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {item.job?.location || "Flexible"}
               </Text>
@@ -151,7 +151,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
         {/* Right content */}
         <View style={styles.rightContainer}>
           <Text style={styles.dateText}>{formatAppliedTime(item.appliedOn)}</Text>
-          <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+          <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
         </View>
       </Pressable>
     );
@@ -165,7 +165,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#15803D" />
+            <Ionicons name="arrow-back" size={24} color="#153e69" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("applications.title", "My Applications")}</Text>
         </View>
@@ -174,12 +174,12 @@ export default function ApplicationHistoryScreen({ navigation }) {
       {/* Search / Filter Bar */}
       <View style={styles.searchFilterRow}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color="#94A3B8" />
+          <Ionicons name="search" size={18} color="rgba(10, 5, 4, 0.4)" />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder={t("applications.searchPlaceholder", "Search applications")}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="rgba(10, 5, 4, 0.4)"
             style={styles.searchInput}
           />
         </View>
@@ -190,7 +190,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
           <Ionicons
             name={isFilterActive ? "options" : "options-outline"}
             size={22}
-            color={isFilterActive ? "#0A7B32" : "#475569"}
+            color={isFilterActive ? "#153e69" : "rgba(10, 5, 4, 0.6)"}
           />
         </TouchableOpacity>
       </View>
@@ -239,14 +239,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
         />
       </View>
 
-      {/* Floating Action Button (FAB) */}
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate("Home")}
-      >
-        <Ionicons name="add" size={32} color="#FFFFFF" />
-      </TouchableOpacity>
+
 
       {/* Filter Options Bottom Sheet Modal */}
       <Modal
@@ -261,7 +254,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t("applications.filterByStatus", "Filter by Status")}</Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={24} color="#475569" />
+                <Ionicons name="close" size={24} color="rgba(10, 5, 4, 0.6)" />
               </TouchableOpacity>
             </View>
             
@@ -281,7 +274,7 @@ export default function ApplicationHistoryScreen({ navigation }) {
                       {statusTitles[option]}
                     </Text>
                     {isSelected && (
-                      <Ionicons name="checkmark" size={20} color="#0A7B32" />
+                      <Ionicons name="checkmark" size={20} color="#153e69" />
                     )}
                   </TouchableOpacity>
                 );
@@ -309,17 +302,17 @@ export default function ApplicationHistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "rgba(10, 5, 4, 0.06)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -332,96 +325,96 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#0a0504",
   },
   profileAvatar: {
     width: 38,
     height: 38,
-    borderRadius: 19,
-    backgroundColor: "#7C3AED", // purple/pink avatar background
+    borderRadius: 10,
+    backgroundColor: "#153e69", // brand primary avatar background
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
   },
   searchFilterRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#ffffff",
   },
   searchBar: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F1F5F9",
+    gap: 10,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#f2f2f3",
     paddingHorizontal: 16,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: "#0F172A",
+    color: "#0a0504",
     paddingVertical: 0,
   },
   filterBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.08)",
   },
   filterBtnActive: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    borderColor: "#153e69",
   },
   filterInfoBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#F8FAFC",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#f2f2f3",
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f2f2f3",
   },
   filterInfoText: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   resetFilterText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#EF4444",
+    color: "#f57f20",
   },
   listContent: {
-    paddingBottom: 100, // padding to clear the FAB
+    paddingBottom: 24,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-    backgroundColor: "#FFFFFF",
+    borderBottomColor: "rgba(10, 5, 4, 0.05)",
+    backgroundColor: "#ffffff",
   },
   avatarContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -435,22 +428,22 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   infoContainer: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 16,
     justifyContent: "center",
   },
   jobTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: "#0a0504",
     marginBottom: 2,
   },
   companyName: {
     fontSize: 13,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 4,
   },
   badgeWrapper: {
@@ -463,7 +456,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   footerContainer: {
     paddingVertical: 24,
@@ -472,7 +465,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
   fab: {
     position: "absolute",
@@ -481,7 +474,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#22C55E", // vibrant green FAB
+    backgroundColor: "#153e69", // vibrant green FAB
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
@@ -496,7 +489,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -511,7 +504,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0a0504",
   },
   optionsList: {
     gap: 8,
@@ -523,34 +516,34 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#f2f2f3",
   },
   optionItemActive: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
-    borderColor: "#DCFCE7",
+    borderColor: "rgba(21, 62, 105, 0.08)",
   },
   optionText: {
     fontSize: 15,
     fontWeight: "500",
-    color: "#475569",
+    color: "rgba(10, 5, 4, 0.6)",
   },
   optionTextActive: {
-    color: "#0A7B32",
+    color: "#153e69",
     fontWeight: "700",
   },
   clearFilterBtn: {
     marginTop: 20,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
   clearFilterText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#EF4444",
+    color: "#f57f20",
   },
   metaRow: {
     flexDirection: "row",
@@ -567,6 +560,6 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(10, 5, 4, 0.4)",
   },
 });

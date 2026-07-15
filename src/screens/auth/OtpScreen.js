@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View, Platform } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View, Platform, Image } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -158,24 +158,22 @@ export default function OtpScreen({ navigation, route }) {
   return (
     <ScreenWrapper
       scroll={true}
-      style={{ backgroundColor: "#F7F9FB" }}
+      style={{ backgroundColor: "#f2f2f3" }}
       contentStyle={styles.content}
     >
       <View style={styles.centerContainer}>
-        {/* Top Icon Wrap */}
-        <View style={styles.iconOuterCircle}>
-          <Ionicons name="mail-unread" size={34} color="#047857" />
-        </View>
-
-        {/* Hero title & subtitle */}
-        <Text style={styles.title}>{t("otp.title")}</Text>
+        <Image
+          source={require("../../assets/Jobrito full logo.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.subtitle}>
           {t("otp.subtitle", { length: OTP_LENGTH, phone: formattedPhone || t("otp.yourPhoneNumber") })}
         </Text>
 
         {/* WhatsApp Friendly Note with Human Touch */}
         <View style={styles.whatsappNote}>
-          <Ionicons name="chatbubble-ellipses" size={16} color="#15803d" style={styles.whatsappNoteIcon} />
+          <Ionicons name="chatbubble-ellipses" size={16} color="#153e69" style={styles.whatsappNoteIcon} />
           <Text style={styles.whatsappNoteText}>{t("otp.whatsappNote")}</Text>
         </View>
 
@@ -194,7 +192,7 @@ export default function OtpScreen({ navigation, route }) {
             <Text style={styles.verifyButtonText}>
               {loading ? t("loading") : t("otp.verifyButton")}
             </Text>
-            {!loading && <Ionicons name="chevron-forward" size={16} color="#065f46" />}
+            {!loading && <Ionicons name="chevron-forward" size={16} color="#153e69" />}
           </Pressable>
         </View>
 
@@ -209,7 +207,7 @@ export default function OtpScreen({ navigation, route }) {
             <Ionicons
               name="refresh"
               size={13}
-              color={countdown > 0 ? "#cbd5e1" : "#22C55E"}
+              color={countdown > 0 ? "rgba(10, 5, 4, 0.15)" : "#153e69"}
             />
             <Text style={[styles.resendAction, countdown > 0 && styles.resendActionDisabled]}>
               {countdown > 0
@@ -228,31 +226,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#F7F9FB",
+    backgroundColor: "#f2f2f3",
   },
   centerContainer: {
     alignItems: "center",
     width: "100%",
   },
-  iconOuterCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: "#E6F7ED",
-    alignItems: "center",
-    justifyContent: "center",
+  logoImage: {
+    width: 380,
+    height: 200,
+    alignSelf: "center",
     marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#1e293b",
-    textAlign: "center",
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: "#64748b",
+    color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
     lineHeight: 20,
     maxWidth: 290,
@@ -261,7 +249,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 20,
     padding: 20,
     width: "100%",
@@ -278,7 +266,7 @@ const styles = StyleSheet.create({
   verifyButton: {
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#22C55E",
+    backgroundColor: "#153e69",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -290,14 +278,14 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#065f46",
+    color: "#f3f5f7",
   },
   resendWrap: {
     alignItems: "center",
     gap: 8,
   },
   resendLabel: {
-    color: "#64748b",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
   },
   resendActionRow: {
@@ -309,19 +297,19 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   resendAction: {
-    color: "#22C55E",
+    color: "#153e69",
     fontSize: 14,
     fontWeight: "800",
   },
   resendActionDisabled: {
-    color: "#cbd5e1",
+    color: "rgba(10, 5, 4, 0.15)",
   },
   whatsappNote: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderWidth: 1,
-    borderColor: "#DCFCE7",
+    borderColor: "rgba(21, 62, 105, 0.08)",
     borderRadius: 12,
     padding: 12,
     width: "100%",
@@ -333,7 +321,7 @@ const styles = StyleSheet.create({
   whatsappNoteText: {
     flex: 1,
     fontSize: 12,
-    color: "#166534",
+    color: "#153e69",
     lineHeight: 18,
     fontWeight: "600",
   },

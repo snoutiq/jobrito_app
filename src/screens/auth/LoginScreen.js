@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
   TextInput,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  Image
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +21,7 @@ import colors from "../../constants/colors";
 import { requestOtp } from "../../redux/slices/authSlice";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
 
-const PRIMARY_GREEN = "#22C55E";
+const PRIMARY_GREEN = "#153e69";
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -100,14 +101,15 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <ScreenWrapper
-      style={{ backgroundColor: "#FFFFFF" }}
+      style={{ backgroundColor: "#ffffff" }}
       contentStyle={styles.content}
     >
       <View style={styles.hero}>
-        <View style={styles.iconWrap}>
-          <Ionicons name="people" size={38} color="#FFFFFF" />
-        </View>
-        <Text style={styles.title}>Jobrito</Text>
+        <Image
+          source={require("../../assets/Jobrito full logo.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.subtitle}>Empowering the Hospitality Community</Text>
       </View>
 
@@ -133,11 +135,11 @@ export default function LoginScreen({ navigation }) {
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color="#ffffff" />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={styles.sendOtpButtonText}>Send OTP</Text>
-              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              <Ionicons name="arrow-forward" size={18} color="#ffffff" />
             </View>
           )}
         </TouchableOpacity>
@@ -165,16 +167,16 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Country</Text>
               <TouchableOpacity onPress={() => setShowCountryModal(false)}>
-                <Ionicons name="close-circle" size={26} color="#94A3B8" />
+                <Ionicons name="close-circle" size={26} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
             </View>
 
             {/* Search Box */}
             <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <Ionicons name="search" size={20} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
               <TextInput
                 placeholder="Search country..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 style={styles.searchInputField}
@@ -245,23 +247,14 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 10,
   },
-  iconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 22,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  title: {
-    color: "#0F7A37",
-    fontSize: 26,
-    fontWeight: "900",
-    textAlign: "center",
+  logoImage: {
+    width: 350,
+    height: 150,
+    alignSelf: "center",
+    marginBottom: 10,
   },
   subtitle: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 14,
     textAlign: "center",
   },
@@ -269,7 +262,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -282,12 +275,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sendOtpButtonText: {
-    color: "#FFFFFF",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
   },
   terms: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 12,
     lineHeight: 18,
     textAlign: "center",
@@ -304,7 +297,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "80%",
@@ -318,14 +311,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalTitle: {
-    color: "#1E293B",
+    color: "#0a0504",
     fontSize: 18,
     fontWeight: "900",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#f2f2f3",
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
@@ -337,7 +330,7 @@ const styles = StyleSheet.create({
   searchInputField: {
     flex: 1,
     fontSize: 15,
-    color: "#1E293B",
+    color: "#0a0504",
     paddingVertical: 8,
   },
   countryList: {
@@ -347,7 +340,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "rgba(10, 5, 4, 0.15)",
     paddingHorizontal: 14,
     marginVertical: 4,
     flexDirection: "row",
@@ -356,7 +349,7 @@ const styles = StyleSheet.create({
   },
   countryRowActive: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   countryRowLeft: {
     flexDirection: "row",
@@ -368,25 +361,25 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   countryLabel: {
-    color: "#334155",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 14,
     fontWeight: "700",
   },
   countryLabelActive: {
-    color: "#15803D",
+    color: "#153e69",
   },
   countryRowRight: {
     flexDirection: "row",
     alignItems: "center",
   },
   countryCodeText: {
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     fontSize: 13,
     fontWeight: "600",
   },
   noResultsText: {
     textAlign: "center",
-    color: "#64748B",
+    color: "rgba(10, 5, 4, 0.6)",
     marginTop: 20,
     fontSize: 14,
   },
