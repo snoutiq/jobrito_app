@@ -10,3 +10,4 @@ export default {
   PROFILE: "/profile",
   NOTIFICATIONS: "/notifications",
 };
+
