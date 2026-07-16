@@ -14,22 +14,18 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { Text, TextInput } from "react-native";
 import {
   useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_800ExtraBold,
-  Inter_900Black
-} from "@expo-google-fonts/inter";
+  InstrumentSans_400Regular,
+  InstrumentSans_500Medium,
+  InstrumentSans_600SemiBold,
+  InstrumentSans_700Bold
+} from "@expo-google-fonts/instrument-sans";
 
-// Map font weights to specific Inter fonts
+// Map font weights to specific Instrument Sans fonts
 const getFontFamilyForWeight = (weight) => {
-  if (weight === "bold" || weight === "700") return "Inter_700Bold";
-  if (weight === "500") return "Inter_500Medium";
-  if (weight === "600") return "Inter_600SemiBold";
-  if (weight === "800") return "Inter_800ExtraBold";
-  if (weight === "900") return "Inter_900Black";
-  return "Inter_400Regular";
+  if (weight === "bold" || weight === "700" || weight === "800" || weight === "900") return "InstrumentSans_700Bold";
+  if (weight === "500") return "InstrumentSans_500Medium";
+  if (weight === "600") return "InstrumentSans_600SemiBold";
+  return "InstrumentSans_400Regular";
 };
 
 // Monkey patch Text render to automatically apply Inter font based on weight
@@ -46,7 +42,7 @@ if (Text.render) {
   };
 } else {
   if (!Text.defaultProps) Text.defaultProps = {};
-  Text.defaultProps.style = { fontFamily: "Inter_400Regular", ...Text.defaultProps.style };
+  Text.defaultProps.style = { fontFamily: "InstrumentSans_400Regular", ...Text.defaultProps.style };
 }
 
 // Monkey patch TextInput render to automatically apply Inter font based on weight
@@ -63,7 +59,7 @@ if (TextInput.render) {
   };
 } else {
   if (!TextInput.defaultProps) TextInput.defaultProps = {};
-  TextInput.defaultProps.style = { fontFamily: "Inter_400Regular", ...TextInput.defaultProps.style };
+  TextInput.defaultProps.style = { fontFamily: "InstrumentSans_400Regular", ...TextInput.defaultProps.style };
 }
 
 
@@ -79,12 +75,10 @@ Notifications.setNotificationHandler({
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
-    Inter_900Black,
+    InstrumentSans_400Regular,
+    InstrumentSans_500Medium,
+    InstrumentSans_600SemiBold,
+    InstrumentSans_700Bold,
   });
 
   useEffect(() => {
