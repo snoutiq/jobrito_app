@@ -11,6 +11,7 @@ import {
   Share,
   ActivityIndicator,
   Linking,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -118,15 +119,19 @@ export default function ChefHomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Custom Header (DO NOT TOUCH THIS) */}
+      {/* Custom Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.communityAvatar}>
-            <Text style={styles.avatarText}>J</Text>
-          </View>
-          <View>
-            <Text style={styles.communityName}>Jobrito</Text>
-          </View>
+          <Image
+            source={require("../../assets/Jobrito icon.png")}
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+          <Image
+            source={require("../../assets/Jobrito Wordmark with Tagline.png")}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
         </View>
         <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
           <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
@@ -366,9 +371,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
+  headerIcon: {
+    width: 32,
+    height: 32,
+  },
+  headerLogo: {
+    width: 140,
+    height: 38,
+    alignSelf: "flex-start",
+  },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
   communityAvatar: {
     width: 40,

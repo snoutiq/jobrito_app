@@ -12,6 +12,7 @@ import {
   Share,
   ActivityIndicator,
   Linking,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,16 +39,22 @@ export default function HomeScreen({ navigation }) {
   const [favorites, setFavorites] = useState({});
   const [copiedJobId, setCopiedJobId] = useState(null);
 
-  // Set original header configuration (DO NOT touch this header layout)
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
+      headerTitleAlign: "left",
       headerTitle: () => (
-        <View style={styles.brandWrap}>
-          <View style={styles.brandIcon}>
-            <Text style={styles.brandIconText}>J</Text>
-          </View>
-          <Text style={styles.brandText}>JobRito</Text>
+        <View style={styles.headerBrandContainer}>
+          <Image
+            source={require("../../assets/Jobrito icon.png")}
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+          <Image
+            source={require("../../assets/Jobrito Wordmark with Tagline.png")}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
         </View>
       ),
       headerRight: () => (
@@ -396,6 +403,20 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     gap: 0,
     flex: 1,
+  },
+  headerBrandContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  headerIcon: {
+    width: 32,
+    height: 32,
+  },
+  headerLogo: {
+    width: 140,
+    height: 38,
+    alignSelf: "flex-start",
   },
   brandWrap: {
     flexDirection: "row",
