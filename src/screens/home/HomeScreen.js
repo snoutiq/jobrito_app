@@ -217,97 +217,35 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.jobDescription}>{job.description}</Text>
 
               {/* Action buttons rendering */}
-              {isReferral ? (
-                // Bombay Cafe type Referral
-                <View style={styles.twoActionsRow}>
-                  <TouchableOpacity
-                    style={styles.actionBtnLight}
-                    onPress={() => handleCall(job)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="call" size={16} color="#153e69" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>{t("call", "Call")}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionBtnLight}
-                    onPress={() => handleShare(job.title, job.company)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="share-social" size={16} color="#153e69" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionBtnTextGreen}>{t("share", "Share")}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.starActionBtn}
-                    onPress={() => toggleFavorite(job.id)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={isFav ? "star" : "star-outline"}
-                      size={20}
-                      color={isFav ? "#f2c879" : "rgba(10, 5, 4, 0.6)"}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ) : hasMultipleActions ? (
-                // Global Talent Overseas style card (both Apply and Call/Share)
-                <View>
-                  <View style={styles.actionsRow}>
+              <View style={styles.actionsContainer}>
+                {isReferral ? (
+                  // Referral Job: Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
+                  <>
                     <TouchableOpacity
-                      style={[styles.applyBtn, isApplied && styles.appliedBtn]}
-                      onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
-                      disabled={isApplied || isApplying}
-                      activeOpacity={0.7}
-                    >
-                      {isApplying ? (
-                        <ActivityIndicator size="small" color="#153e69" />
-                      ) : (
-                        <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-                          {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity
-                      style={styles.starActionBtn}
-                      onPress={() => toggleFavorite(job.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={isFav ? "star" : "star-outline"}
-                        size={20}
-                        color={isFav ? "#f2c879" : "rgba(10, 5, 4, 0.6)"}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={[styles.twoActionsRow, { marginTop: 10 }]}>
-                    <TouchableOpacity
-                      style={[styles.actionBtnLight, { backgroundColor: "#f2f2f3", borderColor: "rgba(10, 5, 4, 0.15)" }]}
+                      style={styles.textActionBtn}
                       onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="call" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>{t("call", "Call")}</Text>
+                      <Text style={styles.textActionBtnText}>{t("call", "Call")}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionBtnLight, { backgroundColor: "#f2f2f3", borderColor: "rgba(10, 5, 4, 0.15)" }]}
-                      onPress={() => handleShare(job.title, job.company)}
+                      style={styles.iconActionBtn}
+                      onPress={() => copyToClipboard(job.id)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="share-social" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 6 }} />
-                      <Text style={styles.actionBtnTextGrey}>{t("share", "Share")}</Text>
+                      <Ionicons
+                        name={isCopied ? "checkmark" : "link"}
+                        size={18}
+                        color={isCopied ? "#2e7d32" : "#153e69"}
+                      />
                     </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                // Grand Hyatt type card (Apply + Link copy button)
-                <View>
-                  <View style={styles.actionsRow}>
+                  </>
+                ) : (
+                  // Direct/Overseas Job: Apply Now (Text), Call (Icon), Share (Icon), Favorite (Icon)
+                  <>
                     <TouchableOpacity
-                      style={[styles.applyBtn, isApplied && styles.appliedBtn]}
+                      style={[styles.textActionBtn, isApplied && styles.textActionBtnApplied]}
                       onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
                       disabled={isApplied || isApplying}
                       activeOpacity={0.7}
@@ -315,33 +253,42 @@ export default function HomeScreen({ navigation }) {
                       {isApplying ? (
                         <ActivityIndicator size="small" color="#153e69" />
                       ) : (
-                        <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
+                        <Text style={[styles.textActionBtnText, isApplied && styles.textActionBtnTextApplied]}>
                           {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.starActionBtn}
-                      onPress={() => toggleFavorite(job.id)}
+                      style={styles.iconActionBtn}
+                      onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons
-                        name={isFav ? "star" : "star-outline"}
-                        size={20}
-                        color={isFav ? "#f2c879" : "rgba(10, 5, 4, 0.6)"}
-                      />
+                      <Ionicons name="call" size={18} color="#153e69" />
                     </TouchableOpacity>
-                  </View>
+                  </>
+                )}
 
-                  <TouchableOpacity style={styles.linkCopiedBox} onPress={() => copyToClipboard(job.id)}>
-                    <Ionicons name="link" size={16} color="rgba(10, 5, 4, 0.6)" />
-                    <Text style={styles.linkCopiedText}>
-                      {isCopied ? t("linkCopied", "Link copied") : t("copyJobLink", "Copy job link")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                <TouchableOpacity
+                  style={styles.iconActionBtn}
+                  onPress={() => handleShare(job.title, job.company)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="share-social" size={18} color="#153e69" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.iconActionBtn}
+                  onPress={() => toggleFavorite(job.id)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={isFav ? "star" : "star-outline"}
+                    size={18}
+                    color={isFav ? "#f2c879" : "#153e69"}
+                  />
+                </TouchableOpacity>
+              </View>
 
               {/* <Text style={styles.timeText}>{formatPostedTime(job.postedDate)}</Text> */}
             </View>
@@ -579,74 +526,43 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 8,
   },
-  actionsRow: {
+  actionsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    gap: 8,
+    marginTop: 10,
   },
-  applyBtn: {
+  textActionBtn: {
     flex: 1,
+    height: 40,
     backgroundColor: "rgba(21, 62, 105, 0.08)",
     borderRadius: 8,
-    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(21, 62, 105, 0.18)",
   },
-  appliedBtn: {
+  textActionBtnApplied: {
     backgroundColor: "rgba(10, 5, 4, 0.15)",
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
-  applyBtnText: {
+  textActionBtnText: {
     fontSize: 13,
     fontWeight: "700",
     color: "#153e69",
   },
-  appliedBtnText: {
+  textActionBtnTextApplied: {
     color: "rgba(10, 5, 4, 0.6)",
   },
-  twoActionsRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  actionBtnLight: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  iconActionBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 8,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.18)",
-  },
-  actionBtnTextGreen: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#153e69",
-  },
-  actionBtnTextGrey: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  linkCopiedBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: "#f2f2f3",
-    paddingVertical: 8,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    gap: 6,
-  },
-  linkCopiedText: {
-    fontSize: 12,
-    fontWeight: "650",
-    color: "rgba(10, 5, 4, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   timeText: {
     fontSize: 11,
@@ -780,15 +696,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 14,
   },
-  starActionBtn: {
-    width: 44,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "#f2f2f3",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
+
 });
