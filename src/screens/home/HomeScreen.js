@@ -413,6 +413,7 @@ const styles = StyleSheet.create({
     height: 38,
     overflow: "hidden",
     justifyContent: "center",
+    marginLeft: -20,
   },
   headerLogo: {
     width: 150,
