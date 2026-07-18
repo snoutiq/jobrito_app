@@ -33,6 +33,8 @@ import EmployerNotificationsScreen from "../screens/employer/EmployerNotificatio
 import ChefCompleteProfileScreen from "../screens/chef/ChefCompleteProfileScreen";
 import SavedJobsScreen from "../screens/jobs/SavedJobsScreen";
 import SplashScreen from "../screens/auth/SplashScreen";
+import ProfileViewsScreen from "../screens/chef/ProfileViewsScreen";
+import ProjectRequestsScreen from "../screens/chef/ProjectRequestsScreen";
 import { setProfileData } from "../redux/slices/userSlice";
 
 
@@ -232,6 +234,16 @@ export default function MainTabs() {
       <Stack.Screen
         name="AppointmentRequests"
         component={AppointmentRequestsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ProfileViews"
+        component={ProfileViewsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ProjectRequests"
+        component={ProjectRequestsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

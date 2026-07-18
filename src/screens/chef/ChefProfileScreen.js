@@ -257,47 +257,6 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           </TouchableOpacity>
         </View>
 
-        {/* Performance Analytics */}
-        <Text style={styles.sectionTitle}>{t("chefDashboard.performanceAnalytics")}</Text>
-        
-        <View style={styles.analyticsGrid}>
-          {/* Card 1 */}
-          <View style={styles.analyticsCard}>
-            <View style={styles.analyticsIconBox}>
-              <Ionicons name="eye-outline" size={18} color="#153e69" />
-            </View>
-            <Text style={styles.analyticsValue}>{stats.profile_views}</Text>
-            <Text style={styles.analyticsLabel}>{t("chefDashboard.profileViews")}</Text>
-          </View>
-
-          {/* Card 2 */}
-          <View style={styles.analyticsCard}>
-            <View style={styles.analyticsIconBox}>
-              <Ionicons name="calendar-outline" size={18} color="#153e69" />
-            </View>
-            <Text style={styles.analyticsValue}>{stats.appointment_requests || appointmentCount}</Text>
-            <Text style={styles.analyticsLabel}>{t("chefDashboard.appointmentReq")}</Text>
-          </View>
-
-          {/* Card 3 */}
-          <View style={styles.analyticsCard}>
-            <View style={styles.analyticsIconBox}>
-              <Ionicons name="paper-plane-outline" size={18} color="#153e69" />
-            </View>
-            <Text style={styles.analyticsValue}>{stats.referrals_posted}</Text>
-            <Text style={styles.analyticsLabel}>{t("chefDashboard.referralsPosted")}</Text>
-          </View>
-
-          {/* Card 4 */}
-          <View style={styles.analyticsCard}>
-            <View style={styles.analyticsIconBox}>
-              <Ionicons name="checkmark-done-circle-outline" size={18} color="#153e69" />
-            </View>
-            <Text style={styles.analyticsValue}>{stats.upcoming_consultations}</Text>
-            <Text style={styles.analyticsLabel}>{t("chefDashboard.upcomingConsult")}</Text>
-          </View>
-        </View>
-
         {/* My Activity */}
         <Text style={styles.sectionTitle}>{t("chefDashboard.myActivity")}</Text>
         <View style={styles.menuGroup}>
@@ -394,6 +353,46 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.upcoming_consultations}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuDivider} />
+
+          {/* Profile Views */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("ProfileViews")}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="eye-outline" size={20} color="#153e69" style={styles.menuIcon} />
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.profileViews", "Profile Views")}</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{stats.profile_views}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuDivider} />
+
+          {/* Active Project Requests */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("ProjectRequests")}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="folder-open-outline" size={20} color="#153e69" style={styles.menuIcon} />
+              <Text style={styles.menuItemLabel}>{t("chefDashboard.activeProjectRequests", "Active Project Requests")}</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{stats.active_project_requests || 0}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
@@ -638,41 +637,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginLeft: 4,
   },
-  analyticsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 10,
-    marginBottom: 10,
-  },
-  analyticsCard: {
-    width: "48%",
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 12,
-  },
-  analyticsIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  analyticsValue: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: "#0a0504",
-    marginBottom: 2,
-  },
-  analyticsLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
+
   fullWidthCardRow: {
     flexDirection: "row",
     alignItems: "center",
