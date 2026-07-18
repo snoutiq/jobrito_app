@@ -305,13 +305,13 @@ export default function HomeScreen({ navigation }) {
       </ScrollView>
 
       {/* Floating Action Button */}
-      {/* <TouchableOpacity
+      <TouchableOpacity
         style={styles.fab}
-        onPress={() => Alert.alert("Create Post", "Write a new job alert or community post.")}
+        onPress={() => navigation.navigate("Post Referral Job")}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity> */}
+      </TouchableOpacity>
 
       <CallbackModal
         visible={showCallModal}
@@ -696,5 +696,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 14,
   },
-
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#153e69",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#153e69",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
 });
