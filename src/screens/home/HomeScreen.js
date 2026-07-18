@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   Alert,
   Modal,
   Clipboard,
-  Pressable,
   Share,
   ActivityIndicator,
   Linking,
@@ -38,36 +37,6 @@ export default function HomeScreen({ navigation }) {
   // Favorites, copy link states (local UI feedback overlays)
   const [favorites, setFavorites] = useState({});
   const [copiedJobId, setCopiedJobId] = useState(null);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerTitleAlign: "left",
-      headerTitle: () => (
-        <View style={styles.headerBrandContainer}>
-          <Image
-            source={require("../../assets/Jobrito icon.png")}
-            style={styles.headerIcon}
-            resizeMode="contain"
-          />
-          <Image
-            source={require("../../assets/Jobrito Wordmark with Tagline.png")}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-        </View>
-      ),
-      headerRight: () => (
-        <Pressable
-          onPress={() => navigation.navigate("Profile")}
-          hitSlop={10}
-          style={styles.menuButton}
-        >
-          <Ionicons name="menu-outline" size={24} color={colors.text} />
-        </Pressable>
-      ),
-    });
-  }, [navigation]);
 
   useEffect(() => {
     dispatch(fetchFeedJobs("all"));
@@ -146,7 +115,28 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <ScreenWrapper contentStyle={styles.content}>
+    <ScreenWrapper contentStyle={styles.content} scroll={false}>
+      {/* Custom Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Image
+            source={require("../../assets/Jobrito icon.png")}
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../assets/Jobrito Wordmark with Tagline.png")}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("Profile")}>
+          <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
+        </TouchableOpacity>
+      </View>
+
       {/* Pagination timeline bar with pin icon */}
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#153e69" style={styles.pinIcon} />
@@ -404,52 +394,39 @@ const styles = StyleSheet.create({
     gap: 0,
     flex: 1,
   },
-  headerBrandContainer: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerIcon: {
     width: 32,
     height: 32,
   },
-  headerLogo: {
+  logoContainer: {
     width: 140,
     height: 38,
-    alignSelf: "flex-start",
+    overflow: "hidden",
+    justifyContent: "center",
   },
-  brandWrap: {
+  headerLogo: {
+    width: 150,
+    height: 150,
+  },
+  headerLeft: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 0,
   },
-  brandIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#153e69",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
+  headerRight: {
+    padding: 6,
   },
-  brandIconText: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  brandText: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  menuButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f2f2f3",
-    marginRight: 4,
-  },
+
   filterBar: {
     flexDirection: "row",
     alignItems: "center",

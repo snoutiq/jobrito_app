@@ -54,10 +54,7 @@ function HomeOnlyStack() {
         name="Home"
         component={HomeScreen}
         options={{
-          headerShown: true,
-          title: t("home"),
-          headerTitleAlign: "center",
-          headerTitleStyle: { fontWeight: "800" },
+          headerShown: false,
         }}
       />
       <Stack.Screen

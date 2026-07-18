@@ -127,11 +127,13 @@ export default function ChefHomeScreen({ navigation }) {
             style={styles.headerIcon}
             resizeMode="contain"
           />
-          <Image
-            source={require("../../assets/Jobrito Wordmark with Tagline.png")}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../assets/Jobrito Wordmark with Tagline.png")}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
           <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
@@ -375,10 +377,15 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
   },
-  headerLogo: {
+  logoContainer: {
     width: 140,
     height: 38,
-    alignSelf: "flex-start",
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  headerLogo: {
+    width: 140,
+    height: 140,
   },
   headerLeft: {
     flexDirection: "row",
