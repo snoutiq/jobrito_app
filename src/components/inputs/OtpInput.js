@@ -12,8 +12,21 @@ export default function OtpInput({ value = "", onChangeText, length = 6 }) {
   };
 
   return (
-    <Pressable style={styles.wrapper} onPress={() => inputRef.current?.focus()}>
-      <View style={styles.boxRow}>
+    <View style={styles.wrapper}>
+      <TextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={handleChange}
+        keyboardType="number-pad"
+        maxLength={length}
+        autoFocus
+        style={styles.hiddenInput}
+        textContentType="oneTimeCode"
+        autoComplete="sms-otp"
+        importantForAutofill="yes"
+        caretHidden={true}
+      />
+      <View style={styles.boxRow} pointerEvents="none">
         {Array.from({ length }).map((_, index) => {
           const digit = digits[index] || "";
           const active = index === digits.length || (digits.length === length && index === length - 1);
@@ -27,35 +40,26 @@ export default function OtpInput({ value = "", onChangeText, length = 6 }) {
           );
         })}
       </View>
-
-      <TextInput
-        ref={inputRef}
-        value={value}
-        onChangeText={handleChange}
-        keyboardType="number-pad"
-        maxLength={length}
-        autoFocus
-        style={styles.hiddenInput}
-        textContentType="oneTimeCode"
-        autoComplete="sms-otp"
-        importantForAutofill="yes"
-      />
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 2,
-    paddingBottom: 2,
+    position: "relative",
+    width: "100%",
+    height: 56,
   },
   boxRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 6,
     width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   box: {
     flex: 1,
@@ -78,9 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   hiddenInput: {
-    position: "absolute",
-    opacity: 0,
-    width: 1,
-    height: 1,
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.01,
   },
 });
