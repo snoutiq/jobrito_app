@@ -19,7 +19,11 @@ import { useDispatch, useSelector } from "react-redux";
 import * as ImagePicker from "expo-image-picker";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 
-const PRIMARY = "#153e69";
+const PRIMARY = "#153e69"; // Deep navy
+const SECONDARY = "#f2f2f3"; // Snow white
+const WARM_GOLD = "#f2c879"; // Warm gold
+const EMBER_ORANGE = "#f57f20"; // Ember orange
+const NEUTRAL = "#0a0504"; // Charcoal black
 
 export default function CompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
@@ -467,7 +471,7 @@ function GenderCard({ icon, title, selected, onPress }) {
       style={[styles.genderCard, selected && styles.genderCardSelected]}
       onPress={onPress}
     >
-      <Ionicons name={icon} size={28} color={selected ? "#ffffff" : "#0F7A37"} />
+      <Ionicons name={icon} size={28} color={selected ? "#ffffff" : PRIMARY} />
       <Text style={[styles.genderText, selected && styles.genderTextSelected]}>{title}</Text>
     </TouchableOpacity>
   );
@@ -893,7 +897,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
               >
                 <View style={styles.roleCardLeft}>
                   <View style={[styles.roleIconCircle, isSelected && styles.roleIconCircleActive]}>
-                    <Ionicons name={item.icon} size={20} color={isSelected ? PRIMARY : "#0F7A37"} />
+                    <Ionicons name={item.icon} size={20} color={PRIMARY} />
                   </View>
                   <Text style={styles.roleCardTitle}>{item.title}</Text>
                 </View>
@@ -1052,7 +1056,7 @@ const styles = StyleSheet.create({
     color: "#0a0504",
   },
   skip: {
-    color: "#0F7A37",
+    color: PRIMARY,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -1066,7 +1070,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   complete: {
-    color: "#0F7A37",
+    color: PRIMARY,
     fontWeight: "700",
   },
   progressBar: {
@@ -1149,8 +1153,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   genderCardSelected: {
-    backgroundColor: "#0F7A37",
-    borderColor: "#0F7A37",
+    backgroundColor: PRIMARY,
+    borderColor: PRIMARY,
   },
   genderText: {
     marginTop: 6,
@@ -1205,7 +1209,7 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: "700",
-    color: "#0F7A37",
+    color: PRIMARY,
   },
   option: {
     borderWidth: 1,
@@ -1240,7 +1244,7 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   buttonDisabled: {
-    backgroundColor: "#93C5FD",
+    backgroundColor: "rgba(21, 62, 105, 0.3)",
     opacity: 0.7,
   },
   buttonText: {
@@ -1322,20 +1326,20 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
   },
   uploadButton: {
-    backgroundColor: "#EEF2FF",
+    backgroundColor: SECONDARY,
     borderWidth: 1.5,
-    borderColor: "#C7D2FE",
+    borderColor: "rgba(21, 62, 105, 0.18)",
   },
   uploadButtonText: {
-    color: "#153e69",
+    color: PRIMARY,
   },
   takePhotoButton: {
-    backgroundColor: "#F5F3FF",
+    backgroundColor: "rgba(242, 200, 121, 0.08)",
     borderWidth: 1.5,
-    borderColor: "#DDD6FE",
+    borderColor: "rgba(242, 200, 121, 0.25)",
   },
   takePhotoButtonText: {
-    color: "#7C3AED",
+    color: PRIMARY,
   },
   subHeadingText: {
     fontSize: 14,
@@ -1593,8 +1597,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   categoryChipActive: {
-    borderColor: PRIMARY,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    borderColor: WARM_GOLD,
+    backgroundColor: "rgba(242, 199, 121, 0.12)",
   },
   categoryChipText: {
     fontSize: 13,
@@ -1645,8 +1649,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   tagChipActive: {
-    borderColor: PRIMARY,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    borderColor: WARM_GOLD,
+    backgroundColor: "rgba(242, 199, 121, 0.12)",
   },
   tagChipText: {
     fontSize: 12,

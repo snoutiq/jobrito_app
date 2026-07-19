@@ -251,7 +251,7 @@ export default function HomeScreen({ navigation }) {
                       activeOpacity={0.7}
                     >
                       {isApplying ? (
-                        <ActivityIndicator size="small" color="#153e69" />
+                        <ActivityIndicator size="small" color="#ffffff" />
                       ) : (
                         <Text style={[styles.textActionBtnText, isApplied && styles.textActionBtnTextApplied]}>
                           {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
@@ -535,12 +535,12 @@ const styles = StyleSheet.create({
   textActionBtn: {
     flex: 1,
     height: 40,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    backgroundColor: "#153e69",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.18)",
+    borderColor: "#153e69",
   },
   textActionBtnApplied: {
     backgroundColor: "rgba(10, 5, 4, 0.15)",
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   textActionBtnText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#153e69",
+    color: "#ffffff",
   },
   textActionBtnTextApplied: {
     color: "rgba(10, 5, 4, 0.6)",

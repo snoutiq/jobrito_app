@@ -11,7 +11,9 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { Text, TextInput } from "react-native";
+import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   useFonts,
   InstrumentSans_400Regular,
@@ -81,6 +83,28 @@ export default function App() {
     InstrumentSans_700Bold,
   });
 
+  const [showModal, setShowModal] = React.useState(false);
+
+  useEffect(() => {
+    async function checkPermission() {
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        if (existingStatus === 'granted') {
+          return;
+        }
+        const prompted = await AsyncStorage.getItem("@notification_modal_prompted");
+        if (prompted === "true") {
+          return;
+        }
+        setShowModal(true);
+      } catch (err) {
+        console.warn("Error checking notification permissions:", err);
+      }
+    }
+    const timer = setTimeout(checkPermission, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     // Listen for notifications received while the app is in the foreground
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
@@ -145,9 +169,135 @@ export default function App() {
           <NavigationContainer>
             <StatusBar style="dark" />
             <RootNavigator />
+
+            <Modal
+              visible={showModal}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setShowModal(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                  <View style={styles.bellIconCircle}>
+                    <Ionicons name="notifications-outline" size={32} color="#153e69" />
+                  </View>
+                  
+                  <Text style={styles.modalTitle}>Enable Push Notifications</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Stay updated on job matches, application responses, and direct recruiter messages in real-time.
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.allowButton}
+                    activeOpacity={0.8}
+                    onPress={async () => {
+                      try {
+                        const { status } = await Notifications.requestPermissionsAsync();
+                        console.log("Notification permission status:", status);
+                      } catch (e) {
+                        console.warn(e);
+                      } finally {
+                        try {
+                          await AsyncStorage.setItem("@notification_modal_prompted", "true");
+                        } catch (err) {}
+                        setShowModal(false);
+                      }
+                    }}
+                  >
+                    <Text style={styles.allowButtonText}>Allow Notifications</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.skipButton}
+                    activeOpacity={0.7}
+                    onPress={async () => {
+                      try {
+                        await AsyncStorage.setItem("@notification_modal_prompted", "true");
+                      } catch (err) {}
+                      setShowModal(false);
+                    }}
+                  >
+                    <Text style={styles.skipButtonText}>Maybe Later</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
           </NavigationContainer>
         </Provider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(10, 5, 4, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    width: "100%",
+    maxWidth: 320,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
+  },
+  bellIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    lineHeight: 18,
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  allowButton: {
+    backgroundColor: "#153e69",
+    width: "100%",
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#153e69",
+  },
+  allowButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  skipButton: {
+    width: "100%",
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  skipButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+});

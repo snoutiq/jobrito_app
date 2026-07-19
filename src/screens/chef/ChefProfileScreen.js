@@ -470,17 +470,17 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
           <View style={styles.menuDivider} />
 
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("Settings")}
+            onPress={() => navigation.navigate("TalentSettings")}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="settings-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("settingsTitle")}</Text>
+              <Text style={styles.menuItemLabel}>{t("settingsTitle", "Settings")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 

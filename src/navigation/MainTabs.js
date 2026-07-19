@@ -14,6 +14,7 @@ import ChefConnectFiltersScreen from "../screens/chef/ChefConnectFiltersScreen";
 import ChefProfileDetailsScreen from "../screens/chef/ChefProfileDetailsScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
+import TalentSettingsScreen from "../screens/profile/TalentSettingsScreen";
 import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
@@ -137,6 +138,27 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="MyJobs"
         component={MyJobsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="TalentSettings"
+        component={TalentSettingsScreen}
         options={{
           headerShown: false,
         }}
@@ -342,6 +364,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TalentSettings"
+        component={TalentSettingsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

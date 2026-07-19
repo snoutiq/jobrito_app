@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
   pendingInfoText: {
     flex: 1,
     fontSize: 11,
-    color: "#f2c879",
+    color: "#060401",
     lineHeight: 16,
   },
   emptyContainer: {

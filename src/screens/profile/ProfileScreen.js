@@ -347,7 +347,7 @@ export default function ProfileScreen({ navigation }) {
         {/* Item: Settings */}
         <Pressable
           style={styles.menuItem}
-          onPress={() => Alert.alert(t("upcoming", "Upcoming"), t("settingsUpcomingMsg", "Settings feature is coming soon!"))}
+          onPress={() => navigation.navigate("TalentSettings")}
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconCircle}>
