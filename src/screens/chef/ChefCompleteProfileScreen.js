@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setProfileData, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { 
@@ -76,6 +76,7 @@ const commonLanguagesList = [
 export default function ChefCompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const profile = useSelector((state) => state.user.profile);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
 
@@ -96,6 +97,27 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      if (profile.full_name || profile.name) {
+        setFullName(profile.full_name || profile.name);
+      }
+      if (profile.profile_photo_path) {
+        setPhotoUri(profile.profile_photo_path);
+        setPhotoUploaded(true);
+      }
+      if (profile.professionalTitle) {
+        setProfessionalTitle(profile.professionalTitle);
+      }
+      if (profile.city) {
+        setCurrentCity(profile.city);
+      }
+      if (profile.country) {
+        setCountry(profile.country);
+      }
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (country) {
@@ -527,6 +549,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       const apiResponse = await saveChefOnboarding(formData);
 
       const profilePayload = {
+        ...profile,
         name: fullName || "Chef User",
         professionalTitle,
         city: currentCity,
@@ -547,6 +570,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         twitter: twitterLink,
         role: "chef",
         chefOnboardingCompleted: false, // Keep onboarding active to show Success step
+        profile_photo_path: photoUri || profile?.profile_photo_path,
         ...(apiResponse?.data || apiResponse || {}),
       };
 
@@ -563,6 +587,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
   const handleFinishOnboarding = async (targetTab = "Home") => {
     const profilePayload = {
+      ...profile,
       name: fullName || "Chef User",
       professionalTitle,
       city: currentCity,
@@ -583,6 +608,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       twitter: twitterLink,
       role: "chef",
       chefOnboardingCompleted: true,
+      profile_photo_path: photoUri || profile?.profile_photo_path,
     };
 
     dispatch(setProfileData(profilePayload));
