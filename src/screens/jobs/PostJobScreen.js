@@ -28,6 +28,19 @@ export default function PostJobScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
+  const activeRole = useSelector(
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole
+  );
+
+  const goToDashboard = () => {
+    const role = (activeRole || "").toLowerCase().replace(" ", "").replace("_", "");
+    if (role === "employer" || role === "chef") {
+      navigation.navigate("Tabs");
+    } else {
+      navigation.navigate("Home");
+    }
+  };
+
   const savedBusinessName = profile?.businessName || profile?.company || "";
   const savedContactName = profile?.name || profile?.full_name || profile?.contactName || "";
 
@@ -261,7 +274,10 @@ export default function PostJobScreen({ navigation, route }) {
             <View style={styles.headerRight}>
               {route?.params?.isOnboarding ? (
                 <TouchableOpacity
-                  onPress={handleExitOnboarding}
+                  onPress={() => {
+                    handleExitOnboarding();
+                    goToDashboard();
+                  }}
                   style={{ padding: 4 }}
                 >
                   <Ionicons name="close" size={28} color="#f57f20" />
@@ -803,7 +819,7 @@ export default function PostJobScreen({ navigation, route }) {
                   style={styles.saveDraftLink}
                   onPress={() => {
                     handleReset();
-                    navigation.navigate("Home");
+                    goToDashboard();
                   }}
                   activeOpacity={0.7}
                 >
@@ -864,6 +880,7 @@ export default function PostJobScreen({ navigation, route }) {
                     handleReset();
                     if (route?.params?.isOnboarding) {
                       handleExitOnboarding();
+                      goToDashboard();
                     } else {
                       navigation.popToTop();
                     }
