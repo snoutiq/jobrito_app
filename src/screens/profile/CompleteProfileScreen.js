@@ -121,16 +121,15 @@ export default function CompleteProfileScreen({ navigation }) {
 
   const handleSubmit = async () => {
     const payload = {
-      full_name: fullName, // "User Four"
-      email: email, // "alex-new@hospitality.com"
-      city: city, // "London, UK"
-      experience_range: experienceRange, // "0-2 Years"
-      preferred_role: preferredRole, // "Chef"
-      skills: skills, // "Fine Dining, Chocolate tempering"
-    //   Fields not in the cURL are removed for this example
+      full_name: fullName,
+      email: email,
+      city: city,
+      experience_range: experienceRange,
+      preferred_role: preferredRole,
+      skills: skills,
       profile_photo_path: photo,
       current_employer: currentEmployer,
-      gender,
+      gender: gender,
       job_type: jobType,
       location_preference: locationPreference,
     };

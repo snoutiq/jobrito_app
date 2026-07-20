@@ -43,7 +43,7 @@ export default function LanguageScreen({ navigation }) {
     // Smooth back navigation after language is set
     setTimeout(() => {
       navigation.goBack();
-    }, 300);
+    }, 250);
   };
 
   const languageButtons = [
@@ -61,6 +61,11 @@ export default function LanguageScreen({ navigation }) {
       key: "mr",
       label: "मराठी",
       subtitle: "मराठी मध्ये ॲप वापरा",
+    },
+    {
+      key: "ar",
+      label: "العربية",
+      subtitle: "استخدم التطبيق بالعربية",
     },
     {
       key: "ar_AE",

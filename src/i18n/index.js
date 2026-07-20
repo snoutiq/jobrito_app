@@ -28,6 +28,7 @@ const initializeI18n = async () => {
       en: { translation: en },
       hi: { translation: hi },
       mr: { translation: mr },
+      ar: { translation: ar },
       ar_AE: { translation: ar },
       ar_SA: { translation: ar },
       en_EU: { translation: en },
