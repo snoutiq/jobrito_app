@@ -21,6 +21,9 @@ import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
 import ChefProfileScreen from "../screens/chef/ChefProfileScreen";
 import AppointmentRequestsScreen from "../screens/chef/AppointmentRequestsScreen";
+import UpcomingConsultationsScreen from "../screens/chef/UpcomingConsultationsScreen";
+import CalendlyIntegrationScreen from "../screens/chef/CalendlyIntegrationScreen";
+import SocialMediaLinksScreen from "../screens/chef/SocialMediaLinksScreen";
 import RoleSwitcherScreen from "../screens/profile/RoleSwitcherScreen";
 import LanguageScreen from "../screens/profile/LanguageScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
@@ -256,6 +259,21 @@ export default function MainTabs() {
       <Stack.Screen
         name="AppointmentRequests"
         component={AppointmentRequestsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="UpcomingConsultations"
+        component={UpcomingConsultationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CalendlyIntegration"
+        component={CalendlyIntegrationScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SocialMediaLinks"
+        component={SocialMediaLinksScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

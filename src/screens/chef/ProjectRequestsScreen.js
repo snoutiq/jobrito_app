@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,53 +7,48 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-  Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import colors from "../../constants/colors";
 import { CustomAlert } from "../../components/common/CustomAlert";
+import { getChefProjectRequests, updateChefProjectStatus } from "../../services/chefApi";
 
 const PRIMARY_GREEN = "#153e69";
 
 export default function ProjectRequestsScreen({ navigation }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  
-  // Mock data for project requests from clients
-  const [projectsList, setProjectsList] = useState([
-    {
-      id: "1",
-      client_name: "Taj Mahal Palace (F&B Division)",
-      project_title: "Consultant Menu Design (Coastal Cuisines)",
-      description: "Require an expert chef to overhaul our coastal/seafood menu and train staff for a 3-week consulting project.",
-      budget: "₹2,50,000",
-      timeline: "3 Weeks",
-      status: "Pending",
-      created_at: "Today",
-    },
-    {
-      id: "2",
-      client_name: "Catering Solutions Ltd",
-      project_title: "Executive Chef for High-Profile Corporate Catering",
-      description: "Need an operational expert chef to manage a massive corporate dinner event with over 500 VIP guests.",
-      budget: "₹85,000",
-      timeline: "2 Days",
-      status: "Pending",
-      created_at: "Yesterday",
-    },
-    {
-      id: "3",
-      client_name: "Nirmal Group (Cloud Kitchen)",
-      project_title: "Kitchen Layout & Setup Consultancy",
-      description: "Looking for consultation on kitchen workflow layout, machinery selection, and recipe standardization.",
-      budget: "₹1,20,000",
-      timeline: "10 Days",
-      status: "Accepted",
-      created_at: "15 Jul 2026",
-    },
-  ]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [projectsList, setProjectsList] = useState([]);
+
+  const fetchProjectRequests = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const res = await getChefProjectRequests();
+      const list = res?.projects || res?.data || (Array.isArray(res) ? res : []);
+      setProjectsList(list);
+    } catch (err) {
+      console.warn("Failed to fetch project requests:", err.message || err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProjectRequests();
+    }, [])
+  );
 
   const handleAction = (id, actionType) => {
     const actionLabel = actionType === "Accepted" ? "Accept" : "Decline";
@@ -65,13 +60,21 @@ export default function ProjectRequestsScreen({ navigation }) {
         {
           text: actionLabel,
           style: actionType === "Accepted" ? "default" : "destructive",
-          onPress: () => {
-            setProjectsList((prev) =>
-              prev.map((item) =>
-                item.id === id ? { ...item, status: actionType } : item
-              )
-            );
-            CustomAlert.show("Success", `Project request has been ${actionType.toLowerCase()}ed.`);
+          onPress: async () => {
+            setActionLoadingId(id);
+            try {
+              await updateChefProjectStatus(id, actionType);
+              setProjectsList((prev) =>
+                prev.map((item) =>
+                  String(item.id) === String(id) ? { ...item, status: actionType } : item
+                )
+              );
+              CustomAlert.show("Success", `Project request has been ${actionType.toLowerCase()}ed.`);
+            } catch (error) {
+              CustomAlert.show("Error", error?.message || "Failed to update project request status.");
+            } finally {
+              setActionLoadingId(null);
+            }
           },
         },
       ]
@@ -79,52 +82,64 @@ export default function ProjectRequestsScreen({ navigation }) {
   };
 
   const renderProjectItem = ({ item }) => {
+    const status = String(item.status || "Pending").toLowerCase();
     let statusBg = "rgba(10, 5, 4, 0.15)";
     let statusText = "rgba(10, 5, 4, 0.6)";
+    let displayStatus = "PENDING";
     
-    if (item.status === "Pending") {
-      statusBg = "rgba(242, 200, 121, 0.12)";
-      statusText = "#f2c879";
-    } else if (item.status === "Accepted") {
-      statusBg = "rgba(21, 62, 105, 0.08)";
-      statusText = "#153e69";
-    } else if (item.status === "Declined") {
-      statusBg = "rgba(245, 127, 32, 0.08)";
+    if (status === "pending" || status === "new") {
+      statusBg = "rgba(242, 200, 121, 0.18)";
+      statusText = "#b8860b";
+      displayStatus = "PENDING";
+    } else if (status === "accepted" || status === "approved" || status === "confirmed") {
+      statusBg = "rgba(34, 197, 94, 0.12)";
+      statusText = "#15803d";
+      displayStatus = "ACCEPTED";
+    } else if (status === "declined" || status === "rejected" || status === "cancelled") {
+      statusBg = "rgba(245, 127, 32, 0.12)";
       statusText = "#f57f20";
+      displayStatus = "DECLINED";
     }
+
+    const isItemLoading = actionLoadingId === item.id;
 
     return (
       <View style={styles.projectCard}>
         <View style={styles.cardHeader}>
           <View style={styles.clientDetails}>
-            <Text style={styles.clientText}>{item.client_name}</Text>
-            <Text style={styles.titleText}>{item.project_title}</Text>
+            <Text style={styles.clientText}>{item.client_name || item.employer_name || "Recruiter / Client"}</Text>
+            <Text style={styles.titleText}>{item.project_title || item.title || "Project Consultancy"}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
             <Text style={[styles.statusText, { color: statusText }]}>
-              {item.status}
+              {displayStatus}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.descText}>{item.description}</Text>
+        {item.description ? <Text style={styles.descText}>{item.description}</Text> : null}
 
         <View style={styles.infoRow}>
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>BUDGET</Text>
-            <Text style={styles.infoValue}>{item.budget}</Text>
+            <Text style={styles.infoValue}>{item.budget || "Negotiable"}</Text>
           </View>
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>TIMELINE</Text>
-            <Text style={styles.infoValue}>{item.timeline}</Text>
+            <Text style={styles.infoValue}>{item.timeline || "Flexible"}</Text>
           </View>
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>RECEIVED</Text>
-            <Text style={styles.infoValue}>{item.created_at}</Text>
+            <Text style={styles.infoValue}>{item.created_at || "Recent"}</Text>
           </View>
         </View>
 
-        {item.status === "Pending" && (
+        {isItemLoading ? (
+          <View style={styles.loadingActionRow}>
+            <ActivityIndicator size="small" color={PRIMARY_GREEN} />
+            <Text style={styles.loadingActionText}>Updating request...</Text>
+          </View>
+        ) : (status === "pending" || status === "new") ? (
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={[styles.btn, styles.declineBtn]}
@@ -139,7 +154,7 @@ export default function ProjectRequestsScreen({ navigation }) {
               <Text style={styles.acceptBtnText}>Accept Request</Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
     );
   };
@@ -152,25 +167,39 @@ export default function ProjectRequestsScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Project Requests</Text>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity onPress={() => fetchProjectRequests(true)} style={styles.refreshButton}>
+          <Ionicons name="refresh" size={20} color="#153e69" />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={PRIMARY_GREEN} />
-        </View>
-      ) : projectsList.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Ionicons name="folder-open-outline" size={64} color="rgba(10, 5, 4, 0.15)" />
-          <Text style={styles.emptyText}>No project requests yet</Text>
+          <Text style={styles.loadingText}>Loading project requests...</Text>
         </View>
       ) : (
         <FlatList
           data={projectsList}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => item.id || String(index)}
           renderItem={renderProjectItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchProjectRequests(true)} colors={[PRIMARY_GREEN]} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconBox}>
+                <Ionicons name="folder-open-outline" size={48} color={PRIMARY_GREEN} />
+              </View>
+              <Text style={styles.emptyTitle}>No Project Requests</Text>
+              <Text style={styles.emptySubtitle}>
+                When clients or restaurants send you project consultancy requests, they will appear here.
+              </Text>
+              <TouchableOpacity style={styles.emptyRefreshBtn} onPress={() => fetchProjectRequests(true)}>
+                <Ionicons name="refresh" size={16} color="#ffffff" style={{ marginRight: 6 }} />
+                <Text style={styles.emptyRefreshBtnText}>Refresh List</Text>
+              </TouchableOpacity>
+            </View>
+          }
         />
       )}
     </SafeAreaView>
@@ -193,12 +222,25 @@ const styles = StyleSheet.create({
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
-    padding: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#f2f2f3",
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "800",
     color: "#0a0504",
+  },
+  refreshButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   centerContainer: {
     flex: 1,
@@ -206,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 32,
   },
-  emptyText: {
+  loadingText: {
     fontSize: 14,
     color: "rgba(10, 5, 4, 0.6)",
     marginTop: 12,
@@ -261,31 +303,42 @@ const styles = StyleSheet.create({
   },
   descText: {
     fontSize: 13,
-    color: "rgba(10, 5, 4, 0.6)",
+    color: "rgba(10, 5, 4, 0.65)",
     lineHeight: 18,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   infoRow: {
     flexDirection: "row",
     backgroundColor: "#f2f2f3",
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   infoCol: {
     flex: 1,
-    alignItems: "center",
   },
   infoLabel: {
-    fontSize: 9,
-    fontWeight: "800",
+    fontSize: 10,
+    fontWeight: "700",
     color: "rgba(10, 5, 4, 0.4)",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   infoValue: {
     fontSize: 12,
     fontWeight: "800",
     color: "#0a0504",
+  },
+  loadingActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    gap: 8,
+  },
+  loadingActionText: {
+    fontSize: 13,
+    color: "#153e69",
+    fontWeight: "600",
   },
   actionButtons: {
     flexDirection: "row",
@@ -293,28 +346,69 @@ const styles = StyleSheet.create({
   },
   btn: {
     flex: 1,
-    height: 40,
+    height: 42,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
   },
   declineBtn: {
-    backgroundColor: "#ffffff",
-    borderColor: "rgba(10, 5, 4, 0.15)",
-  },
-  declineBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
+    backgroundColor: "rgba(245, 127, 32, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(245, 127, 32, 0.25)",
   },
   acceptBtn: {
     backgroundColor: "#153e69",
-    borderColor: "#153e69",
+  },
+  declineBtnText: {
+    color: "#f57f20",
+    fontSize: 13,
+    fontWeight: "800",
   },
   acceptBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
     color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  emptyIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "center",
+    lineHeight: 19,
+    maxWidth: 280,
+    marginBottom: 20,
+  },
+  emptyRefreshBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: PRIMARY_GREEN,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 22,
+  },
+  emptyRefreshBtnText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });

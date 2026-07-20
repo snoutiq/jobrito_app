@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
-import { bookChefAppointment } from "../../services/chefApi";
+import { bookChefAppointment, recordChefProfileView } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#153e69";
@@ -36,6 +36,12 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const [selectedTime, setSelectedTime] = useState("");
   const [purpose, setPurpose] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (chef?.id && !isOwnProfile) {
+      recordChefProfileView(chef.id).catch(() => null);
+    }
+  }, [chef?.id, isOwnProfile]);
 
   if (!chef) {
     return (

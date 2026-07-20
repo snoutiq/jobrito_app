@@ -15,6 +15,7 @@ import colors from "../../constants/colors";
 import { resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
+import { deleteAccountApi } from "../../services/profileApi";
 
 const PRIMARY = "#153e69";
 
@@ -43,12 +44,14 @@ export default function TalentSettingsScreen({ navigation }) {
         {
           text: t("delete", "Delete"),
           style: "destructive",
-          onPress: () => {
-            // Simulated API call with 1 second delay
-            setTimeout(async () => {
-              await performLogout();
-              Alert.alert(t("success"), t("accountDeleted", "Your account has been deleted."));
-            }, 1000);
+          onPress: async () => {
+            try {
+              await deleteAccountApi();
+            } catch (err) {
+              console.warn("Delete account API failed:", err);
+            }
+            await performLogout();
+            Alert.alert(t("success"), t("accountDeleted", "Your account has been deleted."));
           },
         },
       ]

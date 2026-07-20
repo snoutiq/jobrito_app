@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
-import { getEmployerChefs, bookChefAppointment } from "../../services/chefApi";
+import { getEmployerChefs, bookChefAppointment, recordChefProfileView } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#153e69";
@@ -38,6 +38,13 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   const [bookingLoading, setBookingLoading] = useState(false);
 
   const activeFilters = route?.params?.filters || null;
+
+  const handleViewFullProfile = (chef) => {
+    if (chef?.id) {
+      recordChefProfileView(chef.id).catch(() => null);
+    }
+    navigation.navigate("ChefProfileDetails", { chef });
+  };
 
   const fetchChefs = async () => {
     setLoading(true);
@@ -429,7 +436,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                   
                   <TouchableOpacity
                     style={styles.viewProfileLink}
-                    onPress={() => navigation.navigate("ChefProfileDetails", { chef })}
+                    onPress={() => handleViewFullProfile(chef)}
                   >
                     <Text style={styles.viewProfileLinkText}>{t("viewFullProfile")}</Text>
                   </TouchableOpacity>

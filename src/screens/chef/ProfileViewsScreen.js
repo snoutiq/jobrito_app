@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
-import { getChefDashboardStats } from "../../services/chefApi";
+import { getChefDashboardStats, getChefProfileViews } from "../../services/chefApi";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -20,65 +20,26 @@ export default function ProfileViewsScreen({ navigation }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [totalViews, setTotalViews] = useState(0);
-  
-  // Mock data for recruiter profile views
-  const [viewsList, setViewsList] = useState([
-    {
-      id: "1",
-      recruiter_name: "Grand Hyatt HR Recruiter",
-      company: "Grand Hyatt Hotels",
-      location: "Mumbai, India",
-      viewed_at: "Today, 11:30 AM",
-      industry: "Hospitality & Dining",
-    },
-    {
-      id: "2",
-      recruiter_name: "F&B Director",
-      company: "Le Meridien",
-      location: "Dubai, UAE",
-      viewed_at: "Yesterday, 4:15 PM",
-      industry: "Fine Dining & Hotels",
-    },
-    {
-      id: "3",
-      recruiter_name: "Executive Chef / Owner",
-      company: "Bombay Cafe",
-      location: "New Delhi, India",
-      viewed_at: "16 Jul 2026, 2:30 PM",
-      industry: "Casual Dining Restaurants",
-    },
-    {
-      id: "4",
-      recruiter_name: "Talent Acquisition Lead",
-      company: "Jumeirah Group",
-      location: "Abu Dhabi, UAE",
-      viewed_at: "14 Jul 2026, 9:00 AM",
-      industry: "Luxury Hospitality",
-    },
-    {
-      id: "5",
-      recruiter_name: "Managing Director",
-      company: "Global Talent Referral",
-      location: "Singapore",
-      viewed_at: "12 Jul 2026, 6:45 PM",
-      industry: "Hospitality Staffing Agency",
-    },
-  ]);
+  const [viewsList, setViewsList] = useState([]);
 
   const fetchViewsData = async () => {
     setLoading(true);
     try {
-      const statsRes = await getChefDashboardStats().catch(() => null);
-      if (statsRes?.success && statsRes.stats) {
-        setTotalViews(statsRes.stats.profile_views || 24);
-      } else if (statsRes?.stats) {
-        setTotalViews(statsRes.stats.profile_views || 24);
-      } else {
-        setTotalViews(24); // default fallback mock value
+      const [statsRes, viewsRes] = await Promise.all([
+        getChefDashboardStats().catch(() => null),
+        getChefProfileViews().catch(() => null),
+      ]);
+
+      if (viewsRes?.views && Array.isArray(viewsRes.views)) {
+        setViewsList(viewsRes.views);
+        setTotalViews(viewsRes.total_views || viewsRes.views.length);
+      }
+
+      if (statsRes?.stats?.profile_views) {
+        setTotalViews(statsRes.stats.profile_views);
       }
     } catch (err) {
       console.warn("Failed to fetch views stats:", err);
-      setTotalViews(24);
     } finally {
       setLoading(false);
     }
@@ -149,10 +110,21 @@ export default function ProfileViewsScreen({ navigation }) {
 
           <FlatList
             data={viewsList}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => item.id || String(index)}
             renderItem={renderViewItem}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconBox}>
+                  <Ionicons name="eye-off-outline" size={48} color={PRIMARY_GREEN} />
+                </View>
+                <Text style={styles.emptyTitle}>No Views Yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  When recruiters and employers view your profile, their visit details will be logged here.
+                </Text>
+              </View>
+            }
           />
         </View>
       )}
@@ -305,5 +277,32 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+  },
+  emptyIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "center",
+    lineHeight: 18,
   },
 });

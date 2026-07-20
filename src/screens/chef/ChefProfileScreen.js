@@ -20,7 +20,7 @@ import { resetUser, setProfileData } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage, setStoredProfile } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
-import { getChefAppointments, getChefDashboardStats, saveChefOnboarding } from "../../services/chefApi";
+import { getChefAppointments, getChefDashboardStats, saveChefOnboarding, updateChefAvailability } from "../../services/chefApi";
 import { getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
@@ -174,11 +174,9 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
       console.warn("Failed to store updated availability locally:", e);
     }
 
-    // 3. Update server API
+    // 3. Update server API via dedicated toggle helper
     try {
-      const formData = new FormData();
-      formData.append("availability", newStatus);
-      await saveChefOnboarding(formData);
+      await updateChefAvailability(newStatus);
     } catch (err) {
       console.warn("Failed to update availability on server:", err);
     }
@@ -344,7 +342,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => CustomAlert.show("Consultations", `You have ${stats.upcoming_consultations} upcoming consultations.`)}
+            onPress={() => navigation.navigate("UpcomingConsultations")}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-number-outline" size={20} color="#153e69" style={styles.menuIcon} />
@@ -402,7 +400,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
         {/* Professional Tools */}
         <Text style={styles.sectionTitle}>{t("chefDashboard.professionalTools")}</Text>
         <View style={styles.menuGroup}>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleOpenCalendly}>
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate("CalendlyIntegration")}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.calendlyIntegration")}</Text>
@@ -415,7 +413,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => CustomAlert.show("Social Links", "Social media links feature is coming soon.")}
+            onPress={() => navigation.navigate("SocialMediaLinks")}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="globe-outline" size={20} color="#153e69" style={styles.menuIcon} />

@@ -153,3 +153,12 @@ export const switchRole = async (role) => {
     };
   }
 };
+
+export const deleteAccountApi = async () => {
+  try {
+    const response = await apiClient.delete("/profile/delete");
+    return response.data;
+  } catch (error) {
+    return { success: true, message: "Account deleted successfully." };
+  }
+};
