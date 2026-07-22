@@ -350,11 +350,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
         const fullAddress = parts.join(", ");
         setBusinessLocation(fullAddress);
-        Alert.alert("GPS Location", `Successfully fetched location:\n${fullAddress}`);
       } else {
         const coordsString = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
         setBusinessLocation(coordsString);
-        Alert.alert("GPS Location", `Successfully fetched coordinates: ${coordsString}`);
       }
     } catch (error) {
       console.error("Error fetching GPS location:", error);
@@ -442,22 +440,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       // Save locally
       await setStoredProfile(profileReduxData);
 
-      Alert.alert(
-        t("success"),
-        isEditMode ? "Profile updated successfully!" : "Profile onboarding completed successfully!",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              if (isEditMode) {
-                navigation.goBack();
-              } else {
-                navigation.navigate("Post Job", { isOnboarding: true });
-              }
-            }
-          }
-        ]
-      );
+      if (isEditMode) {
+        navigation.goBack();
+      } else {
+        navigation.navigate("Post Job", { isOnboarding: true });
+      }
     } catch (error) {
       console.error("Failed to save employer onboarding:", error);
       Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
@@ -897,7 +884,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t("talentManagerDetails", "Talent Manager Details")}</Text>
               <Text style={styles.stepSubtitle}>
-                {t("employerCompleteProfile.step4Subtitle", "Please provide the contact details for your business nominee or secondary contact person.")}
+                {t("employerCompleteProfile.step4Subtitle", "Please provide the contact details for your business manager or secondary contact person.")}
               </Text>
 
               {/* Full Name */}
@@ -985,7 +972,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 <View style={styles.secureCardContent}>
                   <Text style={styles.secureCardTitle}>{t("employerCompleteProfile.secureVerificationTitle", "Secure Verification")}</Text>
                   <Text style={styles.secureCardText}>
-                    {t("employerCompleteProfile.secureVerificationText", "We prioritize data privacy. Nominee details are only used for legal compliance and essential platform updates.")}
+                    {t("employerCompleteProfile.secureVerificationText", "We prioritize data privacy. Manager details are only used for legal compliance and essential platform updates.")}
                   </Text>
                 </View>
               </View>
@@ -1007,6 +994,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           )}
 
           {/* STEP 5: ALL SET! */}
+          {/* STEP 5: ALL SET! */}
           {step === 5 && (
             <View style={styles.stepContainer}>
               {/* Checkmark animation mock */}
@@ -1025,80 +1013,131 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Card 1: Business Card */}
               <View style={styles.summaryCard}>
+                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
+                  <Text style={styles.summarySectionHeader}>{t("companyProfile", "Company Profile")}</Text>
+                  <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
+                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
+                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
+                  </TouchableOpacity>
+                </View>
+                
                 <View style={styles.businessHeader}>
                   <View style={[styles.businessLogoContainer, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-                    <Ionicons name="business" size={24} color={PRIMARY_GREEN} />
+                    {logoUri ? (
+                      <Image source={{ uri: logoUri }} style={{ width: "100%", height: "100%", borderRadius: 10 }} />
+                    ) : (
+                      <Ionicons name="business" size={24} color={PRIMARY_GREEN} />
+                    )}
                   </View>
                   <View style={styles.businessHeaderDetails}>
                     <Text style={styles.businessNameText}>{businessName || "Verdant Stays & Resorts"}</Text>
                     <View style={styles.badgeRow}>
-                      <Ionicons name="checkmark-circle" size={14} color={PRIMARY_GREEN} />
+                      <Ionicons name="pricetag-outline" size={12} color={PRIMARY_GREEN} />
                       <Text style={styles.badgeText}>{industrySegment || "Hospitality & Leisure"}</Text>
                     </View>
                   </View>
+                </View>
+
+                {/* HQ Location & Contact Details */}
+                <View style={styles.detailList}>
+                  {businessLocation ? (
+                    <View style={styles.detailItem}>
+                      <Ionicons name="location-sharp" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
+                      <Text style={styles.detailText}>{businessLocation}</Text>
+                    </View>
+                  ) : null}
+
+                  {contactEmail ? (
+                    <View style={styles.detailItem}>
+                      <Ionicons name="mail" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
+                      <Text style={styles.detailText}>{contactEmail}</Text>
+                    </View>
+                  ) : null}
+
+                  {contactPhone ? (
+                    <View style={styles.detailItem}>
+                      <Ionicons name="call" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
+                      <Text style={styles.detailText}>{contactPhone}</Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
 
               {/* Card 2: Operational Locations */}
               <View style={styles.summaryCard}>
-                <Text style={styles.summarySectionTitle}>
-                  <Ionicons name="location-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("operationalLocations", "Operational Locations")}
-                </Text>
-                <View style={styles.locationPillsRow}>
-                  {locations.slice(0, 3).map((loc, index) => (
-                    <View key={loc.id} style={styles.locationPill}>
-                      <Text style={styles.locationPillText}>
-                        {loc.cityPostcode || (index === 0 ? "Maharashtra" : index === 1 ? "Karnataka" : "Delhi")}
-                      </Text>
-                    </View>
-                  ))}
-                  {locations.length > 3 && (
-                    <View style={[styles.locationPill, { backgroundColor: "#f2f2f3" }]}>
-                      <Text style={[styles.locationPillText, { color: "rgba(10, 5, 4, 0.6)" }]}>
-                        +{locations.length - 3} {t("others", "others")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              {/* Card 3: Contact & Language Columns */}
-              <View style={styles.twoColumnRow}>
-                {/* Contact Column */}
-                <View style={[styles.summaryCard, { flex: 1, marginRight: 8 }]}>
-                  <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("postJob.contactPerson", "Contact")}
-                  </Text>
-                  <Text style={styles.columnNameText}>{contactName || "Aryan Jain"}</Text>
-                  <Text style={styles.columnSubtitleText}>Operations Manager</Text>
+                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
+                  <Text style={styles.summarySectionHeader}>{t("operationalLocations", "Operational Locations")}</Text>
+                  <TouchableOpacity onPress={() => setStep(2)} style={styles.editButton}>
+                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
+                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
+                  </TouchableOpacity>
                 </View>
 
-                {/* Language Column */}
-                <View style={[styles.summaryCard, { flex: 1, marginLeft: 8 }]}>
-                  <Text style={styles.summarySectionTitle}>
-                    <Ionicons name="globe-outline" size={16} color="rgba(10, 5, 4, 0.6)" /> {t("language", "Language")}
-                  </Text>
-                  <Text style={styles.columnNameText}>{preferredLanguage || "English (UK)"}</Text>
-                  <Text style={styles.columnSubtitleText}>Primary Interface</Text>
-                </View>
-              </View>
-
-              {/* Card 4: Business Type Row */}
-              <View style={[styles.summaryCard, styles.rowSpaceBetween]}>
-                <View style={styles.businessTypeDetails}>
-                  <View style={[styles.businessTypeIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-                    <Ionicons name="business-outline" size={20} color={PRIMARY_GREEN} />
+                {locations.length > 0 ? (
+                  <View style={styles.operationalList}>
+                    {locations.map((loc, idx) => (
+                      <View key={loc.id} style={styles.operationalItem}>
+                        <View style={styles.operationalBadge}>
+                          <Text style={styles.operationalBadgeText}>{idx + 1}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.operationalAddressText} numberOfLines={1}>{loc.address}</Text>
+                          <Text style={styles.operationalCityText}>{loc.cityPostcode}</Text>
+                        </View>
+                      </View>
+                    ))}
                   </View>
-                  <View>
-                    <Text style={styles.columnSubtitleText}>{t("employerCompleteProfile.businessType", "Business Type")}</Text>
-                    <Text style={styles.businessTypeText}>{industrySegment || "Luxury Hotel Chain"}</Text>
+                ) : (
+                  <Text style={styles.emptyText}>No branches added</Text>
+                )}
+              </View>
+
+              {/* Card 3: Contact Representative */}
+              <View style={styles.summaryCard}>
+                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
+                  <Text style={styles.summarySectionHeader}>{t("contactRepresentative", "Contact Representative")}</Text>
+                  <TouchableOpacity onPress={() => setStep(3)} style={styles.editButton}>
+                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
+                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.twoColumnRow}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.columnLabelText}>{t("postJob.contactPerson", "Name")}</Text>
+                    <Text style={styles.columnValueText}>{contactName || "Aryan Jain"}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.columnLabelText}>{t("preferredLanguage", "Preferred Language")}</Text>
+                    <Text style={styles.columnValueText}>{preferredLanguage || "English (UK)"}</Text>
                   </View>
                 </View>
-                <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
-                  <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
-                  <Ionicons name="pencil" size={14} color={PRIMARY_GREEN} />
-                </TouchableOpacity>
               </View>
+
+              {/* Card 4: Nominee Manager Details */}
+              {managerName ? (
+                <View style={styles.summaryCard}>
+                  <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
+                    <Text style={styles.summarySectionHeader}>{t("managerDetails", "Manager Details")}</Text>
+                    <TouchableOpacity onPress={() => setStep(4)} style={styles.editButton}>
+                      <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
+                      <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.twoColumnRow}>
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <Text style={styles.columnLabelText}>Manager Name</Text>
+                      <Text style={styles.columnValueText}>{managerName}</Text>
+                      <Text style={styles.columnSubtitleText}>{managerRelationship || "Supervisor"}</Text>
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      <Text style={styles.columnLabelText}>Mobile Number</Text>
+                      <Text style={styles.columnValueText}>{managerPhone || "N/A"}</Text>
+                    </View>
+                  </View>
+                </View>
+              ) : null}
 
               {/* Start Posting Jobs Button */}
               <TouchableOpacity
@@ -1528,19 +1567,19 @@ const styles = StyleSheet.create({
   },
   successIconWrapper: {
     alignItems: "center",
-    marginVertical: 20,
+    marginVertical: 12,
   },
   successIconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   successIconInnerCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1549,8 +1588,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    padding: 10,
+    marginBottom: 8,
   },
   businessHeader: {
     flexDirection: "row",
@@ -1610,7 +1649,7 @@ const styles = StyleSheet.create({
   },
   twoColumnRow: {
     flexDirection: "row",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   columnNameText: {
     fontSize: 14,
@@ -1650,6 +1689,194 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: PRIMARY_GREEN,
+  },
+  summarySectionHeader: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  detailList: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(10, 5, 4, 0.08)",
+    paddingTop: 8,
+    gap: 6,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  detailIcon: {
+    marginRight: 4,
+  },
+  detailText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.7)",
+    fontWeight: "500",
+  },
+  operationalList: {
+    gap: 8,
+  },
+  operationalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#f2f2f3",
+    padding: 6,
+    borderRadius: 10,
+  },
+  operationalBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  operationalBadgeText: {
+    fontSize: 11,
+    color: "#ffffff",
+    fontWeight: "800",
+  },
+  operationalAddressText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0a0504",
+  },
+  operationalCityText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.5)",
+  },
+  columnLabelText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.5)",
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  columnValueText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  emptyText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.4)",
+    fontStyle: "italic",
+  },
+  stepContainerCompact: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  successHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  successTitleText: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: PRIMARY_GREEN,
+  },
+  successSubtitleText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  dashboardGrid: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 10,
+  },
+  gridCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    padding: 10,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(10, 5, 4, 0.06)",
+    paddingBottom: 4,
+    marginBottom: 6,
+  },
+  gridCardTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  miniEditBtn: {
+    padding: 2,
+  },
+  miniBrandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  miniLogoWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: "rgba(21, 62, 105, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  miniBrandName: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  miniBrandSegment: {
+    fontSize: 10,
+    color: PRIMARY_GREEN,
+    fontWeight: "600",
+  },
+  miniText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+    marginTop: 2,
+  },
+  miniLocList: {
+    gap: 2,
+  },
+  miniLocItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  miniLocText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.7)",
+    fontWeight: "500",
+  },
+  miniLocMore: {
+    fontSize: 10,
+    color: PRIMARY_GREEN,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  emptyMiniText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.4)",
+    fontStyle: "italic",
+  },
+  miniLabel: {
+    fontSize: 9,
+    color: "rgba(10, 5, 4, 0.5)",
+    textTransform: "uppercase",
+    fontWeight: "600",
+  },
+  miniValue: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0a0504",
   },
 });
 
