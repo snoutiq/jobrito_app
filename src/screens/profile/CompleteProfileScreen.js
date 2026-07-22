@@ -250,8 +250,6 @@ export default function CompleteProfileScreen({ navigation }) {
             t={t}
             fullName={fullName}
             setFullName={setFullName}
-            email={email}
-            setEmail={setEmail}
             gender={gender}
             setGender={setGender}
           />
@@ -398,7 +396,7 @@ function PhotoStep({ next, t, photo, setPhoto }) {
   );
 }
 
-function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender, setGender }) {
+function PersonalStep({ next, t, fullName, setFullName, gender, setGender }) {
   return (
     <View style={styles.content}>
       <Text style={styles.label}>{t("fullName")}</Text>
@@ -407,19 +405,6 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
         placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={fullName}
         onChangeText={setFullName}
-        style={styles.input}
-      />
-
-      <Text style={[styles.label, { marginTop: 24 }]}>
-        Email Address
-      </Text>
-      <TextInput
-        placeholder="Enter your email address"
-        placeholderTextColor="rgba(10, 5, 4, 0.4)"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
         style={styles.input}
       />
 
@@ -449,10 +434,10 @@ function PersonalStep({ next, t, fullName, setFullName, email, setEmail, gender,
       </View>
 
       <TouchableOpacity
-        style={[styles.button, (!fullName || !email) && styles.buttonDisabled]}
+        style={[styles.button, !fullName && styles.buttonDisabled]}
         onPress={() => {
-          if (!fullName || !email) {
-            Alert.alert("Required Fields", "Please enter your full name and email address.");
+          if (!fullName) {
+            Alert.alert("Required Fields", "Please enter your full name.");
             return;
           }
           next();
@@ -491,10 +476,6 @@ function ExperienceStep({
     "Full Time",
     "Part Time",
     "Freelance Chef",
-    "Consultant",
-    "Project Based",
-    "Temporary Assignment",
-    "Overseas Ready"
   ];
   const [showPicker, setShowPicker] = useState(false);
 

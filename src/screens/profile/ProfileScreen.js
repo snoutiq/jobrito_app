@@ -335,7 +335,7 @@ export default function ProfileScreen({ navigation }) {
               <Ionicons name="globe-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <View style={styles.menuTextGroup}>
-              <Text style={styles.menuItemLabel}>{t("profile.menu.language", "Language")}</Text>
+              <Text style={[styles.menuItemLabel, { marginLeft: 0 }]}>{t("profile.menu.language", "Language")}</Text>
               <Text style={styles.menuItemSublabel}>{getLanguageLabel()}</Text>
             </View>
           </View>
@@ -353,9 +353,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.iconCircle}>
               <Ionicons name="settings-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
             </View>
-            <View style={styles.menuTextGroup}>
-              <Text style={styles.menuItemLabel}>{t("profile.menu.settings", "Settings")}</Text>
-            </View>
+            <Text style={styles.menuItemLabel}>{t("profile.menu.settings", "Settings")}</Text>
           </View>
           <View style={styles.menuItemRight}>
             <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
