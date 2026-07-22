@@ -373,20 +373,7 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Image Card Overlay Illustration */}
-              <View style={styles.imageCard}>
-                <Image
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&auto=format&fit=crop",
-                  }}
-                  style={styles.imageCardBackground}
-                />
-                <View style={styles.imageCardOverlay} />
-                <View style={styles.imageCardContent}>
-                  <Text style={styles.imageCardStepLabel}>{t("step", { current: 1, total: 3 })}</Text>
-                  <Text style={styles.imageCardTitleLabel}>{t("postJob.identityTrust")}</Text>
-                </View>
-              </View>
+
 
               {/* Floating Help Button */}
               {/* <TouchableOpacity

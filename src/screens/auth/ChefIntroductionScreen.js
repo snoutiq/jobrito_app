@@ -4,9 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
-
-const chefCookingImage =
-  "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=600&auto=format&fit=crop";
+import chefImage from "../../assets/chef.png";
 
 export default function ChefIntroductionScreen({ navigation }) {
   const { t } = useTranslation();
@@ -35,8 +33,8 @@ export default function ChefIntroductionScreen({ navigation }) {
     {
       key: "networking",
       icon: "people-outline",
-      iconColor: "#0a0504",
-      bgColor: "#f2f2f3",
+      iconColor: "#153e69",
+      bgColor: "rgba(21, 62, 105, 0.08)",
       title: t("chefIntro.networkingTitle"),
       desc: t("chefIntro.networkingDesc"),
     },
@@ -59,7 +57,7 @@ export default function ChefIntroductionScreen({ navigation }) {
       {/* Premium Header Image Card */}
       <View style={styles.imageCardContainer}>
         <ImageBackground
-          source={{ uri: chefCookingImage }}
+          source={chefImage}
           style={styles.headerImage}
           resizeMode="cover"
         >
