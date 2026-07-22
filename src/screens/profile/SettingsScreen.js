@@ -7,6 +7,9 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  Pressable,
+  BackHandler,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +28,22 @@ export default function SettingsScreen({ navigation }) {
   const { profile } = useSelector((state) => state.user);
   const activeRole = useSelector((state) => state.auth.user?.active_role ?? state.user?.activeRole);
   const isEmployer = activeRole === "employer";
+  
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      navigation.goBack();
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const businessName =
     profile?.business_name ||
@@ -62,29 +81,17 @@ export default function SettingsScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const handleLogout = () => {
-    Alert.alert(
-      t("logOut"),
-      t("logoutConfirm"),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("logOut"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { logout: logoutApi } = require("../../services/authApi");
-              await logoutApi();
-            } catch (e) {
-              // ignore network logout errors
-            }
-            await clearAuthStorage();
-            dispatch(logout());
-            dispatch(resetUser());
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    setShowLogoutModal(false);
+    try {
+      const { logout: logoutApi } = require("../../services/authApi");
+      await logoutApi();
+    } catch (e) {
+      // ignore network logout errors
+    }
+    await clearAuthStorage();
+    dispatch(logout());
+    dispatch(resetUser());
   };
 
   const accountRows = [
@@ -214,7 +221,7 @@ export default function SettingsScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
+          <TouchableOpacity style={styles.logoutRow} onPress={() => setShowLogoutModal(true)}>
             <View style={styles.menuLeft}>
               <Ionicons name="log-out-outline" size={18} color="#f57f20" />
               <Text style={styles.logoutText}>{t("logout", "Logout")}</Text>
@@ -223,6 +230,43 @@ export default function SettingsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowLogoutModal(false)}
+          />
+          <View style={styles.modalCard}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="log-out-outline" size={22} color={colors.danger} />
+            </View>
+            <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle", "Logout")}</Text>
+            <Text style={styles.modalText}>{t("profile.logoutConfirm", "Are you sure you want to logout?")}</Text>
+
+            <View style={styles.modalActions}>
+              <Pressable
+                onPress={() => setShowLogoutModal(false)}
+                style={[styles.modalButton, styles.modalCancelButton]}
+              >
+                <Text style={styles.modalCancelText}>{t("cancel", "Cancel")}</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleLogout}
+                style={[styles.modalButton, styles.modalConfirmButton]}
+              >
+                <Text style={styles.modalConfirmText}>{t("logout", "Logout")}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -411,6 +455,80 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#f57f20",
     fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: "#ffffff",
+    borderRadius: 22,
+    padding: 20,
+    alignItems: "center",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  modalIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  modalTitle: {
+    color: "#0a0504",
+    fontSize: 18,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  modalText: {
+    color: "rgba(10, 5, 4, 0.6)",
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginTop: 6,
+  },
+  modalButton: {
+    flex: 1,
+    minHeight: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalConfirmButton: {
+    backgroundColor: colors.danger,
+  },
+  modalCancelText: {
+    color: "#0a0504",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  modalConfirmText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "800",
   },
 });
 
