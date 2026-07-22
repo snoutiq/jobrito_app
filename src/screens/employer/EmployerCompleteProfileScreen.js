@@ -75,7 +75,13 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const [businessName, setBusinessName] = useState(profile?.business_name || profile?.businessName || profile?.company || "");
   const [industrySegment, setIndustrySegment] = useState(profile?.industry_segment || profile?.segment || "");
   const [businessLocation, setBusinessLocation] = useState(profile?.business_location || profile?.location || "");
-  const [contactName, setContactName] = useState(profile?.contact_person_name || profile?.contactName || profile?.name || profile?.full_name || "");
+  const getInitialContactName = () => {
+    const nameVal = profile?.contact_person_name || profile?.contactName || profile?.name || profile?.full_name || "";
+    const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(nameVal);
+    return isPhoneLike ? "" : nameVal;
+  };
+
+  const [contactName, setContactName] = useState(getInitialContactName());
   const [contactPhone, setContactPhone] = useState(profile?.business_mobile || profile?.contactPhone || profile?.phone || profile?.mobile_number || "");
   const [contactEmail, setContactEmail] = useState(profile?.business_email || profile?.contactEmail || profile?.email || "");
   const [preferredLanguage, setPreferredLanguage] = useState(profile?.preferred_language || profile?.preferredLanguage || "English (UK)");

@@ -101,7 +101,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   useEffect(() => {
     if (profile) {
       if (profile.full_name || profile.name) {
-        setFullName(profile.full_name || profile.name);
+        const profileName = profile.full_name || profile.name || "";
+        const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(profileName);
+        if (!isPhoneLike) {
+          setFullName(profileName);
+        }
       }
       if (profile.profile_photo_path) {
         setPhotoUri(profile.profile_photo_path);
@@ -115,6 +119,33 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       }
       if (profile.country) {
         setCountry(profile.country);
+      }
+      if (profile.calendly_link || profile.calendlyLink) {
+        setCalendlyLink(profile.calendly_link || profile.calendlyLink);
+      } else {
+        setCalendlyLink("https://calendly.com/");
+      }
+      if (profile.linkedin) {
+        setLinkedinLink(profile.linkedin);
+        setLinkedinConnected(true);
+      }
+      if (profile.instagram) {
+        setInstagramLink(profile.instagram);
+        setInstagramConnected(true);
+      }
+      if (profile.facebook) {
+        setFacebookLink(profile.facebook);
+        setFacebookConnected(true);
+      }
+      if (profile.twitter) {
+        setTwitterLink(profile.twitter);
+        setMoreConnected(true);
+        setCustomSocialLinks(prev => {
+          if (!prev.some(item => item.platform.toLowerCase() === "twitter")) {
+            return [...prev, { id: "twitter-init", platform: "Twitter", link: profile.twitter }];
+          }
+          return prev;
+        });
       }
     }
   }, [profile]);
@@ -198,7 +229,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const availabilityOptions = ["Available Immediately", "1 Month Notice", "2 Months Notice", "Currently Employed"];
 
   // --- Step 4 State ---
-  const [calendlyLink, setCalendlyLink] = useState("");
+  const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
 
   const handleCreateCalendlyAccount = () => {
     Linking.openURL("https://calendly.com/signup").catch((err) => {
@@ -243,6 +274,9 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [socialModalVisible, setSocialModalVisible] = useState(false);
   const [editingPlatform, setEditingPlatform] = useState("");
   const [tempLink, setTempLink] = useState("");
+
+  const [customSocialLinks, setCustomSocialLinks] = useState([]);
+  const [customPlatformName, setCustomPlatformName] = useState("");
 
   const handleUploadPhoto = async () => {
     try {
@@ -423,10 +457,21 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     if (step === 4) {
       if (calendlyLink && calendlyLink.trim()) {
         let cleaned = calendlyLink.trim().replace(/\s+/g, "");
-        if (!/^https?:\/\//i.test(cleaned)) {
-          cleaned = "https://" + cleaned;
+        if (
+          cleaned === "https://calendly.com/" ||
+          cleaned === "https://calendly.com" ||
+          cleaned === "http://calendly.com/" ||
+          cleaned === "http://calendly.com" ||
+          cleaned === "calendly.com/" ||
+          cleaned === "calendly.com"
+        ) {
+          setCalendlyLink("");
+        } else {
+          if (!/^https?:\/\//i.test(cleaned)) {
+            cleaned = "https://" + cleaned;
+          }
+          setCalendlyLink(cleaned);
         }
-        setCalendlyLink(cleaned);
       }
     }
 
@@ -486,7 +531,16 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       formData.append("bio", bio);
 
       let formattedCalendly = (calendlyLink || "").trim().replace(/\s+/g, "");
-      if (formattedCalendly && !/^https?:\/\//i.test(formattedCalendly)) {
+      if (
+        formattedCalendly === "https://calendly.com/" ||
+        formattedCalendly === "https://calendly.com" ||
+        formattedCalendly === "http://calendly.com/" ||
+        formattedCalendly === "http://calendly.com" ||
+        formattedCalendly === "calendly.com/" ||
+        formattedCalendly === "calendly.com"
+      ) {
+        formattedCalendly = "";
+      } else if (formattedCalendly && !/^https?:\/\//i.test(formattedCalendly)) {
         formattedCalendly = "https://" + formattedCalendly;
       }
       setCalendlyLink(formattedCalendly);
@@ -647,13 +701,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
           <Text style={[styles.headerTitle, step >= 6 && { color: "#153e69" }]}>
             {step === 7 ? "Jobrito" : "Professional Profile"}
           </Text>
-          {step < 7 ? (
-            <TouchableOpacity style={styles.headerIconBtn} onPress={() => Alert.alert("Help", "Fill in your chef professional credentials to sync your profile with top employers.")}>
-              <Ionicons name="help-circle-outline" size={24} color="rgba(10, 5, 4, 0.6)" />
-            </TouchableOpacity>
-          ) : (
-            <View style={{ width: 32 }} />
-          )}
+          <View style={{ width: 32 }} />
         </View>
 
         {/* Progress Tracker (only for steps 1 to 6) */}
@@ -684,12 +732,16 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   activeOpacity={0.8}
                   onPress={selectPhotoSource}
                 >
-                  <Image
-                    source={{
-                      uri: photoUri || "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
-                    }}
-                    style={styles.avatarImage}
-                  />
+                  {photoUri ? (
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.avatarImage}
+                    />
+                  ) : (
+                    <View style={styles.avatarPlaceholder}>
+                      <Ionicons name="person" size={48} color="#153e69" style={{ opacity: 0.6 }} />
+                    </View>
+                  )}
                   <View style={styles.avatarOverlay}>
                     <Ionicons name="camera" size={20} color="#fff" />
                     <Text style={styles.avatarOverlayText}>Add Photo</Text>
@@ -1334,33 +1386,23 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   </Text>
 
                   {/* Calendly Helper Actions */}
-                  <View style={styles.helperActionsRow}>
-                    <TouchableOpacity
-                      style={styles.helperActionButton}
-                      onPress={handleCreateCalendlyAccount}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="open-outline" size={16} color="#153e69" />
-                      <Text style={[styles.helperActionText, { color: "#153e69" }]}>Create Account</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.helperActionButton}
-                      onPress={handleCopyCalendlySignupLink}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="copy-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={[styles.helperActionText, { color: "rgba(10, 5, 4, 0.6)" }]}>Copy Link</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.helperActionButton}
-                      onPress={handlePasteCalendlyLink}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="clipboard-outline" size={16} color="#153e69" />
-                      <Text style={[styles.helperActionText, { color: "#153e69" }]}>Paste Link</Text>
-                    </TouchableOpacity>
+                  <View style={styles.calendlyPromptRow}>
+                    <Text style={styles.calendlyPromptText}>
+                      Don't have an account?{" "}
+                      <Text
+                        style={styles.calendlyLinkText}
+                        onPress={() => Linking.openURL("https://calendly.com/signup")}
+                      >
+                        Create Account
+                      </Text>
+                      {" "}or{" "}
+                      <Text
+                        style={styles.calendlyLinkText}
+                        onPress={() => Linking.openURL("https://calendly.com/login")}
+                      >
+                        Login
+                      </Text>
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -1371,7 +1413,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.whyConnectTitle}>Why connect?</Text>
                   <Text style={styles.whyConnectText}>
-                    Candidates with connected calendars receive 4x more interview requests. It's the fastest way to land your next shift.
+                    Chef with connected calendars receive 4x more interview requests. It's the fastest way to land your next shift.
                   </Text>
                 </View>
               </View>
@@ -1520,40 +1562,73 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 </TouchableOpacity>
 
                 <View style={styles.socialRowDivider} />
+                {/* Dynamically Rendered Custom Links */}
+                {customSocialLinks.map((item) => (
+                  <View key={item.id}>
+                    <View style={styles.socialRowDivider} />
+                    <View style={styles.socialRow}>
+                      <TouchableOpacity
+                        style={[styles.socialRowLeft, { flex: 1 }]}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setEditingPlatform(item.platform);
+                          setTempLink(item.link);
+                          setSocialModalVisible(true);
+                        }}
+                      >
+                        <View style={[styles.socialIconBox, { backgroundColor: PRIMARY_GREEN }]}>
+                          <Ionicons 
+                            name={item.platform.toLowerCase() === "twitter" ? "logo-twitter" : "link-outline"} 
+                            size={20} 
+                            color="#fff" 
+                          />
+                        </View>
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                          <Text style={styles.socialPlatformTitle}>{item.platform}</Text>
+                          <Text style={styles.socialPlatformSubtitle} numberOfLines={1}>{item.link}</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <View style={styles.socialRowRight}>
+                        <TouchableOpacity
+                          style={{ padding: 6 }}
+                          onPress={() => {
+                            setCustomSocialLinks(prev => prev.filter(l => l.id !== item.id));
+                            if (item.platform.toLowerCase() === "twitter") {
+                              setTwitterLink("");
+                              setMoreConnected(false);
+                            }
+                          }}
+                        >
+                          <Ionicons name="trash-outline" size={18} color="rgba(10, 5, 4, 0.4)" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
 
-                {/* Add More (Twitter) */}
+                <View style={styles.socialRowDivider} />
+
+                {/* Add More button */}
                 <TouchableOpacity
                   style={styles.socialRow}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setEditingPlatform("Twitter");
-                    setTempLink(twitterLink);
+                    setEditingPlatform("Add More");
+                    setCustomPlatformName("");
+                    setTempLink("");
                     setSocialModalVisible(true);
                   }}
                 >
                   <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "rgba(10, 5, 4, 0.6)" }]}>
-                      <Ionicons name="add-outline" size={20} color="#fff" />
+                    <View style={[styles.socialIconBox, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
+                      <Ionicons name="add-outline" size={20} color={PRIMARY_GREEN} />
                     </View>
                     <View style={{ marginLeft: 12 }}>
                       <Text style={styles.socialPlatformTitle}>Add More</Text>
-                      <Text style={styles.socialPlatformSubtitle}>Community Badges</Text>
+                      <Text style={styles.socialPlatformSubtitle}>Website, Portfolio or other links</Text>
                     </View>
                   </View>
                   <View style={styles.socialRowRight}>
-                    <View style={[
-                      styles.socialStatusBadge,
-                      twitterLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
-                    ]}>
-                      {twitterLink ? (
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
-                      )}
-                    </View>
                     <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
                   </View>
                 </TouchableOpacity>
@@ -1582,21 +1657,24 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               {/* Profile Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewProfileSection}>
-                  <Image
-                    source={{
-                      uri: photoUri || "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&auto=format&fit=crop&q=60"
-                    }}
-                    style={styles.reviewAvatar}
-                  />
+                  {photoUri ? (
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.reviewAvatar}
+                    />
+                  ) : (
+                    <View style={[styles.reviewAvatar, styles.reviewAvatarPlaceholder]}>
+                      <Ionicons name="person" size={28} color="#153e69" style={{ opacity: 0.6 }} />
+                    </View>
+                  )}
                   <View style={styles.reviewInfo}>
                     <Text style={styles.reviewName}>{fullName || "Marcus V."}</Text>
-                    <Text style={styles.reviewEmail}>
-                      {fullName ? `${fullName.toLowerCase().replace(/\s+/g, ".")}@chefconnect.com` : "marcus.sterling@chefconnect.com"}
-                    </Text>
-                    <View style={styles.reviewBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#153e69" />
-                      <Text style={styles.reviewBadgeText}>{t("chefOnboarding.identityVerified")}</Text>
-                    </View>
+                    {currentCity ? (
+                      <View style={styles.reviewLocationRow}>
+                        <Ionicons name="location-sharp" size={13} color="rgba(10, 5, 4, 0.5)" />
+                        <Text style={styles.reviewLocationText}>{currentCity}, {country}</Text>
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               </View>
@@ -1676,6 +1754,92 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 </View>
               </View>
 
+              {/* Employment & Availability Card */}
+              <View style={styles.reviewCard}>
+                <View style={styles.reviewSecTitleRow}>
+                  <Ionicons name="briefcase" size={18} color="#153e69" />
+                  <Text style={styles.reviewSecTitle}>Employment & Availability</Text>
+                </View>
+                {employmentPreference.length > 0 && (
+                  <View style={[styles.reviewPillContainer, { marginBottom: 6 }]}>
+                    {employmentPreference.map((ep) => (
+                      <View key={ep} style={styles.reviewPill}>
+                        <Text style={styles.reviewPillText}>{ep}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {availability ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                    <Text style={{ fontSize: 13, fontWeight: "600", color: "rgba(10, 5, 4, 0.5)" }}>Availability: </Text>
+                    <Text style={{ fontSize: 13, fontWeight: "800", color: "#0a0504" }}>{availability}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Location Preference Card */}
+              {locationPreference ? (
+                <View style={styles.reviewCard}>
+                  <View style={styles.reviewSecTitleRow}>
+                    <Ionicons name="pin" size={18} color="#153e69" />
+                    <Text style={styles.reviewSecTitle}>Location Preference</Text>
+                  </View>
+                  <Text style={styles.reviewSecBioText}>{locationPreference}</Text>
+                </View>
+              ) : null}
+
+              {/* Calendly & Social Links Card */}
+              {(calendlyLink || linkedinLink || instagramLink || facebookLink || customSocialLinks.length > 0) ? (
+                <View style={styles.reviewCard}>
+                  <View style={styles.reviewSecTitleRow}>
+                    <Ionicons name="link-sharp" size={18} color="#153e69" />
+                    <Text style={styles.reviewSecTitle}>Booking & Social Profiles</Text>
+                  </View>
+                  
+                  {calendlyLink ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+                      <Ionicons name="calendar-outline" size={16} color="#153e69" style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{calendlyLink}</Text>
+                    </View>
+                  ) : null}
+
+                  {linkedinLink ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                      <Ionicons name="logo-linkedin" size={16} color="#0077B5" style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{linkedinLink}</Text>
+                    </View>
+                  ) : null}
+
+                  {instagramLink ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                      <Ionicons name="logo-instagram" size={16} color="#E1306C" style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{instagramLink}</Text>
+                    </View>
+                  ) : null}
+
+                  {facebookLink ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                      <Ionicons name="logo-facebook" size={16} color="#1877F2" style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{facebookLink}</Text>
+                    </View>
+                  ) : null}
+
+                  {customSocialLinks.map((item) => (
+                    <View key={item.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                      <Ionicons 
+                        name={item.platform.toLowerCase() === "twitter" ? "logo-twitter" : "link-outline"} 
+                        size={16} 
+                        color={item.platform.toLowerCase() === "twitter" ? "#1DA1F2" : "#153e69"} 
+                        style={{ marginRight: 8 }} 
+                      />
+                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>
+                        <Text style={{ fontWeight: "700" }}>{item.platform}:</Text> {item.link}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
               {/* Complete Profile Button */}
               <TouchableOpacity
                 style={[styles.continueButton, { backgroundColor: "#153e69" }, submitting && styles.continueButtonDisabled]}
@@ -1754,16 +1918,36 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       >
         <View style={styles.socialModalOverlay}>
           <View style={styles.socialModalCard}>
-            <Text style={styles.socialModalTitle}>Connect {editingPlatform}</Text>
+            <Text style={styles.socialModalTitle}>
+              {editingPlatform === "Add More" ? "Add Custom Link" : `Connect ${editingPlatform}`}
+            </Text>
             
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>{editingPlatform} Link/Handle</Text>
+            {editingPlatform === "Add More" && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Platform Name</Text>
+                <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+                  <Ionicons name="pricetag-outline" size={18} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                  <TextInput
+                    value={customPlatformName}
+                    onChangeText={setCustomPlatformName}
+                    placeholder="e.g. Twitter, GitHub, Website"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                    style={styles.textInput}
+                  />
+                </View>
+              </View>
+            )}
+
+            <View style={[styles.inputGroup, editingPlatform === "Add More" && { marginTop: 12 }]}>
+              <Text style={styles.inputLabel}>
+                {editingPlatform === "Add More" ? "Link / Handle" : `${editingPlatform} Link/Handle`}
+              </Text>
               <View style={[styles.inputWrapper, { minHeight: 46 }]}>
                 <Ionicons name="link-outline" size={18} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                 <TextInput
                   value={tempLink}
                   onChangeText={setTempLink}
-                  placeholder={`Enter your ${editingPlatform} URL`}
+                  placeholder={editingPlatform === "Add More" ? "https://..." : `Enter your ${editingPlatform} URL`}
                   placeholderTextColor="rgba(10, 5, 4, 0.4)"
                   autoCapitalize="none"
                   style={styles.textInput}
@@ -1782,18 +1966,49 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 style={[styles.socialModalButton, styles.socialModalSave]}
                 onPress={() => {
                   const val = tempLink.trim();
-                  if (editingPlatform === "LinkedIn") {
-                    setLinkedinLink(val);
-                    setLinkedinConnected(!!val);
-                  } else if (editingPlatform === "Instagram") {
-                    setInstagramLink(val);
-                    setInstagramConnected(!!val);
-                  } else if (editingPlatform === "Facebook") {
-                    setFacebookLink(val);
-                    setFacebookConnected(!!val);
-                  } else if (editingPlatform === "Twitter") {
-                    setTwitterLink(val);
-                    setMoreConnected(!!val);
+                  if (editingPlatform === "Add More") {
+                    const plat = customPlatformName.trim();
+                    if (!plat || !val) {
+                      Alert.alert("Error", "Please fill in both platform name and link.");
+                      return;
+                    }
+                    const newLink = {
+                      id: Date.now().toString(),
+                      platform: plat,
+                      link: val
+                    };
+                    setCustomSocialLinks(prev => [...prev, newLink]);
+                    if (plat.toLowerCase() === "twitter") {
+                      setTwitterLink(val);
+                      setMoreConnected(true);
+                    }
+                    setCustomPlatformName("");
+                    setTempLink("");
+                  } else {
+                    const isCustom = customSocialLinks.some(item => item.platform === editingPlatform);
+                    if (isCustom) {
+                      setCustomSocialLinks(prev => prev.map(item => {
+                        if (item.platform === editingPlatform) {
+                          return { ...item, link: val };
+                        }
+                        return item;
+                      }));
+                      if (editingPlatform.toLowerCase() === "twitter") {
+                        setTwitterLink(val);
+                        setMoreConnected(!!val);
+                      }
+                    } else {
+                      if (editingPlatform === "LinkedIn") {
+                        setLinkedinLink(val);
+                        setLinkedinConnected(!!val);
+                      } else if (editingPlatform === "Instagram") {
+                        setInstagramLink(val);
+                        setInstagramConnected(!!val);
+                      } else if (editingPlatform === "Facebook") {
+                        setFacebookLink(val);
+                        setFacebookConnected(!!val);
+                      }
+                    }
                   }
                   setSocialModalVisible(false);
                 }}
@@ -1890,6 +2105,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 55,
+  },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 55,
+    backgroundColor: "#e2e8f3",
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarOverlay: {
     position: "absolute",
@@ -2197,6 +2420,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     marginRight: 14,
+  },
+  reviewAvatarPlaceholder: {
+    backgroundColor: "#e2e8f3",
+    alignItems: "center",
+    justifyContent: "center",
   },
   reviewInfo: {
     flex: 1,
@@ -2671,5 +2899,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     marginLeft: 6,
+  },
+  calendlyPromptRow: {
+    marginTop: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  calendlyPromptText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  calendlyLinkText: {
+    color: "#153e69",
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+  reviewLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 4,
+  },
+  reviewLocationText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "600",
   },
 });

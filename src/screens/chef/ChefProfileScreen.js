@@ -318,46 +318,6 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
           <View style={styles.menuDivider} />
 
-          {/* Appointment Requests */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("AppointmentRequests")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.appointmentRequests")}</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{stats.appointment_requests || appointmentCount}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          {/* Upcoming Consultations */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("UpcomingConsultations")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-number-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.upcomingConsultations")}</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{stats.upcoming_consultations}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
           {/* Profile Views */}
           <TouchableOpacity
             style={styles.menuItem}
@@ -371,26 +331,6 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.profile_views}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          {/* Active Project Requests */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("ProjectRequests")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="folder-open-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.activeProjectRequests", "Active Project Requests")}</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{stats.active_project_requests || 0}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
             </View>
