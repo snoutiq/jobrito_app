@@ -119,11 +119,6 @@ export default function HomeScreen({ navigation }) {
       {/* Custom Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image
-            source={require("../../assets/Jobrito icon.png")}
-            style={styles.headerIcon}
-            resizeMode="contain"
-          />
           <View style={styles.logoContainer}>
             <Image
               source={require("../../assets/Jobrito Wordmark with Tagline.png")}
@@ -360,7 +355,6 @@ const styles = StyleSheet.create({
     height: 38,
     overflow: "hidden",
     justifyContent: "center",
-    marginLeft: -20,
   },
   headerLogo: {
     width: 150,

@@ -11,6 +11,8 @@ import {
   View,
   Modal,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -208,6 +210,10 @@ export default function CompleteProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
       {step !== 6 && (
         <>
           <View style={styles.header}>
@@ -290,7 +296,8 @@ export default function CompleteProfileScreen({ navigation }) {
         )}
         {step === 6 && <SuccessStep t={t} onReturnPress={handleReturnToProfile} />}
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
   );
 }
 
