@@ -15,17 +15,18 @@ apiClient.interceptors.request.use(
   async (config) => {
     config.withCredentials = false;
 
-    if (config.skipAuth) {
-      return config;
+    if (!config.skipAuth) {
+      const token = await getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
-    const token = await getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - Token: ${token.substring(0, 15)}...`);
-    } else {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url} - NO TOKEN`);
-    }
+    const fullUrl = `${config.baseURL || apiClient.defaults.baseURL || ""}${config.url}`;
+    console.log(
+      `[API Request] ${config.method?.toUpperCase()} ${fullUrl}`,
+      config.data ? `\nPayload: ${JSON.stringify(config.data)}` : ""
+    );
     return config;
   },
   (error) => Promise.reject(error)

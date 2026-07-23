@@ -96,13 +96,46 @@ export default function OtpScreen({ navigation, route }) {
 
   const formattedPhone = maskPhone(phone);
 
-  const handleVerify = async () => {
-    if (!otp.trim() || otp.trim().length < OTP_LENGTH) {
+  useEffect(() => {
+    // Start 50 seconds countdown on initial mount
+    setCountdown(50);
+  }, []);
+
+  useEffect(() => {
+    const incomingOtp = route?.params?.otp;
+    console.log("OtpScreen received parameter otp:", incomingOtp);
+    if (incomingOtp) {
+      const otpStr = String(incomingOtp).trim();
+      console.log("Setting OTP to state and scheduling push notification for:", otpStr);
+      if (otpStr.length === OTP_LENGTH) {
+        setOtp(otpStr);
+        
+        // Show local push notification with custom body
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: t("otp.receivedTitle", "OTP Received"),
+            body: t("otp.receivedBody", "Your verification OTP code is: ") + otpStr,
+            sound: true,
+          },
+          trigger: null,
+        }).catch(err => console.log("Failed to schedule notification:", err));
+
+        const timer = setTimeout(() => {
+          handleVerify(otpStr);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [route?.params?.otp]);
+
+  const handleVerify = async (forcedOtp) => {
+    const otpToVerify = typeof forcedOtp === "string" ? forcedOtp : otp;
+    if (!otpToVerify.trim() || otpToVerify.trim().length < OTP_LENGTH) {
       Alert.alert(t("otp.requiredTitle"), t("otp.requiredMessage", { length: OTP_LENGTH }));
       return;
     }
 
-    const result = await dispatch(verifyOtp({ phone, otp: otp.trim(), role, language: i18n.language, fcmToken }));
+    const result = await dispatch(verifyOtp({ phone, otp: otpToVerify.trim(), role, language: i18n.language, fcmToken }));
     console.log("Verify OTP API Full Response:", result);
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);

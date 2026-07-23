@@ -1,0 +1,28 @@
+# EAS CLI ignore file
+# This overrides .gitignore during EAS builds, allowing credentials like google-services.json to be uploaded securely.
+
+node_modules/
+.git/
+.expo/
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/.cxx/
+ios/build/
+ios/Pods/
+ios/DerivedData/
+*.orig.*
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+gradle-*.log
+*.log
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+tmp/
+*.zip

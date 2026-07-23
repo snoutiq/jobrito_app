@@ -60,6 +60,10 @@ export default function LoginScreen({ navigation }) {
 
     if (requestOtp.fulfilled.match(result)) {
       const payload = result.payload?.data || result.payload;
+      console.log("OTP requested successfully, payload received:", payload);
+      const otpVal = payload?.otp || payload?.data?.otp || "";
+      console.log("Extracted OTP is:", otpVal);
+
       if (payload?.token && payload?.message === "Already logged in.") {
         const user = payload.user;
         const hasCompletedOnboarding = payload.has_completed_onboarding ?? (user?.chef_profile || user?.employer_profile ? true : false);
@@ -90,6 +94,7 @@ export default function LoginScreen({ navigation }) {
 
       navigation.navigate("Otp", {
         phone: phone.trim(),
+        otp: otpVal,
       });
     }
   };

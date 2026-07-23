@@ -26,14 +26,11 @@ export const requestOtp = async (phone, role) => {
   console.log('Sending Data:', { phone, role, mappedRole: ROLE_API_MAP[role] });
       console.log(apiClient.defaults.baseURL,"ankit2");
   try {
-    const response = await apiClient.post("/login", toFormUrlEncoded({
+    const response = await apiClient.post("/login", {
       mobile_number: phone,
       login_role: ROLE_API_MAP[role],
-    }), {
+    }, {
       skipAuth: true,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
     });
     
  console.log(response.data,"ankit");
@@ -45,22 +42,20 @@ export const requestOtp = async (phone, role) => {
    
     
   } catch (error) {
-    // Handle different error scenarios
-    let errorMessage = "Failed to send OTP. Please try again.";
+    console.error("requestOtp error details:", error);
+    let errorMessage = error?.message || "Failed to send OTP. Please try again.";
     
-    if (error?.response?.status === 429) {
+    if (error?.status === 429) {
       errorMessage = "Too many attempts. Please try after some time.";
-    } else if (error?.response?.status === 400) {
-      errorMessage = error?.response?.data?.message || "Invalid phone number";
-    } else if (error?.code === "ECONNABORTED") {
-      errorMessage = "Request timeout. Please check your network.";
+    } else if (error?.status === 400) {
+      errorMessage = error?.message || "Invalid phone number";
     }
     
     return {
       success: false,
       message: errorMessage,
       phone: phone,
-      error: error?.response?.data,
+      error: error?.data || error,
     };
   }
 };
@@ -83,17 +78,14 @@ export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
   console.log( phone, otp, role, language, fcmToken ,"ankit3");
   
   try {
-    const response = await apiClient.post("/verify-otp", toFormUrlEncoded({
+    const response = await apiClient.post("/verify-otp", {
       mobile_number: phone,
       login_role: ROLE_API_MAP[role],
       otp,
       selected_language: language,
       fcm_token: fcmToken || "",
-    }), {
+    }, {
       skipAuth: true,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
     });
 console.log(response);
 
@@ -103,15 +95,12 @@ console.log(response);
       message: "OTP verified successfully",
     };
   } catch (error) {
-    console.error("OTP verification failed:", error);
+    console.error("OTP verification failed error details:", error);
+    let errorMessage = error?.message || "Invalid OTP. Please try again.";
     
-    let errorMessage = "Invalid OTP. Please try again.";
-    
-    if (error?.response?.status === 400) {
-      errorMessage = error?.response?.data?.message || "Invalid or expired OTP";
-    } else if (error?.response?.status === 404) {
+    if (error?.status === 404) {
       errorMessage = "User not found. Please check your phone number.";
-    } else if (error?.response?.status === 429) {
+    } else if (error?.status === 429) {
       errorMessage = "Too many attempts. Please try after some time.";
     }
     
