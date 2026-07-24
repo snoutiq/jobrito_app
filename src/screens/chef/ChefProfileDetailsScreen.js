@@ -46,9 +46,9 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   if (!chef) {
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <Text>Chef profile not found.</Text>
+        <Text>{t("profileDetails.notFound", "Chef profile not found.")}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ color: PRIMARY_GREEN, marginTop: 10, fontWeight: "700" }}>Go Back</Text>
+          <Text style={{ color: PRIMARY_GREEN, marginTop: 10, fontWeight: "700" }}>{t("profileDetails.goBack", "Go Back")}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -58,21 +58,21 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     const url = chef?.calendly_link || chef?.calendlyUrl || chef?.calendlyLink;
     if (url && url.trim()) {
       Linking.openURL(url).catch((err) => {
-        Alert.alert("Error", "Could not open Calendly link: " + err.message);
+        Alert.alert(t("error", "Error"), "Could not open Calendly link: " + err.message);
       });
     } else {
       Alert.alert(
-        "Calendly Not Linked", 
-        "This chef has not integrated their Calendly calendar yet. Please contact them directly."
+        t("profileDetails.notLinked", "Calendly Not Linked"), 
+        t("profileDetails.notLinkedDesc", "This chef has not integrated their Calendly calendar yet. Please contact them directly.")
       );
     }
   };
 
-  const displayName = chef.full_name || chef.name || "Chef Rajesh Kumar";
-  const displayTitle = chef.cuisine_specialty || "Culinary Consultant";
-  const displayCity = chef.city || "Mumbai, Maharashtra, India";
-  const displayExperience = chef.experience_range || chef.experience || "10+ Years";
-  const displayBio = chef.bio || "Experienced hospitality professional.";
+  const displayName = chef.full_name || chef.name || "Chef User";
+  const displayTitle = chef.professionalTitle || chef.preferred_role || chef.cuisine_specialty || "";
+  const displayCity = chef.city || "";
+  const displayExperience = chef.experienceYears || chef.experience_range || chef.experience || "";
+  const displayBio = chef.bio || "";
 
   const getLogoSource = () => {
     const uri = chef?.profile_photo_path || chef?.profile_photo;
@@ -91,8 +91,24 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const logoSource = getLogoSource();
 
   const getSkillsList = () => {
-    if (Array.isArray(chef.skills)) return chef.skills;
-    if (typeof chef.skills === "string") return chef.skills.split(",").map(x => x.trim());
+    const list = chef.skills || chef.operations || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getCuisinesList = () => {
+    if (Array.isArray(chef.cuisines)) return chef.cuisines;
+    if (typeof chef.cuisines === "string") return chef.cuisines.split(",").map(x => x.trim());
+    if (typeof chef.cuisine_specialty === "string" && chef.cuisine_specialty) {
+      return chef.cuisine_specialty.split(",").map(x => x.trim());
+    }
+    return [];
+  };
+
+  const getLanguagesList = () => {
+    if (Array.isArray(chef.languages)) return chef.languages;
+    if (typeof chef.languages === "string") return chef.languages.split(",").map(x => x.trim());
     return [];
   };
 
@@ -105,7 +121,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     }
     if (Array.isArray(list)) return list;
     if (typeof list === "string") return [list];
-    return ["Full Time", "Consultant"];
+    return [];
   };
 
   const getRegionalList = () => {
@@ -117,14 +133,66 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     }
     if (Array.isArray(list)) return list;
     if (typeof list === "string") return [list];
-    return ["UAE", "Saudi Arabia", "India"];
+    return [];
   };
 
   const getAvailabilityStatus = () => {
     if (chef.availability_info && typeof chef.availability_info === "object" && !Array.isArray(chef.availability_info)) {
-      return chef.availability_info.availability_status || "Available for Consultation";
+      return chef.availability_info.availability_status || "";
     }
-    return chef.availability || "Available for Consultation";
+    return chef.availability || "";
+  };
+
+  const handleOpenSocialLink = (url) => {
+    if (!url) return;
+    let fullUrl = url.trim();
+    if (!/^https?:\/\//i.test(fullUrl)) {
+      fullUrl = "https://" + fullUrl;
+    }
+    Linking.openURL(fullUrl).catch((err) => {
+      Alert.alert("Error", "Could not open link: " + err.message);
+    });
+  };
+
+  const getActiveSocials = () => {
+    const list = [];
+    
+    const ln = chef.linkedin;
+    if (ln && ln.trim()) {
+      list.push({ platform: "LinkedIn", icon: "logo-linkedin", color: "#0077b5", bgColor: "rgba(0, 119, 181, 0.1)", url: ln });
+    }
+    
+    const ig = chef.instagram;
+    if (ig && ig.trim()) {
+      list.push({ platform: "Instagram", icon: "logo-instagram", color: "#e1306c", bgColor: "rgba(225, 48, 108, 0.1)", url: ig });
+    }
+    
+    const fb = chef.facebook;
+    if (fb && fb.trim()) {
+      list.push({ platform: "Facebook", icon: "logo-facebook", color: "#1877f2", bgColor: "rgba(24, 119, 242, 0.1)", url: fb });
+    }
+    
+    const tw = chef.twitter || chef.twitterLink;
+    if (tw && tw.trim()) {
+      list.push({ platform: "Twitter", icon: "logo-twitter", color: "#000000", bgColor: "rgba(10, 5, 4, 0.06)", url: tw });
+    }
+    
+    const yt = chef.youtube;
+    if (yt && yt.trim()) {
+      list.push({ platform: "YouTube", icon: "logo-youtube", color: "#ff0000", bgColor: "rgba(255, 0, 0, 0.08)", url: yt });
+    }
+    
+    const web = chef.website || chef.portfolio;
+    if (web && web.trim()) {
+      list.push({ platform: "Website", icon: "globe-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: web });
+    }
+    
+    const cal = chef.calendly_link || chef.calendlyUrl || chef.calendlyLink;
+    if (cal && cal.trim()) {
+      list.push({ platform: "Calendly", icon: "calendar-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: cal });
+    }
+    
+    return list;
   };
 
   // Check if availability_info has dynamic list of slots (e.g. [{ day: "Monday", slots: ["10:00 AM"] }])
@@ -172,11 +240,11 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
 
   const handleBookAppointment = async () => {
     if (!selectedDate) {
-      CustomAlert.show("Selection Required", "Please select a preferred meeting date.");
+      CustomAlert.show(t("selectionRequired", "Selection Required"), t("selectMeetingDate", "Please select a preferred meeting date."));
       return;
     }
     if (!selectedTime) {
-      CustomAlert.show("Selection Required", "Please select a preferred meeting time.");
+      CustomAlert.show(t("selectionRequired", "Selection Required"), t("selectMeetingTime", "Please select a preferred meeting time."));
       return;
     }
 
@@ -192,11 +260,11 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       const res = await bookChefAppointment(payload);
       if (res?.success) {
         CustomAlert.show(
-          "Success",
-          res?.message || "Appointment booked successfully!",
+          t("success", "Success"),
+          res?.message || t("appointmentBookedSuccess", "Appointment booked successfully!"),
           [
             {
-              text: "Got It",
+              text: t("gotIt", "Got It"),
               onPress: () => {
                 setBookingVisible(false);
                 setPurpose("");
@@ -208,10 +276,10 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           ]
         );
       } else {
-        CustomAlert.show("Booking Failed", res?.message || "Failed to book appointment.");
+        CustomAlert.show(t("profileDetails.failedBook", "Booking Failed"), res?.message || t("profileDetails.errorBook", "Failed to book appointment."));
       }
     } catch (error) {
-      CustomAlert.show("Booking Error", error.message || "An error occurred during booking.");
+      CustomAlert.show(t("profileDetails.errorBook", "Booking Error"), error.message || t("profileDetails.errorBook", "An error occurred during booking."));
     } finally {
       setBookingLoading(false);
     }
@@ -240,60 +308,74 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             </View>
           )}
           <Text style={styles.chefName}>{displayName}</Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
-            <Text style={styles.locationText}>{displayCity}</Text>
-          </View>
-          <View style={styles.statusBadge}>
-            <View style={styles.greenDot} />
-            <Text style={styles.statusText}>{getAvailabilityStatus()}</Text>
-          </View>
+          {Boolean(displayTitle) && <Text style={styles.chefTitle}>{displayTitle}</Text>}
+          {Boolean(displayCity) && (
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
+              <Text style={styles.locationText}>{displayCity}</Text>
+            </View>
+          )}
+          {Boolean(getAvailabilityStatus()) && (
+            <View style={styles.statusBadge}>
+              <View style={styles.greenDot} />
+              <Text style={styles.statusText}>{getAvailabilityStatus()}</Text>
+            </View>
+          )}
         </View>
 
         {/* Professional Summary */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t("professionalSummary")}</Text>
-          <Text style={styles.bioText}>{displayBio}</Text>
-        </View>
+        {Boolean(displayBio) && (
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t("professionalSummary")}</Text>
+            <Text style={styles.bioText}>{displayBio}</Text>
+          </View>
+        )}
 
         {/* Info Grid */}
-        <View style={styles.infoGridRow}>
-          <View style={styles.infoGridBadge}>
-            <Ionicons name="time-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
-            <Text style={styles.badgeLabel}>{t("experience")}</Text>
-            <Text style={styles.badgeValue}>{displayExperience}</Text>
+        {(Boolean(displayExperience) || isOwnProfile) && (
+          <View style={styles.infoGridRow}>
+            {Boolean(displayExperience) && (
+              <View style={styles.infoGridBadge}>
+                <Ionicons name="time-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
+                <Text style={styles.badgeLabel}>{t("experience")}</Text>
+                <Text style={styles.badgeValue}>{displayExperience}</Text>
+              </View>
+            )}
+            <View style={styles.infoGridBadge}>
+              <Ionicons name="checkmark-circle-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
+              <Text style={styles.badgeLabel}>{t("identity")}</Text>
+              <Text style={styles.badgeValue}>{t("verified")}</Text>
+            </View>
           </View>
-          <View style={styles.infoGridBadge}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
-            <Text style={styles.badgeLabel}>{t("identity")}</Text>
-            <Text style={styles.badgeValue}>{t("verified")}</Text>
-          </View>
-        </View>
+        )}
 
         {/* Employment Preference */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t("employmentPreference")}</Text>
-          <View style={styles.pillsContainer}>
-            {getEmploymentList().map((opt, idx) => (
-              <View key={idx} style={styles.pillGrey}>
-                <Text style={styles.pillText}>{opt}</Text>
-              </View>
-            ))}
+        {getEmploymentList().length > 0 && (
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t("employmentPreference")}</Text>
+            <View style={styles.pillsContainer}>
+              {getEmploymentList().map((opt, idx) => (
+                <View key={idx} style={styles.pillGrey}>
+                  <Text style={styles.pillText}>{opt}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Cuisine Expertise */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t("cuisineExpertise")}</Text>
-          <View style={styles.pillsContainer}>
-            <View style={styles.pillGreenLight}>
-              <Text style={styles.pillTextGreen}>{displayTitle}</Text>
-            </View>
-            <View style={styles.pillGreenLight}>
-              <Text style={styles.pillTextGreen}>Multi Cuisine</Text>
+        {getCuisinesList().length > 0 && (
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t("cuisineExpertise")}</Text>
+            <View style={styles.pillsContainer}>
+              {getCuisinesList().map((cuisine, idx) => (
+                <View key={idx} style={styles.pillGreenLight}>
+                  <Text style={styles.pillTextGreen}>{cuisine}</Text>
+                </View>
+              ))}
             </View>
           </View>
-        </View>
+        )}
 
         {/* Core Skills */}
         {getSkillsList().length > 0 && (
@@ -309,31 +391,52 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Regional Experience */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{t("regionalExperience")}</Text>
-          <View style={styles.pillsContainer}>
-            {getRegionalList().map((opt, idx) => (
-              <View key={idx} style={styles.pillGrey}>
-                <Text style={styles.pillText}>{opt}</Text>
-              </View>
-            ))}
+        {/* Languages Spoken */}
+        {getLanguagesList().length > 0 && (
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t("languagesSpoken", "Languages Spoken")}</Text>
+            <View style={styles.pillsContainer}>
+              {getLanguagesList().map((lang, idx) => (
+                <View key={idx} style={styles.pillGrey}>
+                  <Text style={styles.pillText}>{lang}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
+
+        {/* Regional Experience */}
+        {getRegionalList().length > 0 && (
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t("regionalExperience")}</Text>
+            <View style={styles.pillsContainer}>
+              {getRegionalList().map((opt, idx) => (
+                <View key={idx} style={styles.pillGrey}>
+                  <Text style={styles.pillText}>{opt}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Social Profiles */}
-        <Text style={styles.sectionTitleCap}>{t("socialProfiles")}</Text>
-        <View style={styles.socialRow}>
-          <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="link-outline" size={20} color="rgba(10, 5, 4, 0.6)" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="logo-linkedin" size={20} color="rgba(10, 5, 4, 0.6)" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialIconBox}>
-            <Ionicons name="mail-outline" size={20} color="rgba(10, 5, 4, 0.6)" />
-          </TouchableOpacity>
-        </View>
+        {getActiveSocials().length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles.sectionTitleCap}>{t("socialProfiles")}</Text>
+            <View style={styles.socialRow}>
+              {getActiveSocials().map((item, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.socialIconBox, { backgroundColor: item.bgColor }]}
+                  onPress={() => handleOpenSocialLink(item.url)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name={item.icon} size={22} color={item.color} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Get Appointment / Edit Profile Bottom Button */}
@@ -541,6 +644,12 @@ const styles = StyleSheet.create({
     color: "#0a0504",
     marginBottom: 4,
   },
+  chefTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#153e69",
+    marginBottom: 8,
+  },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -667,17 +776,23 @@ const styles = StyleSheet.create({
   },
   socialRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginLeft: 4,
-    marginBottom: 20,
+    marginBottom: 24,
+    marginTop: 8,
   },
   socialIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    elevation: 1,
+    shadowColor: "#0a0504",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   footer: {
     padding: 16,

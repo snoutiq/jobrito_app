@@ -161,17 +161,17 @@ export default function SocialMediaLinksScreen({ navigation }) {
 
       CustomAlert.show(
         t("success", "Success"),
-        "Your social media and portfolio links have been saved successfully! Recruiters can now view your public profiles.",
+        t("socials.successSave", "Your social media and portfolio links have been saved successfully! Recruiters can now view your public profiles."),
         [
           {
-            text: "Great",
+            text: t("great", "Great"),
             onPress: () => navigation.goBack(),
           },
         ]
       );
     } catch (error) {
       console.error("Failed to save social links:", error);
-      CustomAlert.show(t("error", "Error"), error?.message || "Failed to save social links.");
+      CustomAlert.show(t("error", "Error"), error?.message || t("socials.failedSave", "Failed to save social links."));
     } finally {
       setLoading(false);
     }
@@ -185,9 +185,9 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color={NEUTRAL} />
         </TouchableOpacity>
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>{t("socialMediaLinks", "Social & Portfolio Links")}</Text>
+          <Text style={styles.headerTitle}>{t("socials.title", "Social Media Links")}</Text>
           <View style={styles.headerCountBadge}>
-            <Text style={styles.headerCountText}>{connectedCount} Active</Text>
+            <Text style={styles.headerCountText}>{t("socials.connectedCount", { count: connectedCount })}</Text>
           </View>
         </View>
         <View style={{ width: 36 }} />
@@ -198,9 +198,9 @@ export default function SocialMediaLinksScreen({ navigation }) {
         <View style={styles.infoBanner}>
           <Ionicons name="sparkles" size={22} color={PRIMARY} style={{ marginRight: 10 }} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.infoTitle}>Showcase Your Culinary Brand</Text>
+            <Text style={styles.infoTitle}>{t("socials.title", "Social Media Links")}</Text>
             <Text style={styles.infoSubtitle}>
-              Linking your LinkedIn, Instagram food portfolio, or personal website increases employer trust by 3x.
+              {t("socials.subtitle", "Connect your social profiles to increase your visibility to top employers.")}
             </Text>
           </View>
         </View>
@@ -211,13 +211,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="logo-linkedin" size={18} color="#0077b5" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>LinkedIn Profile</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelLinkedIn", "LinkedIn Profile")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "linkedin" && styles.inputWrapperActive]}>
               <Text style={styles.prefixText}>linkedin.com/in/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="your-profile"
+                placeholder={t("socials.placeholderLinkedIn", "your-profile")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={linkedin}
                 onChangeText={(text) => handleInputChange(text, "linkedin", setLinkedin)}
@@ -238,13 +238,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="logo-instagram" size={18} color="#e1306c" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>Instagram (Food Portfolio)</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelInstagram", "Instagram (Food Portfolio)")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "instagram" && styles.inputWrapperActive]}>
               <Text style={styles.prefixText}>instagram.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="chef_username"
+                placeholder={t("socials.placeholderInstagram", "chef_username")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={instagram}
                 onChangeText={(text) => handleInputChange(text, "instagram", setInstagram)}
@@ -265,13 +265,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="logo-facebook" size={18} color="#1877f2" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>Facebook Page</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelFacebook", "Facebook Page")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "facebook" && styles.inputWrapperActive]}>
               <Text style={styles.prefixText}>facebook.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="your-page"
+                placeholder={t("socials.placeholderFacebook", "your-page")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={facebook}
                 onChangeText={(text) => handleInputChange(text, "facebook", setFacebook)}
@@ -292,13 +292,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="logo-twitter" size={18} color="#000000" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>Twitter / X</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelTwitter", "Twitter / X")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "twitter" && styles.inputWrapperActive]}>
               <Text style={styles.prefixText}>x.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="your-handle"
+                placeholder={t("socials.placeholderTwitter", "your-handle")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={twitter}
                 onChangeText={(text) => handleInputChange(text, "twitter", setTwitter)}
@@ -319,13 +319,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="logo-youtube" size={18} color="#ff0000" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>YouTube Channel</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelYouTube", "YouTube Channel")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "youtube" && styles.inputWrapperActive]}>
               <Text style={styles.prefixText}>youtube.com/@</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="your-channel"
+                placeholder={t("socials.placeholderYouTube", "your-channel")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={youtube}
                 onChangeText={(text) => handleInputChange(text, "youtube", setYoutube)}
@@ -346,12 +346,12 @@ export default function SocialMediaLinksScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
               <Ionicons name="globe-outline" size={18} color={PRIMARY} style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>Personal Website / Portfolio</Text>
+              <Text style={styles.inputLabel}>{t("socials.labelWebsite", "Personal Website / Portfolio")}</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "website" && styles.inputWrapperActive]}>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://yourwebsite.com"
+                placeholder={t("socials.placeholderWebsite", "https://yourwebsite.com")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={website}
                 onChangeText={setWebsite}
@@ -380,7 +380,7 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <>
-                <Text style={styles.saveBtnText}>Save Social Links</Text>
+                <Text style={styles.saveBtnText}>{t("socials.btnSave", "Save Social Links")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#ffffff" />
               </>
             )}

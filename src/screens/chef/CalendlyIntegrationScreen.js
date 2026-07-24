@@ -53,7 +53,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
   const handleSaveLink = async () => {
     if (!calendlyLink.trim()) {
-      CustomAlert.show(t("error", "Error"), "Please enter your Calendly scheduling link.");
+      CustomAlert.show(t("error", "Error"), t("calendly.enterLink", "Please enter your Calendly scheduling link."));
       return;
     }
 
@@ -65,7 +65,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
     if (!cleaned.toLowerCase().includes("calendly.com")) {
       CustomAlert.show(
         t("warning", "Notice"),
-        "The URL does not contain 'calendly.com'. Make sure it is your official Calendly scheduling link."
+        t("calendly.invalidLink", "The URL does not contain 'calendly.com'. Make sure it is your official Calendly scheduling link.")
       );
     }
 
@@ -90,17 +90,17 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
       CustomAlert.show(
         t("success", "Success"),
-        "Your Calendly integration link has been saved successfully! Recruiters can now schedule direct consultations with you.",
+        t("calendly.successSave", "Your Calendly integration link has been saved successfully! Recruiters can now schedule direct consultations with you."),
         [
           {
-            text: "Great",
+            text: t("great", "Great"),
             onPress: () => navigation.goBack(),
           },
         ]
       );
     } catch (error) {
       console.error("Failed to save Calendly link:", error);
-      CustomAlert.show(t("error", "Error"), error?.message || "Failed to save Calendly link.");
+      CustomAlert.show(t("error", "Error"), error?.message || t("calendly.failedSave", "Failed to save Calendly link."));
     } finally {
       setLoading(false);
     }
@@ -130,12 +130,12 @@ export default function CalendlyIntegrationScreen({ navigation }) {
             </View>
             <View style={styles.statusTextInfo}>
               <Text style={styles.statusTitle}>
-                {isConnected ? "Calendly Connected" : "Not Integrated Yet"}
+                {isConnected ? t("calendly.statusConnected", "Calendly Connected") : t("calendly.statusNotConnected", "Not Integrated Yet")}
               </Text>
               <Text style={styles.statusSubtitle}>
                 {isConnected
-                  ? "Recruiters can schedule 1-on-1 calls directly into your calendar."
-                  : "Link your Calendly account so employers can book consultation calls with you."}
+                  ? t("calendly.statusDescConnected", "Recruiters can schedule 1-on-1 calls directly into your calendar.")
+                  : t("calendly.statusDescNotConnected", "Link your Calendly account so employers can book consultation calls with you.")}
               </Text>
             </View>
           </View>
@@ -143,9 +143,9 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
         {/* Input Form Section */}
         <View style={styles.formCard}>
-          <Text style={styles.formLabel}>Calendly Scheduling Link</Text>
+          <Text style={styles.formLabel}>{t("calendly.label", "Calendly Scheduling Link")}</Text>
           <Text style={styles.formHint}>
-            Example: https://calendly.com/your-name/30min
+            {t("calendly.hint", "Example: https://calendly.com/your-name/30min")}
           </Text>
 
           <View style={[styles.inputWrapper, activeInput && styles.inputWrapperActive]}>
@@ -182,7 +182,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <>
-                <Text style={styles.saveBtnText}>Save Calendly Link</Text>
+                <Text style={styles.saveBtnText}>{t("calendly.btnSave", "Save Calendly Link")}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#ffffff" />
               </>
             )}
@@ -193,14 +193,14 @@ export default function CalendlyIntegrationScreen({ navigation }) {
         <View style={styles.guideCard}>
           <View style={styles.guideHeader}>
             <Ionicons name="information-circle-outline" size={22} color={PRIMARY} style={{ marginRight: 8 }} />
-            <Text style={styles.guideTitle}>Why integrate Calendly?</Text>
+            <Text style={styles.guideTitle}>{t("calendly.whyIntegrate", "Why integrate Calendly?")}</Text>
           </View>
           <View style={styles.guideStep}>
             <View style={styles.stepBadge}>
               <Text style={styles.stepBadgeText}>1</Text>
             </View>
             <Text style={styles.stepText}>
-              Employers and restaurant owners browse your chef profile on JobRito.
+              {t("calendly.step1", "Employers and restaurant owners browse your chef profile on JobRito.")}
             </Text>
           </View>
           <View style={styles.guideStep}>
@@ -208,7 +208,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               <Text style={styles.stepBadgeText}>2</Text>
             </View>
             <Text style={styles.stepText}>
-              They click "Book Consultation" to view your available time slots.
+              {t("calendly.step2", "They click 'Book Consultation' to view your available time slots.")}
             </Text>
           </View>
           <View style={styles.guideStep}>
@@ -216,20 +216,20 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               <Text style={styles.stepBadgeText}>3</Text>
             </View>
             <Text style={styles.stepText}>
-              Calls are automatically synced into your Google/Outlook calendar.
+              {t("calendly.step3", "Calls are automatically synced into your Google/Outlook calendar.")}
             </Text>
           </View>
         </View>
 
         {/* Don't have an account */}
         <View style={styles.signupCard}>
-          <Text style={styles.signupTitle}>Don't have a Calendly account yet?</Text>
+          <Text style={styles.signupTitle}>{t("calendly.noAccount", "Don't have a Calendly account yet?")}</Text>
           <Text style={styles.signupSubtitle}>
-            Create a free account on Calendly in 2 minutes to get your scheduling URL.
+            {t("calendly.noAccountDesc", "Create a free account on Calendly in 2 minutes to get your scheduling URL.")}
           </Text>
           <TouchableOpacity style={styles.signupBtn} onPress={handleSignupCalendly}>
             <Ionicons name="create-outline" size={16} color={PRIMARY} style={{ marginRight: 6 }} />
-            <Text style={styles.signupBtnText}>Sign Up Free on Calendly</Text>
+            <Text style={styles.signupBtnText}>{t("calendly.btnSignUp", "Sign Up Free on Calendly")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
