@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import colors from "../../constants/colors";
 import { resetUser, setProfileData } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
@@ -45,8 +46,115 @@ export default function ChefProfileScreen({ navigation }) {
 
   const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
   const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
-  const displayCity = profile?.city || "India & Overseas";
-  const displayAvailability = profile?.availability || "Available for Consultation";
+  
+  const displayCity = profile?.city && profile?.country 
+    ? `${profile.city}, ${profile.country}`
+    : profile?.city || profile?.country || "";
+  const displayPrefLocation = profile?.locationPreference || profile?.location_preference || "";
+
+  const getAvailability = () => {
+    if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
+      return profile.availability_info.availability_status || profile.availability || "Available for Consultation";
+    }
+    return profile?.availability || "Available for Consultation";
+  };
+  const displayAvailability = getAvailability();
+
+  const isAvailable = 
+    displayAvailability === "Available" || 
+    displayAvailability === "Available for Consultation" || 
+    displayAvailability === "Available Immediately" ||
+    displayAvailability === "Available immediately";
+
+  const getProfileCompletionPercentage = () => {
+    let totalFields = 11;
+    let filledFields = 0;
+
+    if (profile?.full_name || profile?.name) filledFields++;
+    if (profile?.profile_photo_path || profile?.profile_photo) filledFields++;
+    if (profile?.professionalTitle || profile?.preferred_role) filledFields++;
+    if (profile?.city) filledFields++;
+    if (profile?.country) filledFields++;
+    if (profile?.experienceYears || profile?.experience_range || profile?.experience) filledFields++;
+    if (profile?.bio) filledFields++;
+    
+    // Languages
+    const langs = profile?.languages;
+    if (Array.isArray(langs) && langs.length > 0) filledFields++;
+    else if (typeof langs === "string" && langs.trim().length > 0) filledFields++;
+
+    // Cuisines
+    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
+    if (Array.isArray(cuisines) && cuisines.length > 0) filledFields++;
+    else if (typeof cuisines === "string" && cuisines.trim().length > 0) filledFields++;
+
+    // Skills/Operations
+    const ops = profile?.operations || profile?.skills;
+    if (Array.isArray(ops) && ops.length > 0) filledFields++;
+    else if (typeof ops === "string" && ops.trim().length > 0) filledFields++;
+
+    // Calendly Link (Only if it's actually set and not default domain placeholder)
+    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid = calendly && 
+                            calendly.trim().length > 0 && 
+                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    if (isCalendlyValid) {
+      filledFields++;
+    }
+
+    return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const getMissedOutFields = () => {
+    const missed = [];
+    if (!profile?.profile_photo_path && !profile?.profile_photo) missed.push(t("profilePhoto", "Profile Photo"));
+    if (!profile?.bio) missed.push(t("bio", "Bio"));
+    
+    const langs = profile?.languages;
+    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+      missed.push(t("languages", "Languages"));
+    }
+
+    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
+    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+      missed.push(t("cuisines", "Cuisines"));
+    }
+
+    const ops = profile?.operations || profile?.skills;
+    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+      missed.push(t("skills", "Operational Skills"));
+    }
+
+    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid = calendly && 
+                            calendly.trim().length > 0 && 
+                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    if (!isCalendlyValid) {
+      missed.push("Calendly");
+    }
+
+    return missed;
+  };
+
+  const completionPercent = getProfileCompletionPercentage();
+  const missedFields = getMissedOutFields();
+
+  useEffect(() => {
+    if (profile) {
+      const pct = getProfileCompletionPercentage();
+      const missed = getMissedOutFields();
+      if (pct < 100 && missed.length > 0) {
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: t("completeProfileAlertTitle", "Complete Your Profile!"),
+            body: t("completeProfileAlertBody", "Increase employer trust! Add: ") + missed.slice(0, 3).join(", "),
+            sound: true,
+          },
+          trigger: null,
+        }).catch(err => console.log("Failed to send profile completion notification:", err));
+      }
+    }
+  }, [profile]);
 
   // Refresh dashboard data on focus
   useFocusEffect(
@@ -237,10 +345,13 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
               <Text style={styles.profileTitle}>{displayTitle}</Text>
               <View style={styles.locationRow}>
                 <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
-                <Text style={styles.locationText}>{displayCity}</Text>
+                <Text style={styles.locationText}>
+                  {t("current", "Current")}: {displayCity}
+                  {displayPrefLocation ? ` | ${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
+                </Text>
               </View>
               <View style={styles.statusRow}>
-                <View style={styles.statusBullet} />
+                <View style={[styles.statusBullet, { backgroundColor: isAvailable ? "#22c55e" : "#f57f20" }]} />
                 <Text style={styles.statusText}>{displayAvailability}</Text>
               </View>
             </View>
@@ -254,6 +365,33 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             <Text style={styles.viewProfileBtnText}>{t("chefDashboard.viewProfile", "View Profile")}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Profile Completion banner */}
+        {completionPercent < 100 && (
+          <View style={styles.completionBanner}>
+            <View style={styles.completionHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.completionTitle}>
+                  {t("profileCompletion", "Profile Completion")}: {completionPercent}%
+                </Text>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${completionPercent}%` }]} />
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("ChefCompleteProfile")}
+                style={styles.completeBtn}
+              >
+                <Text style={styles.completeBtnText}>{t("complete", "Complete")}</Text>
+              </TouchableOpacity>
+            </View>
+            {missedFields.length > 0 && (
+              <Text style={styles.missedText}>
+                {t("missedInfoPrompt", "Add missing info:")} {missedFields.join(", ")}
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* My Activity */}
         <Text style={styles.sectionTitle}>{t("chefDashboard.myActivity")}</Text>
@@ -370,10 +508,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
               <Text style={styles.menuItemLabel}>{t("chefDashboard.availability")}</Text>
             </View>
             <Switch
-              value={displayAvailability === "Available" || displayAvailability === "Available for Consultation"}
+              value={isAvailable}
               onValueChange={handleToggleAvailability}
               trackColor={{ false: "rgba(10, 5, 4, 0.15)", true: "#f2c879" }}
-              thumbColor={displayAvailability === "Available" || displayAvailability === "Available for Consultation" ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
+              thumbColor={isAvailable ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
             />
           </View>
 
@@ -651,5 +789,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+  },
+  completionBanner: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    padding: 16,
+    marginBottom: 16,
+  },
+  completionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 8,
+  },
+  completionTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#153e69",
+    marginBottom: 6,
+  },
+  progressBarBg: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#e7eff7",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: "#22c55e",
+  },
+  completeBtn: {
+    backgroundColor: "rgba(21, 62, 105, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  completeBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#153e69",
+  },
+  missedText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    lineHeight: 16,
   },
 });

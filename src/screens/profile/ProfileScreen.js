@@ -23,16 +23,74 @@ export default function ProfileScreen({ navigation }) {
   const myJobsCount = useSelector((state) => state.job.myJobs?.length) || 0;
   const applicationsCount = useSelector((state) => state.application?.history?.length) || 0;
 
-  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : "Chef Rajesh";
+  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.full_name || "");
 
   const initials = displayName
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+    ? displayName
+        .split(" ")
+        .filter(Boolean)
+        .map((part) => part[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "U";
 
-  const completion = profile?.completionPercentage || 65;
+  const getDynamicCompletion = () => {
+    if (!profile) return 0;
+    let fields = 0;
+    let filled = 0;
+    
+    // 1. Name
+    fields++;
+    if (profile.name && profile.name !== "Guest User" && profile.name.trim()) {
+      filled++;
+    } else if (profile.full_name && profile.full_name.trim()) {
+      filled++;
+    }
+    
+    // 2. Profile Photo
+    fields++;
+    if (profile.profile_photo_path || profile.profile_photo) {
+      filled++;
+    }
+    
+    // 3. Email
+    fields++;
+    if (profile.email && profile.email.trim()) {
+      filled++;
+    }
+    
+    // 4. City
+    fields++;
+    if (profile.city && profile.city.trim()) {
+      filled++;
+    }
+    
+    // 5. Skills
+    fields++;
+    const skills = profile.skills;
+    if (Array.isArray(skills) && skills.length > 0) {
+      filled++;
+    } else if (typeof skills === "string" && skills.trim()) {
+      filled++;
+    }
+    
+    // 6. Current Employer
+    fields++;
+    if (profile.current_employer && profile.current_employer.trim()) {
+      filled++;
+    }
+    
+    // 7. Gender
+    fields++;
+    if (profile.gender && profile.gender.trim()) {
+      filled++;
+    }
+    
+    return Math.round((filled / fields) * 100);
+  };
+  
+  const completion = getDynamicCompletion();
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -159,28 +217,32 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const getMissingFieldText = () => {
-    if (!profile) return t("profile.addSkills", "Add Skills (+10%)");
+    if (!profile) return t("profile.addSkills", "Add Skills");
 
-    if (!profile.profile_photo_path) {
-      return t("profile.addPhotoAction", "Add Profile Photo (+10%)");
+    if (completion >= 100) {
+      return t("profile.editProfile", "Edit Profile");
+    }
+
+    if (!profile.profile_photo_path && !profile.profile_photo) {
+      return t("profile.addPhotoAction", "Add Profile Photo");
     }
     if (!profile.email) {
-      return t("profile.addEmailAction", "Add Email Address (+10%)");
+      return t("profile.addEmailAction", "Add Email Address");
     }
     if (!profile.city) {
-      return t("profile.addCityAction", "Add Current City (+10%)");
+      return t("profile.addCityAction", "Add Current City");
     }
-    if (!profile.skills) {
-      return t("profile.addSkillsAction", "Add Skills (+10%)");
+    if (!profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
+      return t("profile.addSkillsAction", "Add Skills");
     }
     if (!profile.current_employer) {
-      return t("profile.addEmployerAction", "Add Current Employer (+10%)");
+      return t("profile.addEmployerAction", "Add Current Employer");
     }
     if (!profile.gender) {
-      return t("profile.addGenderAction", "Add Gender (+10%)");
+      return t("profile.addGenderAction", "Add Gender");
     }
     
-    return t("profile.profileCompleteText", "Profile is complete!");
+    return t("profile.editProfile", "Edit Profile");
   };
 
   return (
@@ -212,10 +274,16 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{displayName}</Text>
-          <Text style={styles.userPhone}>
-            {profile?.phone || "+91 98765 43210"}
-          </Text>
-          <Text style={styles.userTag}>{t("profile.userTag", "India & Overseas")}</Text>
+          {(profile?.phone || profile?.mobile_number) ? (
+            <Text style={styles.userPhone}>
+              {profile.phone || profile.mobile_number}
+            </Text>
+          ) : null}
+          {Boolean(profile?.city || profile?.country) && (
+            <Text style={styles.userTag}>
+              {profile.city && profile.country ? `${profile.city}, ${profile.country}` : (profile.city || profile.country)}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -246,7 +314,7 @@ export default function ProfileScreen({ navigation }) {
           >
             <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
             <Ionicons 
-              name={completion >= 100 ? "checkmark-circle" : "add-circle"} 
+              name={completion >= 100 ? "create-outline" : "add-circle"} 
               size={18} 
               color="#153e69" 
             />

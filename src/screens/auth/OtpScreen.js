@@ -101,32 +101,6 @@ export default function OtpScreen({ navigation, route }) {
     setCountdown(50);
   }, []);
 
-  useEffect(() => {
-    const incomingOtp = route?.params?.otp;
-    console.log("OtpScreen received parameter otp:", incomingOtp);
-    if (incomingOtp) {
-      const otpStr = String(incomingOtp).trim();
-      console.log("Setting OTP to state and scheduling push notification for:", otpStr);
-      if (otpStr.length === OTP_LENGTH) {
-        setOtp(otpStr);
-        
-        // Show local push notification with custom body
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: t("otp.receivedTitle", "OTP Received"),
-            body: t("otp.receivedBody", "Your verification OTP code is: ") + otpStr,
-            sound: true,
-          },
-          trigger: null,
-        }).catch(err => console.log("Failed to schedule notification:", err));
-
-        const timer = setTimeout(() => {
-          handleVerify(otpStr);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [route?.params?.otp]);
 
   const handleVerify = async (forcedOtp) => {
     const otpToVerify = typeof forcedOtp === "string" ? forcedOtp : otp;

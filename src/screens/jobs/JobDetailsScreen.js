@@ -10,26 +10,13 @@ import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 
-const requirements = [
-  "Proven experience as a Pastry Chef in a 5-star hotel or Michelin-starred restaurant.",
-  "Exceptional skills in sugar work, chocolate tempering, and complex dessert plating.",
-  "Strong leadership and team management capabilities.",
-  "Food hygiene certification (Level 3 minimum).",
-];
-
-const benefits = [
-  "Private Health Cover",
-  "Free Staff Meals",
-  "Performance Bonus",
-  "Training & Development",
-];
-
 const formatPostedTime = (postedDate) => {
-  if (!postedDate) return "2 hours ago";
+  if (!postedDate) return "Recently";
   const posted = new Date(postedDate);
-  if (Number.isNaN(posted.getTime())) return "2 hours ago";
+  if (Number.isNaN(posted.getTime())) return "Recently";
   const diffMs = Date.now() - posted.getTime();
-  const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+  const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+  if (diffDays === 0) return "Today";
   if (diffDays === 1) return "1 day ago";
   return `${diffDays} days ago`;
 };
@@ -73,14 +60,22 @@ export default function JobDetailsScreen({ route }) {
   const company = job?.company;
   const location = job?.location;
   const salary = job?.salary;
-  const experience = job?.experience || job?.experience_range || "5+ Years";
+  const experience = job?.experience || job?.experience_range || t("jobDetails.notSpecified", "Not Specified");
   const postedTime = formatPostedTime(job?.postedDate || job?.created_at);
-  const jobRequirements = job?.requirements || requirements;
-  const jobBenefits = job?.benefits || benefits;
+  const jobRequirements = Array.isArray(job?.requirements) 
+    ? job.requirements.filter(Boolean) 
+    : typeof job?.requirements === "string" 
+      ? job.requirements.split("\n").map(r => r.trim()).filter(Boolean)
+      : [];
+  const jobBenefits = Array.isArray(job?.benefits) 
+    ? job.benefits.filter(Boolean) 
+    : typeof job?.benefits === "string" 
+      ? job.benefits.split("\n").map(b => b.trim()).filter(Boolean)
+      : [];
 
   if (!job) {
     return (
-      <ScreenWrapper>
+      <ScreenWrapper edges={["left", "right", "bottom"]}>
         <Text style={styles.loading}>{t("jobDetails.loading", "Loading job details...")}</Text>
       </ScreenWrapper>
     );
@@ -92,7 +87,7 @@ export default function JobDetailsScreen({ route }) {
   const isApplying = applyingJobId === job?.id || applyLoading;
 
   return (
-    <ScreenWrapper contentStyle={styles.page}>
+    <ScreenWrapper edges={["left", "right", "bottom"]} contentStyle={styles.page}>
       <View style={styles.heroCard}>
         <View style={styles.heroTop}>
           <View style={styles.brandAvatar}>
@@ -206,52 +201,47 @@ export default function JobDetailsScreen({ route }) {
         </Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "Key Requirements")}</Text>
-        <View style={styles.requirementList}>
-          {jobRequirements.map((item) => (
-            <View key={item} style={styles.requirementRow}>
-              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-              <Text style={styles.requirementText}>{item}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.imageCard}>
-        <View style={styles.imagePlaceholder}>
-          <View style={styles.dessertGlow} />
-          <View style={styles.dessertPlate}>
-            <View style={styles.dessertTop} />
-            <View style={styles.dessertBase} />
+      {jobRequirements.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "Key Requirements")}</Text>
+          <View style={styles.requirementList}>
+            {jobRequirements.map((item) => (
+              <View key={item} style={styles.requirementRow}>
+                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                <Text style={styles.requirementText}>{item}</Text>
+              </View>
+            ))}
           </View>
         </View>
-        <Text style={styles.imageCaption}>{t("jobDetails.imageCaption", "Example of our signature dessert menu style")}</Text>
-      </View>
+      )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "Benefits & Perks")}</Text>
-        <View style={styles.benefitWrap}>
-          {jobBenefits.map((item) => (
-            <View key={item} style={styles.benefitChip}>
-              <Text style={styles.benefitText}>{item}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("jobDetails.locationMap", "Location Map")}</Text>
-        <View style={styles.mapCard}>
-          <View style={styles.mapTile} />
-          <View style={styles.mapOverlay}>
-            <View style={styles.mapPin}>
-              <Ionicons name="location" size={18} color={colors.white} />
-            </View>
-            <Text style={styles.mapText}>{location}</Text>
+      {jobBenefits.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "Benefits & Perks")}</Text>
+          <View style={styles.benefitWrap}>
+            {jobBenefits.map((item) => (
+              <View key={item} style={styles.benefitChip}>
+                <Text style={styles.benefitText}>{item}</Text>
+              </View>
+            ))}
           </View>
         </View>
-      </View>
+      )}
+
+      {Boolean(location) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("jobDetails.locationMap", "Location Map")}</Text>
+          <View style={styles.mapCard}>
+            <View style={styles.mapTile} />
+            <View style={styles.mapOverlay}>
+              <View style={styles.mapPin}>
+                <Ionicons name="location" size={18} color={colors.white} />
+              </View>
+              <Text style={styles.mapText}>{location}</Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       <View style={styles.bottomSpacer} />
 
@@ -290,7 +280,7 @@ export default function JobDetailsScreen({ route }) {
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 1,
+    paddingTop: 16,
     paddingBottom: 100,
     gap: 16,
   },

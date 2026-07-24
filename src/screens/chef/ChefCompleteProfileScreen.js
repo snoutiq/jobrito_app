@@ -33,7 +33,6 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
-
 const PRIMARY_GREEN = "#153e69";
 
 const countriesList = [
@@ -73,6 +72,26 @@ const commonLanguagesList = [
   "Spanish"
 ];
 
+const cuisinesList = [
+  "Italian", "Continental", "Indian", "Chinese", 
+  "Bakery", "Arabic", "Multi Cuisine", "Grill & BBQ", "Other"
+];
+
+const operationsList = [
+  "Menu Engineering",
+  "SOP Writing",
+  "Kitchen Setup",
+  "Team Training",
+  "Cost Control",
+  "Recipe Standardization",
+  "Soft Opening Support",
+  "Franchise Development",
+  "Cloud Kitchen Consulting",
+  "Brand Development",
+  "Staff Recruitment Support",
+  "Other"
+];
+
 export default function ChefCompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -98,6 +117,37 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const [selectedCity, setSelectedCity] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
 
+  // --- Step 2 State ---
+  const [selectedCuisines, setSelectedCuisines] = useState([]);
+  const [selectedOperations, setSelectedOperations] = useState([]);
+  const [experienceYears, setExperienceYears] = useState("");
+  const [showExpDropdown, setShowExpDropdown] = useState(false);
+
+  const [showCuisineDropdown, setShowCuisineDropdown] = useState(false);
+  const [showOperationsDropdown, setShowOperationsDropdown] = useState(false);
+  const [customCuisine, setCustomCuisine] = useState("");
+  const [customOperation, setCustomOperation] = useState("");
+
+  const experienceOptions = [
+    "1-2 Years", "2-5 Years", "5-10 Years", "10-25 Years", "25+ and above"
+  ];
+
+  // --- Step 3 State ---
+  const [regionalExperience, setRegionalExperience] = useState([]);
+  const [locationPreference, setLocationPreference] = useState("");
+  const [employmentPreference, setEmploymentPreference] = useState([]);
+  const [availability, setAvailability] = useState("");
+  const [showAvailDropdown, setShowAvailDropdown] = useState(false);
+  const [bio, setBio] = useState("");
+
+  const regionalOptions = ["Saudi Arabia", "UAE", "GCC", "International", "India"];
+  const locationPrefOptions = ["India", "Overseas", "Both (India & Overseas)"];
+  const employmentOptions = ["Full Time", "Contract", "Freelance", "Project Based", "Consultant"];
+  const availabilityOptions = ["Available Immediately", "1 Month Notice", "2 Months Notice", "Currently Employed"];
+
+  // --- Step 4 State ---
+  const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
+
   useEffect(() => {
     if (profile) {
       if (profile.full_name || profile.name) {
@@ -111,14 +161,24 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         setPhotoUri(profile.profile_photo_path);
         setPhotoUploaded(true);
       }
-      if (profile.professionalTitle) {
-        setProfessionalTitle(profile.professionalTitle);
+      if (profile.professionalTitle || profile.preferred_role) {
+        setProfessionalTitle(profile.professionalTitle || profile.preferred_role);
       }
       if (profile.city) {
         setCurrentCity(profile.city);
+        if (profile.country && countriesList.includes(profile.country) && citiesByCountry[profile.country]?.includes(profile.city)) {
+          setSelectedCity(profile.city);
+        } else {
+          setSelectedCity("Other");
+        }
       }
       if (profile.country) {
         setCountry(profile.country);
+        if (countriesList.includes(profile.country)) {
+          setSelectedCountry(profile.country);
+        } else {
+          setSelectedCountry("Other");
+        }
       }
       if (profile.calendly_link || profile.calendlyUrl || profile.calendlyLink) {
         setCalendlyLink(profile.calendly_link || profile.calendlyUrl || profile.calendlyLink);
@@ -147,25 +207,135 @@ export default function ChefCompleteProfileScreen({ navigation }) {
           return prev;
         });
       }
+
+      // Cuisines loading
+      let loadedCuisines = [];
+      if (Array.isArray(profile.cuisines)) {
+        loadedCuisines = profile.cuisines;
+      } else if (typeof profile.cuisines === "string") {
+        loadedCuisines = profile.cuisines.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (typeof profile.cuisine_specialty === "string") {
+        loadedCuisines = profile.cuisine_specialty.split(",").map(x => x.trim()).filter(Boolean);
+      }
+      
+      const matchedCuisines = [];
+      let otherCuisines = [];
+      loadedCuisines.forEach(c => {
+        if (cuisinesList.filter(x => x !== "Other").includes(c)) {
+          matchedCuisines.push(c);
+        } else {
+          otherCuisines.push(c);
+        }
+      });
+      if (otherCuisines.length > 0) {
+        matchedCuisines.push("Other");
+        setCustomCuisine(otherCuisines.join(", "));
+      }
+      setSelectedCuisines(matchedCuisines);
+
+      // Operations (Skills) loading
+      let loadedOps = [];
+      if (Array.isArray(profile.operations)) {
+        loadedOps = profile.operations;
+      } else if (Array.isArray(profile.skills)) {
+        loadedOps = profile.skills;
+      } else if (typeof profile.operations === "string") {
+        loadedOps = profile.operations.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (typeof profile.skills === "string") {
+        loadedOps = profile.skills.split(",").map(x => x.trim()).filter(Boolean);
+      }
+
+      const matchedOps = [];
+      let otherOps = [];
+      loadedOps.forEach(o => {
+        let mapped = o;
+        if (o === "SOP Writer") mapped = "SOP Writing";
+        if (o === "Team Builder") mapped = "Team Training";
+        if (o === "Cost Control Expert") mapped = "Cost Control";
+
+        if (operationsList.filter(x => x !== "Other").includes(mapped)) {
+          matchedOps.push(mapped);
+        } else {
+          otherOps.push(o);
+        }
+      });
+      if (otherOps.length > 0) {
+        matchedOps.push("Other");
+        setCustomOperation(otherOps.join(", "));
+      }
+      setSelectedOperations(matchedOps);
+
+      // Experience Range loading
+      if (profile.experienceYears || profile.experience_range || profile.experience) {
+        setExperienceYears(profile.experienceYears || profile.experience_range || profile.experience);
+      }
+
+      // Regional Experience loading
+      let loadedReg = [];
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.regional_experience)) {
+        loadedReg = profile.availability_info.regional_experience;
+      } else if (Array.isArray(profile.regionalExperience)) {
+        loadedReg = profile.regionalExperience;
+      } else if (Array.isArray(profile.regional_experience)) {
+        loadedReg = profile.regional_experience;
+      } else if (typeof profile.regionalExperience === "string") {
+        loadedReg = profile.regionalExperience.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (typeof profile.regional_experience === "string") {
+        loadedReg = profile.regional_experience.split(",").map(x => x.trim()).filter(Boolean);
+      }
+      setRegionalExperience(loadedReg);
+
+      // Location Preference loading
+      if (profile.locationPreference || profile.location_preference) {
+        const val = profile.locationPreference || profile.location_preference;
+        if (val === "Both") {
+          setLocationPreference("Both (India & Overseas)");
+        } else if (val === "India") {
+          setLocationPreference("India");
+        } else if (val === "Overseas") {
+          setLocationPreference("Overseas");
+        } else {
+          setLocationPreference(val);
+        }
+      }
+
+      // Employment Preference loading
+      let loadedEmp = [];
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+        loadedEmp = profile.availability_info.employment_preference;
+      } else if (Array.isArray(profile.employmentPreference)) {
+        loadedEmp = profile.employmentPreference;
+      } else if (Array.isArray(profile.employment_preference)) {
+        loadedEmp = profile.employment_preference;
+      } else if (typeof profile.employmentPreference === "string") {
+        loadedEmp = profile.employmentPreference.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (typeof profile.employment_preference === "string") {
+        loadedEmp = profile.employment_preference.split(",").map(x => x.trim()).filter(Boolean);
+      }
+      setEmploymentPreference(loadedEmp);
+
+      // Availability loading
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
+        setAvailability(profile.availability_info.availability_status || "");
+      } else if (profile.availability) {
+        setAvailability(profile.availability);
+      }
+
+      // Bio loading
+      if (profile.bio) {
+        setBio(profile.bio);
+      }
+
+      // Languages loading
+      let loadedLangs = [];
+      if (Array.isArray(profile.languages)) {
+        loadedLangs = profile.languages;
+      } else if (typeof profile.languages === "string") {
+        loadedLangs = profile.languages.split(",").map(x => x.trim()).filter(Boolean);
+      }
+      setLanguages(loadedLangs);
     }
   }, [profile]);
-
-  useEffect(() => {
-    if (country) {
-      if (countriesList.includes(country)) {
-        setSelectedCountry(country);
-      } else {
-        setSelectedCountry("Other");
-      }
-    }
-    if (currentCity) {
-      if (country && countriesList.includes(country) && citiesByCountry[country]?.includes(currentCity)) {
-        setSelectedCity(currentCity);
-      } else {
-        setSelectedCity("Other");
-      }
-    }
-  }, []);
 
   useEffect(() => {
     const loadSavedStep = async () => {
@@ -194,42 +364,6 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     };
     saveCurrentStep();
   }, [step]);
-
-  // --- Step 2 State ---
-  const [selectedCuisines, setSelectedCuisines] = useState([]);
-  const [selectedOperations, setSelectedOperations] = useState([]);
-  const [experienceYears, setExperienceYears] = useState("");
-  const [showExpDropdown, setShowExpDropdown] = useState(false);
-
-  const cuisinesList = [
-    "Italian", "Continental", "Indian", "Chinese", 
-    "Bakery", "Arabic", "Multi Cuisine", "Grill & BBQ"
-  ];
-  
-  const operationsList = [
-    "Kitchen Setup", "Menu Engineering", 
-    "SOP Writer", "Team Builder", "Cost Control Expert"
-  ];
-
-  const experienceOptions = [
-    "1-2 Years", "2-5 Years", "5-10 Years", "10-25 Years", "25+ and above"
-  ];
-
-  // --- Step 3 State ---
-  const [regionalExperience, setRegionalExperience] = useState([]);
-  const [locationPreference, setLocationPreference] = useState("");
-  const [employmentPreference, setEmploymentPreference] = useState([]);
-  const [availability, setAvailability] = useState("");
-  const [showAvailDropdown, setShowAvailDropdown] = useState(false);
-  const [bio, setBio] = useState("");
-
-  const regionalOptions = ["Saudi Arabia", "UAE", "GCC", "International", "India"];
-  const locationPrefOptions = ["India", "Overseas", "Both (India & Overseas)"];
-  const employmentOptions = ["Full Time", "Contract", "Freelance", "Project Based", "Consultant"];
-  const availabilityOptions = ["Available Immediately", "1 Month Notice", "2 Months Notice", "Currently Employed"];
-
-  // --- Step 4 State ---
-  const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
 
   const handleCreateCalendlyAccount = () => {
     Linking.openURL("https://calendly.com/signup").catch((err) => {
@@ -527,7 +661,15 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       formData.append("city", currentCity);
       formData.append("country", country);
       formData.append("experience_range", experienceYears);
-      formData.append("cuisine_specialty", selectedCuisines.join(", "));
+      
+      let finalCuisines = [...selectedCuisines];
+      if (finalCuisines.includes("Other")) {
+        finalCuisines = finalCuisines.filter(c => c !== "Other");
+        if (customCuisine.trim()) {
+          finalCuisines.push(customCuisine.trim());
+        }
+      }
+      formData.append("cuisine_specialty", finalCuisines.join(", "));
       formData.append("bio", bio);
 
       let formattedCalendly = (calendlyLink || "").trim().replace(/\s+/g, "");
@@ -569,8 +711,15 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         });
       }
 
-      if (Array.isArray(selectedOperations)) {
-        selectedOperations.forEach((skill) => {
+      let finalOps = [...selectedOperations];
+      if (finalOps.includes("Other")) {
+        finalOps = finalOps.filter(o => o !== "Other");
+        if (customOperation.trim()) {
+          finalOps.push(customOperation.trim());
+        }
+      }
+      if (Array.isArray(finalOps)) {
+        finalOps.forEach((skill) => {
           formData.append("skills[]", skill);
         });
       }
@@ -609,8 +758,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         city: currentCity,
         country,
         languages,
-        cuisines: selectedCuisines,
-        operations: selectedOperations,
+        cuisines: finalCuisines,
+        operations: finalOps,
         experienceYears,
         regionalExperience,
         locationPreference,
@@ -642,6 +791,22 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   };
 
   const handleFinishOnboarding = async (targetTab = "Home") => {
+    let finalCuisines = [...selectedCuisines];
+    if (finalCuisines.includes("Other")) {
+      finalCuisines = finalCuisines.filter(c => c !== "Other");
+      if (customCuisine.trim()) {
+        finalCuisines.push(customCuisine.trim());
+      }
+    }
+
+    let finalOps = [...selectedOperations];
+    if (finalOps.includes("Other")) {
+      finalOps = finalOps.filter(o => o !== "Other");
+      if (customOperation.trim()) {
+        finalOps.push(customOperation.trim());
+      }
+    }
+
     const profilePayload = {
       ...profile,
       name: fullName || "Chef User",
@@ -649,8 +814,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       city: currentCity,
       country,
       languages,
-      cuisines: selectedCuisines,
-      operations: selectedOperations,
+      cuisines: finalCuisines,
+      operations: finalOps,
       experienceYears,
       regionalExperience,
       locationPreference,
@@ -685,7 +850,33 @@ export default function ChefCompleteProfileScreen({ navigation }) {
     }
   };
 
-  const progress = step === 6 ? 100 : Math.round((step / 6) * 100);
+  const getOnboardingCompletionPercent = () => {
+    let totalFields = 11;
+    let filledFields = 0;
+    
+    if (fullName && fullName.trim()) filledFields++;
+    if (photoUri) filledFields++;
+    if (professionalTitle && professionalTitle.trim()) filledFields++;
+    if (currentCity && currentCity.trim()) filledFields++;
+    if (country && country.trim()) filledFields++;
+    if (experienceYears && experienceYears.trim()) filledFields++;
+    if (bio && bio.trim()) filledFields++;
+    if (languages.length > 0) filledFields++;
+    if (selectedCuisines.length > 0) filledFields++;
+    if (selectedOperations.length > 0) filledFields++;
+    
+    const calendly = calendlyLink;
+    const isCalendlyValid = calendly && 
+                            calendly.trim().length > 0 && 
+                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    if (isCalendlyValid) {
+      filledFields++;
+    }
+    
+    return Math.round((filledFields / totalFields) * 100);
+  };
+  
+  const progress = getOnboardingCompletionPercent();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1057,15 +1248,10 @@ export default function ChefCompleteProfileScreen({ navigation }) {
           {/* STEP 2: PROFESSIONAL EXPERTISE */}
           {step === 2 && (
             <View style={styles.stepContainer}>
-              {/* Banner Image Mock */}
-              <View style={styles.bannerContainer}>
-                <Image
-                  source={{ uri: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&auto=format&fit=crop&q=60" }}
-                  style={styles.bannerImage}
-                />
-                <View style={styles.bannerOverlay}>
-                  <Text style={styles.bannerText}>Showcase your skills</Text>
-                </View>
+              {/* Banner Mock with Solid Color */}
+              <View style={[styles.bannerContainer, { backgroundColor: PRIMARY_GREEN, justifyContent: "center", alignItems: "center" }]}>
+                <Ionicons name="sparkles" size={32} color="#f2c879" style={{ marginBottom: 6 }} />
+                <Text style={styles.bannerText}>Showcase your skills</Text>
               </View>
 
               {/* Cuisine Specialization */}
@@ -1074,25 +1260,72 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <Text style={styles.sectionTitleText}>Cuisine Specialization</Text>
               </View>
               <Text style={styles.sectionSubtitleText}>
-                Select all the cuisines you have mastered in your career.
+                Select the cuisines you have mastered in your career.
               </Text>
-              <View style={styles.pillsRow}>
-                {cuisinesList.map((cuisine) => {
-                  const isSelected = selectedCuisines.includes(cuisine);
-                  return (
-                    <TouchableOpacity
-                      key={cuisine}
-                      style={[styles.pill, isSelected && styles.pillSelected]}
-                      onPress={() => toggleCuisine(cuisine)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                        {cuisine}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              
+              <View style={styles.inputGroup}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setShowCuisineDropdown(!showCuisineDropdown);
+                    setShowOperationsDropdown(false);
+                  }}
+                  style={[styles.inputWrapper, showCuisineDropdown && styles.inputWrapperActive]}
+                >
+                  <Text style={[styles.textInput, selectedCuisines.length === 0 && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
+                    {selectedCuisines.length > 0 
+                      ? selectedCuisines.map(c => c === "Other" && customCuisine ? `${c} (${customCuisine})` : c).join(", ")
+                      : "Select Cuisines"}
+                  </Text>
+                  <Ionicons name={showCuisineDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
+                </TouchableOpacity>
+
+                {showCuisineDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                      {cuisinesList.map((cuisine) => {
+                        const isSelected = selectedCuisines.includes(cuisine);
+                        return (
+                          <TouchableOpacity
+                            key={cuisine}
+                            style={styles.dropdownItemRow}
+                            onPress={() => toggleCuisine(cuisine)}
+                          >
+                            <Ionicons 
+                              name={isSelected ? "checkbox" : "square-outline"} 
+                              size={18} 
+                              color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"} 
+                              style={{ marginRight: 10 }}
+                            />
+                            <Text style={[styles.dropdownItemText, isSelected && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                              {cuisine}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
+
+              {/* Custom Cuisine Input if Other is selected */}
+              {selectedCuisines.includes("Other") && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Enter Other Cuisine(s)</Text>
+                  <View style={[styles.inputWrapper, activeInput === "customCuisine" && styles.inputWrapperActive]}>
+                    <Ionicons name="create-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                    <TextInput
+                      value={customCuisine}
+                      onChangeText={setCustomCuisine}
+                      placeholder="e.g. French, Japanese"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      onFocus={() => setActiveInput("customCuisine")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                </View>
+              )}
 
               {/* Operational Expertise */}
               <View style={[styles.sectionHeader, { marginTop: 24 }]}>
@@ -1100,25 +1333,72 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 <Text style={styles.sectionTitleText}>Operational Expertise</Text>
               </View>
               <Text style={styles.sectionSubtitleText}>
-                What additional management skills do you bring to the kitchen?
+                What management skills do you bring to the kitchen?
               </Text>
-              <View style={styles.pillsRow}>
-                {operationsList.map((op) => {
-                  const isSelected = selectedOperations.includes(op);
-                  return (
-                    <TouchableOpacity
-                      key={op}
-                      style={[styles.pill, isSelected && styles.pillSelected]}
-                      onPress={() => toggleOperation(op)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                        {op}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              
+              <View style={styles.inputGroup}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setShowOperationsDropdown(!showOperationsDropdown);
+                    setShowCuisineDropdown(false);
+                  }}
+                  style={[styles.inputWrapper, showOperationsDropdown && styles.inputWrapperActive]}
+                >
+                  <Text style={[styles.textInput, selectedOperations.length === 0 && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
+                    {selectedOperations.length > 0 
+                      ? selectedOperations.map(o => o === "Other" && customOperation ? `${o} (${customOperation})` : o).join(", ")
+                      : "Select Operational Expertise"}
+                  </Text>
+                  <Ionicons name={showOperationsDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
+                </TouchableOpacity>
+
+                {showOperationsDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                      {operationsList.map((op) => {
+                        const isSelected = selectedOperations.includes(op);
+                        return (
+                          <TouchableOpacity
+                            key={op}
+                            style={styles.dropdownItemRow}
+                            onPress={() => toggleOperation(op)}
+                          >
+                            <Ionicons 
+                              name={isSelected ? "checkbox" : "square-outline"} 
+                              size={18} 
+                              color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"} 
+                              style={{ marginRight: 10 }}
+                            />
+                            <Text style={[styles.dropdownItemText, isSelected && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                              {op}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
+
+              {/* Custom Operation Input if Other is selected */}
+              {selectedOperations.includes("Other") && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Enter Other Operational Expertise</Text>
+                  <View style={[styles.inputWrapper, activeInput === "customOperation" && styles.inputWrapperActive]}>
+                    <Ionicons name="create-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                    <TextInput
+                      value={customOperation}
+                      onChangeText={setCustomOperation}
+                      placeholder="e.g. Menu Development, Staffing"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      onFocus={() => setActiveInput("customOperation")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                </View>
+              )}
 
               {/* Years of Experience */}
               <View style={[styles.sectionHeader, { marginTop: 24 }]}>
@@ -1161,7 +1441,11 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.continueButton,
-                  (selectedCuisines.length === 0 || selectedOperations.length === 0 || !experienceYears) && styles.continueButtonDisabled
+                  (!selectedCuisines.length || 
+                   (selectedCuisines.includes("Other") && !customCuisine.trim()) ||
+                   !selectedOperations.length || 
+                   (selectedOperations.includes("Other") && !customOperation.trim()) ||
+                   !experienceYears) && styles.continueButtonDisabled
                 ]}
                 onPress={next}
                 activeOpacity={0.8}
@@ -2372,6 +2656,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f3",
+  },
+  dropdownItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,

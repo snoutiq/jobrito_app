@@ -38,7 +38,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const handleDismissSuccessModal = () => {
     setShowSuccessModal(false);
     handleReset();
-    navigation.navigate("MyJobs");
+    navigation.navigate("MyJobs", { activeTab: "pending" });
   };
 
   // Form Fields
@@ -52,7 +52,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [description, setDescription] = useState("");
 
   // Optional Fields
-  const [salary, setSalary] = useState("");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+  const [salaryCurrency, setSalaryCurrency] = useState("INR");
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState("Full-time");
   const [experienceRange, setExperienceRange] = useState(
@@ -179,10 +182,6 @@ export default function PostReferralJobScreen({ navigation, route }) {
       Alert.alert(t("error"), "Phone number is required.");
       return;
     }
-    if (!emailAddress.trim()) {
-      Alert.alert(t("error"), "Email address is required.");
-      return;
-    }
     if (category === "overseas" && !country.trim()) {
       Alert.alert(
         t("error"),
@@ -207,7 +206,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
           .filter(Boolean)
       : null;
 
-    const combinedContact = `Phone: ${phoneNumber.trim()} | Email: ${emailAddress.trim()}`;
+    const combinedContact = emailAddress.trim() 
+      ? `Phone: ${phoneNumber.trim()} | Email: ${emailAddress.trim()}`
+      : `Phone: ${phoneNumber.trim()}`;
+
+    const combinedSalary = salaryMin && salaryMax 
+      ? `${salaryCurrency} ${salaryMin} - ${salaryMax}`
+      : salaryMin 
+        ? `${salaryCurrency} ${salaryMin}+`
+        : "";
 
     const jobData = {
       title,
@@ -215,7 +222,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
       company,
       contact_info: combinedContact,
       description,
-      salary: salary.trim() || null,
+      salary: combinedSalary || null,
+      salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
+      salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
+      salary_currency: salaryCurrency,
       location: location.trim() || null,
       job_type: jobType,
       experience_range: experienceRange,
@@ -301,7 +311,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
     setCompany("");
     setContactInfo("");
     setDescription("");
-    setSalary("");
+    setSalaryMin("");
+    setSalaryMax("");
+    setSalaryCurrency("INR");
     setLocation("");
     setJobType("Full-time");
     setExperienceRange("Mid-Level (3-5 years)");
@@ -580,52 +592,93 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                {/* Salary & Positions */}
-                <View style={styles.inlineRow}>
-                  <View style={{ flex: 1.1, marginRight: 8 }}>
-                    <Text style={styles.inputLabel}>
-                      {t("postJob.salaryRange", "Salary")}
-                    </Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "salary" && styles.inputWrapperActive,
-                      ]}
+                {/* Salary Currency & Range Section */}
+                <Text style={styles.inputLabel}>{t("postJob.salaryRange", "Salary Range")}</Text>
+                
+                <View style={[styles.inlineRow, { marginBottom: 12 }]}>
+                  {/* Currency Selector */}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                      style={[styles.inputWrapper, showCurrencyDropdown && styles.inputWrapperActive]}
                     >
+                      <Text style={[styles.textInput, !salaryCurrency && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
+                        {salaryCurrency || "Currency"}
+                      </Text>
+                      <Ionicons name={showCurrencyDropdown ? "chevron-up" : "chevron-down"} size={16} color="rgba(10, 5, 4, 0.6)" />
+                    </TouchableOpacity>
+                    
+                    {showCurrencyDropdown && (
+                      <View style={styles.dropdownContainer}>
+                        {["INR (₹)", "USD ($)", "SAR (SR)", "AED (AED)", "EUR (€)", "GBP (£)"].map((curr) => {
+                          const code = curr.split(" ")[0];
+                          return (
+                            <TouchableOpacity
+                              key={code}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSalaryCurrency(code);
+                                setShowCurrencyDropdown(false);
+                              }}
+                            >
+                              <Text style={[styles.dropdownItemText, salaryCurrency === code && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                                {curr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Min Salary */}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <View style={[styles.inputWrapper, activeField === "salaryMin" && styles.inputWrapperActive]}>
                       <TextInput
-                        value={salary}
-                        onChangeText={setSalary}
-                        placeholder={t("postJob.salaryPlaceholder")}
+                        value={salaryMin}
+                        onChangeText={setSalaryMin}
+                        placeholder={t("postJob.salaryMinPlaceholder", "Min")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
-                        onFocus={() => setActiveField("salary")}
+                        keyboardType="numeric"
+                        onFocus={() => setActiveField("salaryMin")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
                   </View>
 
-                  <View style={{ flex: 0.9, marginLeft: 8 }}>
-                    <Text style={styles.inputLabel}>
-                      {t("postJob.openPositions", "Open Positions")}
-                    </Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "openPositions" &&
-                          styles.inputWrapperActive,
-                      ]}
-                    >
+                  {/* Max Salary */}
+                  <View style={{ flex: 1 }}>
+                    <View style={[styles.inputWrapper, activeField === "salaryMax" && styles.inputWrapperActive]}>
                       <TextInput
-                        value={openPositions}
-                        onChangeText={setOpenPositions}
-                        placeholder="1"
+                        value={salaryMax}
+                        onChangeText={setSalaryMax}
+                        placeholder={t("postJob.salaryMaxPlaceholder", "Max")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                        keyboardType="number-pad"
                         style={styles.textInput}
-                        onFocus={() => setActiveField("openPositions")}
+                        keyboardType="numeric"
+                        onFocus={() => setActiveField("salaryMax")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
+                  </View>
+                </View>
+
+                {/* Open Positions Section */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>{t("postJob.openPositions", "Open Positions")}</Text>
+                  <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive]}>
+                    <TextInput
+                      value={openPositions}
+                      onChangeText={setOpenPositions}
+                      placeholder="1"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      keyboardType="numeric"
+                      onFocus={() => setActiveField("openPositions")}
+                      onBlur={() => setActiveField(null)}
+                    />
                   </View>
                 </View>
 
@@ -919,7 +972,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <View style={styles.reviewTextContainer}>
                     <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel", "Salary")}</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
-                      {salary.trim() || "Competitive"}
+                      {salaryMin ? `${salaryCurrency} ${salaryMin}${salaryMax ? ` - ${salaryMax}` : "+"}` : "Not Specified"}
                     </Text>
                   </View>
                 </View>

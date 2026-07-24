@@ -34,7 +34,7 @@ const formatDate = (dateStr) => {
   });
 };
 
-export default function MyJobsScreen({ navigation }) {
+export default function MyJobsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -72,6 +72,12 @@ export default function MyJobsScreen({ navigation }) {
     });
     return unsubscribe;
   }, [navigation, fetchAllData]);
+
+  useEffect(() => {
+    if (route?.params?.activeTab) {
+      setActiveTab(route.params.activeTab);
+    }
+  }, [route?.params?.activeTab]);
 
   useEffect(() => {
     setLocalJobs(jobsToShow);

@@ -58,7 +58,10 @@ export default function PostJobScreen({ navigation, route }) {
   const [region, setRegion] = useState("India");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
-  const [salaryRange, setSalaryRange] = useState("");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+  const [salaryCurrency, setSalaryCurrency] = useState("INR");
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [openPositions, setOpenPositions] = useState("1");
   const [experience, setExperience] = useState("Mid-Level (3-5 years)");
   const [jobDescription, setJobDescription] = useState("");
@@ -125,8 +128,8 @@ export default function PostJobScreen({ navigation, route }) {
       Alert.alert(t("error"), t("postJob.locationRequired", "Please enter a Job Location."));
       return;
     }
-    if (!salaryRange.trim()) {
-      Alert.alert(t("error"), t("postJob.salaryRequired", "Please enter a Salary Range."));
+    if (!salaryMin.trim()) {
+      Alert.alert(t("error"), t("postJob.salaryRequired", "Please enter a Minimum Salary."));
       return;
     }
     if (!openPositions.trim() || isNaN(openPositions)) {
@@ -169,12 +172,21 @@ export default function PostJobScreen({ navigation, route }) {
       return;
     }
 
+    const combinedSalary = salaryMin && salaryMax 
+      ? `${salaryCurrency} ${salaryMin} - ${salaryMax}`
+      : salaryMin 
+        ? `${salaryCurrency} ${salaryMin}+`
+        : "";
+
     const jobData = {
       title: jobTitle,
       category: region.toLowerCase(),
       company: businessName,
       location: location,
-      salary: salaryRange,
+      salary: combinedSalary,
+      salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
+      salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
+      salary_currency: salaryCurrency,
       contact_info: contactEmail,
       description: jobDescription,
       job_type: jobType,
@@ -211,7 +223,9 @@ export default function PostJobScreen({ navigation, route }) {
   const handleReset = () => {
     setJobTitle("");
     setLocation("");
-    setSalaryRange("");
+    setSalaryMin("");
+    setSalaryMax("");
+    setSalaryCurrency("INR");
     setExperience("Mid-Level (3-5 years)");
     setOpenPositions("1");
     setJobDescription("");
@@ -489,47 +503,93 @@ export default function PostJobScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                {/* Salary & Positions Row */}
-                <View style={styles.inlineRow}>
-                  <View style={{ flex: 1.1, marginRight: 8 }}>
-                    <Text style={styles.inputLabel}>{t("postJob.salaryRange")}</Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "salaryRange" && styles.inputWrapperActive,
-                      ]}
+                {/* Salary Currency & Range Section */}
+                <Text style={styles.inputLabel}>{t("postJob.salaryRange", "Salary Range")}</Text>
+                
+                <View style={[styles.inlineRow, { marginBottom: 12 }]}>
+                  {/* Currency Selector */}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                      style={[styles.inputWrapper, showCurrencyDropdown && styles.inputWrapperActive]}
                     >
+                      <Text style={[styles.textInput, !salaryCurrency && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
+                        {salaryCurrency || "Currency"}
+                      </Text>
+                      <Ionicons name={showCurrencyDropdown ? "chevron-up" : "chevron-down"} size={16} color="rgba(10, 5, 4, 0.6)" />
+                    </TouchableOpacity>
+                    
+                    {showCurrencyDropdown && (
+                      <View style={styles.dropdownContainer}>
+                        {["INR (₹)", "USD ($)", "SAR (SR)", "AED (AED)", "EUR (€)", "GBP (£)"].map((curr) => {
+                          const code = curr.split(" ")[0];
+                          return (
+                            <TouchableOpacity
+                              key={code}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSalaryCurrency(code);
+                                setShowCurrencyDropdown(false);
+                              }}
+                            >
+                              <Text style={[styles.dropdownItemText, salaryCurrency === code && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
+                                {curr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Min Salary */}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <View style={[styles.inputWrapper, activeField === "salaryMin" && styles.inputWrapperActive]}>
                       <TextInput
-                        value={salaryRange}
-                        onChangeText={setSalaryRange}
-                        placeholder={t("postJob.salaryPlaceholder")}
+                        value={salaryMin}
+                        onChangeText={setSalaryMin}
+                        placeholder={t("postJob.salaryMinPlaceholder", "Min")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
-                        onFocus={() => setActiveField("salaryRange")}
+                        keyboardType="numeric"
+                        onFocus={() => setActiveField("salaryMin")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
                   </View>
 
-                  <View style={{ flex: 0.9, marginLeft: 8 }}>
-                    <Text style={styles.inputLabel}>{t("postJob.openPositions")}</Text>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        activeField === "openPositions" && styles.inputWrapperActive,
-                      ]}
-                    >
+                  {/* Max Salary */}
+                  <View style={{ flex: 1 }}>
+                    <View style={[styles.inputWrapper, activeField === "salaryMax" && styles.inputWrapperActive]}>
                       <TextInput
-                        value={openPositions}
-                        onChangeText={setOpenPositions}
-                        placeholder="1"
+                        value={salaryMax}
+                        onChangeText={setSalaryMax}
+                        placeholder={t("postJob.salaryMaxPlaceholder", "Max")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                        keyboardType="number-pad"
                         style={styles.textInput}
-                        onFocus={() => setActiveField("openPositions")}
+                        keyboardType="numeric"
+                        onFocus={() => setActiveField("salaryMax")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
+                  </View>
+                </View>
+
+                {/* Open Positions Section */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>{t("postJob.openPositions")}</Text>
+                  <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive]}>
+                    <TextInput
+                      value={openPositions}
+                      onChangeText={setOpenPositions}
+                      placeholder="1"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      keyboardType="numeric"
+                      onFocus={() => setActiveField("openPositions")}
+                      onBlur={() => setActiveField(null)}
+                    />
                   </View>
                 </View>
 
@@ -780,7 +840,7 @@ export default function PostJobScreen({ navigation, route }) {
                   <View style={styles.reviewTextContainer}>
                     <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel")}</Text>
                     <Text style={styles.reviewCardValue} numberOfLines={1}>
-                      {salaryRange.trim() || "£45k - £55k"}
+                      {salaryMin ? `${salaryCurrency} ${salaryMin}${salaryMax ? ` - ${salaryMax}` : "+"}` : "Not Specified"}
                     </Text>
                   </View>
                 </View>

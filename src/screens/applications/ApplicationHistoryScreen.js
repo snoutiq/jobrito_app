@@ -20,6 +20,8 @@ import EmptyState from "../../components/common/EmptyState";
 import colors from "../../constants/colors";
 import { fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 
+const PRIMARY_GREEN = "#153e69";
+
 const formatAppliedTime = (appliedOn) => {
   if (!appliedOn) return "Recently";
   const date = new Date(appliedOn);
@@ -98,6 +100,23 @@ export default function ApplicationHistoryScreen({ navigation }) {
     .toUpperCase();
 
   const renderItem = ({ item }) => {
+    const jobOpenings = item.job?.open_positions ?? item.job?.openings ?? 0;
+    const jobType = item.job?.job_type ?? item.job?.type ?? "Full-time";
+    const appliedDate = formatAppliedTime(item.appliedOn);
+    
+    // Determine status badge color
+    const status = (item.status || "UNDER REVIEW").toUpperCase();
+    let statusBg = "rgba(242, 200, 121, 0.12)";
+    let statusTextColor = "#f2c879";
+    
+    if (status === "SHORTLISTED" || status === "CONTACTED") {
+      statusBg = "rgba(21, 105, 62, 0.08)";
+      statusTextColor = "#15693e";
+    } else if (status === "JOB CLOSED") {
+      statusBg = "#f2f2f3";
+      statusTextColor = "rgba(10, 5, 4, 0.6)";
+    }
+
     return (
       <Pressable
         onPress={() => {
@@ -105,53 +124,71 @@ export default function ApplicationHistoryScreen({ navigation }) {
             navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
           }
         }}
-        style={styles.row}
+        style={styles.jobCard}
       >
-        {/* Left company logo */}
-        <View style={styles.avatarContainer}>
-          {item.avatar ? (
-            <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Ionicons name="business-outline" size={24} color="rgba(10, 5, 4, 0.6)" />
+        <View style={styles.jobHeader}>
+          <View style={styles.jobTitleWrapper}>
+            <View style={styles.iconContainer}>
+              {item.avatar ? (
+                <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons name="restaurant-outline" size={22} color={PRIMARY_GREEN} />
+              )}
             </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.jobTitleText} numberOfLines={1}>{item.title}</Text>
+              {item.employer ? (
+                <Text style={styles.jobCompanyText} numberOfLines={1}>{item.employer}</Text>
+              ) : null}
+              <Text style={styles.jobMetaText}>
+                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
+                {item.job?.location || "Flexible"} • {appliedDate}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+            <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
+              {status}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.detailsRow}>
+          {jobOpenings > 0 && (
+            <Text style={styles.detailsText}>
+              <Ionicons name="people-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
+              {t("openings_count", { count: jobOpenings })}
+            </Text>
           )}
+          <Text style={styles.detailsText}>
+            <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
+            {jobType}
+          </Text>
+          {item.job?.salary ? (
+            <Text style={styles.detailsText}>
+              <Ionicons name="card-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
+              {item.job.salary}
+            </Text>
+          ) : null}
         </View>
 
-        {/* Middle content */}
-        <View style={styles.infoContainer}>
-          <Text style={styles.jobTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.companyName} numberOfLines={1}>
-            {item.employer}
-          </Text>
-          
-          {/* Salary and Location Row */}
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Ionicons name="cash-outline" size={14} color="rgba(10, 5, 4, 0.4)" style={{ marginRight: 2 }} />
-              <Text style={styles.metaText} numberOfLines={1}>
-                {item.job?.salary || "Competitive"}
-              </Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.4)" style={{ marginRight: 2 }} />
-              <Text style={styles.metaText} numberOfLines={1}>
-                {item.job?.location || "Flexible"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.badgeWrapper}>
-            <StatusBadge status={item.status} />
-          </View>
-        </View>
-
-        {/* Right content */}
-        <View style={styles.rightContainer}>
-          <Text style={styles.dateText}>{formatAppliedTime(item.appliedOn)}</Text>
-          <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
+        <View style={styles.divider} />
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.viewDetailsBtn}
+            activeOpacity={0.8}
+            onPress={() => {
+              if (item.jobId) {
+                navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
+              }
+            }}
+          >
+            <Text style={styles.viewDetailsBtnText}>
+              {t("applications.viewDetails", "View Details")}
+            </Text>
+            <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
+          </TouchableOpacity>
         </View>
       </Pressable>
     );
@@ -302,14 +339,14 @@ export default function ApplicationHistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 8,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "rgba(10, 5, 4, 0.06)",
@@ -327,25 +364,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#0a0504",
   },
-  profileAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: "#153e69", // brand primary avatar background
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
   searchFilterRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 8,
     backgroundColor: "#ffffff",
   },
   searchBar: {
@@ -398,65 +422,86 @@ const styles = StyleSheet.create({
     color: "#f57f20",
   },
   listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 24,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(10, 5, 4, 0.05)",
+  jobCard: {
     backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  avatarContainer: {
-    width: 48,
-    height: 48,
+  jobHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  jobTitleWrapper: {
+    flexDirection: "row",
+    flex: 1,
+    marginRight: 8,
+  },
+  iconContainer: {
+    width: 42,
+    height: 42,
     borderRadius: 10,
-    overflow: "hidden",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 10,
+    overflow: "hidden",
   },
   avatarImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
-  avatarFallback: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-  },
-  infoContainer: {
-    flex: 1,
-    marginLeft: 16,
-    justifyContent: "center",
-  },
-  jobTitle: {
+  jobTitleText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0a0504",
     marginBottom: 2,
   },
-  companyName: {
+  jobCompanyText: {
     fontSize: 13,
+    fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  badgeWrapper: {
-    alignSelf: "flex-start",
+  jobMetaText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
   },
-  rightContainer: {
-    alignItems: "flex-end",
-    gap: 8,
-    marginLeft: 8,
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  dateText: {
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  detailsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    paddingLeft: 52,
+  },
+  detailsText: {
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
+    flexDirection: "row",
+    alignItems: "center",
   },
   footerContainer: {
     paddingVertical: 24,
@@ -466,22 +511,6 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.4)",
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#153e69", // vibrant green FAB
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
   },
   modalOverlay: {
     flex: 1,
@@ -545,21 +574,27 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#f57f20",
   },
-  metaRow: {
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    marginVertical: 12,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  viewDetailsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginTop: 4,
-    marginBottom: 6,
+    backgroundColor: "#153e69",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    maxWidth: "50%",
-  },
-  metaText: {
+  viewDetailsBtnText: {
+    color: "#ffffff",
     fontSize: 12,
-    color: "rgba(10, 5, 4, 0.4)",
+    fontWeight: "700",
   },
 });

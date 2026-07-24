@@ -60,11 +60,6 @@ export default function HomeScreen({ navigation }) {
   const toggleFavorite = async (id) => {
     const isFav = !favorites[id];
     setFavorites((prev) => ({ ...prev, [id]: isFav }));
-    if (isFav) {
-      Alert.alert(t("liked", "Liked"), t("jobAddedFavs", "Job added to your favorites list."));
-    } else {
-      Alert.alert(t("removed", "Removed"), t("jobRemovedFavs", "Job removed from your favorites list."));
-    }
 
     try {
       await dispatch(toggleSaveJob(id)).unwrap();

@@ -70,7 +70,10 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
 
   const displayName = chef.full_name || chef.name || "Chef User";
   const displayTitle = chef.professionalTitle || chef.preferred_role || chef.cuisine_specialty || "";
-  const displayCity = chef.city || "";
+  const displayCity = chef.city && chef.country 
+    ? `${chef.city}, ${chef.country}`
+    : chef.city || chef.country || "";
+  const displayPrefLocation = chef.locationPreference || chef.location_preference || "";
   const displayExperience = chef.experienceYears || chef.experience_range || chef.experience || "";
   const displayBio = chef.bio || "";
 
@@ -311,8 +314,11 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           {Boolean(displayTitle) && <Text style={styles.chefTitle}>{displayTitle}</Text>}
           {Boolean(displayCity) && (
             <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
-              <Text style={styles.locationText}>{displayCity}</Text>
+              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
+              <Text style={styles.locationText}>
+                {t("current", "Current")}: {displayCity}
+                {displayPrefLocation ? ` | ${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
+              </Text>
             </View>
           )}
           {Boolean(getAvailabilityStatus()) && (
