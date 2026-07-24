@@ -43,37 +43,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
   const isConnected = Boolean(calendlyLink && calendlyLink.trim().length > 5);
 
-  const handlePasteClipboard = async () => {
-    try {
-      const content = await Clipboard.getString();
-      if (content && content.trim()) {
-        let cleaned = content.trim().replace(/\s+/g, "");
-        if (!/^https?:\/\//i.test(cleaned)) {
-          cleaned = "https://" + cleaned;
-        }
-        setCalendlyLink(cleaned);
-        CustomAlert.show(t("success", "Success"), t("linkPasted", "Calendly link pasted from clipboard!"));
-      } else {
-        CustomAlert.show(t("error", "Error"), t("clipboardEmpty", "Clipboard is empty."));
-      }
-    } catch (error) {
-      CustomAlert.show(t("error", "Error"), "Failed to read clipboard.");
-    }
-  };
 
-  const handleTestLink = () => {
-    if (!calendlyLink || !calendlyLink.trim()) {
-      CustomAlert.show(t("error", "Error"), "Please enter a Calendly link first.");
-      return;
-    }
-    let url = calendlyLink.trim();
-    if (!/^https?:\/\//i.test(url)) {
-      url = "https://" + url;
-    }
-    Linking.openURL(url).catch((err) => {
-      CustomAlert.show(t("error", "Error"), "Could not open Calendly URL: " + err.message);
-    });
-  };
 
   const handleSignupCalendly = () => {
     Linking.openURL("https://calendly.com/signup").catch((err) => {
@@ -199,33 +169,21 @@ export default function CalendlyIntegrationScreen({ navigation }) {
             ) : null}
           </View>
 
-          {/* Quick Utility Buttons */}
-          <View style={styles.utilityRow}>
-            <TouchableOpacity style={styles.utilityBtn} onPress={handlePasteClipboard}>
-              <Ionicons name="clipboard-outline" size={16} color={PRIMARY} style={{ marginRight: 6 }} />
-              <Text style={styles.utilityBtnText}>Paste from Clipboard</Text>
-            </TouchableOpacity>
 
-            {calendlyLink ? (
-              <TouchableOpacity style={styles.utilityBtn} onPress={handleTestLink}>
-                <Ionicons name="open-outline" size={16} color={PRIMARY} style={{ marginRight: 6 }} />
-                <Text style={styles.utilityBtnText}>Test / Preview Link</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
 
           {/* Primary Save Button */}
           <TouchableOpacity
             style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
             onPress={handleSaveLink}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <>
-                <Ionicons name="save-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
                 <Text style={styles.saveBtnText}>Save Calendly Link</Text>
+                <Ionicons name="arrow-forward" size={18} color="#ffffff" />
               </>
             )}
           </TouchableOpacity>
@@ -388,45 +346,30 @@ const styles = StyleSheet.create({
     color: NEUTRAL,
     fontWeight: "600",
   },
-  utilityRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 16,
-  },
-  utilityBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: SECONDARY,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.1)",
-  },
-  utilityBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: PRIMARY,
-  },
+
   saveBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: PRIMARY,
-    height: 48,
-    borderRadius: 14,
+    minHeight: 52,
+    borderRadius: 12,
+    gap: 8,
     shadowColor: PRIMARY,
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 2,
+    marginTop: 20,
   },
   saveBtnDisabled: {
-    opacity: 0.7,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#ffffff",
   },
 

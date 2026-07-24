@@ -39,67 +39,102 @@ export default function SocialMediaLinksScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
 
+  const extractUsername = (url, platform) => {
+    if (!url) return "";
+    let cleaned = url.trim().replace(/\/$/, ""); // remove trailing slash
+    
+    // Remove protocol
+    cleaned = cleaned.replace(/^https?:\/\/(www\.)?/, "");
+    
+    if (platform === "linkedin") {
+      cleaned = cleaned.replace(/^linkedin\.com\/in\//i, "");
+    } else if (platform === "instagram") {
+      cleaned = cleaned.replace(/^instagram\.com\//i, "");
+    } else if (platform === "facebook") {
+      cleaned = cleaned.replace(/^facebook\.com\//i, "");
+    } else if (platform === "twitter") {
+      cleaned = cleaned.replace(/^(twitter|x)\.com\//i, "");
+    } else if (platform === "youtube") {
+      cleaned = cleaned.replace(/^youtube\.com\/(@|c\/)?/i, "");
+    }
+    
+    return cleaned;
+  };
+
+  const handleInputChange = (text, platform, setter) => {
+    const username = extractUsername(text, platform);
+    setter(username);
+  };
+
   useEffect(() => {
     if (profile) {
-      if (profile.linkedin) setLinkedin(profile.linkedin);
-      if (profile.instagram) setInstagram(profile.instagram);
-      if (profile.facebook) setFacebook(profile.facebook);
-      if (profile.twitter) setTwitter(profile.twitter);
-      if (profile.youtube) setYoutube(profile.youtube);
+      if (profile.linkedin) setLinkedin(extractUsername(profile.linkedin, "linkedin"));
+      if (profile.instagram) setInstagram(extractUsername(profile.instagram, "instagram"));
+      if (profile.facebook) setFacebook(extractUsername(profile.facebook, "facebook"));
+      if (profile.twitter) setTwitter(extractUsername(profile.twitter, "twitter"));
+      if (profile.youtube) setYoutube(extractUsername(profile.youtube, "youtube"));
       if (profile.website || profile.portfolio) setWebsite(profile.website || profile.portfolio);
     }
   }, [profile]);
 
   const connectedCount = [linkedin, instagram, facebook, twitter, youtube, website].filter(
-    (item) => item && item.trim().length > 3
+    (item) => item && item.trim().length > 0
   ).length;
 
-  const handleTestLink = (rawUrl) => {
-    if (!rawUrl || !rawUrl.trim()) return;
-    let url = rawUrl.trim();
-    if (!/^https?:\/\//i.test(url)) {
-      url = "https://" + url;
+  const handleTestLink = (value, platform) => {
+    if (!value || !value.trim()) return;
+    let url = value.trim();
+    if (platform === "linkedin") {
+      url = `https://linkedin.com/in/${url}`;
+    } else if (platform === "instagram") {
+      url = `https://instagram.com/${url}`;
+    } else if (platform === "facebook") {
+      url = `https://facebook.com/${url}`;
+    } else if (platform === "twitter") {
+      url = `https://x.com/${url}`;
+    } else if (platform === "youtube") {
+      url = `https://youtube.com/@${url}`;
+    } else {
+      if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+      }
     }
     Linking.openURL(url).catch((err) => {
       CustomAlert.show(t("error", "Error"), "Could not open URL: " + err.message);
     });
   };
 
-  const handlePasteClipboard = async (setter) => {
-    try {
-      const content = await Clipboard.getString();
-      if (content && content.trim()) {
-        let cleaned = content.trim().replace(/\s+/g, "");
+
+
+  const handleSaveSocialLinks = async () => {
+    const formatUrl = (val, platform) => {
+      if (!val || !val.trim()) return "";
+      let cleaned = val.trim().replace(/\s+/g, "");
+      if (platform === "linkedin") {
+        return `https://linkedin.com/in/${cleaned.replace(/^\//, "")}`;
+      } else if (platform === "instagram") {
+        return `https://instagram.com/${cleaned.replace(/^\//, "")}`;
+      } else if (platform === "facebook") {
+        return `https://facebook.com/${cleaned.replace(/^\//, "")}`;
+      } else if (platform === "twitter") {
+        return `https://x.com/${cleaned.replace(/^\//, "")}`;
+      } else if (platform === "youtube") {
+        return `https://youtube.com/@${cleaned.replace(/^@|^\//, "")}`;
+      } else {
         if (!/^https?:\/\//i.test(cleaned)) {
           cleaned = "https://" + cleaned;
         }
-        setter(cleaned);
-        CustomAlert.show(t("success", "Success"), "Pasted from clipboard!");
-      } else {
-        CustomAlert.show(t("error", "Error"), "Clipboard is empty.");
+        return cleaned;
       }
-    } catch (e) {
-      CustomAlert.show(t("error", "Error"), "Failed to read clipboard.");
-    }
-  };
-
-  const handleSaveSocialLinks = async () => {
-    const cleanUrl = (val) => {
-      if (!val || !val.trim()) return "";
-      let cleaned = val.trim().replace(/\s+/g, "");
-      if (!/^https?:\/\//i.test(cleaned)) {
-        cleaned = "https://" + cleaned;
-      }
-      return cleaned;
     };
 
     const updatedSocials = {
-      linkedin: cleanUrl(linkedin),
-      instagram: cleanUrl(instagram),
-      facebook: cleanUrl(facebook),
-      twitter: cleanUrl(twitter),
-      youtube: cleanUrl(youtube),
-      website: cleanUrl(website),
+      linkedin: formatUrl(linkedin, "linkedin"),
+      instagram: formatUrl(instagram, "instagram"),
+      facebook: formatUrl(facebook, "facebook"),
+      twitter: formatUrl(twitter, "twitter"),
+      youtube: formatUrl(youtube, "youtube"),
+      website: formatUrl(website, "website"),
     };
 
     setLoading(true);
@@ -179,27 +214,23 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <Text style={styles.inputLabel}>LinkedIn Profile</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "linkedin" && styles.inputWrapperActive]}>
+              <Text style={styles.prefixText}>linkedin.com/in/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://linkedin.com/in/your-profile"
+                placeholder="your-profile"
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={linkedin}
-                onChangeText={setLinkedin}
+                onChangeText={(text) => handleInputChange(text, "linkedin", setLinkedin)}
                 onFocus={() => setActiveInput("linkedin")}
                 onBlur={() => setActiveInput(null)}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="url"
               />
               {linkedin ? (
-                <TouchableOpacity onPress={() => handleTestLink(linkedin)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(linkedin, "linkedin")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setLinkedin)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -210,27 +241,23 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <Text style={styles.inputLabel}>Instagram (Food Portfolio)</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "instagram" && styles.inputWrapperActive]}>
+              <Text style={styles.prefixText}>instagram.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://instagram.com/chef_username"
+                placeholder="chef_username"
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={instagram}
-                onChangeText={setInstagram}
+                onChangeText={(text) => handleInputChange(text, "instagram", setInstagram)}
                 onFocus={() => setActiveInput("instagram")}
                 onBlur={() => setActiveInput(null)}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="url"
               />
               {instagram ? (
-                <TouchableOpacity onPress={() => handleTestLink(instagram)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(instagram, "instagram")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setInstagram)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -241,27 +268,23 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <Text style={styles.inputLabel}>Facebook Page</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "facebook" && styles.inputWrapperActive]}>
+              <Text style={styles.prefixText}>facebook.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://facebook.com/your-page"
+                placeholder="your-page"
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={facebook}
-                onChangeText={setFacebook}
+                onChangeText={(text) => handleInputChange(text, "facebook", setFacebook)}
                 onFocus={() => setActiveInput("facebook")}
                 onBlur={() => setActiveInput(null)}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="url"
               />
               {facebook ? (
-                <TouchableOpacity onPress={() => handleTestLink(facebook)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(facebook, "facebook")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setFacebook)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -272,27 +295,23 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <Text style={styles.inputLabel}>Twitter / X</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "twitter" && styles.inputWrapperActive]}>
+              <Text style={styles.prefixText}>x.com/</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://x.com/your-handle"
+                placeholder="your-handle"
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={twitter}
-                onChangeText={setTwitter}
+                onChangeText={(text) => handleInputChange(text, "twitter", setTwitter)}
                 onFocus={() => setActiveInput("twitter")}
                 onBlur={() => setActiveInput(null)}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="url"
               />
               {twitter ? (
-                <TouchableOpacity onPress={() => handleTestLink(twitter)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(twitter, "twitter")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setTwitter)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -303,27 +322,23 @@ export default function SocialMediaLinksScreen({ navigation }) {
               <Text style={styles.inputLabel}>YouTube Channel</Text>
             </View>
             <View style={[styles.inputWrapper, activeInput === "youtube" && styles.inputWrapperActive]}>
+              <Text style={styles.prefixText}>youtube.com/@</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="https://youtube.com/@c/your-channel"
+                placeholder="your-channel"
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={youtube}
-                onChangeText={setYoutube}
+                onChangeText={(text) => handleInputChange(text, "youtube", setYoutube)}
                 onFocus={() => setActiveInput("youtube")}
                 onBlur={() => setActiveInput(null)}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="url"
               />
               {youtube ? (
-                <TouchableOpacity onPress={() => handleTestLink(youtube)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(youtube, "youtube")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setYoutube)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -347,14 +362,10 @@ export default function SocialMediaLinksScreen({ navigation }) {
                 keyboardType="url"
               />
               {website ? (
-                <TouchableOpacity onPress={() => handleTestLink(website)} style={styles.testBtn}>
+                <TouchableOpacity onPress={() => handleTestLink(website, "website")} style={styles.testBtn}>
                   <Ionicons name="open-outline" size={16} color={PRIMARY} />
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={() => handlePasteClipboard(setWebsite)} style={styles.pasteBtn}>
-                  <Text style={styles.pasteBtnText}>Paste</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -363,13 +374,14 @@ export default function SocialMediaLinksScreen({ navigation }) {
             style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
             onPress={handleSaveSocialLinks}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <>
-                <Ionicons name="save-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
                 <Text style={styles.saveBtnText}>Save Social Links</Text>
+                <Ionicons name="arrow-forward" size={18} color="#ffffff" />
               </>
             )}
           </TouchableOpacity>
@@ -487,17 +499,7 @@ const styles = StyleSheet.create({
     color: NEUTRAL,
     fontWeight: "600",
   },
-  pasteBtn: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  pasteBtnText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: PRIMARY,
-  },
+
   testBtn: {
     padding: 6,
   },
@@ -506,21 +508,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: PRIMARY,
-    height: 48,
-    borderRadius: 14,
-    marginTop: 6,
+    minHeight: 52,
+    borderRadius: 12,
+    marginTop: 20,
+    gap: 8,
     shadowColor: PRIMARY,
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
   saveBtnDisabled: {
-    opacity: 0.7,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#ffffff",
+  },
+  prefixText: {
+    fontSize: 14,
+    color: "rgba(10, 5, 4, 0.45)",
+    fontWeight: "600",
+    marginRight: 2,
   },
 });

@@ -285,7 +285,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("SavedJobs")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="bookmark-outline" size={20} color="#153e69" style={styles.menuIcon} />
+              <Ionicons name="star-outline" size={20} color="#153e69" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("chefDashboard.mySavedJobs")}</Text>
             </View>
             <View style={styles.menuItemRight}>
@@ -428,7 +428,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("HelpSupport")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="help-circle-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
+              <Ionicons name="headset-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
               <Text style={styles.menuItemLabel}>{t("customerSupport")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
