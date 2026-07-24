@@ -36,8 +36,8 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   const [activeInput, setActiveInput] = useState(false);
 
   useEffect(() => {
-    if (profile?.calendly_link || profile?.calendlyUrl) {
-      setCalendlyLink(profile.calendly_link || profile.calendlyUrl);
+    if (profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink) {
+      setCalendlyLink(profile.calendly_link || profile.calendlyUrl || profile.calendlyLink);
     }
   }, [profile]);
 
@@ -106,8 +106,9 @@ export default function CalendlyIntegrationScreen({ navigation }) {
         ...profile,
         calendly_link: cleaned,
         calendlyUrl: cleaned,
+        calendlyLink: cleaned,
       };
-      dispatch(setProfileData({ calendly_link: cleaned, calendlyUrl: cleaned }));
+      dispatch(setProfileData({ calendly_link: cleaned, calendlyUrl: cleaned, calendlyLink: cleaned }));
 
       // 2. Local storage update
       await setStoredProfile(updatedProfilePayload);

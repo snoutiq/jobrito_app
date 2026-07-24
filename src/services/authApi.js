@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+import * as Device from "expo-device";
 import apiClient from "./apiClient";
 import { setStoredProfile, setStoredRole, setToken } from "./storage";
 import { ROLES, ROLE_API_MAP } from "../constants/roles";
@@ -12,45 +14,35 @@ const toFormUrlEncoded = (data) => {
     .join("&");
 };
 
-// export const requestOtp = async (phone) => {
-//   try {
-//     const response = await apiClient.post("/login", { phone });
-//     return response.data;
-//   } catch (error) {
-//     return { success: true, message: "OTP sent", phone };
-//   }
-// };
-
 export const requestOtp = async (phone, role) => {
-  console.log('hii');
-  console.log('Sending Data:', { phone, role, mappedRole: ROLE_API_MAP[role] });
-      console.log(apiClient.defaults.baseURL,"ankit2");
   try {
-    const response = await apiClient.post("/login", {
-      mobile_number: phone,
-      login_role: ROLE_API_MAP[role],
-    }, {
-      skipAuth: true,
-    });
-    
- console.log(response.data,"ankit");
+    const response = await apiClient.post(
+      "/login",
+      {
+        mobile_number: phone,
+        login_role: ROLE_API_MAP[role],
+      },
+      {
+        skipAuth: true,
+      },
+    );
+
     return {
       success: true,
       data: response.data,
       message: "OTP sent successfully",
     };
-   
-    
   } catch (error) {
     console.error("requestOtp error details:", error);
-    let errorMessage = error?.message || "Failed to send OTP. Please try again.";
-    
+    let errorMessage =
+      error?.message || "Failed to send OTP. Please try again.";
+
     if (error?.status === 429) {
       errorMessage = "Too many attempts. Please try after some time.";
     } else if (error?.status === 400) {
       errorMessage = error?.message || "Invalid phone number";
     }
-    
+
     return {
       success: false,
       message: errorMessage,
@@ -60,34 +52,23 @@ export const requestOtp = async (phone, role) => {
   }
 };
 
-// export const verifyOtp = async (phone, otp) => {
-//   try {
-//     const response = await apiClient.post("/verify-otp", { phone, otp });
-//     return response.data;
-//   } catch (error) {
-//     return {
-//       success: true,
-//       verified: true,
-//       phone,
-//       tempSession: true,
-//     };
-//   }
-// };
-
 export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
-  console.log( phone, otp, role, language, fcmToken ,"ankit3");
-  
   try {
-    const response = await apiClient.post("/verify-otp", {
-      mobile_number: phone,
-      login_role: ROLE_API_MAP[role],
-      otp,
-      selected_language: language,
-      fcm_token: fcmToken || "",
-    }, {
-      skipAuth: true,
-    });
-console.log(response);
+    const response = await apiClient.post(
+      "/verify-otp",
+      {
+        mobile_number: phone,
+        login_role: ROLE_API_MAP[role],
+        otp,
+        selected_language: language,
+        fcm_token: fcmToken || "",
+        device_type: Platform.OS || "mobile",
+        device_name: Device.modelName || Device.deviceName || "JobConnect Mobile",
+      },
+      {
+        skipAuth: true,
+      },
+    );
 
     return {
       success: true,
@@ -97,13 +78,13 @@ console.log(response);
   } catch (error) {
     console.error("OTP verification failed error details:", error);
     let errorMessage = error?.message || "Invalid OTP. Please try again.";
-    
+
     if (error?.status === 404) {
       errorMessage = "User not found. Please check your phone number.";
     } else if (error?.status === 429) {
       errorMessage = "Too many attempts. Please try after some time.";
     }
-    
+
     return {
       success: false,
       message: errorMessage,

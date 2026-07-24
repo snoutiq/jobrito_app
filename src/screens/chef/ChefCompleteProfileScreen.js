@@ -120,8 +120,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       if (profile.country) {
         setCountry(profile.country);
       }
-      if (profile.calendly_link || profile.calendlyLink) {
-        setCalendlyLink(profile.calendly_link || profile.calendlyLink);
+      if (profile.calendly_link || profile.calendlyUrl || profile.calendlyLink) {
+        setCalendlyLink(profile.calendly_link || profile.calendlyUrl || profile.calendlyLink);
       } else {
         setCalendlyLink("https://calendly.com/");
       }
@@ -618,6 +618,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         availability,
         bio,
         calendlyLink,
+        calendly_link: calendlyLink,
+        calendlyUrl: calendlyLink,
         linkedin: linkedinLink,
         instagram: instagramLink,
         facebook: facebookLink,
@@ -656,6 +658,8 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       availability,
       bio,
       calendlyLink,
+      calendly_link: calendlyLink,
+      calendlyUrl: calendlyLink,
       linkedin: linkedinLink,
       instagram: instagramLink,
       facebook: facebookLink,

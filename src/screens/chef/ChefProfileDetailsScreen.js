@@ -55,7 +55,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   }
 
   const handleOpenBooking = () => {
-    const url = chef?.calendly_link || chef?.calendlyUrl;
+    const url = chef?.calendly_link || chef?.calendlyUrl || chef?.calendlyLink;
     if (url && url.trim()) {
       Linking.openURL(url).catch((err) => {
         Alert.alert("Error", "Could not open Calendly link: " + err.message);

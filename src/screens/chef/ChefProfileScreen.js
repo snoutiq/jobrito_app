@@ -183,7 +183,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
   };
 
   const handleOpenCalendly = () => {
-    const link = profile?.calendly_link || profile?.calendlyUrl;
+    const link = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
     if (link) {
       const fullUrl = link.startsWith("http") ? link : `https://${link}`;
       Linking.openURL(fullUrl).catch(() => {

@@ -29,20 +29,20 @@ export default function LoginScreen({ navigation }) {
   const { loading } = useSelector((state) => state.auth);
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
-  const [countryFlag, setCountryFlag] = useState("🇮🇳");
+  const [countryFlag, setCountryFlag] = useState("\u{1F1EE}\u{1F1F3}");
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const role = useSelector((state) => state.user.activeRole);
 
   const countries = [
-    { name: "India", code: "+91", flag: "🇮🇳" },
-    { name: "United States", code: "+1", flag: "🇺🇸" },
-    { name: "United Kingdom", code: "+44", flag: "🇬🇧" },
-    { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" },
-    { name: "Saudi Arabia", code: "+966", flag: "🇸🇦" },
-    { name: "Canada", code: "+1", flag: "🇨🇦" },
-    { name: "Australia", code: "+61", flag: "🇦🇺" },
-    { name: "Singapore", code: "+65", flag: "🇸🇬" }
+    { name: "India", code: "+91", flag: "\u{1F1EE}\u{1F1F3}" },
+    { name: "United States", code: "+1", flag: "\u{1F1FA}\u{1F1F8}" },
+    { name: "United Kingdom", code: "+44", flag: "\u{1F1EC}\u{1F1E7}" },
+    { name: "United Arab Emirates", code: "+971", flag: "\u{1F1E6}\u{1F1EA}" },
+    { name: "Saudi Arabia", code: "+966", flag: "\u{1F1F8}\u{1F1E6}" },
+    { name: "Canada", code: "+1", flag: "\u{1F1E8}\u{1F1E6}" },
+    { name: "Australia", code: "+61", flag: "\u{1F1E6}\u{1F1FA}" },
+    { name: "Singapore", code: "+65", flag: "\u{1F1F8}\u{1F1EC}" }
   ];
 
   const handleRequestOtp = async () => {
@@ -66,10 +66,13 @@ export default function LoginScreen({ navigation }) {
 
       if (payload?.token && payload?.message === "Already logged in.") {
         const user = payload.user;
-        const hasCompletedOnboarding = payload.has_completed_onboarding ?? (user?.chef_profile || user?.employer_profile ? true : false);
+        const hasCompletedOnboarding =
+          payload.has_completed_onboarding ??
+          payload.hasCompletedOnboarding ??
+          (user?.chef_profile || user?.employer_profile ? true : false);
         const isEmp = role?.toLowerCase() === "employer";
         const isChef = role?.toLowerCase() === "chef" || role?.toLowerCase() === "job_seeker";
-        
+
         const profileToStore = {
           ...user,
           name: user?.full_name || user?.name || user?.mobile_number || "",
@@ -96,7 +99,13 @@ export default function LoginScreen({ navigation }) {
         phone: phone.trim(),
         otp: otpVal,
       });
+      return;
     }
+
+    Alert.alert(
+      t("error"),
+      result?.payload || t("login.otpSendFailed", "Failed to send OTP. Please try again."),
+    );
   };
 
   const filteredCountries = countries.filter(item => 
@@ -389,4 +398,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

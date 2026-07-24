@@ -223,7 +223,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   const timeSlotsToRender = getTimeSlotsToRender();
 
   const handleOpenBooking = (chef) => {
-    const url = chef?.calendly_link;
+    const url = chef?.calendly_link || chef?.calendlyUrl || chef?.calendlyLink;
     if (url && url.trim()) {
       Linking.openURL(url).catch((err) => {
         Alert.alert("Error", "Could not open Calendly link: " + err.message);

@@ -23,8 +23,8 @@ export default function RoleSwitcherScreen({ navigation }) {
 
   const getRoleLabel = (role) => {
     if (role === "job_seeker") return t("roleSelection.jobseeker", "Talent");
-    if (role === "employer") return t("roleSelection.employer", "Post a Job");
-    if (role === "chef") return t("roleSelection.chef", "Register as Chef");
+    if (role === "employer") return t("roleSelection.employer", "Hire Talent");
+    if (role === "chef") return t("roleSelection.chef", "Chef Connect");
     return role;
   };
 

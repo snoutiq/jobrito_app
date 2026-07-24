@@ -117,7 +117,7 @@ export const updateProfile = async (data) => {
         const uriParts = profilePhotoPath.split("/");
         const fileName = uriParts[uriParts.length - 1];
         const fileType = fileName.split(".").pop();
-        formData.append("profile_photo", {
+        formData.append("profile_photo_path", {
           uri: Platform.OS === "android" ? profilePhotoPath : profilePhotoPath.replace("file://", ""),
           name: fileName,
           type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,

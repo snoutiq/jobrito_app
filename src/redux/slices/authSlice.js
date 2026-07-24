@@ -7,11 +7,18 @@ import {
 } from "../../services/authApi";
 import { setStoredLanguage, setToken } from "../../services/storage";
 
+const resolveOnboardingFlag = (payload) =>
+  payload?.has_completed_onboarding ?? payload?.hasCompletedOnboarding ?? false;
+
 export const requestOtp = createAsyncThunk(
   "auth/requestOtp",
   async ({ phone, role }, { rejectWithValue }) => {
     try {
       const result = await requestOtpApi(phone, role);
+      if (!result?.success) {
+        return rejectWithValue(result?.message || "Failed to request OTP");
+      }
+
       const payload = result?.data || result;
       if (payload?.token) {
         await setToken(payload.token);
@@ -35,7 +42,7 @@ export const verifyOtp = createAsyncThunk(
       const payload = result?.data || result;
       const token = payload?.token;
       const user = payload?.user || null;
-      const hasCompletedOnboarding = payload?.has_completed_onboarding ?? false;
+      const hasCompletedOnboarding = resolveOnboardingFlag(payload);
       const message = payload?.message || "Authenticated successfully.";
       if (token) {
         await setToken(token);
@@ -78,6 +85,7 @@ const initialState = {
   error: null,
   success: false,
   sessionResetKey: 0,
+  hasCompletedOnboarding: false,
 };
 
 const authSlice = createSlice({
@@ -125,7 +133,7 @@ const authSlice = createSlice({
           state.token = payload.token;
           state.user = payload.user;
           state.otpVerified = true;
-          state.hasCompletedOnboarding = payload.has_completed_onboarding ?? (payload.user?.chef_profile || payload.user?.employer_profile ? true : false);
+          state.hasCompletedOnboarding = resolveOnboardingFlag(payload) || (payload.user?.chef_profile || payload.user?.employer_profile ? true : false);
         }
       })
       .addCase(requestOtp.rejected, (state, action) => {
