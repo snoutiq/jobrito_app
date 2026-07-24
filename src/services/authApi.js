@@ -63,7 +63,7 @@ export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
         selected_language: language,
         fcm_token: fcmToken || "",
         device_type: Platform.OS || "mobile",
-        device_name: Device.modelName || Device.deviceName || "JobConnect Mobile",
+        device_name: Device.modelName || Device.deviceName || "JobRito Mobile",
       },
       {
         skipAuth: true,

@@ -1,9 +1,10 @@
 {
   "expo": {
-    "name": "JobConnect",
+    "name": "JobRito",
     "slug": "jobconnect-hospitality-workforce",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./src/assets/Jobrito full logo.png",
     "platforms": [
       "ios",
       "android",
@@ -14,11 +15,16 @@
       "bundleIdentifier": "com.jobrito.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "icon": "./src/assets/Jobrito full logo.png"
     },
     "android": {
       "package": "com.jobrito.app",
-      "googleServicesFile": "./android/app/google-services.json"
+      "googleServicesFile": "./android/app/google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/Jobrito full logo.png",
+        "backgroundColor": "#ffffff"
+      }
     },
     "web": {},
     "extra": {

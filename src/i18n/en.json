@@ -119,7 +119,7 @@
     "logoutConfirmTitle": "Logout?"
   },
   "login": {
-    "title": "Welcome to JobConnect",
+    "title": "Welcome to JobRito",
     "subtitle": "Enter your WhatsApp number to get started with your hospitality career.",
     "phoneNumberPlaceholder": "Enter your WhatsApp number",
     "requestOtpButton": "Send OTP",
