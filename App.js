@@ -11,7 +11,7 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -159,7 +159,15 @@ export default function App() {
   }, []);
 
   if (!fontsLoaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: "#ffffff", alignItems: "center", justifyContent: "center" }}>
+        <Image
+          source={require("./src/assets/Jobrito full logo.png")}
+          style={{ width: 350, height: 150 }}
+          resizeMode="contain"
+        />
+      </View>
+    );
   }
 
   return (

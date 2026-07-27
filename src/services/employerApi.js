@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import { API_ENDPOINTS } from "../constants/endpoints";
 
 const normalizeDashboardResponse = (payload = {}) => {
   const metrics = payload.metrics || {};
@@ -21,17 +22,17 @@ const normalizeDashboardResponse = (payload = {}) => {
 };
 
 export const getEmployerDashboard = async () => {
-  const response = await apiClient.get("/employer_dashboard");
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_DASHBOARD);
   return normalizeDashboardResponse(response.data);
 };
 
 export const getSubmittedJobs = async () => {
-  const response = await apiClient.get("/employer/jobs");
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_JOBS);
   return response.data;
 };
 
 export const getApplicants = async (jobId) => {
-  const response = await apiClient.get(`/employer/jobs/${jobId}/applicants`);
+  const response = await apiClient.get(`${API_ENDPOINTS.EMPLOYER_JOBS}/${jobId}/applicants`);
   return response.data;
 };
 
@@ -43,12 +44,12 @@ export const updateApplicantStatus = async (applicationId, status) => {
 };
 
 export const checkEmployerOnboarding = async () => {
-  const response = await apiClient.get("/employer/onboarding/detail");
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_ONBOARDING_DETAIL);
   return response.data;
 };
 
 export const saveEmployerOnboarding = async (formData) => {
-  const response = await apiClient.post("/employer/onboarding/save", formData, {
+  const response = await apiClient.post(API_ENDPOINTS.EMPLOYER_ONBOARDING_SAVE, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -57,6 +58,7 @@ export const saveEmployerOnboarding = async (formData) => {
 };
 
 export const closeJob = async (jobId) => {
-  const response = await apiClient.post(`/jobs/${jobId}/close`);
+  const response = await apiClient.post(`${API_ENDPOINTS.JOBS}/${jobId}/close`);
   return response.data;
 };
+

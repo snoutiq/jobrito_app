@@ -1,55 +1,18 @@
 import apiClient from "./apiClient";
-
-const sampleChefProfiles = [
-  {
-    id: "chef-1",
-    name: "Chef Vikram",
-    specialty: "Indian Cuisine",
-    experience: "12 years",
-    bio: "Seasoned hospitality chef with hotel and banquet background.",
-    mobile: "+91 98989 98989",
-    email: "vikram@example.com",
-    city: "Bengaluru",
-    availability: "Available for consulting",
-    calendlyUrl: "https://calendly.com",
-    photo: null,
-  },
-  {
-    id: "chef-2",
-    name: "Chef Naina",
-    specialty: "Bakery and Pastry",
-    experience: "8 years",
-    bio: "Chef focused on premium pastry production and kitchen mentoring.",
-    mobile: "+91 97777 77777",
-    email: "naina@example.com",
-    city: "Hyderabad",
-    availability: "Open to projects",
-    calendlyUrl: "https://calendly.com",
-    photo: null,
-  },
-];
+import { API_ENDPOINTS } from "../constants/endpoints";
 
 export const getChefProfiles = async () => {
-  try {
-    const response = await apiClient.get("/chef/profiles");
-    return response.data;
-  } catch (error) {
-    return { success: true, chefs: sampleChefProfiles };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_PROFILES);
+  return response.data;
 };
 
 export const getChefProfileDetails = async (chefId) => {
-  try {
-    const response = await apiClient.get(`/chef/profiles/${chefId}`);
-    return response.data;
-  } catch (error) {
-    const chef = sampleChefProfiles.find((item) => item.id === chefId) || sampleChefProfiles[0];
-    return { success: true, chef };
-  }
+  const response = await apiClient.get(`${API_ENDPOINTS.CHEF_PROFILES}/${chefId}`);
+  return response.data;
 };
 
 export const saveChefOnboarding = async (formData) => {
-  const response = await apiClient.post("/chef/onboarding/save", formData, {
+  const response = await apiClient.post(API_ENDPOINTS.CHEF_ONBOARDING_SAVE, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -58,109 +21,59 @@ export const saveChefOnboarding = async (formData) => {
 };
 
 export const getChefAppointments = async () => {
-  const response = await apiClient.get("/chef/appointments");
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_APPOINTMENTS);
   return response.data;
 };
 
 export const getChefDashboardStats = async () => {
-  const response = await apiClient.get("/chef/dashboard");
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_DASHBOARD);
   return response.data;
 };
 
 export const getEmployerChefs = async () => {
-  const response = await apiClient.get("/employer/chefs");
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_CHEFS);
   return response.data;
 };
 
 export const bookChefAppointment = async (bookingData) => {
-  const response = await apiClient.post("/appointments/book", bookingData);
+  const response = await apiClient.post(API_ENDPOINTS.APPOINTMENTS_BOOK, bookingData);
   return response.data;
 };
 
 export const updateChefAppointmentStatus = async (appointmentId, status) => {
-  try {
-    const response = await apiClient.put(`/chef/appointments/${appointmentId}/status`, { status });
-    return response.data;
-  } catch (error) {
-    return { success: true, message: `Appointment status updated to ${status}` };
-  }
+  const response = await apiClient.put(`${API_ENDPOINTS.CHEF_APPOINTMENTS}/${appointmentId}/status`, { status });
+  return response.data;
 };
 
 export const getChefUpcomingConsultations = async () => {
-  try {
-    const response = await apiClient.get("/chef/consultations/upcoming");
-    return response.data;
-  } catch (error) {
-    // Return appointments list as fallback for upcoming consultations
-    const fallbackRes = await apiClient.get("/chef/appointments");
-    const list = fallbackRes.data?.appointments || fallbackRes.data?.data || (Array.isArray(fallbackRes.data) ? fallbackRes.data : []);
-    const confirmedList = list.filter((item) => {
-      const s = String(item.status || "").toLowerCase();
-      return s === "confirmed" || s === "scheduled" || s === "approved" || s === "pending";
-    });
-    return { success: true, consultations: confirmedList };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_CONSULTATIONS_UPCOMING);
+  return response.data;
 };
 
 export const getChefProfileViews = async () => {
-  try {
-    const response = await apiClient.get("/chef/profile-views");
-    return response.data;
-  } catch (error) {
-    return {
-      success: true,
-      total_views: 0,
-      views: [],
-    };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_PROFILE_VIEWS);
+  return response.data;
 };
 
 export const getChefProjectRequests = async () => {
-  try {
-    const response = await apiClient.get("/chef/project-requests");
-    return response.data;
-  } catch (error) {
-    return {
-      success: true,
-      projects: [],
-    };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.CHEF_PROJECT_REQUESTS);
+  return response.data;
 };
 
 export const updateChefProjectStatus = async (projectId, status) => {
-  try {
-    const response = await apiClient.put(`/chef/project-requests/${projectId}/status`, { status });
-    return response.data;
-  } catch (error) {
-    return { success: true, message: `Project status updated to ${status}` };
-  }
+  const response = await apiClient.put(`${API_ENDPOINTS.CHEF_PROJECT_REQUESTS}/${projectId}/status`, { status });
+  return response.data;
 };
 
 export const updateChefAvailability = async (availabilityStatus) => {
-  try {
-    const response = await apiClient.post("/chef/availability/toggle", {
-      availability: availabilityStatus,
-    });
-    return response.data;
-  } catch (error) {
-    const formData = new FormData();
-    formData.append("availability", availabilityStatus);
-    const fallbackRes = await apiClient.post("/chef/onboarding", formData);
-    return fallbackRes.data;
-  }
+  const response = await apiClient.post(API_ENDPOINTS.CHEF_AVAILABILITY_TOGGLE, {
+    availability: availabilityStatus,
+  });
+  return response.data;
 };
 
 export const recordChefProfileView = async (chefId) => {
-  if (!chefId) return;
-  try {
-    const response = await apiClient.post(`/chefs/${chefId}/view`);
-    return response.data;
-  } catch (error) {
-    try {
-      const response = await apiClient.post(`/chef/${chefId}/view`);
-      return response.data;
-    } catch (e) {
-      return { success: true };
-    }
-  }
+  if (!chefId) return { success: false, message: "Chef ID is required" };
+  const response = await apiClient.post(`/chefs/${chefId}/view`);
+  return response.data;
 };

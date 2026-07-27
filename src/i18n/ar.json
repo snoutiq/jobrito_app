@@ -648,7 +648,18 @@
     "errorBook": "خطأ في الحجز",
     "notFound": "لم يتم العثور على ملف تعريف الطاهي.",
     "goBack": "رجوع",
-    "notLinked": "Calendly غير مرتبط",
-    "notLinkedDesc": "لم يقم هذا الطاهي بدمج تقويم Calendly الخاص به بعد. يرجى الاتصال به مباشرة."
+    "notLinked": "Calendly Not Linked",
+    "notLinkedDesc": "This chef has not integrated their Calendly calendar yet. Please contact them directly."
+  },
+  "savedJobs": {
+    "title": "Saved Jobs",
+    "loadingOps": "Loading Saved Opportunities...",
+    "opportunitiesCount": "{{count}} Saved Opportunities",
+    "noSavedYet": "No saved jobs yet",
+    "bookmarkInstruction": "Jobs you bookmark will be displayed here for quick access.",
+    "removeSavedJob": "Remove Saved Job",
+    "removeConfirm": "Are you sure you want to remove \"{{title}}\" from your saved list?",
+    "removedMsg": "Job removed from saved list.",
+    "failedToRemove": "Failed to remove job."
   }
 }

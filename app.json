@@ -5,6 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/Jobrito full logo.png",
+    "splash": {
+      "image": "./src/assets/Jobrito full logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "platforms": [
       "ios",
       "android",
@@ -20,7 +25,7 @@
     },
     "android": {
       "package": "com.jobrito.app",
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/Jobrito full logo.png",
         "backgroundColor": "#ffffff"
@@ -43,7 +48,8 @@
             "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

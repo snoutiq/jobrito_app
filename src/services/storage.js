@@ -1,7 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 const KEYS = {
-  token: "@jobconnect/token",
+  token: "jobconnect_token",
+  refreshToken: "jobconnect_refresh_token",
   role: "@jobconnect/role",
   profile: "@jobconnect/profile",
   language: "@jobconnect/language",
@@ -13,12 +15,54 @@ const KEYS = {
   chefOnboardingStep: "@jobconnect/chef_onboarding_step",
 };
 
-export const getToken = () => AsyncStorage.getItem(KEYS.token);
-export const setToken = (token) => AsyncStorage.setItem(KEYS.token, token);
-export const removeToken = () => AsyncStorage.removeItem(KEYS.token);
+// Fast In-Memory Cache variables
+let cacheToken = null;
+let cacheRefreshToken = null;
+let cacheRole = null;
+let cacheLanguage = null;
 
-export const getStoredRole = () => AsyncStorage.getItem(KEYS.role);
-export const setStoredRole = (role) => AsyncStorage.setItem(KEYS.role, role);
+export const getToken = async () => {
+  if (cacheToken !== null) return cacheToken;
+  cacheToken = await SecureStore.getItemAsync(KEYS.token);
+  return cacheToken;
+};
+
+export const setToken = async (token) => {
+  cacheToken = token;
+  await SecureStore.setItemAsync(KEYS.token, token);
+};
+
+export const removeToken = async () => {
+  cacheToken = null;
+  await SecureStore.deleteItemAsync(KEYS.token);
+};
+
+export const getRefreshToken = async () => {
+  if (cacheRefreshToken !== null) return cacheRefreshToken;
+  cacheRefreshToken = await SecureStore.getItemAsync(KEYS.refreshToken);
+  return cacheRefreshToken;
+};
+
+export const setRefreshToken = async (token) => {
+  cacheRefreshToken = token;
+  await SecureStore.setItemAsync(KEYS.refreshToken, token);
+};
+
+export const removeRefreshToken = async () => {
+  cacheRefreshToken = null;
+  await SecureStore.deleteItemAsync(KEYS.refreshToken);
+};
+
+export const getStoredRole = async () => {
+  if (cacheRole !== null) return cacheRole;
+  cacheRole = await AsyncStorage.getItem(KEYS.role);
+  return cacheRole;
+};
+
+export const setStoredRole = async (role) => {
+  cacheRole = role;
+  await AsyncStorage.setItem(KEYS.role, role);
+};
 
 export const getStoredProfile = async () => {
   const value = await AsyncStorage.getItem(KEYS.profile);
@@ -28,10 +72,21 @@ export const getStoredProfile = async () => {
 export const setStoredProfile = (profile) =>
   AsyncStorage.setItem(KEYS.profile, JSON.stringify(profile));
 
-export const getStoredLanguage = () => AsyncStorage.getItem(KEYS.language);
-export const setStoredLanguage = (language) =>
-  AsyncStorage.setItem(KEYS.language, language);
-export const removeStoredLanguage = () => AsyncStorage.removeItem(KEYS.language);
+export const getStoredLanguage = async () => {
+  if (cacheLanguage !== null) return cacheLanguage;
+  cacheLanguage = await AsyncStorage.getItem(KEYS.language);
+  return cacheLanguage;
+};
+
+export const setStoredLanguage = async (language) => {
+  cacheLanguage = language;
+  await AsyncStorage.setItem(KEYS.language, language);
+};
+
+export const removeStoredLanguage = async () => {
+  cacheLanguage = null;
+  await AsyncStorage.removeItem(KEYS.language);
+};
 
 export const getSeenOnboarding = () => AsyncStorage.getItem(KEYS.seenOnboarding);
 export const setSeenOnboarding = () =>
@@ -71,17 +126,26 @@ export const removeChefOnboardingStep = () =>
   AsyncStorage.removeItem(KEYS.chefOnboardingStep);
 
 export const clearAuthStorage = async () => {
-  await AsyncStorage.multiRemove([
-    KEYS.token,
-    KEYS.role,
-    KEYS.profile,
-    KEYS.language,
-    KEYS.seenOnboarding,
-    KEYS.seenIntro,
-    KEYS.seenRoleSelection,
-    KEYS.employerOnboardingCompleted,
-    KEYS.chefOnboardingCompleted,
-    KEYS.chefOnboardingStep,
+  // Reset In-Memory Cache
+  cacheToken = null;
+  cacheRefreshToken = null;
+  cacheRole = null;
+  cacheLanguage = null;
+
+  await Promise.all([
+    SecureStore.deleteItemAsync(KEYS.token),
+    SecureStore.deleteItemAsync(KEYS.refreshToken),
+    AsyncStorage.multiRemove([
+      KEYS.role,
+      KEYS.profile,
+      KEYS.language,
+      KEYS.seenOnboarding,
+      KEYS.seenIntro,
+      KEYS.seenRoleSelection,
+      KEYS.employerOnboardingCompleted,
+      KEYS.chefOnboardingCompleted,
+      KEYS.chefOnboardingStep,
+    ]),
   ]);
 };
 

@@ -669,5 +669,16 @@
     "placeholderTwitter": "आपका-संभाल",
     "placeholderYouTube": "आपका चैनल",
     "placeholderWebsite": "https://yourwebsite.com"
+  },
+  "savedJobs": {
+    "title": "पसंदीदा नौकरियां",
+    "loadingOps": "पसंदीदा अवसरों को लोड किया जा रहा है...",
+    "opportunitiesCount": "{{count}} पसंदीदा अवसर",
+    "noSavedYet": "अभी तक कोई पसंदीदा नौकरी नहीं है",
+    "bookmarkInstruction": "त्वरित पहुंच के लिए आपके द्वारा बुकमार्क की गई नौकरियां यहां दिखाई देंगी।",
+    "removeSavedJob": "पसंदीदा नौकरी हटाएं",
+    "removeConfirm": "क्या आप निश्चित रूप से अपने पसंदीदा सूची से \"{{title}}\" को हटाना चाहते हैं?",
+    "removedMsg": "नौकरी पसंदीदा सूची से हटा दी गई।",
+    "failedToRemove": "नौकरी हटाने में विफल।"
   }
 }

@@ -46,7 +46,6 @@ export default function ApplicationHistoryScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   
   const { history, loading } = useSelector((state) => state.application);
-  console.log("Application History:", history);
   const { profile } = useSelector((state) => state.user);
   
   const [search, setSearch] = useState("");
@@ -275,8 +274,6 @@ export default function ApplicationHistoryScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
         />
       </View>
-
-
 
       {/* Filter Options Bottom Sheet Modal */}
       <Modal

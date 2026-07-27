@@ -1,53 +1,29 @@
 import apiClient from "./apiClient";
+import { API_ENDPOINTS } from "../constants/endpoints";
 
 export const registerPushToken = async (pushToken) => {
-  try {
-    const response = await apiClient.post("/notifications/register", {
-      pushToken,
-    });
-    return response.data;
-  } catch (error) {
-    return { success: true, registered: false, pushToken };
-  }
+  const response = await apiClient.post(API_ENDPOINTS.NOTIFICATIONS_REGISTER, {
+    pushToken,
+  });
+  return response.data;
 };
 
 export const getNotificationSettings = async () => {
-  try {
-    const response = await apiClient.get("/notifications/settings");
-    return response.data;
-  } catch (error) {
-    return { success: true, enabled: false };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.NOTIFICATIONS_SETTINGS);
+  return response.data;
 };
 
 export const getEmployerNotifications = async () => {
-  try {
-    const response = await apiClient.get("/employer/notifications");
-    return response.data;
-  } catch (error) {
-    // Return empty list fallback when backend endpoint is not built yet
-    return {
-      success: true,
-      unread_count: 0,
-      notifications: [],
-    };
-  }
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_NOTIFICATIONS);
+  return response.data;
 };
 
 export const markNotificationAsRead = async (notificationId) => {
-  try {
-    const response = await apiClient.put(`/employer/notifications/${notificationId}/read`);
-    return response.data;
-  } catch (error) {
-    return { success: true, message: "Marked as read." };
-  }
+  const response = await apiClient.put(`${API_ENDPOINTS.EMPLOYER_NOTIFICATIONS}/${notificationId}/read`);
+  return response.data;
 };
 
 export const markAllNotificationsAsRead = async () => {
-  try {
-    const response = await apiClient.put("/employer/notifications/mark-all-read");
-    return response.data;
-  } catch (error) {
-    return { success: true, message: "All notifications marked as read." };
-  }
+  const response = await apiClient.put(`${API_ENDPOINTS.EMPLOYER_NOTIFICATIONS}/mark-all-read`);
+  return response.data;
 };

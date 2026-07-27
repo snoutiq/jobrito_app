@@ -4,20 +4,22 @@ import {
   Text,
   View,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   FlatList,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
+import ScreenWrapper from "../../components/common/ScreenWrapper";
 import { getChefDashboardStats, getChefProfileViews } from "../../services/chefApi";
 
 const PRIMARY_GREEN = "#153e69";
 
 export default function ProfileViewsScreen({ navigation }) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  
   const [loading, setLoading] = useState(false);
   const [totalViews, setTotalViews] = useState(0);
   const [viewsList, setViewsList] = useState([]);
@@ -32,10 +34,9 @@ export default function ProfileViewsScreen({ navigation }) {
 
       if (viewsRes?.views && Array.isArray(viewsRes.views)) {
         setViewsList(viewsRes.views);
-        setTotalViews(viewsRes.total_views || viewsRes.views.length);
-      }
-
-      if (statsRes?.stats?.profile_views) {
+        // Correct the total_views count source of truth
+        setTotalViews(viewsRes.total_views !== undefined ? viewsRes.total_views : viewsRes.views.length);
+      } else if (statsRes?.stats?.profile_views !== undefined) {
         setTotalViews(statsRes.stats.profile_views);
       }
     } catch (err) {
@@ -50,40 +51,49 @@ export default function ProfileViewsScreen({ navigation }) {
   }, []);
 
   const renderViewItem = ({ item }) => (
-    <View style={styles.viewCard}>
+    <View style={styles.jobCard}>
       <View style={styles.cardHeader}>
-        <View style={styles.avatarPlaceholder}>
-          <Ionicons name="business" size={20} color="#153e69" />
+        <View style={styles.iconContainer}>
+          <Ionicons name="business-outline" size={22} color={PRIMARY_GREEN} />
         </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.companyText}>{item.company}</Text>
-          <Text style={styles.recruiterText}>{item.recruiter_name}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.cardFooter}>
-        <View style={styles.metaRow}>
-          <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={styles.metaIcon} />
-          <Text style={styles.metaText}>{item.location}</Text>
-        </View>
-        <View style={styles.metaRow}>
-          <Ionicons name="time-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={styles.metaIcon} />
-          <Text style={styles.metaText}>{item.viewed_at}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.companyText} numberOfLines={1}>{item.company}</Text>
+          <Text style={styles.recruiterText} numberOfLines={1}>
+            <Ionicons name="person-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
+            {item.recruiter_name}
+          </Text>
+          <Text style={styles.jobMetaText}>
+            <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
+            {item.location} • {item.viewed_at}
+          </Text>
         </View>
       </View>
+      {item.industry ? (
+        <>
+          <View style={styles.divider} />
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailsText}>
+              <Ionicons name="restaurant-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
+              {item.industry}
+            </Text>
+          </View>
+        </>
+      ) : null}
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container} contentStyle={{ padding: 0 }}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#0a0504" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile Views</Text>
+      <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#153e69" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Profile Views</Text>
+        </View>
         <TouchableOpacity onPress={fetchViewsData} style={styles.refreshButton}>
-          <Ionicons name="refresh" size={20} color="#0a0504" />
+          <Ionicons name="refresh" size={20} color="#153e69" />
         </TouchableOpacity>
       </View>
 
@@ -128,7 +138,7 @@ export default function ProfileViewsScreen({ navigation }) {
           />
         </View>
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 
@@ -141,17 +151,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderBottomColor: "rgba(10, 5, 4, 0.06)",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   backButton: {
     padding: 4,
+    marginRight: 10,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "800",
     color: "#0a0504",
   },
@@ -173,10 +188,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     shadowColor: "#000",
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   summaryCircle: {
     width: 60,
@@ -217,66 +232,65 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
-    gap: 12,
   },
-  viewCard: {
+  jobCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 14,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOpacity: 0.01,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+    alignItems: "flex-start",
   },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
+  iconContainer: {
+    width: 42,
+    height: 42,
     borderRadius: 10,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
-  cardInfo: {
-    flex: 1,
-  },
   companyText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
     marginBottom: 2,
   },
   recruiterText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "550",
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderColor: "#f2f2f3",
-    paddingTop: 10,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  metaIcon: {
-    marginRight: 6,
-  },
-  metaText: {
-    fontSize: 11,
+    fontSize: 13,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+    marginBottom: 2,
+  },
+  jobMetaText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    marginVertical: 12,
+  },
+  detailsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    paddingLeft: 54,
+  },
+  detailsText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    flexDirection: "row",
+    alignItems: "center",
   },
   emptyContainer: {
     alignItems: "center",

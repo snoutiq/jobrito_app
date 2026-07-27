@@ -95,7 +95,6 @@ export const createJobPost = createAsyncThunk(
   }
 );
 
-
 export const fetchMyJobs = createAsyncThunk(
   "job/fetchMyJobs",
   async (_, { rejectWithValue }) => {

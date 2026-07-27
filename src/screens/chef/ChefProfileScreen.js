@@ -21,7 +21,7 @@ import { resetUser, setProfileData } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage, setStoredProfile } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
-import { getChefAppointments, getChefDashboardStats, saveChefOnboarding, updateChefAvailability } from "../../services/chefApi";
+import { getChefAppointments, getChefDashboardStats, getChefProfileViews, saveChefOnboarding, updateChefAvailability } from "../../services/chefApi";
 import { getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
@@ -162,19 +162,38 @@ export default function ChefProfileScreen({ navigation }) {
       let isMounted = true;
       const fetchDashboardData = async () => {
         try {
-          const [statsRes, appsRes, savedRes, appointmentsRes] = await Promise.all([
+          const [statsRes, appsRes, savedRes, appointmentsRes, viewsRes] = await Promise.all([
             getChefDashboardStats().catch(() => null),
             getApplicationHistory().catch(() => null),
             getSavedJobs().catch(() => null),
             getChefAppointments().catch(() => null),
+            getChefProfileViews().catch(() => null),
           ]);
 
           if (!isMounted) return;
 
-          if (statsRes?.success && statsRes.stats) {
-            setStats(statsRes.stats);
-          } else if (statsRes?.stats) {
-            setStats(statsRes.stats);
+          let resolvedProfileViews = 0;
+          if (viewsRes?.views && Array.isArray(viewsRes.views)) {
+            resolvedProfileViews = viewsRes.total_views !== undefined ? viewsRes.total_views : viewsRes.views.length;
+          } else if (statsRes?.stats?.profile_views !== undefined) {
+            resolvedProfileViews = statsRes.stats.profile_views;
+          }
+
+          if (statsRes?.stats) {
+            setStats({
+              ...statsRes.stats,
+              profile_views: resolvedProfileViews,
+            });
+          } else if (statsRes?.success && statsRes.stats) {
+            setStats({
+              ...statsRes.stats,
+              profile_views: resolvedProfileViews,
+            });
+          } else {
+            setStats((prev) => ({
+              ...prev,
+              profile_views: resolvedProfileViews,
+            }));
           }
           if (appsRes?.success && appsRes.applications) {
             setApplicationsCount(appsRes.applications.length);
