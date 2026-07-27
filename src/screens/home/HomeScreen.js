@@ -164,8 +164,26 @@ export default function HomeScreen({ navigation }) {
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
+          let roleBorderColor = null;
+          const role = job.submitted_by_role?.toLowerCase();
+          if (role === "job_seeker" || role === "chef" || role === "talent") {
+            roleBorderColor = "#f57f20"; // Orange
+          } else if (role === "administrator" || role === "admin") {
+            roleBorderColor = "#2e7d32"; // Green
+          } else if (role === "employer" || role === "agency") {
+            roleBorderColor = "#f2c879"; // Yellow
+          }
+
           return (
-            <View key={job.id} style={[styles.card, isPinned && styles.pinnedCard, isHighlighted && styles.highlightedCard]}>
+            <View
+              key={job.id}
+              style={[
+                styles.card,
+                isPinned && styles.pinnedCard,
+                roleBorderColor && { borderColor: roleBorderColor, borderWidth: 1.5 },
+                isHighlighted && styles.highlightedCard
+              ]}
+            >
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
@@ -283,7 +301,11 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              {/* <Text style={styles.timeText}>{formatPostedTime(job.postedDate)}</Text> */}
+              {job.submitted_by_role ? (
+                <Text style={[styles.timeText, roleBorderColor && { color: roleBorderColor, fontWeight: "700" }]}>
+                  {job.submitted_by_role.replace("_", " ").toUpperCase()}
+                </Text>
+              ) : null}
             </View>
           );
         })}
@@ -703,5 +725,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignSelf: "flex-start",
+    marginLeft: 8,
+  },
+  roleBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    textTransform: "uppercase",
   },
 });
