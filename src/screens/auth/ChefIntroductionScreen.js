@@ -71,7 +71,7 @@ export default function ChefIntroductionScreen({ navigation }) {
       </View>
 
       {/* Grid: Side-by-Side Statistics/Highlights */}
-      <View style={styles.statsContainer}>
+      {/* <View style={styles.statsContainer}>
         <View style={styles.greenCard}>
           <Ionicons name="restaurant" size={24} color="#153e69" />
           <Text style={styles.greenCardText}>{t("chefIntro.verifiedChefs")}</Text>
@@ -80,7 +80,7 @@ export default function ChefIntroductionScreen({ navigation }) {
           <Ionicons name="globe-outline" size={24} color="#0a0504" />
           <Text style={styles.greyCardText}>{t("chefIntro.countries")}</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Elevate Your Career Section */}
       <Text style={styles.sectionTitle}>{t("chefIntro.sectionTitle")}</Text>
