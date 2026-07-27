@@ -196,12 +196,15 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
                   </View>
                 )}
-                {job.experience && (
-                  <View style={styles.detailItem}>
-                    <Ionicons name="calendar-outline" size={15} color="rgba(10, 5, 4, 0.6)" />
-                    <Text style={styles.detailText}>{t("contract", "Contract")}: {job.experience}</Text>
-                  </View>
-                )}
+                {(() => {
+                  const jobExp = job.experience || job.experience_range || job.contract_duration;
+                  return jobExp ? (
+                    <View style={styles.detailItem}>
+                      <Ionicons name="calendar-outline" size={15} color="rgba(10, 5, 4, 0.6)" />
+                      <Text style={styles.detailText}>{t("contract", "Contract")}: {jobExp}</Text>
+                    </View>
+                  ) : null;
+                })()}
               </View>
 
               <Text style={styles.jobDescription}>{job.description}</Text>

@@ -1,4 +1,4 @@
-﻿import Constants from "expo-constants";
+import Constants from "expo-constants";
 
 const configuredBaseUrl =
   process.env.EXPO_PUBLIC_API_BASE_URL ||
@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
   CHEF_DASHBOARD: "/chef/dashboard",
   CHEF_CONSULTATIONS_UPCOMING: "/chef/consultations/upcoming",
   CHEF_PROFILE_VIEWS: "/chef/profile-views",
+  CHEF_VIEW_PROFILE: "/chef/view-profile",
   CHEF_PROJECT_REQUESTS: "/chef/project-requests",
   CHEF_AVAILABILITY_TOGGLE: "/chef/availability/toggle",
 
