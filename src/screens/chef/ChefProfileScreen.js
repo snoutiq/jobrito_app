@@ -387,7 +387,11 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
         {/* Profile Completion banner */}
         {completionPercent < 100 && (
-          <View style={styles.completionBanner}>
+          <TouchableOpacity
+            style={styles.completionBanner}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("ChefCompleteProfile")}
+          >
             <View style={styles.completionHeader}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.completionTitle}>
@@ -397,19 +401,16 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
                   <View style={[styles.progressBarFill, { width: `${completionPercent}%` }]} />
                 </View>
               </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("ChefCompleteProfile")}
-                style={styles.completeBtn}
-              >
+              <View style={styles.completeBtn}>
                 <Text style={styles.completeBtnText}>{t("complete", "Complete")}</Text>
-              </TouchableOpacity>
+              </View>
             </View>
             {missedFields.length > 0 && (
               <Text style={styles.missedText}>
                 {t("missedInfoPrompt", "Add missing info:")} {missedFields.join(", ")}
               </Text>
             )}
-          </View>
+          </TouchableOpacity>
         )}
 
         {/* My Activity */}

@@ -31,6 +31,61 @@ export default function SettingsScreen({ navigation }) {
   
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
+  const getEmployerCompletion = () => {
+    if (!profile) return 0;
+    if (profile.completionPercentage !== undefined && profile.completionPercentage !== null && profile.completionPercentage > 0) {
+      return profile.completionPercentage;
+    }
+    if (profile.completeness !== undefined && profile.completeness !== null && profile.completeness > 0) {
+      return profile.completeness;
+    }
+
+    let fields = 0;
+    let filled = 0;
+
+    fields++;
+    if (profile.business_name || profile.businessName || profile.company) filled++;
+
+    fields++;
+    if (profile.industry_segment || profile.segment) filled++;
+
+    fields++;
+    if (profile.business_location || profile.location) filled++;
+
+    fields++;
+    if (profile.contact_person_name || profile.contactName || profile.name || profile.full_name) filled++;
+
+    fields++;
+    if (profile.business_mobile || profile.contactPhone || profile.phone) filled++;
+
+    fields++;
+    if (profile.business_email || profile.contactEmail || profile.email) filled++;
+
+    fields++;
+    if (profile.preferred_language || profile.preferredLanguage || profile.selected_language) filled++;
+
+    fields++;
+    if (profile.company_logo || profile.companyLogo || profile.profile_photo_path) filled++;
+
+    return Math.round((filled / fields) * 100);
+  };
+
+  const getEmployerMissedFields = () => {
+    const missed = [];
+    if (!profile?.business_name && !profile?.businessName && !profile?.company) missed.push(t("businessName", "Business Name"));
+    if (!profile?.industry_segment && !profile?.segment) missed.push(t("industrySegment", "Industry Segment"));
+    if (!profile?.business_location && !profile?.location) missed.push(t("location", "HQ Location"));
+    if (!profile?.contact_person_name && !profile?.contactName && !profile?.name && !profile?.full_name) missed.push(t("contactPerson", "Contact Person"));
+    if (!profile?.business_mobile && !profile?.contactPhone && !profile?.phone) missed.push(t("phoneNumber", "Mobile Number"));
+    if (!profile?.business_email && !profile?.contactEmail && !profile?.email) missed.push(t("emailAddress", "Email"));
+    if (!profile?.preferred_language && !profile?.preferredLanguage && !profile?.selected_language) missed.push(t("language", "Language"));
+    if (!profile?.company_logo && !profile?.companyLogo && !profile?.profile_photo_path) missed.push(t("companyLogo", "Company Logo"));
+    return missed;
+  };
+
+  const employerCompletion = getEmployerCompletion();
+  const employerMissedFields = getEmployerMissedFields();
+
   React.useEffect(() => {
     const backAction = () => {
       navigation.goBack();
@@ -146,6 +201,27 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.profileSub}>{isEmployer ? (businessName || t("businessProfile", "Business profile")) : t("chef", "Chef")}</Text>
           </View>
         </View>
+
+        {isEmployer && employerCompletion < 100 && (
+          <TouchableOpacity
+            style={styles.completionCard}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("EmployerCompleteProfile", { isEditMode: true })}
+          >
+            <View style={styles.completionHeader}>
+              <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
+              <Text style={styles.completionPercent}>{employerCompletion}%</Text>
+            </View>
+            <View style={styles.progressBarTrack}>
+              <View style={[styles.progressBarFill, { width: `${employerCompletion}%` }]} />
+            </View>
+            {employerMissedFields.length > 0 && (
+              <Text style={styles.missedText}>
+                {t("missedInfoPrompt", "Add missing info:")} {employerMissedFields.join(", ")}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.sectionTitle}>
           {isEmployer ? t("postJob.businessBasics", "Business Information") : t("personalInformation", "Personal Information")}
@@ -529,6 +605,48 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "800",
+  },
+  completionCard: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+  },
+  completionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  completionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0a0504",
+  },
+  completionPercent: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#153e69",
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    width: "100%",
+    marginBottom: 8,
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: "#153e69",
+  },
+  missedText: {
+    fontSize: 12,
+    color: "#f57f20",
+    fontWeight: "600",
+    marginTop: 8,
   },
 });
 
