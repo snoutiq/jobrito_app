@@ -27,36 +27,92 @@ const pickValue = (data, keys) => {
   return "";
 };
 
-const normalizeProfile = (u) => {
+export const normalizeProfile = (u) => {
   if (!u) return null;
+
+  const root = u.user || u.profile ? u : {};
+  const userObj = u.user || u.profile || u;
+
+  const emp = userObj.employer_profile || root.employer_profile || {};
+  const chef = userObj.chef_profile || userObj.chef_profile_details || root.chef_profile || root.chef_profile_details || {};
+
+  let availability = chef.availability_info || {};
+  if (typeof availability === "string") {
+    try {
+      availability = JSON.parse(availability);
+    } catch (e) {
+      availability = {};
+    }
+  }
+
   return {
-    id: u.id,
-    name: u.full_name || u.name || "",
-    full_name: u.full_name || u.name,
-    email: u.email,
-    phone: u.mobile_number || u.phone,
-    profile_photo_path: u.profile_photo_path,
-    city: u.city,
-    experience_range: u.experience_range || mapExperienceYears(u.experience_years) || "",
-    experience_years: u.experience_years,
-    preferred_role: u.preferred_role,
-    current_employer: u.current_employer,
-    skills: Array.isArray(u.skills) ? u.skills.join(", ") : u.skills || "",
-    completionPercentage: u.completeness || u.completionPercentage || 0,
-    selected_language: u.selected_language,
-    gender: u.gender,
-    job_type: u.job_type,
-    location_preference: u.location_preference,
-    employerOnboardingCompleted: !!(u.employerOnboardingCompleted || u.has_completed_onboarding),
-    chefOnboardingCompleted: !!(u.chefOnboardingCompleted || u.has_completed_onboarding),
+    id: userObj.id,
+    name: userObj.full_name || userObj.name || "",
+    full_name: userObj.full_name || userObj.name,
+    email: userObj.email,
+    phone: userObj.mobile_number || userObj.phone,
+    profile_photo_path: userObj.profile_photo_path,
+    city: userObj.city || "",
+    country: userObj.country || "",
+    experience_range: userObj.experience_range || mapExperienceYears(userObj.experience_years) || "",
+    experience_years: userObj.experience_years,
+    preferred_role: userObj.preferred_role || userObj.preference || "",
+    professionalTitle: userObj.preferred_role || userObj.preference || "",
+    current_employer: userObj.current_employer,
+    skills: Array.isArray(userObj.skills) ? userObj.skills.join(", ") : userObj.skills || "",
+    completionPercentage: userObj.completeness || userObj.profile_completeness || userObj.completionPercentage || 0,
+    completeness: userObj.completeness || userObj.profile_completeness || 0,
+    profile_completeness: userObj.profile_completeness || userObj.completeness || 0,
+    selected_language: userObj.selected_language,
+    gender: userObj.gender,
+    job_type: userObj.job_type,
+    location_preference: userObj.job_location || userObj.location_preference || availability.location_preference || "",
+    locationPreference: userObj.job_location || userObj.location_preference || availability.location_preference || "",
+    employerOnboardingCompleted: !!(userObj.employerOnboardingCompleted || userObj.has_completed_onboarding || emp.is_completed),
+    chefOnboardingCompleted: !!(userObj.chefOnboardingCompleted || userObj.has_completed_onboarding || chef.approval_status),
+    
+    // Employer-specific profile details autofill
+    business_name: emp.business_name || emp.company_name || "",
+    businessName: emp.business_name || emp.company_name || "",
+    company: emp.company_name || emp.business_name || "",
+    industry_segment: emp.industry_segment || "",
+    segment: emp.industry_segment || "",
+    business_location: emp.business_location || emp.city || "",
+    location: emp.business_location || emp.city || "",
+    contact_person_name: emp.contact_person_name || userObj.full_name || userObj.name || "",
+    contactName: emp.contact_person_name || userObj.full_name || userObj.name || "",
+    business_mobile: emp.business_mobile || userObj.mobile_number || "",
+    contactPhone: emp.business_mobile || userObj.mobile_number || "",
+    business_email: emp.business_email || userObj.email || "",
+    contactEmail: emp.business_email || userObj.email || "",
+    preferred_language: emp.preferred_language || "",
+    company_logo: emp.company_logo_path || emp.company_logo_url || "",
+    company_logo_url: emp.company_logo_url || emp.company_logo_path || "",
+    operational_locations: emp.operational_locations || [],
+    locations: emp.operational_locations || [],
+    nominee_name: emp.nominee_name || "",
+    nominee_relationship: emp.nominee_relationship || "",
+    nominee_mobile: emp.nominee_mobile || "",
+    managerName: emp.nominee_name || "",
+    managerRelationship: emp.nominee_relationship || "",
+    managerPhone: emp.nominee_mobile || "",
+
+    // Chef-specific profile details autofill
+    cuisine_specialty: chef.cuisine_specialty || chef.specialties || "",
+    specialties: chef.specialties || chef.cuisine_specialty || "",
+    cuisines: chef.cuisine_specialty || chef.specialties || "",
+    bio: chef.bio || "",
+    calendly_link: chef.calendly_link || "",
+    availability_info: availability,
+    languages: availability.languages || [],
+    operations: userObj.skills || [],
   };
 };
 
 export const getProfile = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.PROFILE);
-  const u = response.data?.user || response.data?.profile;
-  if (u) {
-    const profile = normalizeProfile(u);
+  const response = await apiClient.get(API_ENDPOINTS.PROFILE, { cancelDuplicate: false });
+  if (response.data) {
+    const profile = normalizeProfile(response.data);
     return { success: true, profile };
   }
   return response.data;

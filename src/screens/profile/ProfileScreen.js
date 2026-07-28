@@ -37,6 +37,21 @@ export default function ProfileScreen({ navigation }) {
 
   const getDynamicCompletion = () => {
     if (!profile) return 0;
+    
+    const hasLogo = !!(profile.company_logo || profile.companyLogo || profile.profile_photo_path);
+    const hasBusinessName = !!(profile.business_name || profile.businessName || profile.company);
+    const hasSegment = !!(profile.industry_segment || profile.segment);
+    const hasLocation = !!(profile.business_location || profile.location);
+
+    const isActuallyComplete = hasLogo && hasBusinessName && hasSegment && hasLocation;
+
+    if (isActuallyComplete) {
+      const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
+      if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
+        return apiPct;
+      }
+    }
+
     let fields = 0;
     let filled = 0;
     
@@ -263,12 +278,12 @@ export default function ProfileScreen({ navigation }) {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={42} color="#153e69" />
+                <Ionicons name="person" size={30} color="#153e69" />
               </View>
             )}
           </View>
           <View style={styles.cameraBadge}>
-            <Ionicons name="camera" size={14} color="#ffffff" />
+            <Ionicons name="camera" size={11} color="#ffffff" />
           </View>
         </Pressable>
 
@@ -294,19 +309,14 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
             <Text style={styles.completionPercent}>{completion}%</Text>
           </View>
-
-          {/* Progress bar with absolute marker */}
+ 
+          {/* Clean Progress bar track */}
           <View style={styles.progressContainer}>
             <View style={styles.progressBarTrack}>
               <View style={[styles.progressBarFill, { width: `${completion}%` }]} />
             </View>
-            <View style={[styles.progressTooltip, { left: `${completion}%` }]}>
-              <View style={styles.tooltipInner}>
-                <Text style={styles.tooltipText}>{initials}</Text>
-              </View>
-            </View>
           </View>
-
+ 
           {/* Dynamic Missing Field / Add Skills Action */}
           <Pressable
             style={styles.addSkillsBar}
@@ -503,10 +513,10 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   avatarCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2.5,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
     borderColor: "#153e69",
     padding: 2,
     alignItems: "center",
@@ -515,25 +525,25 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 45,
+    borderRadius: 34,
   },
   avatarPlaceholder: {
     width: "100%",
     height: "100%",
-    borderRadius: 45,
+    borderRadius: 34,
     backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   cameraBadge: {
     position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    bottom: 0,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: "#153e69",
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
@@ -543,19 +553,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
     marginBottom: 2,
   },
   userPhone: {
-    fontSize: 14,
+    fontSize: 13,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   userTag: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#153e69",
     fontWeight: "600",
   },
@@ -565,68 +575,42 @@ const styles = StyleSheet.create({
   },
   completionCard: {
     backgroundColor: "#ffffff",
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
   },
   completionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   completionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#0a0504",
   },
   completionPercent: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#153e69",
   },
   progressContainer: {
-    position: "relative",
-    height: 38,
-    justifyContent: "center",
+    height: 6,
     marginBottom: 12,
+    width: "100%",
   },
   progressBarTrack: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#f2f2f3",
     width: "100%",
   },
   progressBarFill: {
     height: "100%",
-    borderRadius: 4,
+    borderRadius: 3,
     backgroundColor: "#153e69",
-  },
-  progressTooltip: {
-    position: "absolute",
-    top: 0,
-    marginLeft: -16, // center the marker pin
-  },
-  tooltipInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#153e69", // purple color matching screenshot
-    borderWidth: 2,
-    borderColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tooltipText: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: "#ffffff",
   },
   addSkillsBar: {
     flexDirection: "row",
@@ -635,11 +619,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 8,
     marginTop: 4,
   },
   addSkillsText: {
-    fontSize: 13,
+    fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },

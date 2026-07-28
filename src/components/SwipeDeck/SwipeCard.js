@@ -31,6 +31,24 @@ export const getAvatarUrl = (id) => {
   return AVATARS[index];
 };
 
+export const getAbsoluteProfilePhotoUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  let cleanPath = path;
+  if (cleanPath.startsWith("/")) {
+    cleanPath = cleanPath.substring(1);
+  }
+  if (cleanPath.startsWith("backend/storage/")) {
+    return `http://178.16.138.159/${cleanPath}`;
+  }
+  if (cleanPath.startsWith("storage/")) {
+    return `http://178.16.138.159/backend/${cleanPath}`;
+  }
+  return `http://178.16.138.159/backend/storage/${cleanPath}`;
+};
+
 export default function SwipeCard({
   applicant,
   myIndex,
@@ -56,16 +74,16 @@ export default function SwipeCard({
   // Calculate relative applied hours / time
   const getAppliedTimeText = () => {
     if (applicant.applied_date && applicant.applied_time) {
-      return `${t("applied", "Applied")} ${applicant.applied_date} • ${applicant.applied_time}`;
+      return `${applicant.applied_date} • ${applicant.applied_time}`;
     }
     if (applicant.applied_date_time) {
-      return `${t("applied", "Applied")} ${applicant.applied_date_time}`;
+      return `${applicant.applied_date_time}`;
     }
     if (applicant.applied_time_ago) {
-      return `${t("applied", "Applied")} ${applicant.applied_time_ago}`;
+      return `${applicant.applied_time_ago}`;
     }
     if (applicant.applied_date) {
-      return `${t("applied", "Applied")} ${applicant.applied_date}`;
+      return `${applicant.applied_date}`;
     }
     return t("appliedRecently", "Applied recently");
   };
@@ -73,7 +91,7 @@ export default function SwipeCard({
 
   // Load API profile_photo_path, else use fallback
   const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
-  const avatarSource = avatarUri ? { uri: avatarUri } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
+  const avatarSource = avatarUri ? { uri: getAbsoluteProfilePhotoUrl(avatarUri) } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
 
   // Match score rating (no random generation, hide completely if missing)
   const matchScore = applicant.match_score || applicant.match?.score;
@@ -194,6 +212,7 @@ export default function SwipeCard({
   };
 
   const displayStatus = applicant.status ? applicant.status.toUpperCase() : "";
+  const displayRole = applicant.preferred_role || "Server";
 
   return (
     <GestureDetector gesture={panGesture}>
@@ -210,59 +229,92 @@ export default function SwipeCard({
           </>
         )}
 
-        {/* Header Badges */}
-        <View style={styles.cardHeader}>
-          {displayStatus ? (
-            <View style={[
-              styles.newBadge,
-              displayStatus === "SHORTLISTED" && styles.shortlistedBadge,
-              displayStatus === "CONTACTED" && styles.contactedBadge,
-              displayStatus === "REJECTED" && styles.rejectedBadge
-            ]}>
-              <Text style={styles.newBadgeText}>{displayStatus}</Text>
-            </View>
-          ) : (
-            <View />
-          )}
-          {isTopCard && (
-            <TouchableOpacity onPress={handleQuickReject} activeOpacity={0.7} style={styles.closeCardBtn}>
-              <Ionicons name="close" size={16} color="rgba(10, 5, 4, 0.45)" />
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Top Content Body Block */}
+        <View style={styles.cardContent}>
+          {/* Header Badges */}
+          <View style={styles.cardHeader}>
+            {displayStatus ? (
+              <View style={[
+                styles.newBadge,
+                displayStatus === "SHORTLISTED" && styles.shortlistedBadge,
+                displayStatus === "CONTACTED" && styles.contactedBadge,
+                displayStatus === "REJECTED" && styles.rejectedBadge
+              ]}>
+                <Text style={styles.newBadgeText}>{displayStatus}</Text>
+              </View>
+            ) : (
+              <View />
+            )}
+            {isTopCard && (
+              <TouchableOpacity onPress={handleQuickReject} activeOpacity={0.6}>
+                <Text style={styles.rejectTextBtn}>{t("reject", "Reject")}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-        {/* Profile Card Body (Centered avatar layout with overlapping MatchBadge) */}
-        <View style={styles.profileSection}>
-          <Image source={avatarSource} style={styles.avatar} />
-          {matchScore ? <MatchBadge score={matchScore} style={styles.matchBadge} /> : <View style={styles.matchPlaceholder} />}
-          <Text style={styles.name} numberOfLines={1}>
-            {displayName}
-          </Text>
-          <Text style={styles.appliedTime}>{appliedTimeText}</Text>
-        </View>
-
-        {/* Applicant Details Checklist */}
-        <ApplicantPreview applicant={applicant} />
-
-        {/* About/Bio Section (Clean typography, no borders) */}
-        {displayBio ? (
-          <View style={styles.aboutContainer}>
-            <Text style={styles.aboutLabel}>{t("about", "About")}</Text>
-            <Text style={styles.bioText} numberOfLines={4}>
-              {displayBio}
+          {/* Profile Card Body */}
+          <View style={styles.profileSection}>
+            <Image source={avatarSource} style={styles.avatar} />
+            {matchScore ? <MatchBadge score={matchScore} style={styles.matchBadge} /> : <View style={styles.matchPlaceholder} />}
+            <Text style={styles.name} numberOfLines={1}>
+              {displayName}
+            </Text>
+            <Text style={styles.appliedTime}>
+              {t("appliedTo", "Applied to")} {displayRole} • {appliedTimeText}
             </Text>
           </View>
-        ) : null}
 
-        {/* Bottom Accept / View Profile Button with solid color matching the app */}
-        <TouchableOpacity
-          onPress={() => onPressDetails(applicant)}
-          activeOpacity={0.85}
-          style={styles.acceptButton}
-        >
-          <Text style={styles.acceptButtonText}>{t("reviewAndAccept", "Review & Accept")}</Text>
-          <Ionicons name="chevron-forward" size={18} color="#ffffff" />
-        </TouchableOpacity>
+          {/* Applicant Details Checklist */}
+          <ApplicantPreview applicant={applicant} />
+
+          {/* About/Bio Section (Clean typography, no borders) */}
+          {displayBio ? (
+            <View style={styles.aboutContainer}>
+              <Text style={styles.bioText} numberOfLines={4}>
+                {displayBio}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Footer Area Block (Availability time + Accept CTA) */}
+        {displayCallback ? (
+          <View style={styles.cardFooter}>
+            <View style={styles.timeSection}>
+              <View style={styles.timeLeft}>
+                <Text style={styles.canInterviewLabel}>{t("canInterview", "Can interview")}</Text>
+                <Text style={styles.canInterviewValue} numberOfLines={1}>
+                  {displayCallback}
+                </Text>
+              </View>
+              <View style={styles.timeIconWrapper}>
+                <Ionicons name="time" size={16} color="rgba(10, 5, 4, 0.45)" />
+              </View>
+            </View>
+
+            {/* Bottom Accept / View Profile Button with solid color matching the app */}
+            <TouchableOpacity
+              onPress={() => onPressDetails(applicant)}
+              activeOpacity={0.85}
+              style={styles.acceptButton}
+            >
+              <Text style={styles.acceptButtonText}>{t("reviewAndAccept", "Review & Accept")}</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.cardFooter}>
+            {/* Bottom Accept / View Profile Button with solid color matching the app */}
+            <TouchableOpacity
+              onPress={() => onPressDetails(applicant)}
+              activeOpacity={0.85}
+              style={styles.acceptButton}
+            >
+              <Text style={styles.acceptButtonText}>{t("reviewAndAccept", "Review & Accept")}</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        )}
       </Animated.View>
     </GestureDetector>
   );
@@ -274,9 +326,9 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#ffffff",
     borderRadius: 26,
-    padding: IS_SMALL_DEVICE ? 20 : 24,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.05)",
+    overflow: "hidden",
     // Soft IOS shadows
     shadowColor: "rgba(10, 5, 4, 0.1)",
     shadowOffset: { width: 0, height: 6 },
@@ -284,6 +336,11 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     // Android Shadow
     elevation: 3,
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 4,
   },
   cardHeader: {
     flexDirection: "row",
@@ -313,13 +370,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.5,
   },
-  closeCardBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(10, 5, 4, 0.05)",
-    justifyContent: "center",
-    alignItems: "center",
+  rejectTextBtn: {
+    color: "#f57f20",
+    fontSize: 14,
+    fontWeight: "800",
+    textDecorationLine: "underline",
   },
   profileSection: {
     alignItems: "center",
@@ -365,20 +420,49 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   aboutContainer: {
-    marginVertical: 12,
-  },
-  aboutLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.35)",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 4,
+    marginVertical: 10,
   },
   bioText: {
     fontSize: 13,
     color: "rgba(10, 5, 4, 0.65)",
     lineHeight: 18,
+  },
+  cardFooter: {
+    backgroundColor: "rgba(10, 5, 4, 0.02)",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(10, 5, 4, 0.04)",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  timeSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  timeLeft: {
+    flex: 1,
+  },
+  canInterviewLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "rgba(10, 5, 4, 0.35)",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  canInterviewValue: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  timeIconWrapper: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(10, 5, 4, 0.04)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   acceptButton: {
     flexDirection: "row",
@@ -388,7 +472,6 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     gap: 8,
-    marginTop: 8,
     shadowColor: "rgba(21, 62, 105, 0.2)",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,

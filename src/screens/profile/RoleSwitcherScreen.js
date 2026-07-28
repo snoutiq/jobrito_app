@@ -6,7 +6,7 @@ import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 import { ROLE_LIST } from "../../constants/roles";
-import { switchUserRole } from "../../redux/slices/userSlice";
+import { switchUserRole, fetchProfile } from "../../redux/slices/userSlice";
 
 export default function RoleSwitcherScreen({ navigation }) {
   const { t } = useTranslation();
@@ -17,6 +17,7 @@ export default function RoleSwitcherScreen({ navigation }) {
   const handleSave = async () => {
     const result = await dispatch(switchUserRole(selectedRole));
     if (switchUserRole.fulfilled.match(result)) {
+      await dispatch(fetchProfile());
       navigation.goBack();
     }
   };

@@ -9,6 +9,8 @@ import {
   Linking,
   Share,
   Switch,
+  Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -31,6 +33,7 @@ export default function ChefProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
+  const [loading, setLoading] = useState(true);
 
   // Appointments State (only length needed for badge)
   const [appointmentCount, setAppointmentCount] = useState(0);
@@ -46,6 +49,8 @@ export default function ChefProfileScreen({ navigation }) {
 
   const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
   const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
+  
+  console.log("[DEBUG ChefProfileScreen] Profile state:", JSON.stringify(profile));
   
   const displayCity = profile?.city && profile?.country 
     ? `${profile.city}, ${profile.country}`
@@ -67,6 +72,28 @@ export default function ChefProfileScreen({ navigation }) {
     displayAvailability === "Available immediately";
 
   const getProfileCompletionPercentage = () => {
+    if (!profile) return 0;
+    
+    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const hasCalendly = calendly && 
+                        calendly.trim().length > 0 && 
+                        !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+
+    const hasPhoto = !!(profile.profile_photo_path || profile.profile_photo);
+    const hasCity = !!profile.city;
+    const hasBio = !!profile.bio;
+    const hasCuisines = !!(profile.cuisines || profile.cuisine_specialty);
+    const hasSkills = !!(profile.operations || profile.skills);
+
+    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly;
+
+    if (isActuallyComplete) {
+      const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
+      if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
+        return apiPct;
+      }
+    }
+
     let totalFields = 11;
     let filledFields = 0;
 
@@ -94,11 +121,7 @@ export default function ChefProfileScreen({ navigation }) {
     else if (typeof ops === "string" && ops.trim().length > 0) filledFields++;
 
     // Calendly Link (Only if it's actually set and not default domain placeholder)
-    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid = calendly && 
-                            calendly.trim().length > 0 && 
-                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-    if (isCalendlyValid) {
+    if (hasCalendly) {
       filledFields++;
     }
 
@@ -132,8 +155,40 @@ export default function ChefProfileScreen({ navigation }) {
     if (!isCalendlyValid) {
       missed.push("Calendly");
     }
-
+ 
     return missed;
+  };
+
+  const getMissingFieldText = () => {
+    if (completionPercent >= 100) return t("profile.allInfoAdded", "All information added successfully!");
+    
+    if (!profile?.profile_photo_path && !profile?.profile_photo) return t("profile.addPhotoAction", "Add Profile Photo");
+    if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
+    
+    const langs = profile?.languages;
+    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+      return t("profile.addLanguagesAction", "Add Languages");
+    }
+
+    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
+    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+      return t("profile.addCuisinesAction", "Add Cuisines");
+    }
+
+    const ops = profile?.operations || profile?.skills;
+    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+      return t("profile.addSkillsAction", "Add Operational Skills");
+    }
+
+    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid = calendly && 
+                            calendly.trim().length > 0 && 
+                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    if (!isCalendlyValid) {
+      return t("profile.addCalendlyAction", "Add Calendly Link");
+    }
+
+    return t("profile.completeProfilePrompt", "Complete your profile details");
   };
 
   const completionPercent = getProfileCompletionPercentage();
@@ -162,6 +217,7 @@ export default function ChefProfileScreen({ navigation }) {
       let isMounted = true;
       const fetchDashboardData = async () => {
         try {
+          await dispatch(fetchProfile()).unwrap();
           const [statsRes, appsRes, savedRes, appointmentsRes, viewsRes] = await Promise.all([
             getChefDashboardStats().catch(() => null),
             getApplicationHistory().catch(() => null),
@@ -207,6 +263,10 @@ export default function ChefProfileScreen({ navigation }) {
           }
         } catch (err) {
           console.warn("Failed to fetch dashboard data:", err.message || err);
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       };
       fetchDashboardData();
@@ -245,7 +305,7 @@ export default function ChefProfileScreen({ navigation }) {
           onPress: async () => {
             try {
               const { logout: logoutApi } = require("../../services/authApi");
-              await logoutApi();
+              logoutApi().catch(() => {});
             } catch (e) {
               // ignore network logout errors
             }
@@ -336,6 +396,14 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
   const currentLanguageName = LANGUAGE_LABELS[i18n.language] || "English";
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#153e69" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -387,30 +455,34 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
         {/* Profile Completion banner */}
         {completionPercent < 100 && (
-          <TouchableOpacity
-            style={styles.completionBanner}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate("ChefCompleteProfile")}
-          >
-            <View style={styles.completionHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.completionTitle}>
-                  {t("profileCompletion", "Profile Completion")}: {completionPercent}%
-                </Text>
-                <View style={styles.progressBarBg}>
+          <View style={styles.completionCardContainer}>
+            <View style={styles.completionCard}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
+                <Text style={styles.completionPercent}>{completionPercent}%</Text>
+              </View>
+
+              {/* Clean Progress bar track */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBarTrack}>
                   <View style={[styles.progressBarFill, { width: `${completionPercent}%` }]} />
                 </View>
               </View>
-              <View style={styles.completeBtn}>
-                <Text style={styles.completeBtnText}>{t("complete", "Complete")}</Text>
-              </View>
+
+              {/* Dynamic Missing Field / Add Action */}
+              <Pressable
+                style={styles.addSkillsBar}
+                onPress={() => navigation.navigate("ChefCompleteProfile")}
+              >
+                <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
+                <Ionicons 
+                  name={completionPercent >= 100 ? "create-outline" : "add-circle"} 
+                  size={18} 
+                  color="#153e69" 
+                />
+              </Pressable>
             </View>
-            {missedFields.length > 0 && (
-              <Text style={styles.missedText}>
-                {t("missedInfoPrompt", "Add missing info:")} {missedFields.join(", ")}
-              </Text>
-            )}
-          </TouchableOpacity>
+          </View>
         )}
 
         {/* My Activity */}
@@ -810,52 +882,62 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
-  completionBanner: {
+  completionCardContainer: {
+    paddingHorizontal: 0,
+    marginBottom: 16,
+  },
+  completionCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 16,
   },
   completionHeader: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 8,
+    alignItems: "center",
+    marginBottom: 12,
   },
   completionTitle: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  completionPercent: {
+    fontSize: 13,
     fontWeight: "800",
     color: "#153e69",
-    marginBottom: 6,
   },
-  progressBarBg: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#e7eff7",
-    overflow: "hidden",
+  progressContainer: {
+    height: 6,
+    marginBottom: 12,
+    width: "100%",
+  },
+  progressBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#f2f2f3",
+    width: "100%",
   },
   progressBarFill: {
     height: "100%",
-    borderRadius: 4,
-    backgroundColor: "#22c55e",
+    borderRadius: 3,
+    backgroundColor: "#153e69",
   },
-  completeBtn: {
-    backgroundColor: "rgba(21, 62, 105, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  addSkillsBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f2f2f3",
     borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 4,
   },
-  completeBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#153e69",
-  },
-  missedText: {
+  addSkillsText: {
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 16,
+    fontWeight: "600",
   },
 });

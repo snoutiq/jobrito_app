@@ -619,6 +619,18 @@ apiClient.interceptors.request.use(
     config.metadata = { startTime: Date.now() };
 
     console.log(`[API Request] Hitting: ${config.baseURL || ""}${config.url} [Method: ${config.method?.toUpperCase()}]`);
+    if (config.data) {
+      if (config.data instanceof FormData) {
+        console.log("[API Request Payload] Type: FormData");
+        if (config.data._parts) {
+          config.data._parts.forEach(([key, val]) => {
+            console.log(`  - ${key}:`, typeof val === "object" && val !== null ? JSON.stringify(val) : val);
+          });
+        }
+      } else {
+        console.log("[API Request Payload] Data:", typeof config.data === "object" ? JSON.stringify(config.data) : config.data);
+      }
+    }
 
     return config;
   },

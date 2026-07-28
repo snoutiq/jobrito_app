@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
-import { resetUser } from "../../redux/slices/userSlice";
+import { fetchProfile, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
 
@@ -33,11 +33,21 @@ export default function SettingsScreen({ navigation }) {
 
   const getEmployerCompletion = () => {
     if (!profile) return 0;
-    if (profile.completionPercentage !== undefined && profile.completionPercentage !== null && profile.completionPercentage > 0) {
-      return profile.completionPercentage;
-    }
-    if (profile.completeness !== undefined && profile.completeness !== null && profile.completeness > 0) {
-      return profile.completeness;
+
+    const hasLogo = !!(profile.company_logo || profile.companyLogo || profile.profile_photo_path);
+    const hasBusinessName = !!(profile.business_name || profile.businessName || profile.company);
+    const hasSegment = !!(profile.industry_segment || profile.segment);
+    const hasLocation = !!(profile.business_location || profile.location);
+
+    const isActuallyComplete = hasLogo && hasBusinessName && hasSegment && hasLocation;
+
+    if (isActuallyComplete) {
+      if (profile.completionPercentage !== undefined && profile.completionPercentage !== null && profile.completionPercentage > 0) {
+        return profile.completionPercentage;
+      }
+      if (profile.completeness !== undefined && profile.completeness !== null && profile.completeness > 0) {
+        return profile.completeness;
+      }
     }
 
     let fields = 0;
@@ -83,10 +93,42 @@ export default function SettingsScreen({ navigation }) {
     return missed;
   };
 
+  const getMissingFieldText = () => {
+    if (employerCompletion >= 100) return t("profile.allInfoAdded", "All information added successfully!");
+    
+    if (!profile?.business_name && !profile?.businessName && !profile?.company) {
+      return t("profile.addBusinessNameAction", "Add Business Name");
+    }
+    if (!profile?.industry_segment && !profile?.segment) {
+      return t("profile.addIndustrySegmentAction", "Add Industry Segment");
+    }
+    if (!profile?.business_location && !profile?.location) {
+      return t("profile.addHQLocationAction", "Add HQ Location");
+    }
+    if (!profile?.contact_person_name && !profile?.contactName && !profile?.name && !profile?.full_name) {
+      return t("profile.addContactPersonAction", "Add Contact Person");
+    }
+    if (!profile?.business_mobile && !profile?.contactPhone && !profile?.phone) {
+      return t("profile.addPhoneNumberAction", "Add Mobile Number");
+    }
+    if (!profile?.business_email && !profile?.contactEmail && !profile?.email) {
+      return t("profile.addEmailAddressAction", "Add Email");
+    }
+    if (!profile?.preferred_language && !profile?.preferredLanguage && !profile?.selected_language) {
+      return t("profile.addLanguageAction", "Add Language");
+    }
+    if (!profile?.company_logo && !profile?.companyLogo && !profile?.profile_photo_path) {
+      return t("profile.addCompanyLogoAction", "Add Company Logo");
+    }
+    return t("profile.completeProfilePrompt", "Complete your profile details");
+  };
+
   const employerCompletion = getEmployerCompletion();
   const employerMissedFields = getEmployerMissedFields();
 
   React.useEffect(() => {
+    dispatch(fetchProfile());
+
     const backAction = () => {
       navigation.goBack();
       return true;
@@ -98,14 +140,11 @@ export default function SettingsScreen({ navigation }) {
     );
 
     return () => backHandler.remove();
-  }, [navigation]);
+  }, [dispatch, navigation]);
 
-  const businessName =
-    profile?.business_name ||
-    profile?.businessName ||
-    profile?.current_employer ||
-    profile?.company ||
-    "";
+  const businessName = isEmployer
+    ? (profile?.business_name || profile?.businessName || profile?.company || "")
+    : (profile?.current_employer || "");
   const contactName =
     profile?.contact_person_name ||
     profile?.contactName ||
@@ -140,7 +179,7 @@ export default function SettingsScreen({ navigation }) {
     setShowLogoutModal(false);
     try {
       const { logout: logoutApi } = require("../../services/authApi");
-      await logoutApi();
+      logoutApi().catch(() => {});
     } catch (e) {
       // ignore network logout errors
     }
@@ -203,24 +242,34 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         {isEmployer && employerCompletion < 100 && (
-          <TouchableOpacity
-            style={styles.completionCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate("EmployerCompleteProfile", { isEditMode: true })}
-          >
-            <View style={styles.completionHeader}>
-              <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
-              <Text style={styles.completionPercent}>{employerCompletion}%</Text>
+          <View style={styles.completionCardContainer}>
+            <View style={styles.completionCard}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
+                <Text style={styles.completionPercent}>{employerCompletion}%</Text>
+              </View>
+
+              {/* Clean Progress bar track */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBarTrack}>
+                  <View style={[styles.progressBarFill, { width: `${employerCompletion}%` }]} />
+                </View>
+              </View>
+
+              {/* Dynamic Missing Field / Add Action */}
+              <Pressable
+                style={styles.addSkillsBar}
+                onPress={() => navigation.navigate("EmployerCompleteProfile", { isEditMode: true })}
+              >
+                <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
+                <Ionicons 
+                  name={employerCompletion >= 100 ? "create-outline" : "add-circle"} 
+                  size={18} 
+                  color="#153e69" 
+                />
+              </Pressable>
             </View>
-            <View style={styles.progressBarTrack}>
-              <View style={[styles.progressBarFill, { width: `${employerCompletion}%` }]} />
-            </View>
-            {employerMissedFields.length > 0 && (
-              <Text style={styles.missedText}>
-                {t("missedInfoPrompt", "Add missing info:")} {employerMissedFields.join(", ")}
-              </Text>
-            )}
-          </TouchableOpacity>
+          </View>
         )}
 
         <Text style={styles.sectionTitle}>
@@ -606,13 +655,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
   },
+  completionCardContainer: {
+    paddingHorizontal: 0,
+    marginBottom: 20,
+  },
   completionCard: {
     backgroundColor: "#ffffff",
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 20,
   },
   completionHeader: {
     flexDirection: "row",
@@ -621,32 +673,45 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   completionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#0a0504",
   },
   completionPercent: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#153e69",
   },
-  progressBarTrack: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
+  progressContainer: {
+    height: 6,
+    marginBottom: 12,
     width: "100%",
-    marginBottom: 8,
+  },
+  progressBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#f2f2f3",
+    width: "100%",
   },
   progressBarFill: {
     height: "100%",
-    borderRadius: 4,
+    borderRadius: 3,
     backgroundColor: "#153e69",
   },
-  missedText: {
+  addSkillsBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f2f2f3",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  addSkillsText: {
     fontSize: 12,
-    color: "#f57f20",
+    color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
-    marginTop: 8,
   },
 });
 

@@ -103,6 +103,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showRelationDropdown, setShowRelationDropdown] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const segments = [
     "Restaurant",
@@ -369,6 +370,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   };
 
   const finishOnboarding = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const payload = {
         business_name: businessName,
@@ -417,6 +420,14 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         });
       }
 
+      // Log onboarding API call details
+      console.log("[API INFO] Saving profile completion. URL: /employer/onboarding/save");
+      if (formData && formData._parts) {
+        formData._parts.forEach(([key, value]) => {
+          console.log(`[API PAYLOAD] ${key}:`, typeof value === "object" && value !== null ? JSON.stringify(value) : value);
+        });
+      }
+
       // Call API
       const apiResponse = await saveEmployerOnboarding(formData);
       
@@ -454,6 +465,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     } catch (error) {
       console.error("Failed to save employer onboarding:", error);
       Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1132,12 +1145,17 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Start Posting Jobs Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { marginTop: 24 }]}
+                style={[styles.continueButton, { marginTop: 24 }, isSaving && { opacity: 0.6 }]}
                 onPress={finishOnboarding}
+                disabled={isSaving}
                 activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>{isEditMode ? t("saveProfile", "Save Profile") : t("postJob.postNew", "Start Posting Jobs")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>
+                  {isSaving 
+                    ? t("saving", "Saving...") 
+                    : (isEditMode ? t("saveProfile", "Save Profile") : t("postJob.postNew", "Start Posting Jobs"))}
+                </Text>
+                {!isSaving && <Ionicons name="arrow-forward" size={18} color="#fff" />}
               </TouchableOpacity>
             </View>
           )}

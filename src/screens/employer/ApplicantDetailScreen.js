@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { updateApplicantStatus, fetchEmployerDashboard } from "../../redux/slices/employerSlice";
-import { getAvatarUrl } from "../../components/SwipeDeck/SwipeCard";
+import { getAvatarUrl, getAbsoluteProfilePhotoUrl } from "../../components/SwipeDeck/SwipeCard";
 import MatchBadge from "../../components/SwipeDeck/MatchBadge";
 import Timeline from "../../components/SwipeDeck/Timeline";
 
@@ -60,7 +60,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   // Real profile photo URL mapping
   const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
-  const avatarSource = avatarUri ? { uri: avatarUri } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
+  const avatarSource = avatarUri ? { uri: getAbsoluteProfilePhotoUrl(avatarUri) } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
 
   // Match score (no random generation)
   const matchScore = applicant.match_score || applicant.match?.score;

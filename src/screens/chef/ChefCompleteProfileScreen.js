@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { setProfileData, resetUser } from "../../redux/slices/userSlice";
+import { fetchProfile, setProfileData, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { 
   setChefOnboardingCompleted, 
@@ -147,6 +147,10 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
   // --- Step 4 State ---
   const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
+
+  useEffect(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     if (profile) {
@@ -480,7 +484,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   const handleExitAndLogout = async () => {
     try {
       const { logout: logoutApi } = require("../../services/authApi");
-      await logoutApi();
+      logoutApi().catch(() => {});
     } catch (e) {
       // ignore
     }

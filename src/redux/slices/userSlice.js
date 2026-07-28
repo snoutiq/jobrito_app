@@ -29,7 +29,12 @@ export const switchUserRole = createAsyncThunk(
   "user/switchUserRole",
   async (role, { rejectWithValue }) => {
     try {
-      return await switchRoleApi(role);
+      const response = await switchRoleApi(role);
+      if (response && response.user) {
+        const { normalizeProfile } = require("../../services/profileApi");
+        response.profile = normalizeProfile(response.user);
+      }
+      return response;
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to switch role");
     }
@@ -165,8 +170,11 @@ const userSlice = createSlice({
       })
       .addCase(switchUserRole.fulfilled, (state, action) => {
         state.loading = false;
-        state.activeRole = action.payload?.role || state.activeRole;
-        state.profile.role = action.payload?.role || state.profile.role;
+        if (action.payload?.profile) {
+          state.profile = action.payload.profile;
+        }
+        state.activeRole = action.payload?.role || action.meta.arg || state.activeRole;
+        state.profile.role = action.payload?.role || action.meta.arg || state.profile.role;
         state.success = true;
       })
       .addCase(switchUserRole.rejected, (state, action) => {
