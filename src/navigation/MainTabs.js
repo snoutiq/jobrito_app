@@ -54,6 +54,7 @@ function HomeOnlyStack() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
+        animation: "slide_from_right",
       }}
     >
       <Stack.Screen
@@ -234,6 +235,7 @@ export default function MainTabs() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
+        animation: "slide_from_right",
       }}
     >
       <Stack.Screen
