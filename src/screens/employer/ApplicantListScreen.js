@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Linking, StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ApplicantCard from "../../components/cards/ApplicantCard";
-import colors from "../../constants/colors";
-import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
-
-const PRIMARY_GREEN = "#153e69";
+import { fetchEmployerDashboard, updateApplicantStatus } from "../../redux/slices/employerSlice";
+import CardStack from "../../components/SwipeDeck/CardStack";
 
 export default function ApplicantListScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -19,8 +21,9 @@ export default function ApplicantListScreen({ route, navigation }) {
   const jobTitle = route?.params?.jobTitle || "Applicants";
 
   const [activeFilter, setActiveFilter] = useState("all");
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  // Get active job and applicants directly from the Redux store loaded from employer_dashboard
+  // Get active job and applicants from the Redux store
   const selectedJob = useSelector((state) =>
     state.employer.submittedJobs.find((j) => j.id === jobId)
   );
@@ -32,32 +35,71 @@ export default function ApplicantListScreen({ route, navigation }) {
     dispatch(fetchEmployerDashboard());
   }, [dispatch]);
 
-  const handleCall = (phone) => {
-    if (!phone) {
-      CustomAlert.show("Error", "Phone number not available.");
-      return;
-    }
-    Linking.openURL(`tel:${phone}`).catch(() => {
-      CustomAlert.show("Call unavailable", "Dialer could not be opened.");
-    });
-  };
-
-  // Calculate stats for this job
+  // Calculate dynamic stats
   const totalApplied = applicants.length;
   const shortlistedCount = applicants.filter((a) => a.status?.toLowerCase() === "shortlisted").length;
   const contactedCount = applicants.filter((a) => a.status?.toLowerCase() === "contacted").length;
   const rejectedCount = applicants.filter((a) => a.status?.toLowerCase() === "rejected").length;
   const pendingCount = applicants.filter((a) => a.status?.toLowerCase() === "new" || a.status?.toLowerCase() === "pending").length;
 
-  const headerStatsText = `${totalApplied} ${t("applied")} | ${shortlistedCount} ${t("shortlisted")} | ${contactedCount} ${t("contacted")} | ${rejectedCount} ${t("rejected")} | ${pendingCount} ${t("pending")}`;
-
-  // Filter applicants based on active status filter
+  // Filter applicants
   const filteredApplicants = applicants.filter((item) => {
     const status = item.status?.toLowerCase();
     if (activeFilter === "all") return true;
     if (activeFilter === "new") return status === "new" || status === "pending";
     return status === activeFilter;
   });
+
+  // Handle activeIndex reset when filter changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [activeFilter]);
+
+  // Animated progress bar setup
+  const progressShared = useSharedValue(0);
+  const deckLength = filteredApplicants.length;
+
+  useEffect(() => {
+    const targetProgress = deckLength > 0 ? Math.min(activeIndex / deckLength, 1) : 0;
+    progressShared.value = withSpring(targetProgress, { damping: 15 });
+  }, [activeIndex, deckLength]);
+
+  const animatedProgressStyle = useAnimatedStyle(() => {
+    return {
+      width: `${progressShared.value * 100}%`,
+    };
+  });
+
+  const handleCall = (applicant) => {
+    const phone = applicant.mobile_number || applicant.phone;
+    if (!phone) {
+      CustomAlert.show("Error", "Phone number not available.");
+      return;
+    }
+    Linking.openURL(`tel:${phone}`)
+      .then(() => {
+        dispatch(updateApplicantStatus({ applicationId: applicant.id, status: "contacted" }));
+        dispatch(fetchEmployerDashboard());
+      })
+      .catch(() => {
+        CustomAlert.show("Call unavailable", "Dialer could not be opened.");
+      });
+  };
+
+  const handleSwipe = async (applicant, direction) => {
+    const status = direction === "right" ? "shortlisted" : "rejected";
+    try {
+      await dispatch(updateApplicantStatus({ applicationId: applicant.id, status })).unwrap();
+      dispatch(fetchEmployerDashboard());
+    } catch (error) {
+      console.error("Failed to update status on swipe:", error);
+    }
+    setActiveIndex((prev) => prev + 1);
+  };
+
+  const handleDetailsPress = (applicant) => {
+    navigation.navigate("ApplicantDetail", { applicantId: applicant.id, jobId, applicantItem: applicant });
+  };
 
   const filterTabs = [
     {
@@ -107,16 +149,33 @@ export default function ApplicantListScreen({ route, navigation }) {
     },
   ];
 
+  const currentDisplayIndex = Math.min(activeIndex + 1, deckLength);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
+        <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("applicantList")}</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle} numberOfLines={1}>{jobTitle}</Text>
+            <Text style={styles.headerSubtitle}>
+              {deckLength > 0 && activeIndex < deckLength
+                ? `${t("reviewing", "Reviewing")} ${currentDisplayIndex} ${t("of", "of")} ${deckLength}`
+                : t("allReviewed", "All reviewed")}
+            </Text>
+          </View>
         </View>
+
+        {/* Animated Progress Indicator */}
+        {deckLength > 0 && (
+          <View style={styles.progressContainer}>
+            <View style={styles.progressTrack} />
+            <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
+          </View>
+        )}
       </View>
 
       {/* Filter Tabs Section */}
@@ -171,28 +230,14 @@ export default function ApplicantListScreen({ route, navigation }) {
         </ScrollView>
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {filteredApplicants.length > 0 ? (
-          <FlatList
-            data={filteredApplicants}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <ApplicantCard
-                applicant={item}
-                onPress={() => navigation.navigate("ApplicantDetail", { applicantId: item.id, jobId })}
-                onCall={() => handleCall(item.mobile_number || item.phone)}
-              />
-            )}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={48} color="rgba(10, 5, 4, 0.4)" />
-            <Text style={styles.emptyText}>{t("noApplicantsCategory")}</Text>
-          </View>
-        )}
+      {/* Tinder Card Stack and Actions Container */}
+      <View style={styles.deckContainer}>
+        <CardStack
+          applicants={filteredApplicants}
+          onSwipe={handleSwipe}
+          onCall={handleCall}
+          onPressDetails={handleDetailsPress}
+        />
       </View>
     </SafeAreaView>
   );
@@ -206,27 +251,61 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingTop: 12,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "rgba(10, 5, 4, 0.08)",
   },
-  headerLeft: {
+  headerTop: {
     flexDirection: "row",
     alignItems: "center",
   },
   backButton: {
-    marginRight: 12,
+    marginRight: 14,
+  },
+  headerTitleContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#0a0504",
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.45)",
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  progressContainer: {
+    height: 4,
+    width: "100%",
+    position: "relative",
+    marginTop: 14,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressTrack: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(21, 62, 105, 0.1)",
+  },
+  progressBar: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "#153e69",
+    borderRadius: 2,
   },
   filterSection: {
     backgroundColor: "#ffffff",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "rgba(10, 5, 4, 0.08)",
   },
   filterScrollContent: {
     paddingHorizontal: 16,
@@ -241,23 +320,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
   },
-  filterPillActive: {
-    backgroundColor: "#0a0504",
-    borderColor: "#0a0504",
-  },
-  filterPillInactive: {
-    backgroundColor: "#f2f2f3",
-    borderColor: "rgba(10, 5, 4, 0.15)",
-  },
   filterLabel: {
     fontSize: 13,
     fontWeight: "700",
-  },
-  filterLabelActive: {
-    color: "#ffffff",
-  },
-  filterLabelInactive: {
-    color: "rgba(10, 5, 4, 0.6)",
   },
   countBadge: {
     paddingHorizontal: 6,
@@ -267,41 +332,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 18,
   },
-  countBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-  },
-  countBadgeInactive: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-  },
   countText: {
     fontSize: 10,
     fontWeight: "800",
   },
-  countTextActive: {
-    color: "#ffffff",
-  },
-  countTextInactive: {
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  content: {
+  deckContainer: {
     flex: 1,
-    padding: 16,
-  },
-  listContainer: {
-    gap: 12,
-    paddingBottom: 24,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "600",
-    textAlign: "center",
+    paddingHorizontal: 16,
   },
 });
