@@ -301,8 +301,9 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card Summary */}
-        <View style={styles.profileHeaderCard}>
+        {/* Single Unified Profile Resume Card */}
+        <View style={styles.mainProfileCard}>
+          {/* Header Block: Avatar & Core Info */}
           <View style={styles.profileHeaderRow}>
             {logoSource ? (
               <Image source={logoSource} style={styles.avatar} />
@@ -317,117 +318,100 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
               {Boolean(displayCity) && (
                 <View style={styles.locationRow}>
                   <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 2 }} />
-                  <Text style={styles.locationText} numberOfLines={2}>
-                    {t("current", "Current")}: {displayCity}
-                    {displayPrefLocation ? `\n${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
+                  <Text style={styles.locationText} numberOfLines={1}>
+                    {displayCity}
+                    {displayPrefLocation ? ` | Preferred: ${displayPrefLocation}` : ""}
                   </Text>
                 </View>
               )}
-              {Boolean(getAvailabilityStatus()) && (
-                <View style={styles.statusBadge}>
-                  <View style={[styles.greenDot, { backgroundColor: getAvailabilityStatus().toLowerCase().includes("unavail") ? "#f57f20" : "#22c55e" }]} />
-                  <Text style={styles.statusText}>{getAvailabilityStatus()}</Text>
-                </View>
+              <Text style={styles.metaMetricsText}>
+                {displayExperience ? `${displayExperience} Exp` : ""}
+                {getAvailabilityStatus() ? ` | Can Join: ${getAvailabilityStatus()}` : ""}
+              </Text>
+            </View>
+          </View>
+
+          {/* Divider */}
+          {(Boolean(displayBio) || getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0 || getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
+            <View style={styles.cardDivider} />
+          )}
+
+          {/* Section 1: About Me (Bio) */}
+          {Boolean(displayBio) && (
+            <View style={styles.cardSubSection}>
+              <Text style={styles.mainCardHeaderTitle}>{t("professionalSummary", "About Me")}</Text>
+              <Text style={styles.bioText}>{displayBio}</Text>
+            </View>
+          )}
+
+          {/* Divider */}
+          {Boolean(displayBio) && (getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0 || getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
+            <View style={styles.cardDivider} />
+          )}
+
+          {/* Section 2: Expertise & Skills */}
+          {(getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0) && (
+            <View style={styles.cardSubSection}>
+              <Text style={styles.mainCardHeaderTitle}>{t("skillsAndExpertise", "Expertise & Skills")}</Text>
+              
+              {/* Cuisines & Regional Experience */}
+              {(getCuisinesList().length > 0 || getRegionalList().length > 0) && (
+                <Text style={styles.inlineRowText}>
+                  {getCuisinesList().length > 0 && (
+                    <>
+                      <Text style={styles.inlineLabel}>{t("cuisineExpertise")}: </Text>
+                      <Text style={styles.inlineValue}>{getCuisinesList().join(", ")}</Text>
+                    </>
+                  )}
+                  {getRegionalList().length > 0 && (
+                    <>
+                      {getCuisinesList().length > 0 && <Text style={styles.inlineSeparator}>  |  </Text>}
+                      <Text style={styles.inlineLabel}>{t("regionalExperience")}: </Text>
+                      <Text style={styles.inlineValue}>{getRegionalList().join(", ")}</Text>
+                    </>
+                  )}
+                </Text>
+              )}
+
+              {/* Core Skills */}
+              {getSkillsList().length > 0 && (
+                <Text style={[styles.inlineRowText, { marginTop: 12 }]}>
+                  <Text style={styles.inlineLabel}>{t("coreSkills")}: </Text>
+                  <Text style={styles.inlineValue}>{getSkillsList().join(", ")}</Text>
+                </Text>
               )}
             </View>
-          </View>
+          )}
+
+          {/* Divider */}
+          {(getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0) && (getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
+            <View style={styles.cardDivider} />
+          )}
+
+          {/* Section 3: Preferences & General */}
+          {(getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
+            <View style={[styles.cardSubSection, { marginBottom: 0 }]}>
+              <Text style={styles.mainCardHeaderTitle}>{t("preferencesAndDetails", "Preferences & General")}</Text>
+
+              {/* Employment Preference & Languages Spoken */}
+              <Text style={styles.inlineRowText}>
+                {getEmploymentList().length > 0 && (
+                  <>
+                    <Text style={styles.inlineLabel}>{t("employmentPreference")}: </Text>
+                    <Text style={styles.inlineValue}>{getEmploymentList().join(", ")}</Text>
+                  </>
+                )}
+                {getLanguagesList().length > 0 && (
+                  <>
+                    {getEmploymentList().length > 0 && <Text style={styles.inlineSeparator}>  |  </Text>}
+                    <Text style={styles.inlineLabel}>{t("languagesSpoken")}: </Text>
+                    <Text style={styles.inlineValue}>{getLanguagesList().join(", ")}</Text>
+                  </>
+                )}
+              </Text>
+            </View>
+          )}
         </View>
-
-        {/* Professional Summary */}
-        {Boolean(displayBio) && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("professionalSummary")}</Text>
-            <Text style={styles.bioText}>{displayBio}</Text>
-          </View>
-        )}
-
-        {/* Info Grid */}
-        {(Boolean(displayExperience) || isOwnProfile) && (
-          <View style={styles.infoGridRow}>
-            {Boolean(displayExperience) && (
-              <View style={styles.infoGridBadge}>
-                <Ionicons name="time-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
-                <Text style={styles.badgeLabel}>{t("experience")}</Text>
-                <Text style={styles.badgeValue}>{displayExperience}</Text>
-              </View>
-            )}
-            <View style={styles.infoGridBadge}>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#153e69" style={{ marginBottom: 4 }} />
-              <Text style={styles.badgeLabel}>{t("identity")}</Text>
-              <Text style={styles.badgeValue}>{t("verified")}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Employment Preference */}
-        {getEmploymentList().length > 0 && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("employmentPreference")}</Text>
-            <View style={styles.pillsContainer}>
-              {getEmploymentList().map((opt, idx) => (
-                <View key={idx} style={styles.pillGrey}>
-                  <Text style={styles.pillText}>{opt}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Cuisine Expertise */}
-        {getCuisinesList().length > 0 && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("cuisineExpertise")}</Text>
-            <View style={styles.pillsContainer}>
-              {getCuisinesList().map((cuisine, idx) => (
-                <View key={idx} style={styles.pillGreenLight}>
-                  <Text style={styles.pillTextGreen}>{cuisine}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Core Skills */}
-        {getSkillsList().length > 0 && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("coreSkills")}</Text>
-            <View style={styles.pillsContainer}>
-              {getSkillsList().map((opt, idx) => (
-                <View key={idx} style={styles.pillOutline}>
-                  <Text style={styles.pillTextGrey}>{opt}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Languages Spoken */}
-        {getLanguagesList().length > 0 && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("languagesSpoken", "Languages Spoken")}</Text>
-            <View style={styles.pillsContainer}>
-              {getLanguagesList().map((lang, idx) => (
-                <View key={idx} style={styles.pillGrey}>
-                  <Text style={styles.pillText}>{lang}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Regional Experience */}
-        {getRegionalList().length > 0 && (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{t("regionalExperience")}</Text>
-            <View style={styles.pillsContainer}>
-              {getRegionalList().map((opt, idx) => (
-                <View key={idx} style={styles.pillGrey}>
-                  <Text style={styles.pillText}>{opt}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
 
         {/* Social Profiles */}
         {getActiveSocials().length > 0 && (
@@ -622,17 +606,17 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingBottom: 40,
   },
-  profileHeaderCard: {
+  mainProfileCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    padding: 20,
     shadowColor: "#0a0504",
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
   profileHeaderRow: {
     flexDirection: "row",
@@ -704,6 +688,67 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#153e69",
   },
+  mainCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    padding: 16,
+    marginBottom: 12,
+  },
+  mainCardHeaderTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#153e69",
+    marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  cardSubSection: {
+    marginBottom: 8,
+  },
+  cardSubSectionInline: {
+    marginBottom: 14,
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: "rgba(10, 5, 4, 0.08)",
+    marginVertical: 12,
+  },
+  cardSubTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(10, 5, 4, 0.4)",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  badgeTextContainer: {
+    flex: 1,
+  },
+  metaMetricsText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.45)",
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  inlineRowText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.7)",
+    lineHeight: 18,
+  },
+  inlineLabel: {
+    fontWeight: "800",
+    color: "#153e69",
+  },
+  inlineValue: {
+    fontWeight: "600",
+    color: "#0a0504",
+  },
+  inlineSeparator: {
+    color: "rgba(10, 5, 4, 0.25)",
+    fontWeight: "300",
+  },
   sectionCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -730,12 +775,14 @@ const styles = StyleSheet.create({
   },
   infoGridBadge: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 12,
+    flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   badgeLabel: {
     fontSize: 10,

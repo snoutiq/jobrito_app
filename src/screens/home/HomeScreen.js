@@ -13,6 +13,7 @@ import {
   Linking,
   Image,
   RefreshControl,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +22,7 @@ import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
 import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
+import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 
 export default function HomeScreen({ navigation }) {
@@ -28,8 +30,98 @@ export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
   
   const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
+  const { profile } = useSelector((state) => state.user);
+  
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+
+  // Profile Completion Modal States
+  const [hasModalBeenDismissedThisSession, setHasModalBeenDismissedThisSession] = useState(false);
+  const [completionModalVisible, setCompletionModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [submittingProfile, setSubmittingProfile] = useState(false);
+
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formSkills, setFormSkills] = useState("");
+  const [formEmployer, setFormEmployer] = useState("");
+  const [formGender, setFormGender] = useState("");
+
+  const getDynamicCompletion = () => {
+    if (!profile) return 100;
+    
+    let fields = 0;
+    let filled = 0;
+    
+    fields++;
+    if (profile.name && profile.name !== "Guest User" && profile.name.trim()) filled++;
+    else if (profile.full_name && profile.full_name.trim()) filled++;
+    
+    fields++;
+    if (profile.email && profile.email.trim()) filled++;
+    
+    fields++;
+    if (profile.city && profile.city.trim()) filled++;
+    
+    fields++;
+    const skills = profile.skills;
+    if (Array.isArray(skills) && skills.length > 0) filled++;
+    else if (typeof skills === "string" && skills.trim()) filled++;
+    
+    fields++;
+    if (profile.current_employer && profile.current_employer.trim()) filled++;
+    
+    fields++;
+    if (profile.gender && profile.gender.trim()) filled++;
+    
+    return Math.round((filled / fields) * 100);
+  };
+
+  useEffect(() => {
+    if (profile) {
+      setFormName(profile.full_name || profile.name || "");
+      setFormEmail(profile.email || "");
+      setFormCity(profile.city || "");
+      setFormSkills(Array.isArray(profile.skills) ? profile.skills.join(", ") : (profile.skills || ""));
+      setFormEmployer(profile.current_employer || "");
+      setFormGender(profile.gender || "");
+
+      // Check completeness (only for Job Seeker / Talent role)
+      if (!hasModalBeenDismissedThisSession && profile?.role === "job_seeker") {
+        const pct = getDynamicCompletion();
+        if (pct < 100) {
+          setCompletionModalVisible(true);
+        }
+      }
+    }
+  }, [profile, hasModalBeenDismissedThisSession]);
+
+  const handleSaveProfile = async () => {
+    setSubmittingProfile(true);
+    try {
+      const updateData = {
+        full_name: formName,
+        email: formEmail,
+        city: formCity,
+        skills: formSkills,
+        current_employer: formEmployer,
+        gender: formGender,
+        experience_range: profile?.experience_range || "",
+        preferred_role: profile?.preferred_role || profile?.preference || "",
+      };
+
+      await dispatch(updateProfile(updateData)).unwrap();
+      await dispatch(fetchProfile()).unwrap();
+      
+      setCompletionModalVisible(false);
+      setSuccessModalVisible(true);
+    } catch (err) {
+      Alert.alert(t("error", "Error"), err.message || "Failed to update profile details.");
+    } finally {
+      setSubmittingProfile(false);
+    }
+  };
 
   // Pull to Refresh State
   const [refreshing, setRefreshing] = useState(false);
@@ -372,6 +464,206 @@ export default function HomeScreen({ navigation }) {
           return false;
         }}
       />
+
+      {/* Profile Completion Modal */}
+      {(() => {
+        const isNameEmpty = !(profile?.full_name || profile?.name || "").trim() || (profile?.name === "Guest User");
+        const isEmailEmpty = !(profile?.email || "").trim();
+        const isCityEmpty = !(profile?.city || "").trim();
+        const isSkillsEmpty = !profile?.skills || (Array.isArray(profile?.skills) && profile?.skills.length === 0) || (typeof profile?.skills === "string" && !profile?.skills.trim());
+        const isEmployerEmpty = !(profile?.current_employer || "").trim();
+        const isGenderEmpty = !(profile?.gender || "").trim();
+
+        return (
+          <Modal
+            visible={completionModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => {
+              setCompletionModalVisible(false);
+              setHasModalBeenDismissedThisSession(true);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t("profile.completeYourProfile", "Complete Profile")}</Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCompletionModalVisible(false);
+                      setHasModalBeenDismissedThisSession(true);
+                    }}
+                    style={styles.modalCloseBtn}
+                  >
+                    <Ionicons name="close" size={22} color="rgba(10, 5, 4, 0.6)" />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 10 }}>
+                  <Text style={styles.modalSubtitle}>
+                    {t("profile.completeModalSubtitle", "Please fill in the missing details to complete your profile.")}
+                  </Text>
+
+                  {/* Conditionally Render Missing Fields */}
+                  {isNameEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.fullName", "Full Name")}</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formName}
+                        onChangeText={setFormName}
+                        placeholder={t("profile.enterFullName", "Enter full name")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isEmailEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.emailAddress", "Email Address")}</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formEmail}
+                        onChangeText={setFormEmail}
+                        placeholder={t("profile.enterEmail", "Enter email address")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  )}
+
+                  {isCityEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.city", "City")}</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formCity}
+                        onChangeText={setFormCity}
+                        placeholder={t("profile.enterCity", "Enter city")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isSkillsEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.skills", "Skills (Comma separated)")}</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formSkills}
+                        onChangeText={setFormSkills}
+                        placeholder={t("profile.enterSkills", "e.g. Kitchen, Communication")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isEmployerEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.currentEmployer", "Current Employer")}</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formEmployer}
+                        onChangeText={setFormEmployer}
+                        placeholder={t("profile.enterEmployer", "Enter current employer")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isGenderEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>{t("profile.gender", "Gender")}</Text>
+                      <View style={styles.genderSelectRow}>
+                        {["Male", "Female"].map((g) => {
+                          const isSelected = formGender.toLowerCase() === g.toLowerCase();
+                          return (
+                            <TouchableOpacity
+                              key={g}
+                              style={[
+                                styles.genderOptionBtn,
+                                isSelected && styles.genderOptionBtnSelected,
+                              ]}
+                              onPress={() => setFormGender(g)}
+                              activeOpacity={0.7}
+                            >
+                              <Ionicons
+                                name={g.toLowerCase() === "male" ? "male-outline" : "female-outline"}
+                                size={16}
+                                color={isSelected ? "#153e69" : "rgba(10, 5, 4, 0.5)"}
+                                style={{ marginRight: 6 }}
+                              />
+                              <Text
+                                style={[
+                                  styles.genderOptionText,
+                                  isSelected && styles.genderOptionTextSelected,
+                                ]}
+                              >
+                                {t(`profile.${g.toLowerCase()}`, g)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={styles.modalConfirmBtn}
+                  onPress={handleSaveProfile}
+                  disabled={submittingProfile}
+                >
+                  {submittingProfile ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.modalConfirmBtnText}>{t("profile.saveAndComplete", "Save & Complete")}</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalSkipBtn}
+                  onPress={() => {
+                    setCompletionModalVisible(false);
+                    setHasModalBeenDismissedThisSession(true);
+                  }}
+                >
+                  <Text style={styles.modalSkipBtnText}>{t("skip", "Skip")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        );
+      })()}
+
+      {/* Success Modal */}
+      <Modal
+        visible={successModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setSuccessModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { alignItems: "center", paddingVertical: 30 }]}>
+            <View style={[styles.successIconCircle, { backgroundColor: "rgba(34, 197, 94, 0.1)" }]}>
+              <Ionicons name="checkmark-circle" size={54} color="#22c55e" />
+            </View>
+            <Text style={[styles.modalTitle, { textAlign: "center", marginBottom: 10 }]}>
+              {t("profile.profileCompleted", "Profile Completed!")}
+            </Text>
+            <Text style={[styles.modalSubtitle, { textAlign: "center", marginBottom: 20 }]}>
+              {t("profile.profileCompletedSubtitle", "Your profile details have been saved successfully.")}
+            </Text>
+            <TouchableOpacity
+              style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
+              onPress={() => setSuccessModalVisible(false)}
+            >
+              <Text style={styles.modalConfirmBtnText}>{t("gotIt", "Got It")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       
     </ScreenWrapper>
   );
@@ -766,5 +1058,65 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "800",
     textTransform: "uppercase",
+  },
+  inputGroup: {
+    marginBottom: 12,
+    width: "100%",
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#153e69",
+    marginBottom: 6,
+  },
+  textInput: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    color: "#0a0504",
+    backgroundColor: "#ffffff",
+    fontSize: 13,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    width: "100%",
+  },
+  modalCloseBtn: {
+    padding: 4,
+    marginRight: -4,
+  },
+  genderSelectRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 4,
+  },
+  genderOptionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  genderOptionBtnSelected: {
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  genderOptionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  genderOptionTextSelected: {
+    color: "#153e69",
+    fontWeight: "700",
   },
 });

@@ -378,7 +378,7 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Item: My Saved Jobs */}
         <Pressable
-          style={[styles.menuItem, { borderBottomWidth: 0 }]}
+          style={styles.menuItem}
           onPress={() => navigation.navigate("SavedJobs")}
         >
           <View style={styles.menuItemLeft}>
@@ -396,13 +396,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
           </View>
         </Pressable>
-      </View>
 
-      {/* Screen Divider */}
-      <View style={styles.screenDivider} />
-
-      {/* Settings / Logout Section */}
-      <View style={styles.menuList}>
         {/* Item: Language */}
         <Pressable
           style={styles.menuItem}
