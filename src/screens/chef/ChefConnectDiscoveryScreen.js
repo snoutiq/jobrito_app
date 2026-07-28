@@ -117,11 +117,12 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   const filteredChefs = chefs.filter((chef) => {
     // 1. Search query
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().replace("id:", "").replace("#", "").trim();
       const matchName = (chef.full_name || chef.name || "").toLowerCase().includes(q);
       const matchCuisine = (chef.cuisine_specialty || "").toLowerCase().includes(q);
       const matchCity = (chef.city || "").toLowerCase().includes(q);
-      if (!matchName && !matchCuisine && !matchCity) return false;
+      const matchId = chef.id ? chef.id.toString() === q : false;
+      if (!matchName && !matchCuisine && !matchCity && !matchId) return false;
     }
 
     // 2. Quick filters
@@ -393,9 +394,18 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                   )}
                   <View style={styles.chefBrief}>
                     <View style={styles.chefNameRow}>
-                      <Text style={styles.chefName}>{chef.full_name || chef.name}</Text>
-                      <View style={styles.tagBadge}>
-                        <Text style={styles.tagBadgeText}>{tag}</Text>
+                      <Text style={[styles.chefName, { flex: 1, marginRight: 8 }]} numberOfLines={1}>
+                        {chef.full_name || chef.name}
+                      </Text>
+                      <View style={styles.badgeRow}>
+                        {chef.id ? (
+                          <View style={styles.chefIdBadgeInline}>
+                            <Text style={styles.chefIdBadgeInlineText}>ID: #{chef.id}</Text>
+                          </View>
+                        ) : null}
+                        <View style={styles.tagBadge}>
+                          <Text style={styles.tagBadgeText}>{tag}</Text>
+                        </View>
                       </View>
                     </View>
                     <View style={styles.detailRow}>
@@ -702,6 +712,23 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
+    position: "relative",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  chefIdBadgeInline: {
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  chefIdBadgeInlineText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#f57f20",
   },
   cardHeaderRow: {
     flexDirection: "row",

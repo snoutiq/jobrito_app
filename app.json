@@ -19,7 +19,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.jobrito.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       },
       "icon": "./src/assets/Jobrito full logo.png"
     },
