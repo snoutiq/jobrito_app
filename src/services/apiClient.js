@@ -688,7 +688,11 @@ apiClient.interceptors.response.use(
     // 2. Token Refresh & Replay Queue
     const status = error.response?.status || error.status;
     if (status === 401 && originalRequest && !originalRequest._retry) {
-      if (originalRequest.url?.includes(API_ENDPOINTS.REFRESH_TOKEN)) {
+      if (
+        originalRequest.url?.includes(API_ENDPOINTS.REFRESH_TOKEN) ||
+        originalRequest.url?.includes(API_ENDPOINTS.LOGIN) ||
+        originalRequest.url?.includes(API_ENDPOINTS.VERIFY_OTP)
+      ) {
         return Promise.reject(formatErrorResponse(error));
       }
 

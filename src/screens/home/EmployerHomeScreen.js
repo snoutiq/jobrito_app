@@ -137,24 +137,30 @@ export default function EmployerHomeScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <View style={styles.smallStatsRow}>
-          <View style={styles.smallStatCard}>
-            <View style={[styles.smallStatIconBox, { backgroundColor: "rgba(242, 200, 121, 0.12)" }]}>
-              <Ionicons name="hourglass-outline" size={20} color="#f2c879" />
+        <View style={styles.statusMainCard}>
+          <Text style={styles.statusCardTitle}>{t("jobStatus", "JOB STATUS")}</Text>
+          
+          <View style={styles.statusRow}>
+            <View style={styles.statusItem}>
+              <View style={[styles.smallStatIconBox, { backgroundColor: "rgba(242, 200, 121, 0.12)" }]}>
+                <Ionicons name="hourglass-outline" size={20} color="#f2c879" />
+              </View>
+              <View style={styles.statusTextContainer}>
+                <Text style={styles.statusLabel}>{t("pendingJobs", "Pending Jobs")}</Text>
+                <Text style={styles.statusValue}>{pendingJobsCount}</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.smallStatLabel}>{t("pending")}</Text>
-              <Text style={styles.smallStatValue}>{pendingJobsCount}</Text>
-            </View>
-          </View>
 
-          <View style={styles.smallStatCard}>
-            <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
-              <Ionicons name="briefcase-outline" size={20} color="#153e69" />
-            </View>
-            <View>
-              <Text style={styles.smallStatLabel}>{t("activeJobs")}</Text>
-              <Text style={styles.smallStatValue}>{activeJobsCount}</Text>
+            <View style={styles.verticalStatusDivider} />
+
+            <View style={styles.statusItem}>
+              <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
+                <Ionicons name="briefcase-outline" size={20} color="#153e69" />
+              </View>
+              <View style={styles.statusTextContainer}>
+                <Text style={styles.statusLabel}>{t("activeJobs", "Active Jobs")}</Text>
+                <Text style={styles.statusValue}>{activeJobsCount}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -329,20 +335,52 @@ const styles = StyleSheet.create({
     height: 36,
     backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
-  smallStatsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  smallStatCard: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+  statusMainCard: {
     backgroundColor: "#ffffff",
     borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 14,
+    padding: 16,
+    marginBottom: 10,
+  },
+  statusCardTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(10, 5, 4, 0.6)",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 14,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  statusItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 10,
+  },
+  statusTextContainer: {
+    flex: 1,
+  },
+  statusLabel: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  statusValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0a0504",
+  },
+  verticalStatusDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    marginHorizontal: 12,
   },
   smallStatIconBox: {
     width: 38,
@@ -350,17 +388,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-  },
-  smallStatLabel: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  smallStatValue: {
-    color: "#0a0504",
-    fontSize: 18,
-    fontWeight: "800",
-    marginTop: 2,
   },
   sectionTitle: {
     color: "rgba(10, 5, 4, 0.6)",

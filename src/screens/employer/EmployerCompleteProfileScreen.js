@@ -578,38 +578,23 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
-              </View>
-
-              {/* Map Preview Mockup */}
-              <View style={styles.mapContainer}>
-                <View style={styles.mapGridBg}>
-                  {/* Styled mock map lines */}
-                  <View style={[styles.mapLine, { transform: [{ rotate: "30deg" }], top: 30 }]} />
-                  <View style={[styles.mapLine, { transform: [{ rotate: "-45deg" }], top: 70 }]} />
-                  <View style={[styles.mapLine, { transform: [{ rotate: "15deg" }], top: 110 }]} />
-                  <View style={[styles.mapRoad, { top: 60, height: 18 }]} />
-                  <View style={[styles.mapRoad, { left: 120, width: 22, height: "100%" }]} />
-                  {/* Pin */}
-                  <View style={styles.mapPin}>
-                     <Ionicons name="location" size={38} color={PRIMARY_GREEN} />
-                  </View>
-                </View>
-
-                {/* Floating GPS Button */}
+                {/* Professional Use Current Location Button */}
                 <TouchableOpacity
-                  style={styles.gpsButton}
+                  style={styles.useCurrentLocationBtn}
                   activeOpacity={0.8}
                   onPress={handleGPSLocation}
                   disabled={isLocating}
                 >
-                  {isLocating ? (
-                    <ActivityIndicator size="small" color={PRIMARY_GREEN} />
-                  ) : (
-                    <Ionicons name="locate" size={18} color={PRIMARY_GREEN} />
-                  )}
-                  <Text style={styles.gpsButtonText}>
-                    {isLocating ? t("fetchingLocation", "Fetching location...") : t("useCurrentLocation", "Use current location")}
-                  </Text>
+                  <View style={styles.locateBtnContent}>
+                    {isLocating ? (
+                      <ActivityIndicator size="small" color="#153e69" style={{ marginRight: 6 }} />
+                    ) : (
+                      <Ionicons name="locate" size={16} color="#153e69" style={{ marginRight: 6 }} />
+                    )}
+                    <Text style={styles.useCurrentLocationText}>
+                      {isLocating ? t("fetchingLocation", "Fetching location...") : t("useCurrentLocation", "Use current location")}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
 
@@ -1325,59 +1310,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(10, 5, 4, 0.6)",
   },
-  mapContainer: {
-    height: 170,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 14,
-    overflow: "hidden",
-    position: "relative",
-    marginBottom: 18,
+  useCurrentLocationBtn: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(21, 62, 105, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "rgba(21, 62, 105, 0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  mapGridBg: {
-    flex: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-  },
-  mapLine: {
-    position: "absolute",
-    width: "120%",
-    height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.4)",
-    left: "-10%",
-  },
-  mapRoad: {
-    position: "absolute",
-    backgroundColor: "#f2f2f3",
-    width: "120%",
-    left: "-10%",
-  },
-  mapPin: {
-    position: "absolute",
-    top: "35%",
-    left: "48%",
-  },
-  gpsButton: {
-    position: "absolute",
-    bottom: 12,
-    alignSelf: "center",
+  locateBtnContent: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 99,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    justifyContent: "center",
   },
-  gpsButtonText: {
-    fontSize: 12,
+  useCurrentLocationText: {
+    fontSize: 13,
     fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginLeft: 6,
+    color: "#153e69",
   },
   infoCard: {
     flexDirection: "row",
