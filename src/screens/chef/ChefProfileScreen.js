@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import colors from "../../constants/colors";
-import { resetUser, setProfileData } from "../../redux/slices/userSlice";
+import { resetUser, setProfileData, fetchProfile } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage, setStoredProfile } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";

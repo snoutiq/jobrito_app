@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Linking,
   Image,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,6 +30,23 @@ export default function HomeScreen({ navigation }) {
   const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+
+  // Pull to Refresh State
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        dispatch(fetchFeedJobs("all")).unwrap(),
+        dispatch(fetchSavedJobs()).unwrap(),
+      ]);
+    } catch (err) {
+      console.warn("Pull to refresh failed:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
@@ -150,7 +168,17 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* JobList feed */}
-      <ScrollView contentContainerStyle={styles.feedScroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.feedScroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#153e69"]}
+          />
+        }
+      >
 
         {feedJobs.map((job) => {
           const isFav = favorites[job.id] || false;

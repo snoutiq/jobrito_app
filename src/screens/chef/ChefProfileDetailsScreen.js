@@ -303,30 +303,34 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Card Summary */}
         <View style={styles.profileHeaderCard}>
-          {logoSource ? (
-            <Image source={logoSource} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="person" size={32} color="rgba(10, 5, 4, 0.6)" />
+          <View style={styles.profileHeaderRow}>
+            {logoSource ? (
+              <Image source={logoSource} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarInitials}>{displayName.substring(0, 2).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={styles.profileInfo}>
+              <Text style={styles.chefName}>{displayName}</Text>
+              {Boolean(displayTitle) && <Text style={styles.chefTitle}>{displayTitle}</Text>}
+              {Boolean(displayCity) && (
+                <View style={styles.locationRow}>
+                  <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 2 }} />
+                  <Text style={styles.locationText} numberOfLines={2}>
+                    {t("current", "Current")}: {displayCity}
+                    {displayPrefLocation ? `\n${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
+                  </Text>
+                </View>
+              )}
+              {Boolean(getAvailabilityStatus()) && (
+                <View style={styles.statusBadge}>
+                  <View style={[styles.greenDot, { backgroundColor: getAvailabilityStatus().toLowerCase().includes("unavail") ? "#f57f20" : "#22c55e" }]} />
+                  <Text style={styles.statusText}>{getAvailabilityStatus()}</Text>
+                </View>
+              )}
             </View>
-          )}
-          <Text style={styles.chefName}>{displayName}</Text>
-          {Boolean(displayTitle) && <Text style={styles.chefTitle}>{displayTitle}</Text>}
-          {Boolean(displayCity) && (
-            <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
-              <Text style={styles.locationText}>
-                {t("current", "Current")}: {displayCity}
-                {displayPrefLocation ? ` | ${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
-              </Text>
-            </View>
-          )}
-          {Boolean(getAvailabilityStatus()) && (
-            <View style={styles.statusBadge}>
-              <View style={styles.greenDot} />
-              <Text style={styles.statusText}>{getAvailabilityStatus()}</Text>
-            </View>
-          )}
+          </View>
         </View>
 
         {/* Professional Summary */}
@@ -623,19 +627,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 20,
-    alignItems: "center",
+    padding: 16,
     shadowColor: "#0a0504",
     shadowOpacity: 0.02,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
+  profileHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 12,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
@@ -644,42 +654,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  avatarInitials: {
+    fontSize: 22,
+    color: "#153e69",
+    fontWeight: "800",
+  },
   chefName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   chefTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: "#153e69",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   locationRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 10,
+    alignItems: "flex-start",
+    gap: 2,
+    marginBottom: 6,
   },
   locationText: {
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
+    lineHeight: 16,
+    flex: 1,
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   greenDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#153e69",
     marginRight: 6,
   },
   statusText: {
