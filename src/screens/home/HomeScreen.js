@@ -325,23 +325,27 @@ export default function HomeScreen({ navigation }) {
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
+          // --- UPDATED ROLE LOGIC (fallback across submitted_by_role / posted_by_role / active_role / user_role, normalized) ---
+          const effectiveRoleSource = job.submitted_by_role || job.posted_by_role || job.active_role || job.user_role || "";
+          const effectiveRole = effectiveRoleSource.toLowerCase();
+          const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+
           let roleBorderColor = null;
-          const role = job.submitted_by_role?.toLowerCase();
-          if (role === "job_seeker" || role === "chef" || role === "talent") {
+          if (["jobseeker", "chef", "talent"].includes(normalizedRole)) {
             roleBorderColor = "#f57f20"; // Orange
-          } else if (role === "administrator" || role === "admin") {
+          } else if (["administrator", "admin"].includes(normalizedRole)) {
             roleBorderColor = "#2e7d32"; // Green
-          } else if (role === "employer" || role === "agency") {
+          } else if (["employer", "agency"].includes(normalizedRole)) {
             roleBorderColor = "#f2c879"; // Yellow
           }
+          // --- END OF UPDATED ROLE LOGIC ---
 
           return (
             <View
               key={job.id}
               style={[
                 styles.card,
-                isPinned && styles.pinnedCard,
-                roleBorderColor && { borderColor: roleBorderColor, borderWidth: 1.5 },
+                roleBorderColor && { borderLeftColor: roleBorderColor, borderLeftWidth: 4 },
                 isHighlighted && styles.highlightedCard
               ]}
             >
@@ -462,11 +466,13 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              {job.submitted_by_role ? (
+              {/* --- UPDATED LABEL LOGIC (uses effectiveRoleSource fallback) --- */}
+              {effectiveRoleSource ? (
                 <Text style={[styles.timeText, roleBorderColor && { color: roleBorderColor, fontWeight: "700" }]}>
-                  {job.submitted_by_role.replace("_", " ").toUpperCase()}
+                  {effectiveRoleSource.replace("_", " ").toUpperCase()}
                 </Text>
               ) : null}
+              {/* --- END OF UPDATED LABEL LOGIC --- */}
             </View>
           );
         })}
@@ -826,11 +832,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.02,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  pinnedCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: "#f57f20",
+    elevation: 1
   },
   highlightedCard: {
     borderColor: "#153e69",
@@ -1173,5 +1175,5 @@ const styles = StyleSheet.create({
     height: 150,
     alignSelf: "center",
     marginBottom: 20,
-  },
+  }
 });
