@@ -24,6 +24,7 @@ import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices
 import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
+import AppLoader from "../../components/common/AppLoader";
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ export default function HomeScreen({ navigation }) {
   const [completionModalVisible, setCompletionModalVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [submittingProfile, setSubmittingProfile] = useState(false);
+  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] = useState(false);
 
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -79,6 +81,25 @@ export default function HomeScreen({ navigation }) {
   };
 
   useEffect(() => {
+    let active = true;
+    const unsubscribe = navigation.addListener("focus", async () => {
+      try {
+        await dispatch(fetchProfile()).unwrap();
+      } catch (err) {
+        console.warn("Failed to fetch profile in background:", err);
+      } finally {
+        if (active) {
+          setIsInitialProfileLoadComplete(true);
+        }
+      }
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [navigation, dispatch]);
+
+  useEffect(() => {
     if (profile) {
       setFormName(profile.full_name || profile.name || "");
       setFormEmail(profile.email || "");
@@ -87,15 +108,21 @@ export default function HomeScreen({ navigation }) {
       setFormEmployer(profile.current_employer || "");
       setFormGender(profile.gender || "");
 
-      // Check completeness (only for Job Seeker / Talent role)
-      if (!hasModalBeenDismissedThisSession && profile?.role === "job_seeker") {
-        const pct = getDynamicCompletion();
-        if (pct < 100) {
-          setCompletionModalVisible(true);
+      // Check completeness (only for Job Seeker / Talent role and AFTER initial load completes)
+      if (isInitialProfileLoadComplete) {
+        if (!hasModalBeenDismissedThisSession && profile?.role === "job_seeker") {
+          const pct = getDynamicCompletion();
+          if (pct < 100) {
+            setCompletionModalVisible(true);
+          } else {
+            setCompletionModalVisible(false);
+          }
+        } else {
+          setCompletionModalVisible(false);
         }
       }
     }
-  }, [profile, hasModalBeenDismissedThisSession]);
+  }, [profile, hasModalBeenDismissedThisSession, isInitialProfileLoadComplete]);
 
   const handleSaveProfile = async () => {
     setSubmittingProfile(true);
@@ -218,6 +245,19 @@ export default function HomeScreen({ navigation }) {
     if (diffDays === 1) return t("oneDayAgo", "1 day ago");
     return `${diffDays} ${t("daysAgo", "days ago")}`;
   };
+
+  if (!isInitialProfileLoadComplete) {
+    return (
+      <ScreenWrapper scroll={false} contentStyle={styles.splashContainer}>
+        <Image
+          source={require("../../assets/Jobrito full logo.png")}
+          style={styles.splashLogoImage}
+          resizeMode="contain"
+        />
+        <AppLoader label={t("loading", "Loading...")} />
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper contentStyle={styles.content} scroll={false}>
@@ -1118,5 +1158,19 @@ const styles = StyleSheet.create({
   genderOptionTextSelected: {
     color: "#153e69",
     fontWeight: "700",
+  },
+  splashContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 10,
+  },
+  splashLogoImage: {
+    width: 350,
+    height: 150,
+    alignSelf: "center",
+    marginBottom: 20,
   },
 });
