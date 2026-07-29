@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Dimensions } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { StyleSheet, View, Text, Dimensions, TouchableOpacity, Platform } from "react-native";
 import Animated, {
   useSharedValue,
   runOnJS,
   withSpring,
+  withTiming,
+  useAnimatedStyle,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import SwipeCard from "./SwipeCard";
 import BottomActions from "./BottomActions";
+import SkeletonCard from "./SkeletonCard"; // Assuming SkeletonCard is in the same directory
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
@@ -16,23 +21,28 @@ const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
 export default function CardStack({
   applicants = [],
   onSwipe,
+  onSwipeRight, // For ApplicantListScreen to update status
+  onSwipeLeft, // For ApplicantListScreen to update status
   onCall,
   onPressDetails,
+  onAcceptButton, // For ApplicantListScreen to update status
+  onRejectButton, // For ApplicantListScreen to update status
+  onIndexChange, // For ApplicantListScreen to update activeIndex
+  loading = false, // From ApplicantListScreen
+  onViewOtherFilters, // For empty state CTA
+  onBackToJobs, // For empty state CTA
 }) {
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false); // Double-tap guard
+  const [showSwipeHint, setShowSwipeHint] = useState(false); // First-time swipe hint
+  const hintDismissedRef = useRef(false); // To prevent hint from reappearing immediately after dismiss
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const swipeProgress = useSharedValue(0);
-
-  // Reset index when the list of applicants changes (e.g., filter is changed)
-  useEffect(() => {
-    setActiveIndex(0);
-    translateX.value = 0;
-    translateY.value = 0;
-    swipeProgress.value = 0;
-  }, [applicants]);
+  const hintOpacity = useSharedValue(0);
+  const hintTranslateY = useSharedValue(20);
 
   const remainingCount = applicants.length - activeIndex;
   const hasApplicants = remainingCount > 0;
@@ -40,10 +50,12 @@ export default function CardStack({
 
   const handleSwipeComplete = (direction, swipedApplicant) => {
     // Notify parent to update Redux status
-    if (onSwipe) {
-      onSwipe(swipedApplicant, direction);
+    if (direction === "right" && onSwipeRight) {
+      onSwipeRight(swipedApplicant);
+    } else if (direction === "left" && onSwipeLeft) {
+      onSwipeLeft(swipedApplicant);
     }
-
+    
     // Increment index to show the next card
     setActiveIndex((prev) => prev + 1);
 
@@ -51,6 +63,7 @@ export default function CardStack({
     translateX.value = 0;
     translateY.value = 0;
     swipeProgress.value = 0;
+    setIsAnimating(false); // Animation complete
   };
 
   const handleRejectPress = () => {
@@ -58,8 +71,12 @@ export default function CardStack({
     const currentApplicant = applicants[activeIndex];
     
     translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 12 }, () => {
-      runOnJS(handleSwipeComplete)("left", currentApplicant);
+      runOnJS(handleSwipeComplete)("left", currentApplicant); // This will also increment activeIndex
     });
+    if (onRejectButton) {
+      onRejectButton(currentApplicant); // Notify ApplicantListScreen for status update
+    }
+    setIsAnimating(true); // Animation started
     swipeProgress.value = withSpring(1);
   };
 
@@ -67,9 +84,13 @@ export default function CardStack({
     if (!hasApplicants) return;
     const currentApplicant = applicants[activeIndex];
     
-    translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 12 }, () => {
-      runOnJS(handleSwipeComplete)("right", currentApplicant);
+    translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 12 }, () => { // This will also increment activeIndex
+      runOnJS(handleSwipeComplete)("right", currentApplicant); 
     });
+    if (onAcceptButton) {
+      onAcceptButton(currentApplicant); // Notify ApplicantListScreen for status update
+    }
+    setIsAnimating(true); // Animation started
     swipeProgress.value = withSpring(1);
   };
 
@@ -85,6 +106,64 @@ export default function CardStack({
     }
   };
 
+  // FIX: reset sirf tab hoga jab applicant IDs actually change (not just array reference)
+  const applicantIdsKey = applicants.map((a) => a.id).join(",");
+
+  useEffect(() => {
+    setActiveIndex(0);
+    translateX.value = 0;
+    translateY.value = 0;
+    swipeProgress.value = 0;
+    setIsAnimating(false); // Reset animation state
+    if (onIndexChange) onIndexChange(0);
+  }, [applicantIdsKey]); // Depend on applicantIdsKey for stable reset
+
+  // Sync activeIndex with parent's onIndexChange
+  useEffect(() => {
+    if (onIndexChange) {
+      onIndexChange(activeIndex);
+    }
+  }, [activeIndex, onIndexChange]);
+
+  // First-time swipe hint logic
+  useEffect(() => {
+    const checkAndShowHint = async () => {
+      try {
+        const hasSeen = await AsyncStorage.getItem('hasSeenSwipeHint');
+        if (hasSeen === null && applicants.length > 0) {
+          setShowSwipeHint(true);
+          hintOpacity.value = withTiming(1, { duration: 300 });
+          hintTranslateY.value = withSpring(0, { damping: 10 });
+        }
+      } catch (e) {
+        console.error("Failed to load swipe hint flag", e);
+      }
+    };
+    if (!hintDismissedRef.current) { // Only check if not dismissed in current session
+      checkAndShowHint();
+    }
+  }, [applicants.length]);
+
+  const dismissSwipeHint = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      await AsyncStorage.setItem('hasSeenSwipeHint', 'true');
+      hintOpacity.value = withTiming(0, { duration: 300 }, () => {
+        runOnJS(setShowSwipeHint)(false);
+      });
+      hintTranslateY.value = withSpring(20, { damping: 10 });
+      hintDismissedRef.current = true; // Mark as dismissed for current session
+    } catch (e) {
+      console.error("Failed to save swipe hint flag", e);
+    }
+  };
+
+  const animatedHintStyle = useAnimatedStyle(() => {
+    return { opacity: hintOpacity.value, transform: [{ translateY: hintTranslateY.value }] };
+    });
+  
   // Render the stacked cards (up to 3)
   const renderCards = () => {
     if (!hasApplicants) return null;
@@ -117,19 +196,52 @@ export default function CardStack({
     return visibleCards;
   };
 
-  if (!hasApplicants) {
+  // Skeleton Card for loading state
+  if (loading && applicants.length === 0) {
+    return (
+      <View style={styles.stackContainer}>
+        <SkeletonCard />
+      </View>
+    );
+  }
+
+  if (!hasApplicants && !loading) { // Only show empty state if not loading and no applicants
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconCircle}>
           <Ionicons name="sparkles" size={48} color="#153e69" />
         </View>
         <Text style={styles.emptyTitle}>{t("allCaughtUp", "All Caught Up!")}</Text>
-        <Text style={styles.emptySubtitle}>
-          {t("noApplicantsText", "There are no active applicants to review under this category.")}
-        </Text>
+        {applicants.length === 0 ? (
+          <Text style={styles.emptySubtitle}>
+            {t("noApplicantsText", "There are no active applicants to review under this category.")}
+          </Text>
+        ) : (
+          <Text style={styles.emptySubtitle}>
+            {t("allApplicantsReviewed", "You've reviewed all applicants in this category.")}
+          </Text>
+        )}
+        <View style={styles.emptyStateActions}>
+          <TouchableOpacity style={styles.emptyStateButton} onPress={onViewOtherFilters}>
+            <Text style={styles.emptyStateButtonText}>{t("viewOtherFilters", "View Other Filters")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onBackToJobs}>
+            <Text style={styles.emptyStateButtonTextSecondary}>{t("backToJobs", "Back to Jobs")}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
+
+  // Render the hint overlay if needed
+  const hintOverlay = showSwipeHint && (
+    <Animated.View style={[styles.swipeHintOverlay, animatedHintStyle]}>
+      <Text style={styles.swipeHintText}>{t("swipeHint", "Swipe right to shortlist, left to reject")}</Text>
+      <TouchableOpacity onPress={dismissSwipeHint} style={styles.swipeHintDismiss}>
+        <Ionicons name="close-circle-outline" size={20} color="#fff" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
 
   return (
     <View style={styles.container}>
@@ -138,13 +250,16 @@ export default function CardStack({
         {renderCards()}
       </View>
 
+      {hintOverlay}
+
       {/* Glass Floating Bottom Actions */}
       <View style={styles.actionsWrapper}>
         <BottomActions
           onReject={handleRejectPress}
           onAccept={handleAcceptPress}
-          onCall={handleCallPress}
+          onCall={handleCallPress} // Call confirmation is handled in ApplicantListScreen
           onDetails={handleDetailsPress}
+          disabled={isAnimating} // Disable buttons during animation
         />
       </View>
     </View>

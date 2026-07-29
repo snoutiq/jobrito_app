@@ -1,15 +1,17 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolate,
   withSpring,
+  withTiming,
   runOnJS,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import * as Haptics from 'expo-haptics'; // Import Haptics
 import MatchBadge from "./MatchBadge";
 import ApplicantPreview from "./ApplicantPreview";
 
@@ -119,15 +121,21 @@ export default function SwipeCard({
       if (dragX > SWIPE_THRESHOLD || velocityX > 750) {
         // Swipe Right (Accept)
         translateX.value = withSpring(SCREEN_WIDTH * 1.5, { ...springConfig, velocity: velocityX }, () => {
-          runOnJS(onSwipeComplete)("right", applicant);
+          runOnJS(onSwipeComplete)("right", applicant); // Notify CardStack
         });
         swipeProgress.value = withSpring(1, springConfig);
+        if (Platform.OS !== 'web') {
+          runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
+        }
       } else if (dragX < -SWIPE_THRESHOLD || velocityX < -750) {
         // Swipe Left (Reject)
         translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { ...springConfig, velocity: velocityX }, () => {
-          runOnJS(onSwipeComplete)("left", applicant);
+          runOnJS(onSwipeComplete)("left", applicant); // Notify CardStack
         });
         swipeProgress.value = withSpring(1, springConfig);
+        if (Platform.OS !== 'web') {
+          runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+        }
       } else {
         // Snap back to center with realistic physics
         translateX.value = withSpring(0, { damping: 16, stiffness: 130, mass: 0.8 });
@@ -137,7 +145,7 @@ export default function SwipeCard({
     });
 
   // Animated styles for physical card interaction
-  const animatedCardStyle = useAnimatedStyle(() => {
+  const animatedCardStyle = useAnimatedStyle(() => { // This is for the current card
     if (isTopCard) {
       const rotate = interpolate(
         translateX.value,
@@ -157,6 +165,7 @@ export default function SwipeCard({
       };
     }
 
+    // This is for the cards behind the top card
     // Background card animations (Top card: 100%, Second: 96% TranslateY 14, Third: 92% TranslateY 28)
     const isSecond = myIndex === activeIndex + 1;
     const isThird = myIndex === activeIndex + 2;
@@ -192,17 +201,23 @@ export default function SwipeCard({
     };
   });
 
+  // Animated styles for the swipe hint overlay
+  const animatedHintStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(translateX.value, [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD], [1, 0, 1], Extrapolate.CLAMP);
+    return { opacity };
+  });
+
   // Tinder Swipe Overlay Styles
   const likeLabelStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, 80], [0, 1], Extrapolate.CLAMP);
+    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD / 2], [0, 1], Extrapolate.CLAMP);
     return { opacity };
   });
 
   const nopeLabelStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [-80, 0], [1, 0], Extrapolate.CLAMP);
+    const opacity = interpolate(translateX.value, [-SWIPE_THRESHOLD / 2, 0], [1, 0], Extrapolate.CLAMP);
     return { opacity };
   });
-
+  
   const handleQuickReject = () => {
     if (!isTopCard) return;
     translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 12 }, () => {

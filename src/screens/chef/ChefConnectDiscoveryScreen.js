@@ -471,13 +471,15 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                       </Text>
                     </View>
 
-                    <View style={styles.detailRow}>
-                      <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Experience:</Text>{" "}
-                        <Text style={styles.detailValue}>{experience}</Text>
-                      </Text>
-                    </View>
+                    {experience && (
+                      <View style={styles.detailRow}>
+                        <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
+                        <Text style={styles.detailText}>
+                          <Text style={styles.detailLabel}>Experience:</Text>{" "}
+                          <Text style={styles.detailValue}>{experience}</Text>
+                        </Text>
+                      </View>
+                    )}
 
                     <View style={styles.detailRow}>
                       <Ionicons name="map-outline" size={14} color="rgba(10, 5, 4, 0.6)" />

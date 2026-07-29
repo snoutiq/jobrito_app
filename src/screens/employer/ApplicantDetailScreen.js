@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Platform,
 } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { updateApplicantStatus, fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import { getAvatarUrl, getAbsoluteProfilePhotoUrl } from "../../components/SwipeDeck/SwipeCard";
 import MatchBadge from "../../components/SwipeDeck/MatchBadge";
 import Timeline from "../../components/SwipeDeck/Timeline";
@@ -78,27 +80,46 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const matchScore = applicant.match_score || applicant.match?.score;
 
   const handleCall = () => {
-    const phone = applicant.mobile_number;
-    if (!phone) {
+    const phoneNumber = applicant.mobile_number;
+    if (!phoneNumber) {
       CustomAlert.show("Error", "Mobile number not available.");
       return;
     }
-    Linking.openURL(`tel:${phone}`)
-      .then(() => {
-        handleStatusUpdate("contacted", false);
-      })
-      .catch(() => {
-        CustomAlert.show("Call unavailable", "Dialer could not be opened.");
-      });
+
+    CustomAlert.show(
+      t("confirmCall", "Call Applicant?"),
+      `${t("call", "Call")} ${displayName} at ${phoneNumber}?`,
+      [
+        {
+          text: t("cancel", "Cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("call", "Call"),
+          onPress: async () => {
+            if (Platform.OS !== 'web') {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+            Linking.openURL(`tel:${phoneNumber}`)
+              .then(() => {
+                handleStatusUpdate("contacted", false);
+              })
+              .catch(() => {
+                CustomAlert.show("Call unavailable", "Dialer could not be opened.");
+              });
+          },
+        },
+      ]
+    );
   };
 
   const handleMessage = () => {
     const phone = applicant.mobile_number;
     if (!phone) {
       CustomAlert.show("Error", "Mobile number not available.");
-      return;
+      return; // Should not happen as this button is removed.
     }
-    Linking.openURL(`sms:${phone}`)
+    Linking.openURL(`sms:${phone}`) // This button is removed, but keeping the function for completeness.
       .then(() => {
         handleStatusUpdate("contacted", false);
       })
@@ -111,7 +132,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     const emailAddress = applicant.email;
     if (!emailAddress) {
       CustomAlert.show("Error", "Email address not available.");
-      return;
+      return; // This button is removed, but keeping the function for completeness.
     }
     Linking.openURL(`mailto:${emailAddress}`)
       .catch(() => {
@@ -121,6 +142,9 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   const handleStatusUpdate = async (status, showAlert = true) => {
     try {
+      if (Platform.OS !== 'web') {
+        await Haptics.notificationAsync(status === 'shortlisted' ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
+      }
       setLocalStatus(status); // Update local state immediately for instant UI feedback
       await dispatch(updateApplicantStatus({ applicationId: applicant.id || applicant.application_id, status })).unwrap();
       if (showAlert) {
@@ -148,13 +172,19 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         {
           text: t("reject", "Reject"),
           style: "destructive",
-          onPress: () => handleStatusUpdate("rejected"), // Assuming 'rejected' is a valid status
+          onPress: async () => {
+            if (Platform.OS !== 'web') {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            handleStatusUpdate("rejected"); // Assuming 'rejected' is a valid status
+          },
         },
       ]
     );
   };
 
   const handleHire = () => {
+    // Haptics for success handled inside handleStatusUpdate
     handleStatusUpdate("shortlisted");
   };
 

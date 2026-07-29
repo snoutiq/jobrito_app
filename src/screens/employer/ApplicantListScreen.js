@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +9,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
+import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Assuming @react-native-async-storage/async-storage is installed
 import { useTranslation } from "react-i18next";
 import { fetchEmployerDashboard, updateApplicantStatus } from "../../redux/slices/employerSlice";
 import CardStack from "../../components/SwipeDeck/CardStack";
@@ -23,6 +25,11 @@ export default function ApplicantListScreen({ route, navigation }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Undo Action States
+  const [undoToastVisible, setUndoToastVisible] = useState(false);
+  const [lastActionDetails, setLastActionDetails] = useState(null); // { applicantId, oldStatus, newStatus, applicantName }
+  const undoTimeoutRef = useRef(null);
+
   // Get active job and applicants from the Redux store
   const selectedJob = useSelector((state) =>
     state.employer.submittedJobs.find((j) => j.id === jobId)
@@ -32,7 +39,10 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   // Fetch/refresh the dashboard on load
   useEffect(() => {
-    dispatch(fetchEmployerDashboard());
+    // Only fetch if job details are not already loaded or if a refresh is needed
+    if (!selectedJob || applicants.length === 0) {
+      dispatch(fetchEmployerDashboard());
+    }
   }, [dispatch]);
 
   // Calculate dynamic stats
@@ -43,16 +53,21 @@ export default function ApplicantListScreen({ route, navigation }) {
   const pendingCount = applicants.filter((a) => a.status?.toLowerCase() === "new" || a.status?.toLowerCase() === "pending").length;
 
   // Filter applicants
-  const filteredApplicants = applicants.filter((item) => {
-    const status = item.status?.toLowerCase();
-    if (activeFilter === "all") return true;
-    if (activeFilter === "new") return status === "new" || status === "pending";
-    return status === activeFilter;
-  });
+  // FIX: memoize so reference sirf tab change ho jab actual data/filter change ho,
+  // har parent re-render pe naya array na bane (yehi CardStack ko baar baar reset kar raha tha)
+  const filteredApplicants = useMemo(() => {
+    return applicants.filter((item) => {
+      const status = item.status?.toLowerCase();
+      if (activeFilter === "all") return true;
+      if (activeFilter === "new") return status === "new" || status === "pending";
+      return status === activeFilter;
+    });
+  }, [applicants, activeFilter]);
 
   // Handle activeIndex reset when filter changes
   useEffect(() => {
     setActiveIndex(0);
+    setUndoToastVisible(false); // Hide undo toast on filter change
   }, [activeFilter]);
 
   // Animated progress bar setup
@@ -70,35 +85,109 @@ export default function ApplicantListScreen({ route, navigation }) {
     };
   });
 
-  const handleCall = (applicant) => {
-    const phone = applicant.mobile_number || applicant.phone;
-    if (!phone) {
+  // Function to handle status update and show undo toast
+  const handleStatusUpdateAndShowUndo = async (applicant, newStatus) => {
+    const oldStatus = applicant.status;
+    const applicantId = applicant.id;
+    const applicantName = applicant.name || applicant.full_name;
+
+    setLastActionDetails({ applicantId, oldStatus, newStatus, applicantName });
+    setUndoToastVisible(true);
+
+    // Clear any existing timeout
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+    }
+    // Set new timeout to hide toast
+    undoTimeoutRef.current = setTimeout(() => {
+      setUndoToastVisible(false);
+      setLastActionDetails(null);
+    }, 4000); // 4 seconds
+
+    try {
+      await dispatch(updateApplicantStatus({ applicationId: applicantId, status: newStatus })).unwrap();
+      dispatch(fetchEmployerDashboard()); // Refresh dashboard to get updated counts
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      CustomAlert.show("Error", error || "Failed to update status. Please try again.");
+      // If update fails, revert UI and hide toast
+      setUndoToastVisible(false);
+      setLastActionDetails(null);
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!lastActionDetails) return;
+
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    // Revert status
+    try {
+      await dispatch(updateApplicantStatus({ applicationId: lastActionDetails.applicantId, status: lastActionDetails.oldStatus })).unwrap();
+      dispatch(fetchEmployerDashboard()); // Refresh dashboard
+      setActiveIndex((prev) => Math.max(0, prev - 1)); // Go back one card
+    } catch (error) {
+      console.error("Failed to undo status:", error);
+      CustomAlert.show("Error", error || "Failed to undo action.");
+    } finally {
+      setUndoToastVisible(false);
+      setLastActionDetails(null);
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current);
+      }
+    }
+  };
+
+  const handleCall = (applicant) => { // This is now triggered by BottomActions
+    const phoneNumber = applicant.mobile_number || applicant.phone;
+    if (!phoneNumber) {
       CustomAlert.show("Error", "Phone number not available.");
       return;
     }
-    Linking.openURL(`tel:${phone}`)
-      .then(() => {
-        dispatch(updateApplicantStatus({ applicationId: applicant.id, status: "contacted" }));
-        dispatch(fetchEmployerDashboard());
-      })
-      .catch(() => {
-        CustomAlert.show("Call unavailable", "Dialer could not be opened.");
-      });
+
+    CustomAlert.show(
+      t("confirmCall", "Call Applicant?"),
+      `${t("call", "Call")} ${applicant.name || applicant.full_name} at ${phoneNumber}?`,
+      [
+        { text: t("cancel", "Cancel"), style: "cancel" },
+        {
+          text: t("call", "Call"),
+          onPress: async () => {
+            if (Platform.OS !== 'web') {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+            Linking.openURL(`tel:${phoneNumber}`).catch(() => CustomAlert.show("Call unavailable", "Dialer could not be opened."));
+            handleStatusUpdateAndShowUndo(applicant, "contacted");
+          },
+        },
+      ]
+    );
   };
 
-  const handleSwipe = async (applicant, direction) => {
-    const status = direction === "right" ? "shortlisted" : "rejected";
-    try {
-      await dispatch(updateApplicantStatus({ applicationId: applicant.id, status })).unwrap();
-      dispatch(fetchEmployerDashboard());
-    } catch (error) {
-      console.error("Failed to update status on swipe:", error);
-    }
-    setActiveIndex((prev) => prev + 1);
+  // FIX: index sync ab alag callback se, taaki onSwipe ka contract confuse na ho
+  const handleIndexChange = (index) => {
+    setActiveIndex(index);
   };
 
   const handleDetailsPress = (applicant) => {
     navigation.navigate("ApplicantDetail", { applicantId: applicant.id, jobId, applicantItem: applicant });
+  };
+
+  // Empty State CTA Handlers
+  const handleViewOtherFilters = () => {
+    setActiveFilter("all");
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const handleBackToJobs = () => {
+    navigation.goBack();
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
 
   const filterTabs = [
@@ -114,7 +203,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     {
       key: "new",
       label: t("new", "New"),
-      count: pendingCount,
+      count: pendingCount, // Assuming 'new' filter shows pending applicants
       activeColor: "#153e69",
       inactiveBg: "rgba(21, 62, 105, 0.08)",
       inactiveBorder: "rgba(21, 62, 105, 0.18)",
@@ -124,7 +213,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       key: "shortlisted",
       label: t("shortlisted", "Shortlisted"),
       count: shortlistedCount,
-      activeColor: "#153e69",
+      activeColor: "#4CAF50", // Green for shortlisted
       inactiveBg: "#e7eff7",
       inactiveBorder: "#cfe0f0",
       inactiveText: "#153e69",
@@ -133,7 +222,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       key: "contacted",
       label: t("contacted", "Contacted"),
       count: contactedCount,
-      activeColor: "#f2c879",
+      activeColor: "#153e69", // Blue for contacted
       inactiveBg: "rgba(242, 200, 121, 0.12)",
       inactiveBorder: "rgba(242, 200, 121, 0.22)",
       inactiveText: "#f2c879",
@@ -142,7 +231,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       key: "rejected",
       label: t("rejected", "Rejected"),
       count: rejectedCount,
-      activeColor: "#f57f20",
+      activeColor: "#f57f20", // Orange for rejected
       inactiveBg: "rgba(245, 127, 32, 0.08)",
       inactiveBorder: "rgba(245, 127, 32, 0.18)",
       inactiveText: "#f57f20",
@@ -233,12 +322,32 @@ export default function ApplicantListScreen({ route, navigation }) {
       {/* Tinder Card Stack and Actions Container */}
       <View style={styles.deckContainer}>
         <CardStack
+          key={activeFilter}
+          loading={selectedJob?.loading || false} // Pass loading state
           applicants={filteredApplicants}
-          onSwipe={handleSwipe}
+          onSwipeRight={(applicant) => handleStatusUpdateAndShowUndo(applicant, "shortlisted")}
+          onSwipeLeft={(applicant) => handleStatusUpdateAndShowUndo(applicant, "rejected")}
+          onIndexChange={handleIndexChange}
           onCall={handleCall}
           onPressDetails={handleDetailsPress}
+          onAcceptButton={(applicant) => handleStatusUpdateAndShowUndo(applicant, "shortlisted")}
+          onRejectButton={(applicant) => handleStatusUpdateAndShowUndo(applicant, "rejected")}
+          onViewOtherFilters={handleViewOtherFilters} // For empty state CTA
+          onBackToJobs={handleBackToJobs} // For empty state CTA
         />
       </View>
+
+      {/* Undo Toast */}
+      {undoToastVisible && lastActionDetails && (
+        <View style={styles.undoToastContainer}>
+          <Text style={styles.undoToastText}>
+            {lastActionDetails.applicantName} {t("statusUpdatedTo", "status updated to")} {lastActionDetails.newStatus}.
+          </Text>
+          <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
+            <Text style={styles.undoButtonText}>{t("undo", "UNDO")}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -339,5 +448,39 @@ const styles = StyleSheet.create({
   deckContainer: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  undoToastContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 100,
+  },
+  undoToastText: {
+    color: '#fff',
+    fontSize: 14,
+    flex: 1,
+    marginRight: 10,
+  },
+  undoButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  undoButtonText: {
+    color: '#f57f20', // Orange color for undo
+    fontWeight: 'bold',
   },
 });
