@@ -722,7 +722,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           />
           <View style={styles.modalCard}>
             <View style={styles.modalIcon}>
-              <Ionicons name="log-out-outline" size={22} color="#ef4444" />
+              <Ionicons name="log-out-outline" size={22} color="#f57f20" />
             </View>
             <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle", "Logout")}</Text>
             <Text style={styles.modalText}>{t("profile.logoutConfirm", "Are you sure you want to logout?")}</Text>
@@ -736,7 +736,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
               </Pressable>
               <Pressable
                 onPress={executeLogout}
-                style={[styles.modalButton, styles.modalConfirmButton]}
+                style={[styles.modalButton, styles.modalConfirmButton, { backgroundColor: "#f57f20" }]}
               >
                 <Text style={styles.modalConfirmText}>{t("logout", "Logout")}</Text>
               </Pressable>
@@ -1036,11 +1036,11 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "rgba(245, 127, 32, 0.2)",
   },
   modalTitle: {
     color: "#0a0504",
@@ -1073,7 +1073,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(10, 5, 4, 0.12)",
   },
   modalConfirmButton: {
-    backgroundColor: "#ef4444",
+    backgroundColor: "#f57f20",
   },
   modalCancelText: {
     color: "#0a0504",
