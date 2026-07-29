@@ -124,6 +124,24 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     }
   };
 
+  const handleReject = () => {
+    CustomAlert.show(
+      t("confirmReject", "Reject Applicant?"),
+      t("rejectApplicantConfirmation", "Are you sure you want to reject this applicant? This action cannot be undone."),
+      [
+        {
+          text: t("cancel", "Cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("reject", "Reject"),
+          style: "destructive",
+          onPress: () => handleStatusUpdate("rejected"), // Assuming 'rejected' is a valid status
+        },
+      ]
+    );
+  };
+
   const handleHire = () => {
     handleStatusUpdate("shortlisted");
   };
@@ -214,10 +232,12 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         </View>
 
         {/* About Section */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("aboutMe", "About Applicant")}</Text>
-          <Text style={styles.aboutParagraph}>{applicant.bio || "No bio provided."}</Text>
-        </View>
+        {applicant.bio && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("aboutMe", "About Applicant")}</Text>
+            <Text style={styles.aboutParagraph}>{applicant.bio}</Text>
+          </View>
+        )}
 
         {/* Application Information Details List Rows */}
         <View style={styles.sectionContainer}>
@@ -300,19 +320,19 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
       {/* Sticky Bottom Actions Bar */}
       <View style={styles.stickyFooter}>
-        <TouchableOpacity style={styles.footerRoundBtn} onPress={handleCall} activeOpacity={0.7}>
+        {/* Call Button */}
+        <TouchableOpacity style={[styles.btn, styles.btnCall]} onPress={handleCall} activeOpacity={0.7}>
           <Ionicons name="call" size={20} color="#153e69" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerRoundBtn} onPress={handleMessage} activeOpacity={0.7}>
-          <Ionicons name="chatbubble-ellipses" size={20} color="#153e69" />
+
+        {/* Reject Button */}
+        <TouchableOpacity style={[styles.btn, styles.btnReject]} onPress={handleReject} activeOpacity={0.7}>
+          <Ionicons name="close" size={28} color="#f57f20" />
         </TouchableOpacity>
-        {applicant.email ? (
-          <TouchableOpacity style={styles.footerRoundBtn} onPress={handleEmail} activeOpacity={0.7}>
-            <Ionicons name="mail" size={20} color="#153e69" />
-          </TouchableOpacity>
-        ) : null}
-        <TouchableOpacity style={styles.footerPrimaryBtn} onPress={handleHire} activeOpacity={0.8}>
-          <Text style={styles.footerPrimaryBtnText}>{t("shortlistOrHire", "Shortlist Candidate")}</Text>
+
+        {/* Shortlist (Accept) Button */}
+        <TouchableOpacity style={[styles.btn, styles.btnAccept]} onPress={handleHire} activeOpacity={0.8}>
+          <Ionicons name="heart" size={28} color="#4CAF50" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -587,48 +607,51 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 84,
     backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.08)",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    gap: 10,
-    // Shadow for footer
+    justifyContent: "center",
+    paddingVertical: 12,
+    gap: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 10,
   },
-  footerRoundBtn: {
+  btn: {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    shadowColor: "rgba(10, 5, 4, 0.08)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  btnCall: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    borderWidth: 1.5,
     borderColor: "rgba(21, 62, 105, 0.15)",
-    backgroundColor: "rgba(21, 62, 105, 0.02)",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  footerPrimaryBtn: {
-    flex: 1,
-    backgroundColor: "#153e69",
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "rgba(21, 62, 105, 0.2)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
+  btnReject: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderColor: "#f57f20",
   },
-  footerPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#ffffff",
+  btnAccept: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderColor: "#4CAF50",
+  },
+  btnDisabled: {
+    opacity: 0.5,
   },
   centered: {
     flex: 1,
