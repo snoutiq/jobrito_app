@@ -260,7 +260,6 @@ export default function CompleteProfileScreen({ navigation }) {
 
     const payload = {
       full_name: trimmedFullName,
-      email: trimmedEmail,
       city: trimmedLocation === "Both" ? trimmedCity || "Both (Global & Domestic)" : trimmedCity,
       experience_range: trimmedExperience,
       preferred_role: trimmedRole,
@@ -271,6 +270,9 @@ export default function CompleteProfileScreen({ navigation }) {
       job_type: trimmedJobType,
       location_preference: trimmedLocation,
     };
+    if (trimmedEmail) {
+      payload.email = trimmedEmail;
+    }
     try {
       await dispatch(updateProfile(payload)).unwrap();
       setStep(6); // Success screen

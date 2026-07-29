@@ -86,19 +86,13 @@ export default function ProfileScreen({ navigation }) {
       filled++;
     }
     
-    // 3. Email
-    fields++;
-    if (profile.email && profile.email.trim()) {
-      filled++;
-    }
-    
-    // 4. City
+    // 3. City
     fields++;
     if (profile.city && profile.city.trim()) {
       filled++;
     }
     
-    // 5. Skills
+    // 4. Skills
     fields++;
     const skills = profile.skills;
     if (Array.isArray(skills) && skills.length > 0) {
@@ -107,13 +101,13 @@ export default function ProfileScreen({ navigation }) {
       filled++;
     }
     
-    // 6. Current Employer
+    // 5. Current Employer
     fields++;
     if (profile.current_employer && profile.current_employer.trim()) {
       filled++;
     }
     
-    // 7. Gender
+    // 6. Gender
     fields++;
     if (profile.gender && profile.gender.trim()) {
       filled++;
@@ -257,9 +251,6 @@ export default function ProfileScreen({ navigation }) {
 
     if (!profile.profile_photo_path && !profile.profile_photo) {
       return t("profile.addPhotoAction", "Add Profile Photo");
-    }
-    if (!profile.email) {
-      return t("profile.addEmailAction", "Add Email Address");
     }
     if (!profile.city) {
       return t("profile.addCityAction", "Add Current City");

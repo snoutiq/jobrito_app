@@ -292,14 +292,6 @@ export default function ApplicantListScreen({ route, navigation }) {
             </Text>
           </View>
         </View>
-
-        {/* Animated Progress Indicator */}
-        {deckLength > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressTrack} />
-            <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
-          </View>
-        )}
       </View>
 
       {/* Filter Tabs Section */}
