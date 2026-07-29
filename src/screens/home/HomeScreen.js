@@ -20,7 +20,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
-import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
+import {
+  fetchFeedJobs,
+  toggleSaveJob,
+  fetchSavedJobs,
+} from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
@@ -29,19 +33,25 @@ import AppLoader from "../../components/common/AppLoader";
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  
-  const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
+
+  const { feedJobs, savedJobs, applyingJobId } = useSelector(
+    (state) => state.job,
+  );
   const { profile } = useSelector((state) => state.user);
-  
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
 
   // Profile Completion Modal States
-  const [hasModalBeenDismissedThisSession, setHasModalBeenDismissedThisSession] = useState(false);
+  const [
+    hasModalBeenDismissedThisSession,
+    setHasModalBeenDismissedThisSession,
+  ] = useState(false);
   const [completionModalVisible, setCompletionModalVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [submittingProfile, setSubmittingProfile] = useState(false);
-  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] = useState(false);
+  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] =
+    useState(false);
 
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -52,31 +62,32 @@ export default function HomeScreen({ navigation }) {
 
   const getDynamicCompletion = () => {
     if (!profile) return 100;
-    
+
     let fields = 0;
     let filled = 0;
-    
+
     fields++;
-    if (profile.name && profile.name !== "Guest User" && profile.name.trim()) filled++;
+    if (profile.name && profile.name !== "Guest User" && profile.name.trim())
+      filled++;
     else if (profile.full_name && profile.full_name.trim()) filled++;
-    
+
     fields++;
     if (profile.email && profile.email.trim()) filled++;
-    
+
     fields++;
     if (profile.city && profile.city.trim()) filled++;
-    
+
     fields++;
     const skills = profile.skills;
     if (Array.isArray(skills) && skills.length > 0) filled++;
     else if (typeof skills === "string" && skills.trim()) filled++;
-    
+
     fields++;
     if (profile.current_employer && profile.current_employer.trim()) filled++;
-    
+
     fields++;
     if (profile.gender && profile.gender.trim()) filled++;
-    
+
     return Math.round((filled / fields) * 100);
   };
 
@@ -104,14 +115,22 @@ export default function HomeScreen({ navigation }) {
       setFormName(profile.full_name || profile.name || "");
       setFormEmail(profile.email || "");
       setFormCity(profile.city || "");
-      setFormSkills(Array.isArray(profile.skills) ? profile.skills.join(", ") : (profile.skills || ""));
+      setFormSkills(
+        Array.isArray(profile.skills)
+          ? profile.skills.join(", ")
+          : profile.skills || "",
+      );
       setFormEmployer(profile.current_employer || "");
       setFormGender(profile.gender || "");
 
       // Check completeness (only for Job Seeker / Talent role and AFTER initial load completes)
       if (isInitialProfileLoadComplete) {
-        const userRole = profile?.role || profile?.active_role || profile?.user_role;
-        if (!hasModalBeenDismissedThisSession && (userRole === "job_seeker" || userRole === "candidate")) {
+        const userRole =
+          profile?.role || profile?.active_role || profile?.user_role;
+        if (
+          !hasModalBeenDismissedThisSession &&
+          (userRole === "job_seeker" || userRole === "candidate")
+        ) {
           const pct = getDynamicCompletion();
           if (pct < 100) {
             setCompletionModalVisible(true);
@@ -141,11 +160,14 @@ export default function HomeScreen({ navigation }) {
 
       await dispatch(updateProfile(updateData)).unwrap();
       await dispatch(fetchProfile()).unwrap();
-      
+
       setCompletionModalVisible(false);
       setSuccessModalVisible(true);
     } catch (err) {
-      Alert.alert(t("error", "Error"), err.message || "Failed to update profile details.");
+      Alert.alert(
+        t("error", "Error"),
+        err.message || "Failed to update profile details.",
+      );
     } finally {
       setSubmittingProfile(false);
     }
@@ -188,7 +210,9 @@ export default function HomeScreen({ navigation }) {
     if (feedJobs) {
       const favs = {};
       feedJobs.forEach((job) => {
-        const isSavedInList = (savedJobs || []).some((sj) => String(sj.id) === String(job.id));
+        const isSavedInList = (savedJobs || []).some(
+          (sj) => String(sj.id) === String(job.id),
+        );
         favs[job.id] = job.saved || job.is_saved || isSavedInList || false;
       });
       setFavorites(favs);
@@ -204,7 +228,10 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       // Rollback on error
       setFavorites((prev) => ({ ...prev, [id]: !isFav }));
-      Alert.alert(t("error", "Error"), error || t("failedToSaveJob", "Failed to save job."));
+      Alert.alert(
+        t("error", "Error"),
+        error || t("failedToSaveJob", "Failed to save job."),
+      );
     }
   };
 
@@ -220,9 +247,16 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleCall = (job) => {
-    const phoneNumber = job.creator?.mobile_number || job.mobile_number || job.phone || "+919876543210";
+    const phoneNumber =
+      job.creator?.mobile_number ||
+      job.mobile_number ||
+      job.phone ||
+      "+919876543210";
     Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert(t("error", "Error"), t("couldNotOpenDialer", "Could not open dialer: ") + err.message);
+      Alert.alert(
+        t("error", "Error"),
+        t("couldNotOpenDialer", "Could not open dialer: ") + err.message,
+      );
     });
   };
 
@@ -232,7 +266,10 @@ export default function HomeScreen({ navigation }) {
         message: `${t("checkOutOpening", "Check out this opening on Jobrito:")} ${title} ${t("at", "at")} ${company}!`,
       });
     } catch (error) {
-      Alert.alert(t("unableToShare", "Unable to share"), t("pleaseTryAgain", "Please try again."));
+      Alert.alert(
+        t("unableToShare", "Unable to share"),
+        t("pleaseTryAgain", "Please try again."),
+      );
     }
   };
 
@@ -273,30 +310,55 @@ export default function HomeScreen({ navigation }) {
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("Profile")}>
-          <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
+        <TouchableOpacity
+          style={styles.headerRight}
+          onPress={() => navigation.navigate("Profile")}
+        >
+          <Ionicons
+            name="ellipsis-vertical"
+            size={20}
+            color="rgba(10, 5, 4, 0.6)"
+          />
         </TouchableOpacity>
       </View>
 
       {/* Pagination timeline bar with pin icon */}
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#153e69" style={styles.pinIcon} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
-          {(feedJobs || []).filter(job => job.is_pinned).map((job, index) => {
-            const isSelected = highlightedJobId === job.id;
-            return (
-              <TouchableOpacity
-                key={job.id}
-                style={[styles.filterPill, isSelected && styles.filterPillSelected]}
-                onPress={() => setHighlightedJobId((prev) => (prev === job.id ? null : job.id))}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.filterPillText, isSelected && styles.filterPillTextSelected]}>
-                  {index + 1}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterPills}
+        >
+          {(feedJobs || [])
+            .filter((job) => job.is_pinned)
+            .map((job, index) => {
+              const isSelected = highlightedJobId === job.id;
+              return (
+                <TouchableOpacity
+                  key={job.id}
+                  style={[
+                    styles.filterPill,
+                    isSelected && styles.filterPillSelected,
+                  ]}
+                  onPress={() =>
+                    setHighlightedJobId((prev) =>
+                      prev === job.id ? null : job.id,
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.filterPillText,
+                      isSelected && styles.filterPillTextSelected,
+                    ]}
+                  >
+                    {index + 1}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
         </ScrollView>
       </View>
 
@@ -312,7 +374,6 @@ export default function HomeScreen({ navigation }) {
           />
         }
       >
-
         {feedJobs.map((job) => {
           const isFav = favorites[job.id] || false;
           const isApplied = job.applied || false;
@@ -326,7 +387,12 @@ export default function HomeScreen({ navigation }) {
           const hasMultipleActions = job.category === "overseas";
 
           // --- UPDATED ROLE LOGIC (fallback across submitted_by_role / posted_by_role / active_role / user_role, normalized) ---
-          const effectiveRoleSource = job.submitted_by_role || job.posted_by_role || job.active_role || job.user_role || "";
+          const effectiveRoleSource =
+            job.submitted_by_role ||
+            job.posted_by_role ||
+            job.active_role ||
+            job.user_role ||
+            "";
           const effectiveRole = effectiveRoleSource.toLowerCase();
           const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
 
@@ -345,14 +411,22 @@ export default function HomeScreen({ navigation }) {
               key={job.id}
               style={[
                 styles.card,
-                roleBorderColor && { borderLeftColor: roleBorderColor, borderLeftWidth: 4 },
-                isHighlighted && styles.highlightedCard
+                roleBorderColor && {
+                  borderLeftColor: roleBorderColor,
+                  borderLeftWidth: 4,
+                },
+                isHighlighted && styles.highlightedCard,
               ]}
             >
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
-                  <Ionicons name="pin" size={14} color="#f57f20" style={{ marginRight: 4 }} />
+                  <Ionicons
+                    name="pin"
+                    size={14}
+                    color="#f57f20"
+                    style={{ marginRight: 4 }}
+                  />
                   <Text style={styles.pinnedLabelText}>Pinned</Text>
                 </View>
               )}
@@ -370,21 +444,42 @@ export default function HomeScreen({ navigation }) {
 
               <View style={styles.detailsBlock}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="location-outline" size={15} color="rgba(10, 5, 4, 0.6)" />
-                  <Text style={styles.detailText}>{t("location", "Location")}: {job.location}</Text>
+                  <Ionicons
+                    name="location-outline"
+                    size={15}
+                    color="rgba(10, 5, 4, 0.6)"
+                  />
+                  <Text style={styles.detailText}>
+                    {t("location", "Location")}: {job.location}
+                  </Text>
                 </View>
                 {job.salary && (
                   <View style={styles.detailItem}>
-                    <Ionicons name="cash-outline" size={15} color="rgba(10, 5, 4, 0.6)" />
-                    <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
+                    <Ionicons
+                      name="cash-outline"
+                      size={15}
+                      color="rgba(10, 5, 4, 0.6)"
+                    />
+                    <Text style={styles.detailText}>
+                      {t("salary", "Salary")}: {job.salary}
+                    </Text>
                   </View>
                 )}
                 {(() => {
-                  const jobExp = job.experience || job.experience_range || job.contract_duration;
+                  const jobExp =
+                    job.experience ||
+                    job.experience_range ||
+                    job.contract_duration;
                   return jobExp ? (
                     <View style={styles.detailItem}>
-                      <Ionicons name="calendar-outline" size={15} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={styles.detailText}>{t("contract", "Contract")}: {jobExp}</Text>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={15}
+                        color="rgba(10, 5, 4, 0.6)"
+                      />
+                      <Text style={styles.detailText}>
+                        {t("contract", "Contract")}: {jobExp}
+                      </Text>
                     </View>
                   ) : null;
                 })()}
@@ -402,7 +497,9 @@ export default function HomeScreen({ navigation }) {
                       onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.textActionBtnText}>{t("call", "Call")}</Text>
+                      <Text style={styles.textActionBtnText}>
+                        {t("call", "Call")}
+                      </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -421,16 +518,28 @@ export default function HomeScreen({ navigation }) {
                   // Direct/Overseas Job: Apply Now (Text), Call (Icon), Share (Icon), Favorite (Icon)
                   <>
                     <TouchableOpacity
-                      style={[styles.textActionBtn, isApplied && styles.textActionBtnApplied]}
-                      onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
+                      style={[
+                        styles.textActionBtn,
+                        isApplied && styles.textActionBtnApplied,
+                      ]}
+                      onPress={() =>
+                        isApplied || isApplying ? null : handleApplyPress(job)
+                      }
                       disabled={isApplied || isApplying}
                       activeOpacity={0.7}
                     >
                       {isApplying ? (
                         <ActivityIndicator size="small" color="#ffffff" />
                       ) : (
-                        <Text style={[styles.textActionBtnText, isApplied && styles.textActionBtnTextApplied]}>
-                          {isApplied ? "✓ " + t("applied", "Applied") : t("applyNow", "Apply Now")}
+                        <Text
+                          style={[
+                            styles.textActionBtnText,
+                            isApplied && styles.textActionBtnTextApplied,
+                          ]}
+                        >
+                          {isApplied
+                            ? "✓ " + t("applied", "Applied")
+                            : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -468,9 +577,22 @@ export default function HomeScreen({ navigation }) {
 
               {/* --- UPDATED LABEL LOGIC (uses effectiveRoleSource fallback) --- */}
               {effectiveRoleSource ? (
-                <Text style={[styles.timeText, roleBorderColor && { color: roleBorderColor, fontWeight: "700" }]}>
-                  {effectiveRoleSource.replace("_", " ").toUpperCase()}
-                </Text>
+                <View
+                  style={[
+                    styles.poweredRibbon,
+                    roleBorderColor && { borderColor: roleBorderColor },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.poweredRibbonText,
+                      roleBorderColor && { color: roleBorderColor },
+                    ]}
+                  >
+                    Powered By •{" "}
+                    {effectiveRoleSource.replace(/_/g, " ").toUpperCase()}
+                  </Text>
+                </View>
               ) : null}
               {/* --- END OF UPDATED LABEL LOGIC --- */}
             </View>
@@ -501,7 +623,12 @@ export default function HomeScreen({ navigation }) {
         onConfirm={async (timeSlot) => {
           if (selectedJob) {
             try {
-              await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              await dispatch(
+                applyJob({
+                  jobId: selectedJob.id,
+                  preferredCallTime: timeSlot,
+                }),
+              ).unwrap();
               return true;
             } catch (err) {
               Alert.alert("Application Error", err || "Failed to apply to job");
@@ -514,10 +641,15 @@ export default function HomeScreen({ navigation }) {
 
       {/* Profile Completion Modal */}
       {(() => {
-        const isNameEmpty = !(profile?.full_name || profile?.name || "").trim() || (profile?.name === "Guest User");
+        const isNameEmpty =
+          !(profile?.full_name || profile?.name || "").trim() ||
+          profile?.name === "Guest User";
         const isEmailEmpty = !(profile?.email || "").trim();
         const isCityEmpty = !(profile?.city || "").trim();
-        const isSkillsEmpty = !profile?.skills || (Array.isArray(profile?.skills) && profile?.skills.length === 0) || (typeof profile?.skills === "string" && !profile?.skills.trim());
+        const isSkillsEmpty =
+          !profile?.skills ||
+          (Array.isArray(profile?.skills) && profile?.skills.length === 0) ||
+          (typeof profile?.skills === "string" && !profile?.skills.trim());
         const isEmployerEmpty = !(profile?.current_employer || "").trim();
         const isGenderEmpty = !(profile?.gender || "").trim();
 
@@ -534,7 +666,9 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.modalOverlay}>
               <View style={styles.modalContainer}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{t("profile.completeYourProfile", "Complete Profile")}</Text>
+                  <Text style={styles.modalTitle}>
+                    {t("profile.completeYourProfile", "Complete Profile")}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => {
                       setCompletionModalVisible(false);
@@ -542,24 +676,39 @@ export default function HomeScreen({ navigation }) {
                     }}
                     style={styles.modalCloseBtn}
                   >
-                    <Ionicons name="close" size={22} color="rgba(10, 5, 4, 0.6)" />
+                    <Ionicons
+                      name="close"
+                      size={22}
+                      color="rgba(10, 5, 4, 0.6)"
+                    />
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 10 }}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+                >
                   <Text style={styles.modalSubtitle}>
-                    {t("profile.completeModalSubtitle", "Please fill in the missing details to complete your profile.")}
+                    {t(
+                      "profile.completeModalSubtitle",
+                      "Please fill in the missing details to complete your profile.",
+                    )}
                   </Text>
 
                   {/* Conditionally Render Missing Fields */}
                   {isNameEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.fullName", "Full Name")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.fullName", "Full Name")}
+                      </Text>
                       <TextInput
                         style={styles.textInput}
                         value={formName}
                         onChangeText={setFormName}
-                        placeholder={t("profile.enterFullName", "Enter full name")}
+                        placeholder={t(
+                          "profile.enterFullName",
+                          "Enter full name",
+                        )}
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                       />
                     </View>
@@ -567,12 +716,17 @@ export default function HomeScreen({ navigation }) {
 
                   {isEmailEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.emailAddress", "Email Address")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.emailAddress", "Email Address")}
+                      </Text>
                       <TextInput
                         style={styles.textInput}
                         value={formEmail}
                         onChangeText={setFormEmail}
-                        placeholder={t("profile.enterEmail", "Enter email address")}
+                        placeholder={t(
+                          "profile.enterEmail",
+                          "Enter email address",
+                        )}
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                         keyboardType="email-address"
                         autoCapitalize="none"
@@ -582,7 +736,9 @@ export default function HomeScreen({ navigation }) {
 
                   {isCityEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.city", "City")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.city", "City")}
+                      </Text>
                       <TextInput
                         style={styles.textInput}
                         value={formCity}
@@ -595,12 +751,17 @@ export default function HomeScreen({ navigation }) {
 
                   {isSkillsEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.skills", "Skills (Comma separated)")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.skills", "Skills (Comma separated)")}
+                      </Text>
                       <TextInput
                         style={styles.textInput}
                         value={formSkills}
                         onChangeText={setFormSkills}
-                        placeholder={t("profile.enterSkills", "e.g. Kitchen, Communication")}
+                        placeholder={t(
+                          "profile.enterSkills",
+                          "e.g. Kitchen, Communication",
+                        )}
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                       />
                     </View>
@@ -608,12 +769,17 @@ export default function HomeScreen({ navigation }) {
 
                   {isEmployerEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.currentEmployer", "Current Employer")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.currentEmployer", "Current Employer")}
+                      </Text>
                       <TextInput
                         style={styles.textInput}
                         value={formEmployer}
                         onChangeText={setFormEmployer}
-                        placeholder={t("profile.enterEmployer", "Enter current employer")}
+                        placeholder={t(
+                          "profile.enterEmployer",
+                          "Enter current employer",
+                        )}
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                       />
                     </View>
@@ -621,10 +787,13 @@ export default function HomeScreen({ navigation }) {
 
                   {isGenderEmpty && (
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>{t("profile.gender", "Gender")}</Text>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.gender", "Gender")}
+                      </Text>
                       <View style={styles.genderSelectRow}>
                         {["Male", "Female"].map((g) => {
-                          const isSelected = formGender.toLowerCase() === g.toLowerCase();
+                          const isSelected =
+                            formGender.toLowerCase() === g.toLowerCase();
                           return (
                             <TouchableOpacity
                               key={g}
@@ -636,9 +805,15 @@ export default function HomeScreen({ navigation }) {
                               activeOpacity={0.7}
                             >
                               <Ionicons
-                                name={g.toLowerCase() === "male" ? "male-outline" : "female-outline"}
+                                name={
+                                  g.toLowerCase() === "male"
+                                    ? "male-outline"
+                                    : "female-outline"
+                                }
                                 size={16}
-                                color={isSelected ? "#153e69" : "rgba(10, 5, 4, 0.5)"}
+                                color={
+                                  isSelected ? "#153e69" : "rgba(10, 5, 4, 0.5)"
+                                }
                                 style={{ marginRight: 6 }}
                               />
                               <Text
@@ -665,7 +840,9 @@ export default function HomeScreen({ navigation }) {
                   {submittingProfile ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
-                    <Text style={styles.modalConfirmBtnText}>{t("profile.saveAndComplete", "Save & Complete")}</Text>
+                    <Text style={styles.modalConfirmBtnText}>
+                      {t("profile.saveAndComplete", "Save & Complete")}
+                    </Text>
                   )}
                 </TouchableOpacity>
 
@@ -676,7 +853,9 @@ export default function HomeScreen({ navigation }) {
                     setHasModalBeenDismissedThisSession(true);
                   }}
                 >
-                  <Text style={styles.modalSkipBtnText}>{t("skip", "Skip")}</Text>
+                  <Text style={styles.modalSkipBtnText}>
+                    {t("skip", "Skip")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -692,26 +871,50 @@ export default function HomeScreen({ navigation }) {
         onRequestClose={() => setSuccessModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { alignItems: "center", paddingVertical: 30 }]}>
-            <View style={[styles.successIconCircle, { backgroundColor: "rgba(34, 197, 94, 0.1)" }]}>
+          <View
+            style={[
+              styles.modalContainer,
+              { alignItems: "center", paddingVertical: 30 },
+            ]}
+          >
+            <View
+              style={[
+                styles.successIconCircle,
+                { backgroundColor: "rgba(34, 197, 94, 0.1)" },
+              ]}
+            >
               <Ionicons name="checkmark-circle" size={54} color="#22c55e" />
             </View>
-            <Text style={[styles.modalTitle, { textAlign: "center", marginBottom: 10 }]}>
+            <Text
+              style={[
+                styles.modalTitle,
+                { textAlign: "center", marginBottom: 10 },
+              ]}
+            >
               {t("profile.profileCompleted", "Profile Completed!")}
             </Text>
-            <Text style={[styles.modalSubtitle, { textAlign: "center", marginBottom: 20 }]}>
-              {t("profile.profileCompletedSubtitle", "Your profile details have been saved successfully.")}
+            <Text
+              style={[
+                styles.modalSubtitle,
+                { textAlign: "center", marginBottom: 20 },
+              ]}
+            >
+              {t(
+                "profile.profileCompletedSubtitle",
+                "Your profile details have been saved successfully.",
+              )}
             </Text>
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
               onPress={() => setSuccessModalVisible(false)}
             >
-              <Text style={styles.modalConfirmBtnText}>{t("gotIt", "Got It")}</Text>
+              <Text style={styles.modalConfirmBtnText}>
+                {t("gotIt", "Got It")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-      
     </ScreenWrapper>
   );
 }
@@ -832,7 +1035,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.02,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 1
+    elevation: 1,
   },
   highlightedCard: {
     borderColor: "#153e69",
@@ -1175,5 +1378,22 @@ const styles = StyleSheet.create({
     height: 150,
     alignSelf: "center",
     marginBottom: 20,
-  }
+  },
+  poweredRibbon: {
+  alignSelf: "flex-end",
+  marginTop: 10,
+  paddingHorizontal: 12,
+  paddingVertical: 4,
+  borderRadius: 20,
+  backgroundColor: "#fff",
+},
+
+poweredRibbonText: {
+  fontSize: 10,
+  fontStyle: "italic",
+  fontWeight: "800",
+  letterSpacing: 0.8,
+  color: "#153e69",
+  textTransform: "uppercase",
+},
 });
