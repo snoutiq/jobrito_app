@@ -1,5 +1,5 @@
-import React from "react";
-import {
+import React, { useState, useEffect } from "react";
+import { 
   Linking,
   StyleSheet,
   Text,
@@ -32,6 +32,14 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   // Bulletproof candidate loading: fallback to the passed navigation object if redux is refreshing
   const applicant = route.params?.applicantItem || selectedJob?.applicants?.find((a) => a.id === applicantId);
 
+  // Local state to manage the applicant's status for immediate UI feedback
+  const [localStatus, setLocalStatus] = useState(applicant?.status);
+
+  // Sync local state if the applicant from Redux changes
+  useEffect(() => {
+    setLocalStatus(applicant?.status);
+  }, [applicant?.status]);
+
   if (!applicant) {
     return (
       <SafeAreaView style={styles.container}>
@@ -55,10 +63,12 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const displayEmployer = applicant.current_company || applicant.current_employer || "";
   const displayRole = applicant.current_role || applicant.preferred_role || applicant.cuisine_specialty || "";
   
-  // Dynamic API Availability mapping
+  // Dynamic API Availability mapping, now considering localStatus
   const displayAvailability = applicant.availability_status
-    ? `${applicant.is_available !== false && !applicant.availability_status.toLowerCase().includes("not") ? "🟢" : "🔴"} ${applicant.availability_status}`
-    : (applicant.is_available !== undefined ? (applicant.is_available ? "🟢 Available" : "🔴 Not Available") : "");
+      ? `${applicant.is_available !== false && !applicant.availability_status.toLowerCase().includes("not") ? "🟢" : "🔴"} ${
+          applicant.availability_status
+        }`
+      : applicant.is_available !== undefined ? (applicant.is_available ? "🟢 Available" : "🔴 Not Available") : "";
 
   // Real profile photo URL mapping
   const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
@@ -111,6 +121,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   const handleStatusUpdate = async (status, showAlert = true) => {
     try {
+      setLocalStatus(status); // Update local state immediately for instant UI feedback
       await dispatch(updateApplicantStatus({ applicationId: applicant.id || applicant.application_id, status })).unwrap();
       if (showAlert) {
         CustomAlert.show("Success", `Applicant status updated to: ${status}`);
@@ -118,6 +129,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       dispatch(fetchEmployerDashboard());
     } catch (error) {
       console.error("Failed to update status:", error);
+      setLocalStatus(applicant?.status); // Revert on error
       if (showAlert) {
         CustomAlert.show("Error", error || "Failed to update status. Please try again.");
       }
@@ -188,6 +200,25 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.reviewCard}>
+          {localStatus && (
+            <View 
+              style={[
+                styles.statusBadge, 
+                localStatus === 'shortlisted' && styles.statusBadgeShortlisted,
+                localStatus === 'rejected' && styles.statusBadgeRejected,
+                localStatus === 'contacted' && styles.statusBadgeContacted,
+              ]}
+            >
+              <Ionicons 
+                name={localStatus === 'shortlisted' ? 'heart' : localStatus === 'rejected' ? 'close-circle' : 'call'} 
+                size={12} 
+                color="#ffffff" 
+              />
+              <Text style={styles.statusBadgeText}>
+                {localStatus.charAt(0).toUpperCase() + localStatus.slice(1)}
+              </Text>
+            </View>
+          )}
           <View style={styles.profileHeaderRow}>
             <View style={styles.avatarContainer}>
               <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
@@ -320,19 +351,19 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
       {/* Sticky Bottom Actions Bar */}
       <View style={styles.stickyFooter}>
-        {/* Call Button */}
+        {/* Shortlist (Accept) Button */}
+        <TouchableOpacity style={[styles.btn, styles.btnAccept]} onPress={handleHire} activeOpacity={0.8}>
+          <Ionicons name="heart" size={28} color="#4CAF50" />
+        </TouchableOpacity>
+
+        {/* Call Button (now large) */}
         <TouchableOpacity style={[styles.btn, styles.btnCall]} onPress={handleCall} activeOpacity={0.7}>
-          <Ionicons name="call" size={20} color="#153e69" />
+          <Ionicons name="call" size={28} color="#153e69" />
         </TouchableOpacity>
 
         {/* Reject Button */}
         <TouchableOpacity style={[styles.btn, styles.btnReject]} onPress={handleReject} activeOpacity={0.7}>
           <Ionicons name="close" size={28} color="#f57f20" />
-        </TouchableOpacity>
-
-        {/* Shortlist (Accept) Button */}
-        <TouchableOpacity style={[styles.btn, styles.btnAccept]} onPress={handleHire} activeOpacity={0.8}>
-          <Ionicons name="heart" size={28} color="#4CAF50" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -434,6 +465,39 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
     marginBottom: 16,
+    position: 'relative', // Needed for absolute positioning of the badge
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderTopRightRadius: 14,
+    borderBottomLeftRadius: 14,
+    gap: 5,
+    zIndex: 1,
+  },
+  statusBadgeShortlisted: {
+    backgroundColor: '#4CAF50', // Green for shortlisted
+  },
+  statusBadgeRejected: {
+    backgroundColor: '#f57f20', // Orange for rejected
+  },
+  statusBadgeContacted: {
+    backgroundColor: '#153e69', // Blue for contacted
+  },
+  statusBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  profileHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
   },
   profileHeaderRow: {
     flexDirection: "row",
@@ -633,9 +697,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   btnCall: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     borderColor: "rgba(21, 62, 105, 0.15)",
   },
   btnReject: {
