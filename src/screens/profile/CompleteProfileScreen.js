@@ -65,13 +65,25 @@ const normalizeLocationPreferenceValue = (value) => {
   const normalized = toTrimmedString(value);
   if (!normalized) return "";
   if (
-    normalized === "Both" ||
+    normalized === "India" ||
+    normalized === "Overseas" ||
+    normalized === "Both"
+  ) {
+    return normalized;
+  }
+  if (
     normalized === "Both (India & Overseas)" ||
     normalized === "Both (Global & Domestic)"
   ) {
     return "Both";
   }
-  return normalized;
+  if (statesOfIndia.includes(normalized)) {
+    return "India";
+  }
+  if (overseasRegions.includes(normalized)) {
+    return "Overseas";
+  }
+  return "";
 };
 
 export default function CompleteProfileScreen({ navigation }) {
@@ -117,7 +129,9 @@ export default function CompleteProfileScreen({ navigation }) {
       const emailValue = toTrimmedString(profile.email || profile.contact_email || profile.user_email);
       if (emailValue) setEmail(emailValue);
 
-      const cityValue = toTrimmedString(profile.city || profile.current_city || profile.location);
+      const cityValue = toTrimmedString(
+        profile.city || profile.current_city || profile.location || profile.job_location || profile.jobLocation
+      );
       if (cityValue) setCity(cityValue);
 
       const experienceValue = toTrimmedString(
@@ -141,10 +155,22 @@ export default function CompleteProfileScreen({ navigation }) {
       const jobTypeValue = toTrimmedString(profile.job_type || profile.jobType);
       if (jobTypeValue) setJobType(jobTypeValue);
 
-      const locationValue = normalizeLocationPreferenceValue(
-        profile.location_preference || profile.locationPreference
+      const locationPrefRaw = toTrimmedString(
+        profile.location_preference || profile.locationPreference || profile.job_location || profile.jobLocation
       );
-      if (locationValue) setLocationPreference(locationValue);
+      const locationValue = normalizeLocationPreferenceValue(locationPrefRaw);
+      if (locationValue) {
+        setLocationPreference(locationValue);
+        if (locationValue === "Both" && !cityValue) {
+          setCity("Both (Global & Domestic)");
+        }
+      } else if (cityValue) {
+        if (statesOfIndia.includes(cityValue)) {
+          setLocationPreference("India");
+        } else if (overseasRegions.includes(cityValue)) {
+          setLocationPreference("Overseas");
+        }
+      }
     }
   }, [profile]);
 
