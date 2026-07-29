@@ -9,6 +9,9 @@ import {
   Linking,
   ActivityIndicator,
   Clipboard,
+  Modal,
+  Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +41,13 @@ export default function SocialMediaLinksScreen({ navigation }) {
 
   const [loading, setLoading] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+
+  // Custom Social Links States
+  const [customSocialLinks, setCustomSocialLinks] = useState([]);
+  const [socialModalVisible, setSocialModalVisible] = useState(false);
+  const [editingPlatform, setEditingPlatform] = useState("");
+  const [customPlatformName, setCustomPlatformName] = useState("");
+  const [tempLink, setTempLink] = useState("");
 
   const extractUsername = (url, platform) => {
     if (!url) return "";
@@ -74,6 +84,21 @@ export default function SocialMediaLinksScreen({ navigation }) {
       if (profile.twitter) setTwitter(extractUsername(profile.twitter, "twitter"));
       if (profile.youtube) setYoutube(extractUsername(profile.youtube, "youtube"));
       if (profile.website || profile.portfolio) setWebsite(profile.website || profile.portfolio);
+
+      // Load custom social links from profile response
+      const standardKeys = ["linkedin", "instagram", "facebook", "twitter", "youtube", "website", "portfolio", "calendly", "calendly_link"];
+      const socialsObj = profile.socials || {};
+      const foundCustoms = [];
+      Object.keys(socialsObj).forEach((k) => {
+        if (!standardKeys.includes(k.toLowerCase()) && socialsObj[k]) {
+          foundCustoms.push({
+            id: k,
+            platform: k.charAt(0).toUpperCase() + k.slice(1),
+            link: socialsObj[k]
+          });
+        }
+      });
+      setCustomSocialLinks(foundCustoms);
     }
   }, [profile]);
 
@@ -143,8 +168,9 @@ export default function SocialMediaLinksScreen({ navigation }) {
       const updatedProfilePayload = {
         ...profile,
         ...updatedSocials,
+        customSocialLinks,
       };
-      dispatch(setProfileData(updatedSocials));
+      dispatch(setProfileData({ ...updatedSocials, customSocialLinks }));
 
       // 2. Update local storage
       await setStoredProfile(updatedProfilePayload);
@@ -152,9 +178,18 @@ export default function SocialMediaLinksScreen({ navigation }) {
       // 3. Update server API
       const formData = new FormData();
       Object.keys(updatedSocials).forEach((key) => {
-        if (updatedSocials[key]) {
-          formData.append(key, updatedSocials[key]);
-        }
+        const val = updatedSocials[key] || "";
+        formData.append(key, val);
+        formData.append(`${key}_link`, val);
+        formData.append(`${key}Link`, val);
+      });
+
+      // Append custom social links to FormData
+      customSocialLinks.forEach((item) => {
+        const key = item.platform.toLowerCase();
+        formData.append(key, item.link);
+        formData.append(`${key}_link`, item.link);
+        formData.append(`${key}Link`, item.link);
       });
 
       await saveChefOnboarding(formData).catch(() => null);
@@ -186,9 +221,6 @@ export default function SocialMediaLinksScreen({ navigation }) {
         </TouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Text style={styles.headerTitle}>{t("socials.title", "Social Media Links")}</Text>
-          <View style={styles.headerCountBadge}>
-            <Text style={styles.headerCountText}>{t("socials.connectedCount", { count: connectedCount })}</Text>
-          </View>
         </View>
         <View style={{ width: 36 }} />
       </View>
@@ -369,6 +401,52 @@ export default function SocialMediaLinksScreen({ navigation }) {
             </View>
           </View>
 
+          {/* Dynamically Rendered Custom Links */}
+          {customSocialLinks.map((item) => (
+            <View key={item.id} style={styles.customSocialRow}>
+              <View style={styles.customSocialLeft}>
+                <View style={[styles.socialIconCircle, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
+                  <Ionicons name="link-outline" size={18} color={PRIMARY} />
+                </View>
+                <View style={{ marginLeft: 10, flex: 1 }}>
+                  <Text style={styles.customSocialPlatform}>{item.platform}</Text>
+                  <Text style={styles.customSocialUrl} numberOfLines={1}>{item.link}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setCustomSocialLinks(prev => prev.filter(x => x.id !== item.id));
+                }}
+                style={{ padding: 6 }}
+              >
+                <Ionicons name="trash-outline" size={18} color="red" />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {/* Add More Button Row */}
+          <TouchableOpacity
+            style={styles.addMoreRow}
+            activeOpacity={0.7}
+            onPress={() => {
+              setEditingPlatform("Add More");
+              setCustomPlatformName("");
+              setTempLink("");
+              setSocialModalVisible(true);
+            }}
+          >
+            <View style={styles.addMoreLeft}>
+              <View style={[styles.socialIconCircle, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
+                <Ionicons name="add" size={20} color={PRIMARY} />
+              </View>
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.addMoreText}>{t("addMore", "Add More")}</Text>
+                <Text style={styles.addMoreSubtitle}>Website, Portfolio or other links</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+          </TouchableOpacity>
+
           {/* Save Button */}
           <TouchableOpacity
             style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
@@ -387,6 +465,80 @@ export default function SocialMediaLinksScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Custom Link Modal */}
+      <Modal
+        visible={socialModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSocialModalVisible(false)}
+      >
+        <View style={styles.socialModalOverlay}>
+          <View style={styles.socialModalCard}>
+            <Text style={styles.socialModalTitle}>
+              Add Custom Link
+            </Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Platform Name</Text>
+              <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+                <TextInput
+                  value={customPlatformName}
+                  onChangeText={setCustomPlatformName}
+                  placeholder="e.g. Behance, GitHub, Pinterest"
+                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                  style={styles.textInput}
+                />
+              </View>
+            </View>
+
+            <View style={[styles.inputGroup, { marginTop: 12 }]}>
+              <Text style={styles.inputLabel}>Link / Handle</Text>
+              <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+                <TextInput
+                  value={tempLink}
+                  onChangeText={setTempLink}
+                  placeholder="https://..."
+                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                  autoCapitalize="none"
+                  style={styles.textInput}
+                />
+              </View>
+            </View>
+
+            <View style={styles.socialModalActions}>
+              <TouchableOpacity
+                style={[styles.socialModalButton, styles.socialModalCancel]}
+                onPress={() => setSocialModalVisible(false)}
+              >
+                <Text style={styles.socialModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.socialModalButton, styles.socialModalSave]}
+                onPress={() => {
+                  const val = tempLink.trim();
+                  const plat = customPlatformName.trim();
+                  if (!plat || !val) {
+                    Alert.alert("Error", "Please fill in both platform name and link.");
+                    return;
+                  }
+                  const newLink = {
+                    id: Date.now().toString(),
+                    platform: plat,
+                    link: val
+                  };
+                  setCustomSocialLinks(prev => [...prev, newLink]);
+                  setCustomPlatformName("");
+                  setTempLink("");
+                  setSocialModalVisible(false);
+                }}
+              >
+                <Text style={styles.socialModalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -533,5 +685,113 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.45)",
     fontWeight: "600",
     marginRight: 2,
+  },
+  
+  // Custom Links and Modal Styles
+  customSocialRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.08)",
+  },
+  customSocialLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  customSocialPlatform: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: NEUTRAL,
+  },
+  customSocialUrl: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+    marginTop: 1,
+  },
+  socialIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addMoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    marginTop: 6,
+  },
+  addMoreLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  addMoreText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: PRIMARY,
+  },
+  addMoreSubtitle: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 1,
+  },
+  socialModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  socialModalCard: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  socialModalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: NEUTRAL,
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  socialModalActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 12,
+  },
+  socialModalButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  socialModalCancel: {
+    backgroundColor: SECONDARY,
+  },
+  socialModalCancelText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  socialModalSave: {
+    backgroundColor: PRIMARY,
+  },
+  socialModalSaveText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#ffffff",
   },
 });

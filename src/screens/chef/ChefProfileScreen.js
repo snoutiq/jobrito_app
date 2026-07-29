@@ -56,6 +56,19 @@ export default function ChefProfileScreen({ navigation }) {
     ? `${profile.city}, ${profile.country}`
     : profile?.city || profile?.country || "";
   const displayPrefLocation = profile?.locationPreference || profile?.location_preference || "";
+  const displayExperience = profile?.experienceYears || profile?.experience_range || profile?.experience || "";
+
+  const getRegionalList = () => {
+    let list = [];
+    if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
+      list = profile.availability_info.regional_experience || [];
+    } else if (profile?.regional_experience) {
+      list = profile.regional_experience;
+    }
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
 
   const getAvailability = () => {
     if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
@@ -431,17 +444,39 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             )}
             <View style={styles.profileTextInfo}>
               <Text style={styles.profileName}>{displayName}</Text>
-              <Text style={styles.profileTitle}>{displayTitle}</Text>
-              <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
-                <Text style={styles.locationText}>
-                  {t("current", "Current")}: {displayCity}
-                  {displayPrefLocation ? ` | ${t("preferred", "Preferred")}: ${displayPrefLocation}` : ""}
+              {Boolean(displayTitle) && (
+                <Text style={styles.profileTitle}>Current Role: {displayTitle}</Text>
+              )}
+              
+              <View style={styles.profileDetailsList}>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Current Location: </Text>
+                  <Text style={styles.detailValue}>{displayCity || "N/A"}</Text>
                 </Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={[styles.statusBullet, { backgroundColor: isAvailable ? "#22c55e" : "#f57f20" }]} />
-                <Text style={styles.statusText}>{displayAvailability}</Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Preferred Job Location: </Text>
+                  <Text style={styles.detailValue}>
+                    {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                      ? "India & Overseas"
+                      : displayPrefLocation || "N/A"}
+                  </Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Experience: </Text>
+                  <Text style={styles.detailValue}>{displayExperience || "N/A"}</Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Regional Experience: </Text>
+                  <Text style={styles.detailValue}>{getRegionalList().join(", ") || "N/A"}</Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Availability: </Text>
+                  <Text style={styles.detailValue}>{displayAvailability || "N/A"}</Text>
+                </Text>
               </View>
             </View>
           </View>
@@ -764,29 +799,26 @@ const styles = StyleSheet.create({
   profileTitle: {
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 6,
+    marginBottom: 4,
     lineHeight: 16,
   },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
+  profileDetailsList: {
+    marginTop: 4,
+    gap: 3,
   },
-  locationText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
+  detailRowText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  detailLabel: {
+    fontSize: 12,
     fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.5)",
   },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statusBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#153e69",
-    marginRight: 6,
+  detailValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.8)",
   },
   statusText: {
     fontSize: 11,
