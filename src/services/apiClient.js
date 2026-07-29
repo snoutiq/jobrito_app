@@ -150,6 +150,7 @@ export const clearClientState = () => {
   });
   activeControllers.clear();
   activeRequestLocks.clear();
+  delete apiClient.defaults.headers.common["Authorization"];
   Logger.info("API Client local state cleared (Logout/Session Reset).");
 };
 

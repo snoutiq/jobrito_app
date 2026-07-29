@@ -184,6 +184,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       // ignore
     }
     await clearAuthStorage();
+    try {
+      const { clearClientState } = require("../../services/apiClient");
+      clearClientState();
+    } catch (e) {
+      console.warn("Failed to clear API client state:", e);
+    }
     dispatch(logout());
     dispatch(resetUser());
   };

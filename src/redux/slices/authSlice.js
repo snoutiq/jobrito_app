@@ -100,12 +100,15 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.token = null;
+      state.user = null;
+      state.role = "";
       state.phone = "";
       state.otpRequested = false;
       state.otpVerified = false;
       state.loading = false;
       state.error = null;
       state.success = false;
+      state.hasCompletedOnboarding = false;
       state.sessionResetKey += 1;
     },
     clearAuthStatus: (state) => {

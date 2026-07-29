@@ -13,23 +13,165 @@ import {
   Linking,
   Image,
   RefreshControl,
+  TextInput,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
-import { fetchFeedJobs, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
+import {
+  fetchFeedJobs,
+  toggleSaveJob,
+  fetchSavedJobs,
+} from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
+import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
+import AppLoader from "../../components/common/AppLoader";
 
 export default function ChefHomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  const { feedJobs, savedJobs, applyingJobId } = useSelector((state) => state.job);
+  const { feedJobs, savedJobs, applyingJobId } = useSelector(
+    (state) => state.job,
+  );
+  const { profile } = useSelector((state) => state.user);
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+
+  // Profile Completion Modal States
+  const [
+    hasModalBeenDismissedThisSession,
+    setHasModalBeenDismissedThisSession,
+  ] = useState(false);
+  const [completionModalVisible, setCompletionModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [submittingProfile, setSubmittingProfile] = useState(false);
+  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] =
+    useState(false);
+
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formSkills, setFormSkills] = useState("");
+  const [formEmployer, setFormEmployer] = useState("");
+  const [formGender, setFormGender] = useState("");
+
+  const getDynamicCompletion = () => {
+    if (!profile) return 100;
+
+    let fields = 0;
+    let filled = 0;
+
+    fields++;
+    if (profile.name && profile.name !== "Guest User" && profile.name.trim())
+      filled++;
+    else if (profile.full_name && profile.full_name.trim()) filled++;
+
+    fields++;
+    if (profile.email && profile.email.trim()) filled++;
+
+    fields++;
+    if (profile.city && profile.city.trim()) filled++;
+
+    fields++;
+    const skills = profile.skills;
+    if (Array.isArray(skills) && skills.length > 0) filled++;
+    else if (typeof skills === "string" && skills.trim()) filled++;
+
+    fields++;
+    if (profile.current_employer && profile.current_employer.trim()) filled++;
+
+    fields++;
+    if (profile.gender && profile.gender.trim()) filled++;
+
+    return Math.round((filled / fields) * 100);
+  };
+
+  useEffect(() => {
+    let active = true;
+    const unsubscribe = navigation.addListener("focus", async () => {
+      try {
+        await dispatch(fetchProfile()).unwrap();
+      } catch (err) {
+        console.warn("Failed to fetch profile in background:", err);
+      } finally {
+        if (active) {
+          setIsInitialProfileLoadComplete(true);
+        }
+      }
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [navigation, dispatch]);
+
+  useEffect(() => {
+    if (profile) {
+      setFormName(profile.full_name || profile.name || "");
+      setFormEmail(profile.email || "");
+      setFormCity(profile.city || "");
+      setFormSkills(
+        Array.isArray(profile.skills)
+          ? profile.skills.join(", ")
+          : profile.skills || "",
+      );
+      setFormEmployer(profile.current_employer || "");
+      setFormGender(profile.gender || "");
+
+      // Check completeness (only for Job Seeker / Talent role and AFTER initial load completes)
+      if (isInitialProfileLoadComplete) {
+        const userRole =
+          profile?.role || profile?.active_role || profile?.user_role;
+        if (
+          !hasModalBeenDismissedThisSession &&
+          (userRole === "job_seeker" || userRole === "candidate")
+        ) {
+          const pct = getDynamicCompletion();
+          if (pct < 100) {
+            setCompletionModalVisible(true);
+          } else {
+            setCompletionModalVisible(false);
+          }
+        } else {
+          setCompletionModalVisible(false);
+        }
+      }
+    }
+  }, [profile, hasModalBeenDismissedThisSession, isInitialProfileLoadComplete]);
+
+  const handleSaveProfile = async () => {
+    setSubmittingProfile(true);
+    try {
+      const updateData = {
+        full_name: formName,
+        email: formEmail,
+        city: formCity,
+        skills: formSkills,
+        current_employer: formEmployer,
+        gender: formGender,
+        experience_range: profile?.experience_range || "",
+        preferred_role: profile?.preferred_role || profile?.preference || "",
+      };
+
+      await dispatch(updateProfile(updateData)).unwrap();
+      await dispatch(fetchProfile()).unwrap();
+
+      setCompletionModalVisible(false);
+      setSuccessModalVisible(true);
+    } catch (err) {
+      Alert.alert(
+        t("error", "Error"),
+        err.message || "Failed to update profile details.",
+      );
+    } finally {
+      setSubmittingProfile(false);
+    }
+  };
 
   // Pull to Refresh State
   const [refreshing, setRefreshing] = useState(false);
@@ -38,7 +180,7 @@ export default function ChefHomeScreen({ navigation }) {
     setRefreshing(true);
     try {
       await Promise.all([
-        dispatch(fetchFeedJobs(activeFilter)).unwrap(),
+        dispatch(fetchFeedJobs("all")).unwrap(),
         dispatch(fetchSavedJobs()).unwrap(),
       ]);
     } catch (err) {
@@ -46,7 +188,7 @@ export default function ChefHomeScreen({ navigation }) {
     } finally {
       setRefreshing(false);
     }
-  }, [dispatch, activeFilter]);
+  }, [dispatch]);
 
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
@@ -57,8 +199,8 @@ export default function ChefHomeScreen({ navigation }) {
   const [copiedJobId, setCopiedJobId] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchFeedJobs(activeFilter));
-  }, [dispatch, activeFilter]);
+    dispatch(fetchFeedJobs("all"));
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchSavedJobs());
@@ -68,7 +210,9 @@ export default function ChefHomeScreen({ navigation }) {
     if (feedJobs) {
       const favs = {};
       feedJobs.forEach((job) => {
-        const isSavedInList = (savedJobs || []).some((sj) => String(sj.id) === String(job.id));
+        const isSavedInList = (savedJobs || []).some(
+          (sj) => String(sj.id) === String(job.id),
+        );
         favs[job.id] = job.saved || job.is_saved || isSavedInList || false;
       });
       setFavorites(favs);
@@ -82,8 +226,12 @@ export default function ChefHomeScreen({ navigation }) {
     try {
       await dispatch(toggleSaveJob(id)).unwrap();
     } catch (error) {
+      // Rollback on error
       setFavorites((prev) => ({ ...prev, [id]: !isFav }));
-      Alert.alert("Error", error || "Failed to save job.");
+      Alert.alert(
+        t("error", "Error"),
+        error || t("failedToSaveJob", "Failed to save job."),
+      );
     }
   };
 
@@ -99,44 +247,58 @@ export default function ChefHomeScreen({ navigation }) {
   };
 
   const handleCall = (job) => {
-    const phoneNumber = job.creator?.mobile_number || job.mobile_number || job.phone || "+919876543210";
+    const phoneNumber =
+      job.creator?.mobile_number ||
+      job.mobile_number ||
+      job.phone ||
+      "+919876543210";
     Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert("Error", "Could not open dialer: " + err.message);
+      Alert.alert(
+        t("error", "Error"),
+        t("couldNotOpenDialer", "Could not open dialer: ") + err.message,
+      );
     });
   };
 
   const handleShare = async (title, company) => {
     try {
       await Share.share({
-        message: `Check out this opening on Jobrito: ${title} at ${company}!`,
+        message: `${t("checkOutOpening", "Check out this opening on Jobrito:")} ${title} ${t("at", "at")} ${company}!`,
       });
     } catch (error) {
-      Alert.alert("Unable to share", "Please try again.");
+      Alert.alert(
+        t("unableToShare", "Unable to share"),
+        t("pleaseTryAgain", "Please try again."),
+      );
     }
   };
 
   const formatPostedTime = (postedDate) => {
-    if (!postedDate) return "Today";
+    if (!postedDate) return t("today", "Today");
     const posted = new Date(postedDate);
-    if (Number.isNaN(posted.getTime())) return "Today";
+    if (Number.isNaN(posted.getTime())) return t("today", "Today");
     const diffMs = Date.now() - posted.getTime();
     const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "1 day ago";
-    return `${diffDays} days ago`;
+    if (diffDays === 0) return t("today", "Today");
+    if (diffDays === 1) return t("oneDayAgo", "1 day ago");
+    return `${diffDays} ${t("daysAgo", "days ago")}`;
   };
 
-  const filters = [
-    { label: t("filters.all", "All"), value: "all" },
-    { label: t("filters.india", "India Jobs"), value: "india" },
-    { label: t("filters.overseas", "Overseas Jobs"), value: "overseas" },
-    { label: t("filters.training", "Training Opportunities"), value: "training" },
-    { label: t("filters.referral", "Referral Opportunities"), value: "referral" },
-    { label: t("filters.community", "Community Job Posts"), value: "community" },
-  ];
+  if (!isInitialProfileLoadComplete) {
+    return (
+      <ScreenWrapper scroll={false} contentStyle={styles.splashContainer}>
+        <Image
+          source={require("../../assets/Jobrito full logo.png")}
+          style={styles.splashLogoImage}
+          resizeMode="contain"
+        />
+        <AppLoader label={t("loading", "Loading...")} />
+      </ScreenWrapper>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper contentStyle={styles.content} scroll={false}>
       {/* Custom Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -148,34 +310,59 @@ export default function ChefHomeScreen({ navigation }) {
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate("ChefProfile")}>
-          <Ionicons name="ellipsis-vertical" size={20} color="rgba(10, 5, 4, 0.6)" />
+        <TouchableOpacity
+          style={styles.headerRight}
+          onPress={() => navigation.navigate("ChefProfile")}
+        >
+          <Ionicons
+            name="ellipsis-vertical"
+            size={20}
+            color="rgba(10, 5, 4, 0.6)"
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Filter Timeline Bar */}
+      {/* Pagination timeline bar with pin icon */}
       <View style={styles.filterBar}>
         <Ionicons name="pin" size={18} color="#153e69" style={styles.pinIcon} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPills}>
-          {(feedJobs || []).filter(job => job.is_pinned).map((job, index) => {
-            const isSelected = highlightedJobId === job.id;
-            return (
-              <TouchableOpacity
-                key={job.id}
-                style={[styles.filterPill, isSelected && styles.filterPillSelected]}
-                onPress={() => setHighlightedJobId((prev) => (prev === job.id ? null : job.id))}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.filterPillText, isSelected && styles.filterPillTextSelected]}>
-                  {index + 1}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterPills}
+        >
+          {(feedJobs || [])
+            .filter((job) => job.is_pinned)
+            .map((job, index) => {
+              const isSelected = highlightedJobId === job.id;
+              return (
+                <TouchableOpacity
+                  key={job.id}
+                  style={[
+                    styles.filterPill,
+                    isSelected && styles.filterPillSelected,
+                  ]}
+                  onPress={() =>
+                    setHighlightedJobId((prev) =>
+                      prev === job.id ? null : job.id,
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.filterPillText,
+                      isSelected && styles.filterPillTextSelected,
+                    ]}
+                  >
+                    {index + 1}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
         </ScrollView>
       </View>
 
-      {/* Main Feed Content */}
+      {/* JobList feed */}
       <ScrollView
         contentContainerStyle={styles.feedScroll}
         showsVerticalScrollIndicator={false}
@@ -187,15 +374,6 @@ export default function ChefHomeScreen({ navigation }) {
           />
         }
       >
-        {/* Today separator */}
-        {/* <View style={styles.separatorContainer}>
-          <View style={styles.separatorLine} />
-          <View style={styles.separatorBadge}>
-            <Text style={styles.separatorText}>TODAY</Text>
-          </View>
-          <View style={styles.separatorLine} />
-        </View> */}
-
         {feedJobs.map((job) => {
           const isFav = favorites[job.id] || false;
           const isApplied = job.applied || false;
@@ -204,33 +382,53 @@ export default function ChefHomeScreen({ navigation }) {
           const isPinned = job.is_pinned || false;
           const isHighlighted = highlightedJobId === job.id;
 
+          // Grand Hyatt and Global Talent are "Apply" jobs. Bombay Cafe is "Call & Share" referral.
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
+          // --- UPDATED ROLE LOGIC (fallback across submitted_by_role / posted_by_role / active_role / user_role, normalized) ---
+          const effectiveRoleSource =
+            job.submitted_by_role ||
+            job.posted_by_role ||
+            job.active_role ||
+            job.user_role ||
+            "";
+          const effectiveRole = effectiveRoleSource.toLowerCase();
+          const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+          const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
+          const showApply = !isReferral && !isChefOrJobSeeker;
+
           let roleBorderColor = null;
-          const role = job.submitted_by_role?.toLowerCase();
-          if (role === "job_seeker" || role === "chef" || role === "talent") {
+          if (["jobseeker", "chef", "talent"].includes(normalizedRole)) {
             roleBorderColor = "#f57f20"; // Orange
-          } else if (role === "administrator" || role === "admin") {
+          } else if (["administrator", "admin"].includes(normalizedRole)) {
             roleBorderColor = "#2e7d32"; // Green
-          } else if (role === "employer" || role === "agency") {
+          } else if (["employer", "agency"].includes(normalizedRole)) {
             roleBorderColor = "#f2c879"; // Yellow
           }
+          // --- END OF UPDATED ROLE LOGIC ---
 
           return (
             <View
               key={job.id}
               style={[
                 styles.card,
-                isPinned && styles.pinnedCard,
-                roleBorderColor && { borderColor: roleBorderColor, borderWidth: 1.5 },
-                isHighlighted && styles.highlightedCard
+                roleBorderColor && {
+                  borderLeftColor: roleBorderColor,
+                  borderLeftWidth: 4,
+                },
+                isHighlighted && styles.highlightedCard,
               ]}
             >
               {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
-                  <Ionicons name="pin" size={14} color="#f57f20" style={{ marginRight: 4 }} />
+                  <Ionicons
+                    name="pin"
+                    size={14}
+                    color="#f57f20"
+                    style={{ marginRight: 4 }}
+                  />
                   <Text style={styles.pinnedLabelText}>Pinned</Text>
                 </View>
               )}
@@ -238,9 +436,9 @@ export default function ChefHomeScreen({ navigation }) {
               <View style={styles.cardHeaderRow}>
                 <View style={{ flex: 1 }}>
                   {isReferral ? (
-                    <Text style={styles.referralHeader}>{t("referralJobPost", "Referral Job Post")}</Text>
+                    <Text style={styles.referralHeader}>Referral Job Post</Text>
                   ) : (
-                    <Text style={styles.employerNameGreen}>{job.company}</Text>
+                    <Text style={styles.employerName}>{job.company}</Text>
                   )}
                   <Text style={styles.jobTitle}>{job.title}</Text>
                 </View>
@@ -248,21 +446,42 @@ export default function ChefHomeScreen({ navigation }) {
 
               <View style={styles.detailsBlock}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="location-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
-                  <Text style={styles.detailText}>{t("location", "Location")}: {job.location}</Text>
+                  <Ionicons
+                    name="location-outline"
+                    size={15}
+                    color="rgba(10, 5, 4, 0.6)"
+                  />
+                  <Text style={styles.detailText}>
+                    {t("location", "Location")}: {job.location}
+                  </Text>
                 </View>
                 {job.salary && (
                   <View style={styles.detailItem}>
-                    <Ionicons name="cash-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
-                    <Text style={styles.detailText}>{t("salary", "Salary")}: {job.salary}</Text>
+                    <Ionicons
+                      name="cash-outline"
+                      size={15}
+                      color="rgba(10, 5, 4, 0.6)"
+                    />
+                    <Text style={styles.detailText}>
+                      {t("salary", "Salary")}: {job.salary}
+                    </Text>
                   </View>
                 )}
                 {(() => {
-                  const jobExp = job.experience || job.experience_range || job.contract_duration;
+                  const jobExp =
+                    job.experience ||
+                    job.experience_range ||
+                    job.contract_duration;
                   return jobExp ? (
                     <View style={styles.detailItem}>
-                      <Ionicons name="calendar-outline" size={16} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={styles.detailText}>{t("contract", "Contract")}: {jobExp}</Text>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={15}
+                        color="rgba(10, 5, 4, 0.6)"
+                      />
+                      <Text style={styles.detailText}>
+                        {t("contract", "Contract")}: {jobExp}
+                      </Text>
                     </View>
                   ) : null;
                 })()}
@@ -272,15 +491,17 @@ export default function ChefHomeScreen({ navigation }) {
 
               {/* Action buttons rendering */}
               <View style={styles.actionsContainer}>
-                {isReferral ? (
-                  // Referral Job: Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
+                {!showApply ? (
+                  // Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
                   <>
                     <TouchableOpacity
                       style={styles.textActionBtn}
                       onPress={() => handleCall(job)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.textActionBtnText}>{t("call", "Call")}</Text>
+                      <Text style={styles.textActionBtnText}>
+                        {t("call", "Call")}
+                      </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -299,16 +520,28 @@ export default function ChefHomeScreen({ navigation }) {
                   // Direct/Overseas Job: Apply Now (Text), Call (Icon), Share (Icon), Favorite (Icon)
                   <>
                     <TouchableOpacity
-                      style={[styles.textActionBtn, isApplied && styles.textActionBtnApplied]}
-                      onPress={() => (isApplied || isApplying ? null : handleApplyPress(job))}
+                      style={[
+                        styles.textActionBtn,
+                        isApplied && styles.textActionBtnApplied,
+                      ]}
+                      onPress={() =>
+                        isApplied || isApplying ? null : handleApplyPress(job)
+                      }
                       disabled={isApplied || isApplying}
                       activeOpacity={0.7}
                     >
                       {isApplying ? (
                         <ActivityIndicator size="small" color="#ffffff" />
                       ) : (
-                        <Text style={[styles.textActionBtnText, isApplied && styles.textActionBtnTextApplied]}>
-                          {isApplied ? `✓ ${t("applied", "Applied")}` : t("applyNow", "Apply Now")}
+                        <Text
+                          style={[
+                            styles.textActionBtnText,
+                            isApplied && styles.textActionBtnTextApplied,
+                          ]}
+                        >
+                          {isApplied
+                            ? "✓ " + t("applied", "Applied")
+                            : t("applyNow", "Apply Now")}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -343,17 +576,38 @@ export default function ChefHomeScreen({ navigation }) {
                   />
                 </TouchableOpacity>
               </View>
-              {job.submitted_by_role ? (
-                <Text style={[styles.timeText, roleBorderColor && { color: roleBorderColor, fontWeight: "700" }]}>
-                  {job.submitted_by_role.replace("_", " ").toUpperCase()}
-                </Text>
+
+              {/* --- UPDATED LABEL LOGIC (uses effectiveRoleSource fallback) --- */}
+              {effectiveRoleSource ? (
+                <View
+                  style={[
+                    styles.poweredRibbon,
+                    roleBorderColor && { borderColor: roleBorderColor },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.poweredRibbonText,
+                      roleBorderColor && { color: roleBorderColor },
+                    ]}
+                  >
+                    Powered By •{" "}
+                    {effectiveRoleSource.replace(/_/g, " ").toUpperCase()}
+                  </Text>
+                </View>
               ) : null}
+              {/* --- END OF UPDATED LABEL LOGIC --- */}
             </View>
           );
         })}
 
-        {/* Bottom banner warning/informational */}
-
+        {/* Bottom Informational Updates Banner */}
+        {/* <View style={styles.bottomBanner}>
+          <Ionicons name="sync" size={18} color="#153e69" style={{ marginRight: 10 }} />
+          <Text style={styles.bottomBannerText}>
+            Keep checking the feed regularly for new updates
+          </Text>
+        </View> */}
       </ScrollView>
 
       {/* Floating Action Button */}
@@ -371,7 +625,12 @@ export default function ChefHomeScreen({ navigation }) {
         onConfirm={async (timeSlot) => {
           if (selectedJob) {
             try {
-              await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              await dispatch(
+                applyJob({
+                  jobId: selectedJob.id,
+                  preferredCallTime: timeSlot,
+                }),
+              ).unwrap();
               return true;
             } catch (err) {
               Alert.alert("Application Error", err || "Failed to apply to job");
@@ -381,14 +640,293 @@ export default function ChefHomeScreen({ navigation }) {
           return false;
         }}
       />
-    </SafeAreaView>
+
+      {/* Profile Completion Modal */}
+      {(() => {
+        const isNameEmpty =
+          !(profile?.full_name || profile?.name || "").trim() ||
+          profile?.name === "Guest User";
+        const isEmailEmpty = !(profile?.email || "").trim();
+        const isCityEmpty = !(profile?.city || "").trim();
+        const isSkillsEmpty =
+          !profile?.skills ||
+          (Array.isArray(profile?.skills) && profile?.skills.length === 0) ||
+          (typeof profile?.skills === "string" && !profile?.skills.trim());
+        const isEmployerEmpty = !(profile?.current_employer || "").trim();
+        const isGenderEmpty = !(profile?.gender || "").trim();
+
+        return (
+          <Modal
+            visible={completionModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => {
+              setCompletionModalVisible(false);
+              setHasModalBeenDismissedThisSession(true);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>
+                    {t("profile.completeYourProfile", "Complete Profile")}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCompletionModalVisible(false);
+                      setHasModalBeenDismissedThisSession(true);
+                    }}
+                    style={styles.modalCloseBtn}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={22}
+                      color="rgba(10, 5, 4, 0.6)"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+                >
+                  <Text style={styles.modalSubtitle}>
+                    {t(
+                      "profile.completeModalSubtitle",
+                      "Please fill in the missing details to complete your profile.",
+                    )}
+                  </Text>
+
+                  {/* Conditionally Render Missing Fields */}
+                  {isNameEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.fullName", "Full Name")}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formName}
+                        onChangeText={setFormName}
+                        placeholder={t(
+                          "profile.enterFullName",
+                          "Enter full name",
+                        )}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isEmailEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.emailAddress", "Email Address")}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formEmail}
+                        onChangeText={setFormEmail}
+                        placeholder={t(
+                          "profile.enterEmail",
+                          "Enter email address",
+                        )}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  )}
+
+                  {isCityEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.city", "City")}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formCity}
+                        onChangeText={setFormCity}
+                        placeholder={t("profile.enterCity", "Enter city")}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isSkillsEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.skills", "Skills (Comma separated)")}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formSkills}
+                        onChangeText={setFormSkills}
+                        placeholder={t(
+                          "profile.enterSkills",
+                          "e.g. Kitchen, Communication",
+                        )}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isEmployerEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.currentEmployer", "Current Employer")}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        value={formEmployer}
+                        onChangeText={setFormEmployer}
+                        placeholder={t(
+                          "profile.enterEmployer",
+                          "Enter current employer",
+                        )}
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
+                  )}
+
+                  {isGenderEmpty && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>
+                        {t("profile.gender", "Gender")}
+                      </Text>
+                      <View style={styles.genderSelectRow}>
+                        {["Male", "Female"].map((g) => {
+                          const isSelected =
+                            formGender.toLowerCase() === g.toLowerCase();
+                          return (
+                            <TouchableOpacity
+                              key={g}
+                              style={[
+                                styles.genderOptionBtn,
+                                isSelected && styles.genderOptionBtnSelected,
+                              ]}
+                              onPress={() => setFormGender(g)}
+                              activeOpacity={0.7}
+                            >
+                              <Ionicons
+                                name={
+                                  g.toLowerCase() === "male"
+                                    ? "male-outline"
+                                    : "female-outline"
+                                }
+                                size={16}
+                                color={
+                                  isSelected ? "#153e69" : "rgba(10, 5, 4, 0.5)"
+                                }
+                                style={{ marginRight: 6 }}
+                              />
+                              <Text
+                                style={[
+                                  styles.genderOptionText,
+                                  isSelected && styles.genderOptionTextSelected,
+                                ]}
+                              >
+                                {t(`profile.${g.toLowerCase()}`, g)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={styles.modalConfirmBtn}
+                  onPress={handleSaveProfile}
+                  disabled={submittingProfile}
+                >
+                  {submittingProfile ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.modalConfirmBtnText}>
+                      {t("profile.saveAndComplete", "Save & Complete")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalSkipBtn}
+                  onPress={() => {
+                    setCompletionModalVisible(false);
+                    setHasModalBeenDismissedThisSession(true);
+                  }}
+                >
+                  <Text style={styles.modalSkipBtnText}>
+                    {t("skip", "Skip")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        );
+      })()}
+
+      {/* Success Modal */}
+      <Modal
+        visible={successModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setSuccessModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer,
+              { alignItems: "center", paddingVertical: 30 },
+            ]}
+          >
+            <View
+              style={[
+                styles.successIconCircle,
+                { backgroundColor: "rgba(34, 197, 94, 0.1)" },
+              ]}
+            >
+              <Ionicons name="checkmark-circle" size={54} color="#22c55e" />
+            </View>
+            <Text
+              style={[
+                styles.modalTitle,
+                { textAlign: "center", marginBottom: 10 },
+              ]}
+            >
+              {t("profile.profileCompleted", "Profile Completed!")}
+            </Text>
+            <Text
+              style={[
+                styles.modalSubtitle,
+                { textAlign: "center", marginBottom: 20 },
+              ]}
+            >
+              {t(
+                "profile.profileCompletedSubtitle",
+                "Your profile details have been saved successfully.",
+              )}
+            </Text>
+            <TouchableOpacity
+              style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
+              onPress={() => setSuccessModalVisible(false)}
+            >
+              <Text style={styles.modalConfirmBtnText}>
+                {t("gotIt", "Got It")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  content: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    gap: 0,
     flex: 1,
-    backgroundColor: "#f2f2f3",
   },
   header: {
     flexDirection: "row",
@@ -411,40 +949,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerLogo: {
-    width: 140,
-    height: 140,
+    width: 150,
+    height: 150,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 0,
   },
-  communityAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#153e69",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  avatarText: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  communityName: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#0a0504",
-  },
-  memberCount: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-  },
   headerRight: {
     padding: 6,
   },
+
   filterBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -482,8 +998,8 @@ const styles = StyleSheet.create({
   },
   feedScroll: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 80,
+    paddingTop: 8,
+    paddingBottom: 85,
   },
   separatorContainer: {
     flexDirection: "row",
@@ -523,10 +1039,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  pinnedCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: "#f57f20",
-  },
   highlightedCard: {
     borderColor: "#153e69",
     borderWidth: 2,
@@ -553,7 +1065,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 6,
   },
-  employerNameGreen: {
+  employerName: {
     fontSize: 13,
     fontWeight: "700",
     color: "#153e69",
@@ -670,7 +1182,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    elevation: 6,
   },
   modalOverlay: {
     flex: 1,
@@ -753,6 +1265,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  modalSkipBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
   successIconCircle: {
     width: 80,
     height: 80,
@@ -774,4 +1291,95 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textTransform: "uppercase",
   },
+  inputGroup: {
+    marginBottom: 12,
+    width: "100%",
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#153e69",
+    marginBottom: 6,
+  },
+  textInput: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    color: "#0a0504",
+    backgroundColor: "#ffffff",
+    fontSize: 13,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    width: "100%",
+  },
+  modalCloseBtn: {
+    padding: 4,
+    marginRight: -4,
+  },
+  genderSelectRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 4,
+  },
+  genderOptionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  genderOptionBtnSelected: {
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  genderOptionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  genderOptionTextSelected: {
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  splashContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 10,
+  },
+  splashLogoImage: {
+    width: 350,
+    height: 150,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  poweredRibbon: {
+  alignSelf: "flex-end",
+  marginTop: 10,
+  paddingHorizontal: 12,
+  paddingVertical: 4,
+  borderRadius: 20,
+  backgroundColor: "#fff",
+},
+
+poweredRibbonText: {
+  fontSize: 10,
+  fontStyle: "italic",
+  fontWeight: "800",
+  letterSpacing: 0.8,
+  color: "#153e69",
+  textTransform: "uppercase",
+},
 });

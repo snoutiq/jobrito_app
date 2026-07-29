@@ -395,6 +395,8 @@ export default function HomeScreen({ navigation }) {
             "";
           const effectiveRole = effectiveRoleSource.toLowerCase();
           const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+          const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
+          const showApply = !isReferral && !isChefOrJobSeeker;
 
           let roleBorderColor = null;
           if (["jobseeker", "chef", "talent"].includes(normalizedRole)) {
@@ -489,8 +491,8 @@ export default function HomeScreen({ navigation }) {
 
               {/* Action buttons rendering */}
               <View style={styles.actionsContainer}>
-                {isReferral ? (
-                  // Referral Job: Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
+                {!showApply ? (
+                  // Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
                   <>
                     <TouchableOpacity
                       style={styles.textActionBtn}
