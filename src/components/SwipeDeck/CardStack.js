@@ -233,24 +233,12 @@ export default function CardStack({
     );
   }
 
-  // Render the hint overlay if needed
-  const hintOverlay = showSwipeHint && (
-    <Animated.View style={[styles.swipeHintOverlay, animatedHintStyle]}>
-      <Text style={styles.swipeHintText}>{t("swipeHint", "Swipe right to shortlist, left to reject")}</Text>
-      <TouchableOpacity onPress={dismissSwipeHint} style={styles.swipeHintDismiss}>
-        <Ionicons name="close-circle-outline" size={20} color="#fff" />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
   return (
     <View style={styles.container}>
       {/* Cards Stack Container */}
       <View style={styles.stackContainer}>
         {renderCards()}
       </View>
-
-      {hintOverlay}
 
       {/* Glass Floating Bottom Actions */}
       <View style={styles.actionsWrapper}>

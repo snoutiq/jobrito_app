@@ -228,44 +228,35 @@ export default function SwipeCard({
 
   const displayStatus = applicant.status ? applicant.status.toUpperCase() : "";
   const displayRole = applicant.preferred_role || "Server";
+  const localStatus = applicant.status?.toLowerCase();
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, animatedCardStyle]}>
-        {/* Tinder Swipe Overlay Labels */}
-        {isTopCard && (
-          <>
-            <Animated.View style={[styles.likeLabelContainer, likeLabelStyle]}>
-              <Text style={styles.likeLabelText}>{t("shortlistCaps", "SHORTLIST")}</Text>
-            </Animated.View>
-            <Animated.View style={[styles.nopeLabelContainer, nopeLabelStyle]}>
-              <Text style={styles.nopeLabelText}>{t("rejectCaps", "REJECT")}</Text>
-            </Animated.View>
-          </>
+        {localStatus && (
+          <View 
+            style={[
+              styles.statusBadge, 
+              localStatus === 'shortlisted' && styles.statusBadgeShortlisted,
+              localStatus === 'rejected' && styles.statusBadgeRejected,
+              localStatus === 'contacted' && styles.statusBadgeContacted,
+              (localStatus === 'new' || localStatus === 'pending') && styles.statusBadgeNew,
+            ]}
+          >
+            <Ionicons 
+              name={localStatus === 'shortlisted' ? 'heart' : localStatus === 'rejected' ? 'close-circle' : (localStatus === 'new' || localStatus === 'pending') ? 'sparkles' : 'call'} 
+              size={12} 
+              color="#ffffff" 
+            />
+            <Text style={styles.statusBadgeText}>
+              {localStatus === 'new' ? 'New' : localStatus === 'pending' ? 'Pending' : localStatus.charAt(0).toUpperCase() + localStatus.slice(1)}
+            </Text>
+          </View>
         )}
 
         {/* Top Content Body Block */}
         <View style={styles.cardContent}>
-          {/* Header Badges */}
-          <View style={styles.cardHeader}>
-            {displayStatus ? (
-              <View style={[
-                styles.newBadge,
-                displayStatus === "SHORTLISTED" && styles.shortlistedBadge,
-                displayStatus === "CONTACTED" && styles.contactedBadge,
-                displayStatus === "REJECTED" && styles.rejectedBadge
-              ]}>
-                <Text style={styles.newBadgeText}>{displayStatus}</Text>
-              </View>
-            ) : (
-              <View />
-            )}
-            {isTopCard && (
-              <TouchableOpacity onPress={handleQuickReject} activeOpacity={0.6}>
-                <Text style={styles.rejectTextBtn}>{t("reject", "Reject")}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <View style={styles.cardHeaderSpacer} />
 
           {/* Profile Card Body */}
           <View style={styles.profileSection}>
@@ -357,39 +348,38 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 4,
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    height: 28,
-    marginBottom: 4,
+  statusBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderTopRightRadius: 26,
+    borderBottomLeftRadius: 18,
+    gap: 5,
+    zIndex: 10,
   },
-  newBadge: {
-    backgroundColor: "#153e69",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8,
+  statusBadgeShortlisted: {
+    backgroundColor: '#4CAF50',
   },
-  shortlistedBadge: {
-    backgroundColor: "#4CAF50",
+  statusBadgeRejected: {
+    backgroundColor: '#f57f20',
   },
-  contactedBadge: {
-    backgroundColor: "#f2c879",
+  statusBadgeContacted: {
+    backgroundColor: '#153e69',
   },
-  rejectedBadge: {
-    backgroundColor: "#f57f20",
+  statusBadgeNew: {
+    backgroundColor: '#153e69',
   },
-  newBadgeText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.5,
+  statusBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
   },
-  rejectTextBtn: {
-    color: "#f57f20",
-    fontSize: 14,
-    fontWeight: "800",
-    textDecorationLine: "underline",
+  cardHeaderSpacer: {
+    height: 18,
   },
   profileSection: {
     alignItems: "center",

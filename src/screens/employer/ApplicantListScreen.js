@@ -325,8 +325,6 @@ export default function ApplicantListScreen({ route, navigation }) {
           key={activeFilter}
           loading={selectedJob?.loading || false} // Pass loading state
           applicants={filteredApplicants}
-          onSwipeRight={(applicant) => handleStatusUpdateAndShowUndo(applicant, "shortlisted")}
-          onSwipeLeft={(applicant) => handleStatusUpdateAndShowUndo(applicant, "rejected")}
           onIndexChange={handleIndexChange}
           onCall={handleCall}
           onPressDetails={handleDetailsPress}
