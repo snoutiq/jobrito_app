@@ -24,6 +24,23 @@ export default function ProfileScreen({ navigation }) {
   const applicationsCount = useSelector((state) => state.application?.history?.length) || 0;
 
   const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.full_name || "");
+  const displayTitle = profile?.preferred_role || profile?.professionalTitle || profile?.designation || profile?.current_position || profile?.title || "";
+  const displayCity = profile?.city && profile?.country
+    ? `${profile.city}, ${profile.country}`
+    : profile?.city || profile?.country || "";
+  const displayPrefLocation = profile?.location_preference || profile?.locationPreference || profile?.location || "";
+  const displayExperience = profile?.experience_range || profile?.experienceYears || profile?.experience || "";
+  const displayEmployer = profile?.current_employer || profile?.currentEmployer || profile?.company || profile?.business_name || "";
+  const displaySkills = Array.isArray(profile?.skills)
+    ? profile.skills.filter(Boolean).join(", ")
+    : typeof profile?.skills === "string"
+    ? profile.skills.trim()
+    : Array.isArray(profile?.operations)
+    ? profile.operations.filter(Boolean).join(", ")
+    : typeof profile?.operations === "string"
+    ? profile.operations.trim()
+    : "";
+  const logoSource = profile?.profile_photo_path || profile?.profile_photo || profile?.company_logo || profile?.companyLogo || null;
 
   const initials = displayName
     ? displayName
@@ -299,6 +316,59 @@ export default function ProfileScreen({ navigation }) {
               {profile.city && profile.country ? `${profile.city}, ${profile.country}` : (profile.city || profile.country)}
             </Text>
           )}
+        </View>
+      </View>
+
+      {/* Talent Profile Card */}
+      <View style={styles.profileCard}>
+        <View style={styles.profileHeaderRow}>
+          {logoSource ? (
+            <View style={styles.avatarContainer}>
+              <Image source={{ uri: logoSource }} style={styles.avatarImage} resizeMode="cover" />
+            </View>
+          ) : (
+            <View style={[styles.avatarContainer, styles.avatarPlaceholder]}>
+              <Ionicons name="person" size={28} color="rgba(10, 5, 4, 0.6)" />
+            </View>
+          )}
+          <View style={styles.profileTextInfo}>
+            <Text style={styles.profileName}>{displayName || t("profile.guestUser", "Guest User")}</Text>
+            {displayTitle ? (
+              <Text style={styles.profileTitle}>{displayTitle}</Text>
+            ) : null}
+            <View style={styles.profileDetailsList}>
+              {displayCity ? (
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>{t("profile.currentLocation", "Current Location:")}</Text>
+                  <Text style={styles.detailValue}>{displayCity}</Text>
+                </Text>
+              ) : null}
+              {displayPrefLocation ? (
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>{t("profile.preferredJobLocation", "Preferred Job Location:")}</Text>
+                  <Text style={styles.detailValue}>{displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)" ? "India & Overseas" : displayPrefLocation}</Text>
+                </Text>
+              ) : null}
+              {displayExperience ? (
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>{t("profile.experience", "Experience:")}</Text>
+                  <Text style={styles.detailValue}>{displayExperience}</Text>
+                </Text>
+              ) : null}
+              {displayEmployer ? (
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>{t("profile.currentEmployer", "Current Employer:")}</Text>
+                  <Text style={styles.detailValue}>{displayEmployer}</Text>
+                </Text>
+              ) : null}
+              {displaySkills ? (
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>{t("profile.skills", "Skills:")}</Text>
+                  <Text style={styles.detailValue}>{displaySkills}</Text>
+                </Text>
+              ) : null}
+            </View>
+          </View>
         </View>
       </View>
 
@@ -659,6 +729,76 @@ const styles = StyleSheet.create({
   },
   menuTextGroup: {
     marginLeft: 12,
+  },
+  profileCard: {
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    shadowColor: "#0a0504",
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  profileHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
+    marginRight: 16,
+    backgroundColor: "#f2f2f3",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileTextInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 2,
+  },
+  profileTitle: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    marginBottom: 4,
+    lineHeight: 16,
+  },
+  profileDetailsList: {
+    marginTop: 4,
+    gap: 3,
+  },
+  detailRowText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  detailLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.5)",
+  },
+  detailValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.8)",
   },
   menuItemSublabel: {
     fontSize: 12,
