@@ -257,23 +257,22 @@ export default function CardStack({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
   },
   stackContainer: {
-    flex: 1,
     width: "100%",
     position: "relative",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
-    marginBottom: 10,
+    height: SCREEN_HEIGHT * 0.54,
     // Add minHeight to ensure cards aren't squished on smaller devices
-    minHeight: IS_SMALL_DEVICE ? 370 : 425,
+    minHeight: IS_SMALL_DEVICE ? 360 : 410,
   },
   actionsWrapper: {
     width: "100%",
-    paddingBottom: 16,
+    marginTop: IS_SMALL_DEVICE ? 8 : 16,
+    paddingBottom: IS_SMALL_DEVICE ? 8 : 16,
   },
   emptyContainer: {
     flex: 1,

@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setStoredProfile } from "../../services/storage";
-import { saveChefOnboarding } from "../../services/chefApi";
+import { saveChefOnboarding, saveUserSocials } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY = "#153e69";
@@ -193,6 +193,25 @@ export default function SocialMediaLinksScreen({ navigation }) {
       });
 
       await saveChefOnboarding(formData).catch(() => null);
+
+      // Map custom links to others array format
+      const others = customSocialLinks.map((item) => ({
+        title: item.platform,
+        url: item.link,
+      }));
+
+      // 4. Update dedicated user socials endpoint
+      const socialsPayload = {
+        instagram: updatedSocials.instagram || "",
+        linkedin: updatedSocials.linkedin || "",
+        facebook: updatedSocials.facebook || "",
+        twitter: updatedSocials.twitter || "",
+        youtube: updatedSocials.youtube || "",
+        website: updatedSocials.website || "",
+        others: others,
+      };
+
+      await saveUserSocials(socialsPayload);
 
       CustomAlert.show(
         t("success", "Success"),

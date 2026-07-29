@@ -80,3 +80,8 @@ export const recordChefProfileView = async (chefId) => {
   });
   return response.data;
 };
+
+export const saveUserSocials = async (socialsData) => {
+  const response = await apiClient.post("/user/socials", socialsData);
+  return response.data;
+};

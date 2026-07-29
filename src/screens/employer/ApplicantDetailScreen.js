@@ -280,7 +280,6 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           ? `${applicant.applied_date} • ${applicant.applied_time}`
           : applicant.applied_date || applicant.applied_time || "",
     },
-    { label: "Cuisine Specialty", value: applicant.cuisine_specialty },
     { label: "Current Employer", value: displayEmployer },
   ].filter(f => f.value !== null && f.value !== undefined && f.value !== "");
 
@@ -575,7 +574,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     paddingBottom: 120, // ensure content isn't blocked by bottom action bar
   },
   profileIntroSection: {
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
-    marginBottom: 16,
+    marginBottom: 10,
     position: 'relative', // Needed for absolute positioning of the badge
   },
   statusBadge: {
