@@ -50,9 +50,10 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   const displayName = applicant.name || applicant.full_name || applicant.mobile_number || "";
   const displayCity = applicant.city || "";
-  const displayExperience = applicant.experience_range || "";
+  const displayPrefLocation = applicant.locationPreference || applicant.location_preference || "";
+  const displayExperience = applicant.experience_range || applicant.experience || "";
   const displayEmployer = applicant.current_company || applicant.current_employer || "";
-  const displayRole = applicant.preferred_role || applicant.current_role || applicant.cuisine_specialty || "";
+  const displayRole = applicant.current_role || applicant.preferred_role || applicant.cuisine_specialty || "";
   
   // Dynamic API Availability mapping
   const displayAvailability = applicant.availability_status
@@ -127,16 +128,27 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     handleStatusUpdate("shortlisted");
   };
 
+  const getRegionalList = () => {
+    let list = [];
+    if (applicant.availability_info && typeof applicant.availability_info === "object" && !Array.isArray(applicant.availability_info)) {
+      list = applicant.availability_info.regional_experience || [];
+    } else if (applicant.regional_experience) {
+      list = applicant.regional_experience;
+    }
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return [list];
+    return [];
+  };
+
   const detailFields = [
-    { label: "Application ID", value: applicant.application_id },
-    { label: "Applicant ID", value: applicant.applicant_id },
-    { label: "Applied Date", value: applicant.applied_date },
-    { label: "Applied Time", value: applicant.applied_time },
-    { label: "Availability Status", value: displayAvailability },
+    {
+      label: "Applied",
+      value:
+        applicant.applied_date && applicant.applied_time
+          ? `${applicant.applied_date} • ${applicant.applied_time}`
+          : applicant.applied_date || applicant.applied_time || "",
+    },
     { label: "Cuisine Specialty", value: applicant.cuisine_specialty },
-    { label: "Preferred Role", value: applicant.preferred_role },
-    { label: "Email", value: applicant.email, isLink: true, onPress: handleEmail },
-    { label: "Phone", value: applicant.mobile_number, isLink: true, onPress: handleCall },
     { label: "Current Employer", value: displayEmployer },
     { label: "Experience Range", value: displayExperience },
   ].filter(f => f.value !== null && f.value !== undefined && f.value !== "");
@@ -177,8 +189,20 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                   <Text style={styles.profileInfoValue}>{displayCity || "N/A"}</Text>
                 </Text>
                 <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.profileInfoLabel}>Preferred Job Location: </Text>
+                  <Text style={styles.profileInfoValue}>
+                    {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                      ? "India & Overseas"
+                      : displayPrefLocation || "N/A"}
+                  </Text>
+                </Text>
+                <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.profileInfoLabel}>Experience: </Text>
                   <Text style={styles.profileInfoValue}>{displayExperience || "N/A"}</Text>
+                </Text>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.profileInfoLabel}>Regional Experience: </Text>
+                  <Text style={styles.profileInfoValue}>{getRegionalList().join(", ") || "N/A"}</Text>
                 </Text>
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.profileInfoLabel}>Availability: </Text>
