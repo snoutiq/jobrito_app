@@ -66,8 +66,8 @@ export const normalizeProfile = (u) => {
     selected_language: userObj.selected_language,
     gender: userObj.gender,
     job_type: userObj.job_type,
-    location_preference: userObj.job_location || userObj.location_preference || availability.location_preference || "",
-    locationPreference: userObj.job_location || userObj.location_preference || availability.location_preference || "",
+    location_preference: userObj.location_preference || availability.location_preference || userObj.job_location || "",
+    locationPreference: userObj.location_preference || availability.location_preference || userObj.job_location || "",
     employerOnboardingCompleted: !!(userObj.employerOnboardingCompleted || userObj.has_completed_onboarding || emp.is_completed),
     chefOnboardingCompleted: !!(userObj.chefOnboardingCompleted || userObj.has_completed_onboarding || chef.approval_status),
     

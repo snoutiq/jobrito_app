@@ -147,13 +147,14 @@ export default function ChefCompleteProfileScreen({ navigation }) {
 
   // --- Step 4 State ---
   const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
+  const [isProfileInitialized, setIsProfileInitialized] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProfile());
   }, [dispatch]);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !isProfileInitialized) {
       if (profile.full_name || profile.name) {
         const profileName = profile.full_name || profile.name || "";
         const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(profileName);
@@ -338,8 +339,9 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         loadedLangs = profile.languages.split(",").map(x => x.trim()).filter(Boolean);
       }
       setLanguages(loadedLangs);
+      setIsProfileInitialized(true);
     }
-  }, [profile]);
+  }, [profile, isProfileInitialized]);
 
   useEffect(() => {
     const loadSavedStep = async () => {
@@ -1132,24 +1134,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Custom City TextInput (for standard country) */}
-              {selectedCountry !== "Other" && selectedCity === "Other" && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Enter City Name</Text>
-                  <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
-                    <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                    <TextInput
-                      value={currentCity}
-                      onChangeText={setCurrentCity}
-                      placeholder="e.g. Pune"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={() => setActiveInput("city")}
-                      onBlur={() => setActiveInput(null)}
-                    />
-                  </View>
-                </View>
-              )}
+
 
               {/* Languages Spoken */}
               <View style={styles.inputGroup}>
