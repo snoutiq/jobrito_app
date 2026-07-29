@@ -11,10 +11,28 @@ export default function BottomActions({
   onAccept,
   onCall,
   onDetails,
+  onUndo,
+  canUndo = false,
   disabled = false,
 }) {
   return (
     <View style={styles.container}>
+      {/* Undo/Rewind Button (Small/Medium) */}
+      <TouchableOpacity
+        style={[
+          styles.btn,
+          styles.btnUndo,
+          (!canUndo || disabled) && styles.btnDisabled,
+        ]}
+        onPress={onUndo}
+        disabled={!canUndo || disabled}
+        accessibilityLabel="Undo last swipe"
+        accessibilityRole="button"
+        activeOpacity={0.7}
+      >
+        <Ionicons name="arrow-undo" size={IS_SMALL_DEVICE ? 18 : 22} color="#f57f20" />
+      </TouchableOpacity>
+
       {/* Details Button (Medium) */}
       <TouchableOpacity
         style={[styles.btn, styles.btnDetails, disabled && styles.btnDisabled]}
@@ -71,7 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: IS_SMALL_DEVICE ? 14 : 20,
+    gap: IS_SMALL_DEVICE ? 10 : 16,
     paddingVertical: IS_SMALL_DEVICE ? 8 : 12,
     width: "100%",
   },
@@ -86,6 +104,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
+  },
+  btnUndo: {
+    width: IS_SMALL_DEVICE ? 42 : 50,
+    height: IS_SMALL_DEVICE ? 42 : 50,
+    borderRadius: IS_SMALL_DEVICE ? 21 : 25,
+    borderColor: "rgba(245, 127, 32, 0.3)",
   },
   btnReject: {
     width: IS_SMALL_DEVICE ? 54 : 64,
@@ -112,6 +136,6 @@ const styles = StyleSheet.create({
     borderColor: "#4CAF50",
   },
   btnDisabled: {
-    opacity: 0.5,
+    opacity: 0.35,
   },
 });

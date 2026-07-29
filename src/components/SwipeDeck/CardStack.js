@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity, Platform } from "react-native";
 import Animated, {
   useSharedValue,
@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import SwipeCard from "./SwipeCard";
 import BottomActions from "./BottomActions";
 import SkeletonCard from "./SkeletonCard"; // Assuming SkeletonCard is in the same directory
@@ -18,7 +19,7 @@ import SkeletonCard from "./SkeletonCard"; // Assuming SkeletonCard is in the sa
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
 
-export default function CardStack({
+const CardStack = forwardRef(({
   applicants = [],
   onSwipe,
   onSwipeRight, // For ApplicantListScreen to update status
@@ -31,7 +32,9 @@ export default function CardStack({
   loading = false, // From ApplicantListScreen
   onViewOtherFilters, // For empty state CTA
   onBackToJobs, // For empty state CTA
-}) {
+  onUndo,
+  canUndo = false,
+}, ref) => {
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false); // Double-tap guard
@@ -43,6 +46,19 @@ export default function CardStack({
   const swipeProgress = useSharedValue(0);
   const hintOpacity = useSharedValue(0);
   const hintTranslateY = useSharedValue(20);
+
+  useImperativeHandle(ref, () => ({
+    undo: (direction) => {
+      translateX.value = direction === "right" ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
+      translateY.value = 0;
+      swipeProgress.value = 1;
+      
+      translateX.value = withSpring(0, { damping: 15, stiffness: 120 });
+      swipeProgress.value = withSpring(0, { damping: 15, stiffness: 120 });
+      
+      setActiveIndex((prev) => Math.max(0, prev - 1));
+    }
+  }));
 
   const remainingCount = applicants.length - activeIndex;
   const hasApplicants = remainingCount > 0;
@@ -70,28 +86,28 @@ export default function CardStack({
     if (!hasApplicants) return;
     const currentApplicant = applicants[activeIndex];
     
-    translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { damping: 12 }, () => {
-      runOnJS(handleSwipeComplete)("left", currentApplicant); // This will also increment activeIndex
+    translateX.value = withTiming(SCREEN_WIDTH * 1.5, { duration: 220 }, () => {
+      runOnJS(handleSwipeComplete)("right", currentApplicant); // This will also increment activeIndex
     });
     if (onRejectButton) {
       onRejectButton(currentApplicant); // Notify ApplicantListScreen for status update
     }
     setIsAnimating(true); // Animation started
-    swipeProgress.value = withSpring(1);
+    swipeProgress.value = withTiming(1, { duration: 220 });
   };
 
   const handleAcceptPress = () => {
     if (!hasApplicants) return;
     const currentApplicant = applicants[activeIndex];
     
-    translateX.value = withSpring(SCREEN_WIDTH * 1.5, { damping: 12 }, () => { // This will also increment activeIndex
-      runOnJS(handleSwipeComplete)("right", currentApplicant); 
+    translateX.value = withTiming(-SCREEN_WIDTH * 1.5, { duration: 220 }, () => { // This will also increment activeIndex
+      runOnJS(handleSwipeComplete)("left", currentApplicant); 
     });
     if (onAcceptButton) {
       onAcceptButton(currentApplicant); // Notify ApplicantListScreen for status update
     }
     setIsAnimating(true); // Animation started
-    swipeProgress.value = withSpring(1);
+    swipeProgress.value = withTiming(1, { duration: 220 });
   };
 
   const handleCallPress = () => {
@@ -189,6 +205,8 @@ export default function CardStack({
           onSwipeComplete={handleSwipeComplete}
           onPressDetails={handleDetailsPress}
           swipeEnabled={swipeEnabled}
+          onUndo={onUndo}
+          canUndo={canUndo}
         />
       );
     }
@@ -205,31 +223,53 @@ export default function CardStack({
     );
   }
 
+  // Swipe gesture for empty state (left to right only)
+  const emptyPanGesture = Gesture.Pan()
+    .onEnd((event) => {
+      // Swipe from left to right by at least 60px to trigger undo
+      if (event.translationX > 60 && canUndo && onUndo) {
+        runOnJS(onUndo)();
+      }
+    });
+
   if (!hasApplicants && !loading) { // Only show empty state if not loading and no applicants
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconCircle}>
-          <Ionicons name="sparkles" size={48} color="#153e69" />
+      <GestureDetector gesture={emptyPanGesture}>
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="sparkles" size={48} color="#153e69" />
+          </View>
+          <Text style={styles.emptyTitle}>{t("allCaughtUp", "All Caught Up!")}</Text>
+          {applicants.length === 0 ? (
+            <Text style={styles.emptySubtitle}>
+              {t("noApplicantsText", "There are no active applicants to review under this category.")}
+            </Text>
+          ) : (
+            <Text style={styles.emptySubtitle}>
+              {t("allApplicantsReviewed", "You've reviewed all applicants in this category.")}
+            </Text>
+          )}
+          <View style={styles.emptyStateActions}>
+            {canUndo && onUndo && (
+              <TouchableOpacity 
+                style={[styles.emptyStateButton, { backgroundColor: "#f57f20", borderColor: "#f57f20", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }]} 
+                onPress={onUndo}
+              >
+                <Ionicons name="arrow-undo" size={18} color="#ffffff" />
+                <Text style={styles.emptyStateButtonText}>
+                  {t("undoLastSwipe", "Undo Last Swipe")}
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onViewOtherFilters}>
+              <Text style={styles.emptyStateButtonTextSecondary}>{t("viewOtherFilters", "View Other Filters")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onBackToJobs}>
+              <Text style={styles.emptyStateButtonTextSecondary}>{t("backToJobs", "Back to Jobs")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.emptyTitle}>{t("allCaughtUp", "All Caught Up!")}</Text>
-        {applicants.length === 0 ? (
-          <Text style={styles.emptySubtitle}>
-            {t("noApplicantsText", "There are no active applicants to review under this category.")}
-          </Text>
-        ) : (
-          <Text style={styles.emptySubtitle}>
-            {t("allApplicantsReviewed", "You've reviewed all applicants in this category.")}
-          </Text>
-        )}
-        <View style={styles.emptyStateActions}>
-          <TouchableOpacity style={styles.emptyStateButton} onPress={onViewOtherFilters}>
-            <Text style={styles.emptyStateButtonText}>{t("viewOtherFilters", "View Other Filters")}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onBackToJobs}>
-            <Text style={styles.emptyStateButtonTextSecondary}>{t("backToJobs", "Back to Jobs")}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </GestureDetector>
     );
   }
 
@@ -247,12 +287,14 @@ export default function CardStack({
           onAccept={handleAcceptPress}
           onCall={handleCallPress} // Call confirmation is handled in ApplicantListScreen
           onDetails={handleDetailsPress}
+          onUndo={onUndo}
+          canUndo={canUndo}
           disabled={isAnimating} // Disable buttons during animation
         />
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -304,4 +346,40 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 24,
   },
+  emptyStateActions: {
+    width: "100%",
+    marginTop: 20,
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  emptyStateButton: {
+    backgroundColor: "#153e69",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#153e69",
+  },
+  emptyStateButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  emptyStateButtonSecondary: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(21, 62, 105, 0.2)",
+  },
+  emptyStateButtonTextSecondary: {
+    color: "#153e69",
+    fontSize: 15,
+    fontWeight: "700",
+  },
 });
+
+export default CardStack;

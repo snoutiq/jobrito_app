@@ -62,6 +62,8 @@ export default function SwipeCard({
   onSwipeComplete,
   onPressDetails,
   swipeEnabled = true,
+  onUndo,
+  canUndo = false,
 }) {
   const { t } = useTranslation();
   const isTopCard = myIndex === activeIndex;
@@ -190,49 +192,47 @@ export default function SwipeCard({
   // Match score rating (no random generation, hide completely if missing)
   const matchScore = applicant.match_score || applicant.match?.score;
 
-  // Pan gesture setup with minDistance to prevent tap gesture collision
+  // Pan gesture setup: swiping from right to left returns old card (if starting near right edge), swiping left to accept card, right swipe disabled.
   const panGesture = Gesture.Pan()
-    .minDistance(10)
+    .activeOffsetX([-10, 10])
     .enabled(isTopCard && swipeEnabled)
     .onUpdate((event) => {
-      translateX.value = event.translationX;
+      // 1. Detect if touch started on the right edge of the screen
+      if (event.startX > SCREEN_WIDTH - 85) {
+        return; // Do not move the card for right-edge undo swipe
+      }
+      
+      // 2. Only allow dragging to the left (negative X)
+      translateX.value = Math.min(0, event.translationX);
       translateY.value = event.translationY;
-      swipeProgress.value = Math.min(Math.abs(event.translationX) / SWIPE_THRESHOLD, 1);
+      swipeProgress.value = Math.min(Math.max(0, -event.translationX) / SWIPE_THRESHOLD, 1);
     })
     .onEnd((event) => {
+      // 1. Trigger undo if dragging from right edge to left
+      if (event.startX > SCREEN_WIDTH - 85) {
+        if (event.translationX < -55 && canUndo && onUndo) {
+          runOnJS(onUndo)();
+        }
+        return;
+      }
+
       const velocityX = event.velocityX;
       const dragX = event.translationX;
 
-      // Spring physics configuration for snappy momentum
-      const springConfig = {
-        damping: 15,
-        stiffness: 110,
-        mass: 0.8,
-      };
-
-      if (dragX > SWIPE_THRESHOLD || velocityX > 750) {
-        // Swipe Right (Accept)
-        translateX.value = withSpring(SCREEN_WIDTH * 1.5, { ...springConfig, velocity: velocityX }, () => {
-          runOnJS(onSwipeComplete)("right", applicant); // Notify CardStack
+      // 2. Swipe Left (Accept) - use fast timing for fluid exit
+      if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
+        translateX.value = withTiming(-SCREEN_WIDTH * 1.5, { duration: 220 }, () => {
+          runOnJS(onSwipeComplete)("left", applicant); // Notify CardStack
         });
-        swipeProgress.value = withSpring(1, springConfig);
+        swipeProgress.value = withTiming(1, { duration: 220 });
         if (Platform.OS !== 'web') {
           runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
         }
-      } else if (dragX < -SWIPE_THRESHOLD || velocityX < -750) {
-        // Swipe Left (Reject)
-        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, { ...springConfig, velocity: velocityX }, () => {
-          runOnJS(onSwipeComplete)("left", applicant); // Notify CardStack
-        });
-        swipeProgress.value = withSpring(1, springConfig);
-        if (Platform.OS !== 'web') {
-          runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-        }
       } else {
-        // Snap back to center with realistic physics
-        translateX.value = withSpring(0, { damping: 16, stiffness: 130, mass: 0.8 });
-        translateY.value = withSpring(0, { damping: 16, stiffness: 130, mass: 0.8 });
-        swipeProgress.value = withSpring(0, { damping: 16, stiffness: 130, mass: 0.8 });
+        // Snap back to center for right drag or failed left drag
+        translateX.value = withSpring(0, { damping: 15, stiffness: 140 });
+        translateY.value = withSpring(0, { damping: 15, stiffness: 140 });
+        swipeProgress.value = withSpring(0, { damping: 15, stiffness: 140 });
       }
     });
 

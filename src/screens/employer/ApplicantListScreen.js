@@ -25,10 +25,12 @@ export default function ApplicantListScreen({ route, navigation }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Undo Action States
+  // Undo Action States & History stack
   const [undoToastVisible, setUndoToastVisible] = useState(false);
   const [lastActionDetails, setLastActionDetails] = useState(null); // { applicantId, oldStatus, newStatus, applicantName }
+  const [swipeHistory, setSwipeHistory] = useState([]); // Stack of actions to support multi-undo
   const undoTimeoutRef = useRef(null);
+  const cardStackRef = useRef(null);
 
   // Get active job and applicants from the Redux store
   const selectedJob = useSelector((state) =>
@@ -68,6 +70,7 @@ export default function ApplicantListScreen({ route, navigation }) {
   useEffect(() => {
     setActiveIndex(0);
     setUndoToastVisible(false); // Hide undo toast on filter change
+    setSwipeHistory([]); // Clear session history when changing filters
   }, [activeFilter]);
 
   // Animated progress bar setup
@@ -87,11 +90,15 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   // Function to handle status update and show undo toast
   const handleStatusUpdateAndShowUndo = async (applicant, newStatus) => {
-    const oldStatus = applicant.status;
-    const applicantId = applicant.id;
+    const oldStatus = applicant.status || 'new';
+    const applicantId = applicant.id || applicant.application_id;
     const applicantName = applicant.name || applicant.full_name;
 
-    setLastActionDetails({ applicantId, oldStatus, newStatus, applicantName });
+    const action = { applicantId, oldStatus, newStatus, applicantName };
+    
+    // Add to undo history stack
+    setSwipeHistory((prev) => [...prev, action]);
+    setLastActionDetails(action);
     setUndoToastVisible(true);
 
     // Clear any existing timeout
@@ -101,8 +108,7 @@ export default function ApplicantListScreen({ route, navigation }) {
     // Set new timeout to hide toast
     undoTimeoutRef.current = setTimeout(() => {
       setUndoToastVisible(false);
-      setLastActionDetails(null);
-    }, 4000); // 4 seconds
+    }, 5000); // 5 seconds
 
     try {
       await dispatch(updateApplicantStatus({ applicationId: applicantId, status: newStatus })).unwrap();
@@ -110,24 +116,53 @@ export default function ApplicantListScreen({ route, navigation }) {
     } catch (error) {
       console.error("Failed to update status:", error);
       CustomAlert.show("Error", error || "Failed to update status. Please try again.");
-      // If update fails, revert UI and hide toast
+      // Revert states
       setUndoToastVisible(false);
       setLastActionDetails(null);
+      setSwipeHistory((prev) => prev.filter((item) => item.applicantId !== applicantId));
     }
   };
 
+  // Swipe gesture handler - only increments card stack index, does NOT update status on server
+  const handleSwipeGesture = (applicant, direction) => {
+    const oldStatus = applicant.status || 'new';
+    const applicantId = applicant.id || applicant.application_id;
+    const applicantName = applicant.name || applicant.full_name;
+
+    const action = { applicantId, oldStatus, newStatus: oldStatus, applicantName, isSwipe: true, direction };
+    
+    // Add to history so rewind works, but don't call update API
+    setSwipeHistory((prev) => [...prev, action]);
+  };
+
   const handleUndo = async () => {
-    if (!lastActionDetails) return;
+    if (swipeHistory.length === 0) return;
+
+    const lastAction = swipeHistory[swipeHistory.length - 1];
 
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    // Revert status
     try {
-      await dispatch(updateApplicantStatus({ applicationId: lastActionDetails.applicantId, status: lastActionDetails.oldStatus })).unwrap();
-      dispatch(fetchEmployerDashboard()); // Refresh dashboard
-      setActiveIndex((prev) => Math.max(0, prev - 1)); // Go back one card
+      if (!lastAction.isSwipe) {
+        // Revert status on the backend ONLY if it was a button action (not a swipe gesture)
+        await dispatch(updateApplicantStatus({ applicationId: lastAction.applicantId, status: lastAction.oldStatus })).unwrap();
+        dispatch(fetchEmployerDashboard()); // Refresh counts
+      }
+      
+      // Trigger card fly-in animation inside CardStack
+      const swipeDirection = lastAction.isSwipe 
+        ? (lastAction.direction === "left" ? "left" : "right")
+        : (lastAction.newStatus === "shortlisted" ? "left" : "right");
+      
+      cardStackRef.current?.undo(swipeDirection);
+
+      // Decrement active index in parent state
+      setActiveIndex((prev) => Math.max(0, prev - 1));
+
+      // Remove last item from stack
+      setSwipeHistory((prev) => prev.slice(0, -1));
     } catch (error) {
       console.error("Failed to undo status:", error);
       CustomAlert.show("Error", error || "Failed to undo action.");
@@ -322,6 +357,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       {/* Tinder Card Stack and Actions Container */}
       <View style={styles.deckContainer}>
         <CardStack
+          ref={cardStackRef}
           key={activeFilter}
           loading={selectedJob?.loading || false} // Pass loading state
           applicants={filteredApplicants}
@@ -330,8 +366,12 @@ export default function ApplicantListScreen({ route, navigation }) {
           onPressDetails={handleDetailsPress}
           onAcceptButton={(applicant) => handleStatusUpdateAndShowUndo(applicant, "shortlisted")}
           onRejectButton={(applicant) => handleStatusUpdateAndShowUndo(applicant, "rejected")}
+          onSwipeRight={(applicant) => handleSwipeGesture(applicant, "right")}
+          onSwipeLeft={(applicant) => handleSwipeGesture(applicant, "left")}
           onViewOtherFilters={handleViewOtherFilters} // For empty state CTA
           onBackToJobs={handleBackToJobs} // For empty state CTA
+          onUndo={handleUndo}
+          canUndo={swipeHistory.length > 0}
         />
       </View>
 
