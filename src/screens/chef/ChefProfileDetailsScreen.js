@@ -484,7 +484,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             >
               <Ionicons name="calendar-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
               <Text style={styles.calendlyButtonText}>
-                {t("bookSession", "Book Session via Calendly")}
+                {t("bookAppointment", "Book Appointment")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -512,20 +512,6 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           </View>
         )}
       </ScrollView>
-
-      {/* Get Appointment / Edit Profile Bottom Button */}
-      {!isOwnProfile && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
-            activeOpacity={0.8}
-            onPress={handleOpenBooking}
-          >
-            <Ionicons name="calendar-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-            <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Booking Modal */}
       <Modal

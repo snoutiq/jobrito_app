@@ -486,6 +486,7 @@ const styles = StyleSheet.create({
   card: {
     position: "absolute",
     width: "100%",
+    height: "100%", // Fixed height matching container to prevent overlapping
     backgroundColor: "#ffffff",
     borderRadius: 26,
     borderWidth: 1,
