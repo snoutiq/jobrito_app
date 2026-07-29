@@ -66,6 +66,16 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     ) {
       return <Ionicons name="alert-circle" size={44} color={colors.danger} />;
     }
+    // Check if logout/exit related
+    if (
+      lowercaseTitle.includes("log out") ||
+      lowercaseTitle.includes("logout") ||
+      lowercaseTitle.includes("exit") ||
+      lowercaseTitle.includes("sign out") ||
+      lowercaseTitle.includes("signout")
+    ) {
+      return <Ionicons name="log-out" size={44} color={colors.danger} />;
+    }
     // Check if success/complete related
     if (
       lowercaseTitle.includes("success") ||

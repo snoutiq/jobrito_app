@@ -11,6 +11,8 @@ import {
   Switch,
   Pressable,
   ActivityIndicator,
+  Modal,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -46,6 +48,7 @@ export default function ChefProfileScreen({ navigation }) {
   });
   const [applicationsCount, setApplicationsCount] = useState(0);
   const [savedJobsCount, setSavedJobsCount] = useState(0);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
   const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
@@ -306,29 +309,21 @@ export default function ChefProfileScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const handleLogout = async () => {
-    CustomAlert.show(
-      t("logOut", "Log Out"),
-      t("logoutConfirmation", "Are you sure you want to log out?"),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("logOut"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { logout: logoutApi } = require("../../services/authApi");
-              logoutApi().catch(() => {});
-            } catch (e) {
-              // ignore network logout errors
-            }
-            await clearAuthStorage();
-            dispatch(logout());
-            dispatch(resetUser());
-          },
-        },
-      ]
-    );
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const executeLogout = async () => {
+    setShowLogoutModal(false);
+    try {
+      const { logout: logoutApi } = require("../../services/authApi");
+      logoutApi().catch(() => {});
+    } catch (e) {
+      // ignore network logout errors
+    }
+    await clearAuthStorage();
+    dispatch(logout());
+    dispatch(resetUser());
   };
 
   const handleShareProfile = async () => {
@@ -712,6 +707,43 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowLogoutModal(false)}
+          />
+          <View style={styles.modalCard}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="log-out-outline" size={22} color="#ef4444" />
+            </View>
+            <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle", "Logout")}</Text>
+            <Text style={styles.modalText}>{t("profile.logoutConfirm", "Are you sure you want to logout?")}</Text>
+
+            <View style={styles.modalActions}>
+              <Pressable
+                onPress={() => setShowLogoutModal(false)}
+                style={[styles.modalButton, styles.modalCancelButton]}
+              >
+                <Text style={styles.modalCancelText}>{t("cancel", "Cancel")}</Text>
+              </Pressable>
+              <Pressable
+                onPress={executeLogout}
+                style={[styles.modalButton, styles.modalConfirmButton]}
+              >
+                <Text style={styles.modalConfirmText}>{t("logout", "Logout")}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -978,5 +1010,79 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: "#ffffff",
+    borderRadius: 22,
+    padding: 20,
+    alignItems: "center",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  modalIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  modalTitle: {
+    color: "#0a0504",
+    fontSize: 18,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  modalText: {
+    color: "rgba(10, 5, 4, 0.6)",
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginTop: 6,
+  },
+  modalButton: {
+    flex: 1,
+    minHeight: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+  },
+  modalConfirmButton: {
+    backgroundColor: "#ef4444",
+  },
+  modalCancelText: {
+    color: "#0a0504",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  modalConfirmText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "800",
   },
 });

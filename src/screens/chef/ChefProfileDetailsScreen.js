@@ -315,7 +315,21 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
               </View>
             )}
             <View style={styles.profileInfo}>
-              <Text style={styles.chefName}>{displayName}</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={styles.chefName}>{displayName}</Text>
+                </View>
+                {isOwnProfile && (
+                  <TouchableOpacity 
+                    style={styles.editProfileTopBtn} 
+                    onPress={() => navigation.navigate("ChefCompleteProfile")}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create-outline" size={16} color="#153e69" style={{ marginRight: 4 }} />
+                    <Text style={styles.editProfileTopText}>Edit</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
               {Boolean(displayTitle) && (
                 <Text style={styles.chefTitle}>Current Role: {displayTitle}</Text>
               )}
@@ -450,17 +464,8 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       </ScrollView>
 
       {/* Get Appointment / Edit Profile Bottom Button */}
-      <View style={styles.footer}>
-        {isOwnProfile ? (
-          <TouchableOpacity
-            style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate("ChefCompleteProfile")}
-          >
-            <Ionicons name="create-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-            <Text style={styles.appointmentBtnText}>{t("editProfile", "Edit Profile")}</Text>
-          </TouchableOpacity>
-        ) : (
+      {!isOwnProfile && (
+        <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.appointmentBtn, { backgroundColor: PRIMARY_GREEN }]}
             activeOpacity={0.8}
@@ -469,8 +474,8 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
             <Ionicons name="calendar-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
             <Text style={styles.appointmentBtnText}>{t("getAppointment")}</Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Booking Modal */}
       <Modal
@@ -1089,5 +1094,19 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
+  },
+  editProfileTopBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  editProfileTopText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#153e69",
   },
 });
