@@ -32,6 +32,7 @@ import CallbackModal from "../../components/common/CallbackModal";
 import AppLoader from "../../components/common/AppLoader";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getEmployerNotifications } from "../../services/notificationApi";
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -90,6 +91,8 @@ export default function HomeScreen({ navigation }) {
     checkVisitCount();
   }, []);
 
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
   useEffect(() => {
     let active = true;
     const unsubscribe = navigation.addListener("focus", async () => {
@@ -101,6 +104,18 @@ export default function HomeScreen({ navigation }) {
         if (active) {
           setIsInitialProfileLoadComplete(true);
         }
+      }
+
+      // Fetch notifications count
+      try {
+        const res = await getEmployerNotifications();
+        const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
+        const unread = list.filter((n) => !n.is_read).length;
+        if (active) {
+          setUnreadNotificationsCount(unread);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch notifications on focus:", err);
       }
     });
     return () => {
@@ -367,16 +382,32 @@ export default function HomeScreen({ navigation }) {
             />
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.headerRight}
-          onPress={() => navigation.navigate("Profile")}
-        >
-          <Ionicons
-            name="ellipsis-vertical"
-            size={20}
-            color="rgba(10, 5, 4, 0.6)"
-          />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <TouchableOpacity
+            style={styles.headerNotificationBtn}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("EmployerNotifications")}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color="rgba(10, 5, 4, 0.6)"
+            />
+            {unreadNotificationsCount > 0 && (
+              <View style={styles.notificationDot} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerRight}
+            onPress={() => navigation.navigate("Profile")}
+          >
+            <Ionicons
+              name="ellipsis-vertical"
+              size={20}
+              color="rgba(10, 5, 4, 0.6)"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Pagination timeline bar with pin icon */}
@@ -1165,6 +1196,19 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     padding: 6,
+  },
+  headerNotificationBtn: {
+    padding: 6,
+    position: "relative",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#f57f20",
   },
 
   filterBar: {

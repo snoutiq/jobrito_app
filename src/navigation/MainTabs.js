@@ -167,6 +167,13 @@ function HomeOnlyStack() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="EmployerNotifications"
+        component={EmployerNotificationsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 }

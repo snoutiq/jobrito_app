@@ -188,7 +188,14 @@ export default function MyJobsScreen({ navigation, route }) {
     const stats = getJobStats(job);
 
     return (
-      <View key={String(job.id)} style={styles.jobCard}>
+      <TouchableOpacity
+        key={String(job.id)}
+        style={styles.jobCard}
+        activeOpacity={0.95}
+        onPress={() => {
+          navigation.navigate("JobDetails", { jobId: job.id, job: job });
+        }}
+      >
         <View style={styles.jobHeader}>
           <View style={styles.jobTitleWrapper}>
             <View
@@ -366,7 +373,7 @@ export default function MyJobsScreen({ navigation, route }) {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

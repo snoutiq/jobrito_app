@@ -940,41 +940,51 @@ export default function PostReferralJobScreen({ navigation, route }) {
               {/* Quick Review Header */}
               <Text style={styles.reviewHeader}>{t("postJob.quickReview", "QUICK REVIEW")}</Text>
 
-              {/* Position Card */}
-              <View style={styles.step3ReviewCard}>
-                <View style={styles.step3ReviewIconBox}>
-                  <Ionicons name="restaurant" size={20} color="#153e69" />
+              {/* Single Compact Review Card */}
+              <View style={styles.compactReviewCard}>
+                <View style={styles.reviewHeaderRow}>
+                  <View style={styles.reviewHeaderIconContainer}>
+                    <Ionicons name="briefcase" size={20} color={PRIMARY_GREEN} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.reviewJobTitle}>{title.trim() || "Job Title"}</Text>
+                    <Text style={styles.reviewCompanySub}>{company || "Business Name"}</Text>
+                  </View>
                 </View>
-                <View style={styles.reviewTextContainer}>
-                  <Text style={styles.reviewCardLabel}>{t("postJob.positionLabel", "Position")}</Text>
-                  <Text style={styles.reviewCardValue}>
-                    {title.trim() || "Senior Head Chef"}
+                {/* Metadata Row */}
+                <View style={styles.reviewMetaRow}>
+                  <View style={styles.reviewMetaChip}>
+                    <Ionicons name="location-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{location.trim() || "Location"}</Text>
+                  </View>
+                  <View style={styles.reviewMetaChip}>
+                    <Ionicons name="cash-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
+                      {salaryMin ? `${salaryCurrency} ${salaryMin}${salaryMax ? `-${salaryMax}` : "+"}` : "Not Specified"}
+                    </Text>
+                  </View>
+                  <View style={styles.reviewMetaChip}>
+                    <Ionicons name="people-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{t("openings_count", { count: parseInt(openPositions, 10) || 1 })}</Text>
+                  </View>
+                  <View style={styles.reviewMetaChip}>
+                    <Ionicons name="bar-chart-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{experienceRange}</Text>
+                  </View>
+                  <View style={styles.reviewMetaChip}>
+                    <Ionicons name="time-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{jobType}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.reviewDivider} />
+
+                {/* Bio / Description */}
+                <View style={[styles.reviewBioContainer, { borderLeftWidth: 3, borderLeftColor: PRIMARY_GREEN, paddingLeft: 10, marginTop: 4 }]}>
+                  <Text style={styles.reviewBioLabel}>{t("postJob.jobDescription", "Job Description")}</Text>
+                  <Text style={styles.reviewBioText} numberOfLines={3}>
+                    {description.trim() || "No description provided."}
                   </Text>
-                </View>
-              </View>
-
-              {/* Location & Salary Side-by-Side Row */}
-              <View style={styles.reviewCardRow}>
-                <View
-                  style={[styles.step3ReviewCard, { flex: 1, marginRight: 6 }]}
-                >
-                  <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>{t("postJob.locationLabel", "Location")}</Text>
-                    <Text style={styles.reviewCardValue} numberOfLines={1}>
-                      {location.trim() || "London, UK"}
-                    </Text>
-                  </View>
-                </View>
-
-                <View
-                  style={[styles.step3ReviewCard, { flex: 1, marginLeft: 6 }]}
-                >
-                  <View style={styles.reviewTextContainer}>
-                    <Text style={styles.reviewCardLabel}>{t("postJob.salaryLabel", "Salary")}</Text>
-                    <Text style={styles.reviewCardValue} numberOfLines={1}>
-                      {salaryMin ? `${salaryCurrency} ${salaryMin}${salaryMax ? ` - ${salaryMax}` : "+"}` : "Not Specified"}
-                    </Text>
-                  </View>
                 </View>
               </View>
 
@@ -1463,42 +1473,84 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     letterSpacing: 1,
   },
-  reviewCardItem: {
+  compactReviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  reviewHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f2f2f3",
-    borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    gap: 12,
+    marginBottom: 14,
   },
-  reviewIconContainer: {
-    width: 38,
-    height: 38,
+  reviewHeaderIconContainer: {
+    width: 40,
+    height: 40,
     borderRadius: 10,
-    backgroundColor: "rgba(242, 200, 121, 0.15)",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
   },
-  reviewTextContainer: {
-    flex: 1,
-  },
-  reviewCardLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.4)",
-    marginBottom: 2,
-  },
-  reviewCardValue: {
-    fontSize: 14,
+  reviewJobTitle: {
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
+    marginBottom: 2,
   },
-  reviewCardRow: {
+  reviewCompanySub: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.5)",
+  },
+  reviewMetaRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  reviewMetaChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#f2f2f3",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.06)",
+  },
+  reviewMetaChipText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  reviewDivider: {
+    height: 1,
+    backgroundColor: "rgba(10, 5, 4, 0.08)",
+    marginVertical: 12,
+  },
+  reviewBioContainer: {
+    gap: 4,
+  },
+  reviewBioLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(10, 5, 4, 0.5)",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  reviewBioText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.7)",
+    lineHeight: 18,
   },
   checkboxRow: {
     flexDirection: "row",
