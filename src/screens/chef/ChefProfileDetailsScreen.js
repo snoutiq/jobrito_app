@@ -301,33 +301,58 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Single Unified Profile Resume Card */}
         <View style={styles.mainProfileCard}>
           {/* Header Block: Avatar & Core Info */}
           <View style={styles.profileHeaderRow}>
             {logoSource ? (
-              <Image source={logoSource} style={styles.avatar} />
+              <View style={styles.avatarContainer}>
+                <Image source={logoSource} style={styles.avatarImage} resizeMode="cover" />
+              </View>
             ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <View style={[styles.avatarContainer, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarInitials}>{displayName.substring(0, 2).toUpperCase()}</Text>
               </View>
             )}
             <View style={styles.profileInfo}>
               <Text style={styles.chefName}>{displayName}</Text>
-              {Boolean(displayTitle) && <Text style={styles.chefTitle}>{displayTitle}</Text>}
-              {Boolean(displayCity) && (
-                <View style={styles.locationRow}>
-                  <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 2 }} />
-                  <Text style={styles.locationText} numberOfLines={1}>
-                    {displayCity}
-                    {displayPrefLocation ? ` | Preferred: ${displayPrefLocation}` : ""}
-                  </Text>
-                </View>
+              {Boolean(displayTitle) && (
+                <Text style={styles.chefTitle}>Current Role: {displayTitle}</Text>
               )}
-              <Text style={styles.metaMetricsText}>
-                {displayExperience ? `${displayExperience} Exp` : ""}
-                {getAvailabilityStatus() ? ` | Can Join: ${getAvailabilityStatus()}` : ""}
-              </Text>
+              
+              <View style={styles.profileDetailsList}>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Current Location: </Text>
+                  <Text style={styles.detailValue}>{displayCity || "N/A"}</Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Preferred Job Location: </Text>
+                  <Text style={styles.detailValue}>
+                    {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                      ? "India & Overseas"
+                      : displayPrefLocation || "N/A"}
+                  </Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Experience: </Text>
+                  <Text style={styles.detailValue}>{displayExperience || "N/A"}</Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Regional Experience: </Text>
+                  <Text style={styles.detailValue}>{getRegionalList().join(", ") || "N/A"}</Text>
+                </Text>
+                
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.detailLabel}>Availability: </Text>
+                  <Text style={styles.detailValue}>
+                    {getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available"
+                      ? "Immediately Available"
+                      : getAvailabilityStatus() || "N/A"}
+                  </Text>
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -626,12 +651,35 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
   },
-  avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
+    backgroundColor: "#f2f2f3",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  profileDetailsList: {
+    marginTop: 6,
+    gap: 3,
+  },
+  detailRowText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  detailValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#0a0504",
   },
   avatarPlaceholder: {
     backgroundColor: "#f2f2f3",

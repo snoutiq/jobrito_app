@@ -1567,16 +1567,24 @@ export default function ChefCompleteProfileScreen({ navigation }) {
               <View style={[styles.inputWrapper, styles.multilineWrapper, activeInput === "bio" && styles.inputWrapperActive]}>
                 <TextInput
                   value={bio}
-                  onChangeText={setBio}
+                  onChangeText={(text) => {
+                    if (text.length <= 500) {
+                      setBio(text);
+                    }
+                  }}
                   placeholder="Briefly describe your expertise, career highlights, and what you bring to the kitchen..."
                   placeholderTextColor="rgba(10, 5, 4, 0.4)"
                   multiline
                   numberOfLines={5}
                   style={[styles.textInput, styles.multilineInput]}
+                  maxLength={500}
                   onFocus={() => setActiveInput("bio")}
                   onBlur={() => setActiveInput(null)}
                 />
               </View>
+              <Text style={styles.charCountText}>
+                {bio.length} / 500 characters
+              </Text>
 
               {/* Continue Button */}
               <TouchableOpacity
@@ -1931,46 +1939,64 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                 {t("chefOnboarding.reviewSubtitle")}
               </Text>
 
-              {/* Profile Card */}
               <View style={styles.reviewCard}>
                 <View style={styles.reviewProfileSection}>
                   {photoUri ? (
-                    <Image
-                      source={{ uri: photoUri }}
-                      style={styles.reviewAvatar}
-                    />
+                    <View style={styles.reviewAvatarContainer}>
+                      <Image
+                        source={{ uri: photoUri }}
+                        style={styles.reviewAvatarImage}
+                        resizeMode="cover"
+                      />
+                    </View>
                   ) : (
-                    <View style={[styles.reviewAvatar, styles.reviewAvatarPlaceholder]}>
+                    <View style={[styles.reviewAvatarContainer, styles.reviewAvatarPlaceholder]}>
                       <Ionicons name="person" size={28} color="#153e69" style={{ opacity: 0.6 }} />
                     </View>
                   )}
                   <View style={styles.reviewInfo}>
                     <Text style={styles.reviewName}>{fullName || "Marcus V."}</Text>
-                    {currentCity ? (
-                      <View style={styles.reviewLocationRow}>
-                        <Ionicons name="location-sharp" size={13} color="rgba(10, 5, 4, 0.5)" />
-                        <Text style={styles.reviewLocationText}>{currentCity}, {country}</Text>
-                      </View>
-                    ) : null}
+                    {Boolean(professionalTitle) && (
+                      <Text style={styles.reviewTitleText}>Current Role: {professionalTitle}</Text>
+                    )}
+                    
+                    <View style={styles.reviewDetailsList}>
+                      <Text numberOfLines={1} style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Current Location: </Text>
+                        <Text style={styles.detailValue}>
+                          {currentCity && country ? `${currentCity}, ${country}` : currentCity || country || "N/A"}
+                        </Text>
+                      </Text>
+                      
+                      <Text numberOfLines={1} style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Preferred Job Location: </Text>
+                        <Text style={styles.detailValue}>
+                          {locationPreference === "Both" || locationPreference === "Both (India & Overseas)"
+                            ? "India & Overseas"
+                            : locationPreference || "N/A"}
+                        </Text>
+                      </Text>
+                      
+                      <Text numberOfLines={1} style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Experience: </Text>
+                        <Text style={styles.detailValue}>{experienceYears || "N/A"}</Text>
+                      </Text>
+                      
+                      <Text numberOfLines={1} style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Regional Experience: </Text>
+                        <Text style={styles.detailValue}>{regionalExperience.join(", ") || "N/A"}</Text>
+                      </Text>
+                      
+                      <Text numberOfLines={1} style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Availability: </Text>
+                        <Text style={styles.detailValue}>
+                          {availability === "Available Immediately" || availability === "Immediately Available"
+                            ? "Immediately Available"
+                            : availability || "N/A"}
+                        </Text>
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </View>
-
-              {/* Title & Experience Grid */}
-              <View style={styles.reviewGridRow}>
-                <View style={[styles.reviewGridCol, { marginRight: 6 }]}>
-                  <View style={styles.reviewGridLabelRow}>
-                    <Ionicons name="star" size={14} color="#153e69" style={{ marginRight: 4 }} />
-                    <Text style={styles.reviewGridLabel}>{t("chefOnboarding.currentTitle")}</Text>
-                  </View>
-                  <Text style={styles.reviewGridValue}>{professionalTitle || "Executive Sous Chef"}</Text>
-                </View>
-                <View style={[styles.reviewGridCol, { marginLeft: 6 }]}>
-                  <View style={styles.reviewGridLabelRow}>
-                    <Ionicons name="calendar" size={14} color="#153e69" style={{ marginRight: 4 }} />
-                    <Text style={styles.reviewGridLabel}>{t("chefOnboarding.experience")}</Text>
-                  </View>
-                  <Text style={styles.reviewGridValue}>{experienceYears || "12 Years"}</Text>
                 </View>
               </View>
 
@@ -2014,56 +2040,6 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                   ))}
                 </View>
               </View>
-
-              {/* Regions Card */}
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="globe" size={18} color="#153e69" />
-                  <Text style={styles.reviewSecTitle}>{t("chefOnboarding.regions")}</Text>
-                </View>
-                <View style={styles.reviewBulletContainer}>
-                  {regionalExperience.map((region) => (
-                    <View key={region} style={styles.reviewBulletRow}>
-                      <View style={styles.reviewBulletDot} />
-                      <Text style={styles.reviewBulletText}>{region}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* Employment & Availability Card */}
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="briefcase" size={18} color="#153e69" />
-                  <Text style={styles.reviewSecTitle}>Employment & Availability</Text>
-                </View>
-                {employmentPreference.length > 0 && (
-                  <View style={[styles.reviewPillContainer, { marginBottom: 6 }]}>
-                    {employmentPreference.map((ep) => (
-                      <View key={ep} style={styles.reviewPill}>
-                        <Text style={styles.reviewPillText}>{ep}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-                {availability ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: "rgba(10, 5, 4, 0.5)" }}>Availability: </Text>
-                    <Text style={{ fontSize: 13, fontWeight: "800", color: "#0a0504" }}>{availability}</Text>
-                  </View>
-                ) : null}
-              </View>
-
-              {/* Location Preference Card */}
-              {locationPreference ? (
-                <View style={styles.reviewCard}>
-                  <View style={styles.reviewSecTitleRow}>
-                    <Ionicons name="pin" size={18} color="#153e69" />
-                    <Text style={styles.reviewSecTitle}>Location Preference</Text>
-                  </View>
-                  <Text style={styles.reviewSecBioText}>{locationPreference}</Text>
-                </View>
-              ) : null}
 
               {/* Calendly & Social Links Card */}
               {(calendlyLink || linkedinLink || instagramLink || facebookLink || customSocialLinks.length > 0) ? (
@@ -2700,11 +2676,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  reviewAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  reviewAvatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
     marginRight: 14,
+    backgroundColor: "#e2e8f3",
+  },
+  reviewAvatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  reviewTitleText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#153e69",
+    marginBottom: 4,
+  },
+  reviewDetailsList: {
+    marginTop: 4,
+    gap: 2,
+  },
+  detailRowText: {
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  detailValue: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#0a0504",
   },
   reviewAvatarPlaceholder: {
     backgroundColor: "#e2e8f3",
@@ -3211,5 +3218,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+  },
+  charCountText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.4)",
+    alignSelf: "flex-end",
+    marginTop: 4,
+    marginRight: 4,
   },
 });
