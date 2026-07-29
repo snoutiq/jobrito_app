@@ -41,8 +41,8 @@ export default function PostJobScreen({ navigation, route }) {
     }
   };
 
-  const savedBusinessName = profile?.businessName || profile?.company || "";
-  const savedContactName = profile?.name || profile?.full_name || profile?.contactName || "";
+  const savedBusinessName = profile?.business_name || profile?.businessName || profile?.company || "";
+  const savedContactName = profile?.contact_person_name || profile?.name || profile?.full_name || profile?.contactName || "";
 
   const [step, setStep] = useState(() => {
     return savedBusinessName.trim() && savedContactName.trim() ? 2 : 1;
@@ -91,15 +91,13 @@ export default function PostJobScreen({ navigation, route }) {
   // Autofill fields from user profile if available
   useEffect(() => {
     if (profile) {
-      setBusinessName(profile.businessName || profile.company || "");
-      setContactPerson(profile.name || profile.full_name || profile.contactName || "");
-      const bName = profile.businessName || profile.company || "";
-      const cPerson = profile.name || profile.full_name || profile.contactName || "";
+      const bName = profile.business_name || profile.businessName || profile.company || "";
+      const cPerson = profile.contact_person_name || profile.name || profile.full_name || profile.contactName || "";
 
       setBusinessName(bName);
       setContactPerson(cPerson);
-      setContactPhone(profile.phone || profile.mobile_number || profile.contactPhone || "");
-      setContactEmail(profile.email || profile.contactEmail || "");
+      setContactPhone(profile.business_mobile || profile.phone || profile.mobile_number || profile.contactPhone || "");
+      setContactEmail(profile.business_email || profile.email || profile.contactEmail || "");
 
       if (bName.trim() && cPerson.trim()) {
         setStep(2);
