@@ -202,9 +202,9 @@ export default function SwipeCard({
         return; // Do not move the card for right-edge undo swipe
       }
       
-      // 2. Only allow dragging to the left (negative X)
+      // 2. Only allow dragging to the left (negative X) with damped vertical movement
       translateX.value = Math.min(0, event.translationX);
-      translateY.value = event.translationY;
+      translateY.value = event.translationY * 0.22;
       swipeProgress.value = Math.min(Math.max(0, -event.translationX) / SWIPE_THRESHOLD, 1);
     })
     .onEnd((event) => {
@@ -242,7 +242,7 @@ export default function SwipeCard({
       const rotate = interpolate(
         translateX.value,
         [-SCREEN_WIDTH, SCREEN_WIDTH],
-        [-15, 15],
+        [-6, 6], // Damped rotation angle for horizontal stability
         Extrapolate.CLAMP
       );
 
