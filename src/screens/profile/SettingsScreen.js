@@ -239,6 +239,14 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.profileName}>{contactName || businessName || t("guest", "Guest User")}</Text>
             <Text style={styles.profileSub}>{isEmployer ? (businessName || t("businessProfile", "Business profile")) : t("chef", "Chef")}</Text>
           </View>
+          {isEmployer && (
+            <TouchableOpacity
+              style={styles.editProfileIconBtn}
+              onPress={() => navigation.navigate("EmployerCompleteProfile", { isEditMode: true })}
+            >
+              <Ionicons name="create-outline" size={22} color={PRIMARY_GREEN} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {isEmployer && employerCompletion < 100 && (
@@ -321,15 +329,6 @@ export default function SettingsScreen({ navigation }) {
 
         <Text style={styles.sectionTitle}>{t("chefDashboard.settingsSupport", "Settings & Support")}</Text>
         <View style={styles.sectionCard}>
-          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate(isEmployer ? "EmployerCompleteProfile" : "PersonalInformation", 
-            isEmployer ? { isEditMode: true } : undefined)}>
-            <View style={styles.menuLeft}>
-              <Ionicons name="create-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>{t("editProfile", "Edit Profile")}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
-          </TouchableOpacity>
-          <View style={styles.divider} />
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Language")}>
             <View style={styles.menuLeft}>
               <Ionicons name="globe-outline" size={18} color={colors.text} />
@@ -463,6 +462,14 @@ const styles = StyleSheet.create({
   profileSub: {
     fontSize: 13,
     color: "rgba(10, 5, 4, 0.6)",
+  },
+  editProfileIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f2f2f3",
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionTitle: {
     fontSize: 13,
@@ -714,8 +721,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
-
-
-
-
