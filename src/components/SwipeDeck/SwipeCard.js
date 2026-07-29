@@ -364,31 +364,41 @@ export default function SwipeCard({
                 ) : null}
                 
                 <View style={styles.profileDetailsList}>
-                  <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Location: </Text>
-                    <Text style={styles.profileInfoValue}>{displayCity || "N/A"}</Text>
-                  </Text>
-                  <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Pref Job: </Text>
-                    <Text style={styles.profileInfoValue}>
-                      {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
-                        ? "India & Overseas"
-                        : displayPrefLocation || "N/A"}
+                  {displayCity && displayCity !== "N/A" ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Location: </Text>
+                      <Text style={styles.profileInfoValue}>{displayCity}</Text>
                     </Text>
-                  </Text>
-                  <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Exp: </Text>
-                    <Text style={styles.profileInfoValue}>{displayExperience || "N/A"}</Text>
-                  </Text>
-                  <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Regional: </Text>
-                    <Text style={styles.profileInfoValue}>{getRegionalList().join(", ") || "N/A"}</Text>
-                  </Text>
-                  <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Availability: </Text>
-                    <Text style={styles.profileInfoValue}>{displayAvailability || "N/A"}</Text>
-                  </Text>
-                  {Boolean(preferredCallTime) && (
+                  ) : null}
+                  {displayPrefLocation && displayPrefLocation !== "N/A" ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Pref Job: </Text>
+                      <Text style={styles.profileInfoValue}>
+                        {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                          ? "India & Overseas"
+                          : displayPrefLocation}
+                      </Text>
+                    </Text>
+                  ) : null}
+                  {displayExperience && displayExperience !== "N/A" && displayExperience !== "0" && displayExperience !== "0 Years" ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Exp: </Text>
+                      <Text style={styles.profileInfoValue}>{displayExperience}</Text>
+                    </Text>
+                  ) : null}
+                  {getRegionalList().length > 0 && getRegionalList().join(", ") !== "N/A" ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Regional: </Text>
+                      <Text style={styles.profileInfoValue}>{getRegionalList().join(", ")}</Text>
+                    </Text>
+                  ) : null}
+                  {getAvailabilityStatus() && getAvailabilityStatus() !== "N/A" ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Availability: </Text>
+                      <Text style={styles.profileInfoValue}>{displayAvailability}</Text>
+                    </Text>
+                  ) : null}
+                  {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
                     <Text numberOfLines={1} style={styles.detailRowText}>
                       <Text style={styles.profileInfoLabel}>Preferred Call: </Text>
                       <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
