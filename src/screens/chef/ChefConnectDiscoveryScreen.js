@@ -181,6 +181,37 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     return "Chef";
   };
 
+  const getDisplayTitle = (chef) => {
+    return (
+      chef?.professionalTitle ||
+      chef?.preferred_role ||
+      chef?.current_role ||
+      chef?.currentRole ||
+      chef?.role ||
+      chef?.professional_title ||
+      chef?.cuisine_specialty ||
+      ""
+    );
+  };
+
+  const getDisplayExperience = (chef) => {
+    return chef?.experienceYears || chef?.experience_range || chef?.experience || "10+ Years";
+  };
+
+  const getDisplayPreferredLocation = (chef) => {
+    return chef?.locationPreference || chef?.location_preference || chef?.preferred_location || chef?.job_location || "";
+  };
+
+  const getDisplayCurrentLocation = (chef) => {
+    return chef?.current_location || chef?.currentLocation || chef?.city || chef?.country || "";
+  };
+
+  const getDisplayRegionalExperience = (chef) => {
+    const regional = getRegionalList(chef);
+    if (regional.length > 0) return regional.join(", ");
+    return chef?.regional_experience || chef?.regionalExperience || "";
+  };
+
   // Generate next 7 days for scheduler fallback
   const getNext7Days = () => {
     const days = [];
@@ -381,6 +412,18 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
             const logo = getLogoSource(chef);
             const tag = getEmploymentTag(chef);
             const skills = getSkillsList(chef);
+            const currentRole = getDisplayTitle(chef);
+            const experience = getDisplayExperience(chef);
+            const preferredLocation = getDisplayPreferredLocation(chef);
+            const currentLocation = getDisplayCurrentLocation(chef);
+            const regionalExperience = getDisplayRegionalExperience(chef);
+            const availabilityStatus = getAvailabilityStatus(chef);
+            const availabilityLabel = /notice/i.test(availabilityStatus)
+              ? `${availabilityStatus} can join`
+              : availabilityStatus;
+            const displayCurrentLocation = currentLocation || "N/A";
+            const displayPreferredLocation = preferredLocation || "N/A";
+            const displayRegionalExperience = regionalExperience || "N/A";
 
             return (
               <View key={chef.id} style={styles.chefCard}>
@@ -408,19 +451,47 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                         </View>
                       </View>
                     </View>
+                    <Text style={styles.currentRoleText} numberOfLines={1}>
+                      Current Role: <Text style={styles.detailValue}>{currentRole || "N/A"}</Text>
+                    </Text>
+
                     <View style={styles.detailRow}>
-                      <Ionicons name="location-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={styles.detailText}>{chef.city || "Dubai, UAE"}</Text>
+                      <Ionicons name="home-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
+                      <Text style={styles.detailText}>
+                        <Text style={styles.detailLabel}>Current Location:</Text>{" "}
+                        <Text style={styles.detailValue}>{displayCurrentLocation}</Text>
+                      </Text>
                     </View>
+
+                    <View style={styles.detailRow}>
+                      <Ionicons name="navigate-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
+                      <Text style={styles.detailText}>
+                        <Text style={styles.detailLabel}>Preferred Job Location:</Text>{" "}
+                        <Text style={styles.detailValue}>{displayPreferredLocation}</Text>
+                      </Text>
+                    </View>
+
                     <View style={styles.detailRow}>
                       <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
-                      <Text style={styles.detailText}>{chef.experience_range || "10"} {t("experience")}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Ionicons name="restaurant-outline" size={14} color="#153e69" />
-                      <Text style={[styles.detailText, { color: "#153e69", fontWeight: "700" }]}>
-                        {chef.cuisine_specialty || "Continental & Asian Fusion"}
+                      <Text style={styles.detailText}>
+                        <Text style={styles.detailLabel}>Experience:</Text>{" "}
+                        <Text style={styles.detailValue}>{experience}</Text>
                       </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Ionicons name="map-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
+                      <Text style={styles.detailText}>
+                        <Text style={styles.detailLabel}>Regional Experience:</Text>{" "}
+                        <Text style={styles.detailValue}>{displayRegionalExperience}</Text>
+                      </Text>
+                    </View>
+
+                    <View style={styles.statusRow}>
+                      <View style={styles.statusBadge}>
+                        <View style={styles.statusDot} />
+                        <Text style={styles.statusText}>{availabilityLabel}</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -435,20 +506,21 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                   </View>
                 )}
 
-                <View style={styles.cardActions}>
+                <View style={styles.cardActionsRow}>
                   <TouchableOpacity
-                    style={[styles.bookBtn, { backgroundColor: PRIMARY_GREEN }]}
+                    style={[styles.bookBtn, styles.highlightButton]}
                     activeOpacity={0.8}
                     onPress={() => handleOpenBooking(chef)}
                   >
                     <Text style={styles.bookBtnText}>{t("bookConsultation")}</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
-                    style={styles.viewProfileLink}
+                    style={styles.secondaryButton}
+                    activeOpacity={0.8}
                     onPress={() => handleViewFullProfile(chef)}
                   >
-                    <Text style={styles.viewProfileLinkText}>{t("viewFullProfile")}</Text>
+                    <Text style={styles.secondaryButtonText}>{t("viewFullProfile")}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -737,12 +809,15 @@ const styles = StyleSheet.create({
   avatar: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 12,
     marginRight: 16,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
     backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
@@ -783,6 +858,58 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
+  detailLabel: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "600",
+  },
+  detailValue: {
+    fontSize: 12,
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  currentRoleText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.8)",
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  titleText: {
+    fontSize: 12,
+    color: "#153e69",
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  bioText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  statusRow: {
+    marginTop: 6,
+  },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: PRIMARY_GREEN,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: PRIMARY_GREEN,
+  },
   skillsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -802,30 +929,42 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
-  cardActions: {
+  cardActionsRow: {
     marginTop: 16,
-    gap: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
   },
   bookBtn: {
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
+  },
+  highlightButton: {
+    backgroundColor: PRIMARY_GREEN,
   },
   bookBtnText: {
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
   },
-  viewProfileLink: {
+  secondaryButton: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#ffffff",
     alignItems: "center",
-    paddingVertical: 4,
+    justifyContent: "center",
+    paddingVertical: 12,
   },
-  viewProfileLinkText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
+  secondaryButtonText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.7)",
     fontWeight: "700",
-    textDecorationLine: "underline",
   },
   centerContainer: {
     flex: 1,
