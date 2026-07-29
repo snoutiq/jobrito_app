@@ -69,14 +69,77 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     }
   };
 
-  const displayName = chef.full_name || chef.name || "Chef User";
-  const displayTitle = chef.professionalTitle || chef.preferred_role || chef.cuisine_specialty || "";
-  const displayCity = chef.city && chef.country 
-    ? `${chef.city}, ${chef.country}`
-    : chef.city || chef.country || "";
-  const displayPrefLocation = chef.locationPreference || chef.location_preference || "";
-  const displayExperience = chef.experienceYears || chef.experience_range || chef.experience || "";
-  const displayBio = chef.bio || "";
+  const getAvailabilityInfo = () => {
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    return chef.availability_info || chefProfileObj.availability_info || {};
+  };
+
+  const availabilityInfo = getAvailabilityInfo();
+
+  const getDisplayTitle = () => {
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    return (
+      chef.professionalTitle ||
+      chef.preferred_role ||
+      chef.current_role ||
+      chef.currentRole ||
+      chef.role ||
+      chef.professional_title ||
+      chef.cuisine_specialty ||
+      chefProfileObj.preferred_role ||
+      chefProfileObj.cuisine_specialty ||
+      ""
+    );
+  };
+
+  const getDisplayCurrentLocation = () => {
+    return (
+      chef.current_location ||
+      chef.currentLocation ||
+      chef.job_location ||
+      chef.city ||
+      chef.country ||
+      chef.user?.city ||
+      chef.user?.country ||
+      ""
+    );
+  };
+
+  const getDisplayPreferredLocation = () => {
+    // 1. Get base location preference
+    const basePref = availabilityInfo.location_preference || chef.locationPreference || chef.location_preference || "";
+    let displayBase = basePref === "Both" || basePref === "Both (India & Overseas)" ? "Both (India & Overseas)" : basePref;
+
+    // 2. Get specific location
+    const specificLoc = chef.job_location || chef.preferred_location || chef.user?.job_location || "";
+
+    if (displayBase && specificLoc && displayBase.toLowerCase() !== specificLoc.toLowerCase()) {
+      return `${displayBase} (${specificLoc})`;
+    }
+    return displayBase || specificLoc || "";
+  };
+
+  const getDisplayExperience = () => {
+    return (
+      chef.experienceYears ||
+      chef.experience_range ||
+      chef.experience ||
+      chef.user?.experience_range ||
+      ""
+    );
+  };
+
+  const getDisplayBio = () => {
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    return chef.bio || chefProfileObj.bio || chef.user?.bio || "";
+  };
+
+  const displayName = chef.full_name || chef.name || chef.user?.full_name || chef.user?.name || "Chef User";
+  const displayTitle = getDisplayTitle();
+  const displayCity = getDisplayCurrentLocation();
+  const displayPrefLocation = getDisplayPreferredLocation();
+  const displayExperience = getDisplayExperience();
+  const displayBio = getDisplayBio();
 
   const getLogoSource = () => {
     const chefProfile = chef.chef_profile || chef.chef_profile_details || chef;
@@ -98,56 +161,43 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || "";
 
   const getSkillsList = () => {
-    const list = chef.skills || chef.operations || [];
+    const list = chef.skills || chef.user?.skills || chef.chef_profile?.skills || chef.chef_profile_details?.skills || chef.operations || [];
     if (Array.isArray(list)) return list;
     if (typeof list === "string") return list.split(",").map(x => x.trim());
     return [];
   };
 
   const getCuisinesList = () => {
-    if (Array.isArray(chef.cuisines)) return chef.cuisines;
-    if (typeof chef.cuisines === "string") return chef.cuisines.split(",").map(x => x.trim());
-    if (typeof chef.cuisine_specialty === "string" && chef.cuisine_specialty) {
-      return chef.cuisine_specialty.split(",").map(x => x.trim());
-    }
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    const list = chef.cuisines || chef.cuisine_specialty || chef.specialties || chefProfileObj.cuisine_specialty || chefProfileObj.specialties || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
     return [];
   };
 
   const getLanguagesList = () => {
-    if (Array.isArray(chef.languages)) return chef.languages;
-    if (typeof chef.languages === "string") return chef.languages.split(",").map(x => x.trim());
+    const list = availabilityInfo.languages || chef.languages || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
     return [];
   };
 
   const getEmploymentList = () => {
-    let list = [];
-    if (chef.availability_info && typeof chef.availability_info === "object" && !Array.isArray(chef.availability_info)) {
-      list = chef.availability_info.employment_preference || [];
-    } else if (chef.employment_preference) {
-      list = chef.employment_preference;
-    }
+    const list = availabilityInfo.employment_preference || availabilityInfo.employment_preferences || chef.employment_preference || chef.employment_preferences || [];
     if (Array.isArray(list)) return list;
     if (typeof list === "string") return [list];
     return [];
   };
 
   const getRegionalList = () => {
-    let list = [];
-    if (chef.availability_info && typeof chef.availability_info === "object" && !Array.isArray(chef.availability_info)) {
-      list = chef.availability_info.regional_experience || [];
-    } else if (chef.regional_experience) {
-      list = chef.regional_experience;
-    }
+    const list = availabilityInfo.regional_experience || availabilityInfo.regionalExperience || chef.regional_experience || chef.regionalExperience || [];
     if (Array.isArray(list)) return list;
-    if (typeof list === "string") return [list];
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
     return [];
   };
 
   const getAvailabilityStatus = () => {
-    if (chef.availability_info && typeof chef.availability_info === "object" && !Array.isArray(chef.availability_info)) {
-      return chef.availability_info.availability_status || "";
-    }
-    return chef.availability || "";
+    return availabilityInfo.availability_status || chef.availability_status || chef.availability || "";
   };
 
   const handleOpenSocialLink = (url) => {
