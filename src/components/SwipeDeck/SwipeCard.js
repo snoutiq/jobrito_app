@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform } from "react-native";
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ScrollView, Linking } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import * as Haptics from 'expo-haptics'; // Import Haptics
 import MatchBadge from "./MatchBadge";
 import ApplicantPreview from "./ApplicantPreview";
+import { CustomAlert } from "../../components/common/CustomAlert";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
@@ -65,13 +66,104 @@ export default function SwipeCard({
   const { t } = useTranslation();
   const isTopCard = myIndex === activeIndex;
 
-  const displayName = applicant.name || t("nameNotSpecified", "Name not specified");
-  const displayBio = applicant.bio || "";
+  const chefProfile = applicant.chef_profile || applicant.chef_profile_details || applicant.user?.chef_profile || {};
+  const availabilityInfo = chefProfile.availability_info || {};
+
+  const displayName = applicant.name || applicant.full_name || applicant.user?.name || applicant.user?.full_name || t("nameNotSpecified", "Name not specified");
+  const displayBio = applicant.bio || chefProfile.bio || applicant.user?.bio || "";
   
-  // Availability status mapping
-  const displayCallback = applicant.availability_status
-    ? `${applicant.is_available !== false && !applicant.availability_status.toLowerCase().includes("not") ? "🟢" : "🔴"} ${applicant.availability_status}`
-    : "";
+  const displayCity = applicant.city || applicant.user?.city || "";
+  const displayPrefLocation = availabilityInfo.location_preference || applicant.locationPreference || applicant.location_preference || applicant.user?.location_preference || "";
+  const displayExperience = applicant.experience_range || applicant.experience_years || applicant.experience || applicant.user?.experience_range || applicant.user?.experience_years || "";
+  const displayCalendly = applicant.calendly_link || chefProfile.calendly_link || applicant.user?.calendly_link || "";
+
+  const getSkillsList = () => {
+    const list = applicant.skills || applicant.user?.skills || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getCuisinesList = () => {
+    const list = applicant.cuisine_specialty || applicant.specialties || chefProfile.cuisine_specialty || applicant.user?.cuisine_specialty || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getRegionalList = () => {
+    const list = availabilityInfo.regional_experience || applicant.regional_experience || applicant.user?.regional_experience || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getLanguagesList = () => {
+    const list = availabilityInfo.languages || applicant.languages || applicant.user?.languages || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getAvailabilityStatus = () => {
+    return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
+  };
+
+  const displayAvailability = getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available" || getAvailabilityStatus() === "Available"
+    ? "🟢 Available Immediately"
+    : getAvailabilityStatus() ? `🔴 ${getAvailabilityStatus()}` : "N/A";
+  
+  const getActiveSocials = () => {
+    const list = [];
+    const socials = applicant.socials || chefProfile.socials || applicant.user?.socials || {};
+    
+    const ln = socials.linkedin || applicant.linkedin || chefProfile.linkedin || applicant.linkedin_link || chefProfile.linkedin_link || applicant.user?.linkedin;
+    if (ln && ln.trim() && ln !== "https://linkedin.com/") {
+      list.push({ platform: "LinkedIn", icon: "logo-linkedin", color: "#0077b5", bgColor: "rgba(0, 119, 181, 0.1)", url: ln });
+    }
+    
+    const ig = socials.instagram || applicant.instagram || chefProfile.instagram || applicant.instagram_link || chefProfile.instagram_link || applicant.user?.instagram;
+    if (ig && ig.trim()) {
+      list.push({ platform: "Instagram", icon: "logo-instagram", color: "#e1306c", bgColor: "rgba(225, 48, 108, 0.1)", url: ig });
+    }
+    
+    const fb = socials.facebook || applicant.facebook || chefProfile.facebook || applicant.facebook_link || chefProfile.facebook_link || applicant.user?.facebook;
+    if (fb && fb.trim()) {
+      list.push({ platform: "Facebook", icon: "logo-facebook", color: "#1877f2", bgColor: "rgba(24, 119, 242, 0.1)", url: fb });
+    }
+    
+    const tw = socials.twitter || applicant.twitter || chefProfile.twitter || applicant.twitter_link || chefProfile.twitter_link || applicant.twitterLink || applicant.user?.twitter;
+    if (tw && tw.trim()) {
+      list.push({ platform: "Twitter", icon: "logo-twitter", color: "#000000", bgColor: "rgba(10, 5, 4, 0.06)", url: tw });
+    }
+    
+    const yt = socials.youtube || applicant.youtube || chefProfile.youtube || applicant.youtube_link || chefProfile.youtube_link || applicant.user?.youtube;
+    if (yt && yt.trim()) {
+      list.push({ platform: "YouTube", icon: "logo-youtube", color: "#ff0000", bgColor: "rgba(255, 0, 0, 0.08)", url: yt });
+    }
+    
+    const web = socials.website || applicant.website || chefProfile.website || applicant.portfolio || applicant.user?.website;
+    if (web && web.trim()) {
+      list.push({ platform: "Website", icon: "globe-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: web });
+    }
+    
+    return list;
+  };
+
+  const handleOpenSocialLink = (url) => {
+    if (!url) return;
+    let fullUrl = url.trim();
+    if (!/^https?:\/\//i.test(fullUrl)) {
+      fullUrl = "https://" + fullUrl;
+    }
+    Linking.openURL(fullUrl).catch((err) => {
+      CustomAlert.show(t("error", "Error"), "Could not open link: " + err.message);
+    });
+  };
+  
+  // Preferred call time mapping for "Can interview" footer
+  const preferredCallTime = applicant.preferred_call_time || applicant.user?.preferred_call_time || "";
+  const displayCallback = preferredCallTime ? preferredCallTime.trim() : "";
   
   // Calculate relative applied hours / time
   const getAppliedTimeText = () => {
@@ -254,36 +346,112 @@ export default function SwipeCard({
           </View>
         )}
 
-        {/* Top Content Body Block */}
-        <View style={styles.cardContent}>
+        {/* Scrollable Card Body showing full details */}
+        {/* Card Body showing essential details up to Core Skills */}
+        <View style={styles.cardScrollContent}>
           <View style={styles.cardHeaderSpacer} />
 
-          {/* Profile Card Body */}
-          <View style={styles.profileSection}>
-            <Image source={avatarSource} style={styles.avatar} />
-            {matchScore ? <MatchBadge score={matchScore} style={styles.matchBadge} /> : <View style={styles.matchPlaceholder} />}
-            <Text style={styles.name} numberOfLines={1}>
-              {displayName}
-            </Text>
-            <Text style={styles.appliedTime}>
-              {t("appliedTo", "Applied to")} {displayRole} • {appliedTimeText}
-            </Text>
+          {/* Core Profile Header Block */}
+          <View style={styles.profileHeaderCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarContainer}>
+                <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.chefName}>{displayName}</Text>
+                {displayRole ? (
+                  <Text style={styles.chefTitle}>{displayRole}</Text>
+                ) : null}
+                
+                <View style={styles.profileDetailsList}>
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Location: </Text>
+                    <Text style={styles.profileInfoValue}>{displayCity || "N/A"}</Text>
+                  </Text>
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Pref Job: </Text>
+                    <Text style={styles.profileInfoValue}>
+                      {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                        ? "India & Overseas"
+                        : displayPrefLocation || "N/A"}
+                    </Text>
+                  </Text>
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Exp: </Text>
+                    <Text style={styles.profileInfoValue}>{displayExperience || "N/A"}</Text>
+                  </Text>
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Regional: </Text>
+                    <Text style={styles.profileInfoValue}>{getRegionalList().join(", ") || "N/A"}</Text>
+                  </Text>
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Availability: </Text>
+                    <Text style={styles.profileInfoValue}>{displayAvailability || "N/A"}</Text>
+                  </Text>
+                  {Boolean(preferredCallTime) && (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Preferred Call: </Text>
+                      <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* Applicant Details Checklist */}
-          <ApplicantPreview applicant={applicant} />
-
-          {/* About/Bio Section (Clean typography, no borders) */}
+          {/* Section 1: Professional Bio */}
           {displayBio ? (
-            <View style={styles.aboutContainer}>
-              <Text style={styles.bioText} numberOfLines={4}>
-                {displayBio}
-              </Text>
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewSecTitleRow}>
+                <Ionicons name="document-text" size={16} color="#153e69" />
+                <Text style={styles.reviewSecTitle}>{t("aboutMe", "Professional Bio")}</Text>
+              </View>
+              <Text style={styles.reviewSecBioText}>{displayBio}</Text>
+            </View>
+          ) : null}
+
+          {/* Section 2: Cuisines */}
+          {getCuisinesList().length > 0 ? (
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewSecTitleRow}>
+                <Ionicons name="restaurant" size={16} color="#153e69" />
+                <Text style={styles.reviewSecTitle}>{t("cuisineExpertise", "Cuisines")}</Text>
+              </View>
+              <View style={styles.reviewPillContainer}>
+                {getCuisinesList().map((cuisine, idx) => (
+                  <View key={idx} style={styles.reviewPill}>
+                    <Text style={styles.reviewPillText}>{cuisine}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Section 3: Skills */}
+          {getSkillsList().length > 0 ? (
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewSecTitleRow}>
+                <Ionicons name="flash" size={16} color="#153e69" />
+                <Text style={styles.reviewSecTitle}>{t("skills", "Core Skills")}</Text>
+              </View>
+              <View style={styles.reviewPillContainer}>
+                {getSkillsList().map((skill, idx) => {
+                  const skillName = typeof skill === "object" ? skill.name : skill;
+                  const skillLevel = typeof skill === "object" ? skill.level : null;
+                  return (
+                    <View key={idx} style={styles.reviewPill}>
+                      <Text style={styles.reviewPillText}>
+                        {skillName}{skillLevel ? ` (${skillLevel}%)` : ""}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
         </View>
 
-        {/* Footer Area Block (Availability time + Accept CTA) */}
+        {/* Footer Area Block (Availability time) */}
         {displayCallback ? (
           <View style={styles.cardFooter}>
             <View style={styles.timeSection}>
@@ -297,30 +465,8 @@ export default function SwipeCard({
                 <Ionicons name="time" size={16} color="rgba(10, 5, 4, 0.45)" />
               </View>
             </View>
-
-            {/* Bottom Accept / View Profile Button with solid color matching the app */}
-            <TouchableOpacity
-              onPress={() => onPressDetails(applicant)}
-              activeOpacity={0.85}
-              style={styles.acceptButton}
-            >
-              <Text style={styles.acceptButtonText}>{t("reviewAndAccept", "Review & Accept")}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#ffffff" />
-            </TouchableOpacity>
           </View>
-        ) : (
-          <View style={styles.cardFooter}>
-            {/* Bottom Accept / View Profile Button with solid color matching the app */}
-            <TouchableOpacity
-              onPress={() => onPressDetails(applicant)}
-              activeOpacity={0.85}
-              style={styles.acceptButton}
-            >
-              <Text style={styles.acceptButtonText}>{t("reviewAndAccept", "Review & Accept")}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
-        )}
+        ) : null}
       </Animated.View>
     </GestureDetector>
   );
@@ -381,56 +527,113 @@ const styles = StyleSheet.create({
   cardHeaderSpacer: {
     height: 18,
   },
-  profileSection: {
+  cardScroll: {
+    maxHeight: SCREEN_HEIGHT * 0.58,
+  },
+  cardScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    gap: 12,
+  },
+  profileHeaderCard: {
+    paddingBottom: 4,
+  },
+  profileHeaderRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginVertical: 4,
+    gap: 12,
   },
-  avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
     backgroundColor: "#f2f2f3",
-    borderWidth: 3,
-    borderColor: "#ffffff",
-    // Soft Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
   },
-  matchBadge: {
-    marginTop: -16,
-    marginBottom: 4,
-    backgroundColor: "#ffffff",
-    shadowColor: "rgba(0,0,0,0.04)",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
-  matchPlaceholder: {
-    height: 12,
+  profileInfo: {
+    flex: 1,
   },
-  name: {
-    fontSize: 20,
+  chefName: {
+    fontSize: 15,
     fontWeight: "800",
     color: "#0a0504",
-    textAlign: "center",
-    marginTop: 6,
+    marginBottom: 2,
   },
-  appliedTime: {
+  chefTitle: {
     fontSize: 12,
-    color: "rgba(10, 5, 4, 0.45)",
     fontWeight: "600",
+    color: "#153e69",
+    marginBottom: 4,
+  },
+  profileDetailsList: {
+    marginTop: 2,
+    gap: 2,
+  },
+  detailRowText: {
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  profileInfoLabel: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "600",
+  },
+  profileInfoValue: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#0a0504",
+  },
+  reviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#f2f2f3",
+    shadowColor: "#000",
+    shadowOpacity: 0.01,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  reviewSecTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  reviewSecTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#153e69",
+    marginLeft: 6,
+  },
+  reviewSecBioText: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.7)",
+    lineHeight: 15,
+  },
+  reviewPillContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
     marginTop: 2,
   },
-  aboutContainer: {
-    marginVertical: 10,
+  reviewPill: {
+    backgroundColor: "rgba(21, 62, 105, 0.05)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  bioText: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.65)",
-    lineHeight: 18,
+  reviewPillText: {
+    fontSize: 11,
+    color: "#153e69",
+    fontWeight: "600",
   },
   cardFooter: {
     backgroundColor: "rgba(10, 5, 4, 0.02)",
@@ -525,5 +728,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
     letterSpacing: 1,
+  },
+  calendlyBtn: {
+    backgroundColor: "#f57f20",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 38,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 4,
+  },
+  calendlyBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  socialRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 4,
+  },
+  socialIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

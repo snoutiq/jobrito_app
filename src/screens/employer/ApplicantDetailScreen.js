@@ -58,26 +58,110 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     );
   }
 
-  const displayName = applicant.name || applicant.full_name || applicant.mobile_number || "";
-  const displayCity = applicant.city || "";
-  const displayPrefLocation = applicant.locationPreference || applicant.location_preference || "";
-  const displayExperience = applicant.experience_range || applicant.experience || "";
-  const displayEmployer = applicant.current_company || applicant.current_employer || "";
-  const displayRole = applicant.current_role || applicant.preferred_role || applicant.cuisine_specialty || "";
+  const chefProfile = applicant.chef_profile || applicant.chef_profile_details || applicant.user?.chef_profile || {};
+  const availabilityInfo = chefProfile.availability_info || {};
+
+  const displayName = applicant.name || applicant.full_name || applicant.user?.name || applicant.user?.full_name || applicant.mobile_number || "";
+  const displayCity = applicant.city || applicant.user?.city || "";
+  const displayPrefLocation = availabilityInfo.location_preference || applicant.locationPreference || applicant.location_preference || applicant.user?.location_preference || "";
+  const displayExperience = applicant.experience_range || applicant.experience_years || applicant.experience || applicant.user?.experience_range || applicant.user?.experience_years || "";
+  const displayEmployer = applicant.current_company || applicant.current_employer || applicant.user?.current_employer || "";
+  const displayRole = applicant.current_role || applicant.preferred_role || chefProfile.cuisine_specialty || applicant.user?.preferred_role || "";
+  const displayCalendly = applicant.calendly_link || chefProfile.calendly_link || applicant.user?.calendly_link || "";
+  const displayBio = applicant.bio || chefProfile.bio || applicant.user?.bio || "";
+  const preferredCallTime = applicant.preferred_call_time || applicant.user?.preferred_call_time || "";
   
+  const getSkillsList = () => {
+    const list = applicant.skills || applicant.user?.skills || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getCuisinesList = () => {
+    const list = applicant.cuisine_specialty || applicant.specialties || chefProfile.cuisine_specialty || applicant.user?.cuisine_specialty || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getRegionalList = () => {
+    const list = availabilityInfo.regional_experience || applicant.regional_experience || applicant.user?.regional_experience || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getLanguagesList = () => {
+    const list = availabilityInfo.languages || applicant.languages || applicant.user?.languages || [];
+    if (Array.isArray(list)) return list;
+    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    return [];
+  };
+
+  const getAvailabilityStatus = () => {
+    return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
+  };
+
   // Dynamic API Availability mapping, now considering localStatus
-  const displayAvailability = applicant.availability_status
-      ? `${applicant.is_available !== false && !applicant.availability_status.toLowerCase().includes("not") ? "🟢" : "🔴"} ${
-          applicant.availability_status
-        }`
-      : applicant.is_available !== undefined ? (applicant.is_available ? "🟢 Available" : "🔴 Not Available") : "";
+  const displayAvailability = getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available" || getAvailabilityStatus() === "Available"
+    ? "🟢 Available Immediately"
+    : getAvailabilityStatus() ? `🔴 ${getAvailabilityStatus()}` : "N/A";
+
+  const getActiveSocials = () => {
+    const list = [];
+    const socials = applicant.socials || chefProfile.socials || applicant.user?.socials || {};
+    
+    const ln = socials.linkedin || applicant.linkedin || chefProfile.linkedin || applicant.linkedin_link || chefProfile.linkedin_link || applicant.user?.linkedin;
+    if (ln && ln.trim() && ln !== "https://linkedin.com/") {
+      list.push({ platform: "LinkedIn", icon: "logo-linkedin", color: "#0077b5", bgColor: "rgba(0, 119, 181, 0.1)", url: ln });
+    }
+    
+    const ig = socials.instagram || applicant.instagram || chefProfile.instagram || applicant.instagram_link || chefProfile.instagram_link || applicant.user?.instagram;
+    if (ig && ig.trim()) {
+      list.push({ platform: "Instagram", icon: "logo-instagram", color: "#e1306c", bgColor: "rgba(225, 48, 108, 0.1)", url: ig });
+    }
+    
+    const fb = socials.facebook || applicant.facebook || chefProfile.facebook || applicant.facebook_link || chefProfile.facebook_link || applicant.user?.facebook;
+    if (fb && fb.trim()) {
+      list.push({ platform: "Facebook", icon: "logo-facebook", color: "#1877f2", bgColor: "rgba(24, 119, 242, 0.1)", url: fb });
+    }
+    
+    const tw = socials.twitter || applicant.twitter || chefProfile.twitter || applicant.twitter_link || chefProfile.twitter_link || applicant.twitterLink || applicant.user?.twitter;
+    if (tw && tw.trim()) {
+      list.push({ platform: "Twitter", icon: "logo-twitter", color: "#000000", bgColor: "rgba(10, 5, 4, 0.06)", url: tw });
+    }
+    
+    const yt = socials.youtube || applicant.youtube || chefProfile.youtube || applicant.youtube_link || chefProfile.youtube_link || applicant.user?.youtube;
+    if (yt && yt.trim()) {
+      list.push({ platform: "YouTube", icon: "logo-youtube", color: "#ff0000", bgColor: "rgba(255, 0, 0, 0.08)", url: yt });
+    }
+    
+    const web = socials.website || applicant.website || chefProfile.website || applicant.portfolio || applicant.user?.website;
+    if (web && web.trim()) {
+      list.push({ platform: "Website", icon: "globe-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: web });
+    }
+    
+    return list;
+  };
+
+  const handleOpenSocialLink = (url) => {
+    if (!url) return;
+    let fullUrl = url.trim();
+    if (!/^https?:\/\//i.test(fullUrl)) {
+      fullUrl = "https://" + fullUrl;
+    }
+    Linking.openURL(fullUrl).catch((err) => {
+      CustomAlert.show(t("error", "Error"), "Could not open link: " + err.message);
+    });
+  };
+
+  // Match score (no random generation)
+  const matchScore = applicant.match_score || applicant.match?.score;
 
   // Real profile photo URL mapping
   const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
   const avatarSource = avatarUri ? { uri: getAbsoluteProfilePhotoUrl(avatarUri) } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
-
-  // Match score (no random generation)
-  const matchScore = applicant.match_score || applicant.match?.score;
 
   const handleCall = () => {
     const phoneNumber = applicant.mobile_number;
@@ -188,18 +272,6 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     handleStatusUpdate("shortlisted");
   };
 
-  const getRegionalList = () => {
-    let list = [];
-    if (applicant.availability_info && typeof applicant.availability_info === "object" && !Array.isArray(applicant.availability_info)) {
-      list = applicant.availability_info.regional_experience || [];
-    } else if (applicant.regional_experience) {
-      list = applicant.regional_experience;
-    }
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return [list];
-    return [];
-  };
-
   const detailFields = [
     {
       label: "Applied",
@@ -210,7 +282,6 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     },
     { label: "Cuisine Specialty", value: applicant.cuisine_specialty },
     { label: "Current Employer", value: displayEmployer },
-    { label: "Experience Range", value: displayExperience },
   ].filter(f => f.value !== null && f.value !== undefined && f.value !== "");
 
   return (
@@ -287,22 +358,34 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                   <Text style={styles.profileInfoLabel}>Availability: </Text>
                   <Text style={styles.profileInfoValue}>{displayAvailability || "N/A"}</Text>
                 </Text>
+                {Boolean(preferredCallTime) && (
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.profileInfoLabel}>Preferred Call: </Text>
+                    <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
+                  </Text>
+                )}
               </View>
             </View>
           </View>
         </View>
 
         {/* About Section */}
-        {applicant.bio && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("aboutMe", "About Applicant")}</Text>
-            <Text style={styles.aboutParagraph}>{applicant.bio}</Text>
+        {Boolean(displayBio) && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="document-text" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("aboutMe", "Professional Bio")}</Text>
+            </View>
+            <Text style={styles.reviewSecBioText}>{displayBio}</Text>
           </View>
         )}
 
         {/* Application Information Details List Rows */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("applicationInformation", "Application Information")}</Text>
+        <View style={styles.reviewCard}>
+          <View style={styles.reviewSecTitleRow}>
+            <Ionicons name="information-circle" size={18} color="#153e69" />
+            <Text style={styles.reviewSecTitle}>{t("applicationInformation", "Application Information")}</Text>
+          </View>
           <View style={styles.detailItemCard}>
             {detailFields.map((field, idx) => {
               const isLast = idx === detailFields.length - 1;
@@ -322,10 +405,30 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           </View>
         </View>
 
+        {/* Cuisines Section */}
+        {getCuisinesList().length > 0 && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="restaurant" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("cuisineExpertise", "Cuisines")}</Text>
+            </View>
+            <View style={styles.reviewPillContainer}>
+              {getCuisinesList().map((cuisine, idx) => (
+                <View key={idx} style={styles.reviewPill}>
+                  <Text style={styles.reviewPillText}>{cuisine}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Experience Timeline */}
         {Array.isArray(applicant.experience) && applicant.experience.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("workExperience", "Experience History")}</Text>
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="briefcase" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("workExperience", "Experience History")}</Text>
+            </View>
             <Timeline 
               currentEmployer={displayEmployer} 
               experienceRange={displayExperience} 
@@ -335,16 +438,19 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         )}
 
         {/* Skills Chips (Dynamic, no fake skills) */}
-        {applicant.skills && applicant.skills.length > 0 ? (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("skills", "Core Skills")}</Text>
-            <View style={styles.pillsContainer}>
-              {applicant.skills.map((skill, idx) => {
+        {getSkillsList().length > 0 ? (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="flash" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("skills", "Core Skills")}</Text>
+            </View>
+            <View style={styles.reviewPillContainer}>
+              {getSkillsList().map((skill, idx) => {
                 const skillName = typeof skill === "object" ? skill.name : skill;
                 const skillLevel = typeof skill === "object" ? skill.level : null;
                 return (
-                  <View key={idx} style={styles.skillPill}>
-                    <Text style={styles.skillPillText}>
+                  <View key={idx} style={styles.reviewPill}>
+                    <Text style={styles.reviewPillText}>
                       {skillName}{skillLevel ? ` (${skillLevel}%)` : ""}
                     </Text>
                   </View>
@@ -356,25 +462,62 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
         {/* Certificates Section (Dynamic, no fake certificates) */}
         {Array.isArray(applicant.certificates) && applicant.certificates.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("certifications", "Certifications")}</Text>
-            {Array.isArray(applicant.certificates) && applicant.certificates.length > 0 ? (
-              <View style={styles.pillsContainer}>
-                {applicant.certificates.map((cert, idx) => (
-                  <View key={idx} style={styles.certPill}>
-                    <Ionicons name="ribbon-outline" size={16} color="#153e69" />
-                    <Text style={styles.certPillText}>
-                      {cert.name || cert} {cert.issuer ? `(${cert.issuer})` : ""}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.emptyTextCard}>
-                <Ionicons name="ribbon-outline" size={18} color="rgba(10, 5, 4, 0.35)" />
-                <Text style={styles.emptySectionText}>No certificates uploaded.</Text>
-              </View>
-            )}
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="ribbon" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("certifications", "Certifications")}</Text>
+            </View>
+            <View style={styles.reviewPillContainer}>
+              {applicant.certificates.map((cert, idx) => (
+                <View key={idx} style={[styles.reviewPill, { flexDirection: "row", alignItems: "center", gap: 4 }]}>
+                  <Ionicons name="ribbon-outline" size={12} color="#153e69" />
+                  <Text style={styles.reviewPillText}>
+                    {cert.name || cert} {cert.issuer ? `(${cert.issuer})` : ""}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+
+
+        {/* Calendly Booking Card */}
+        {Boolean(displayCalendly) && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="calendar" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("scheduleInterview", "Book Interview")}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => handleOpenSocialLink(displayCalendly)}
+              activeOpacity={0.8}
+              style={styles.calendlyBtn}
+            >
+              <Ionicons name="calendar-outline" size={16} color="#ffffff" />
+              <Text style={styles.calendlyBtnText}>{t("bookWithCalendly", "Schedule via Calendly")}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Social Profiles */}
+        {getActiveSocials().length > 0 && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="share-social" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("socialProfiles", "Social Links")}</Text>
+            </View>
+            <View style={styles.socialRow}>
+              {getActiveSocials().map((soc, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => handleOpenSocialLink(soc.url)}
+                  style={[styles.socialIconBtn, { backgroundColor: soc.bgColor }]}
+                >
+                  <Ionicons name={soc.icon} size={22} color={soc.color} />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -757,5 +900,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
+  },
+  reviewSecTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  reviewSecTitle: {
+    fontSize: 14,
+    fontWeight: "750",
+    color: "#153e69",
+    marginLeft: 8,
+  },
+  reviewSecBioText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.7)",
+    lineHeight: 18,
+  },
+  reviewPillContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  reviewPill: {
+    backgroundColor: "rgba(21, 62, 105, 0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reviewPillText: {
+    fontSize: 12,
+    color: "#153e69",
+    fontWeight: "600",
+  },
+  calendlyBtn: {
+    backgroundColor: "#f57f20",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 42,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 6,
+  },
+  calendlyBtnText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  socialRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 6,
+  },
+  socialIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
