@@ -242,14 +242,16 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         </View>
 
         {/* Experience Timeline */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("workExperience", "Experience History")}</Text>
-          <Timeline 
-            currentEmployer={displayEmployer} 
-            experienceRange={displayExperience} 
-            experienceList={applicant.experience} 
-          />
-        </View>
+        {Array.isArray(applicant.experience) && applicant.experience.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("workExperience", "Experience History")}</Text>
+            <Timeline 
+              currentEmployer={displayEmployer} 
+              experienceRange={displayExperience} 
+              experienceList={applicant.experience} 
+            />
+          </View>
+        )}
 
         {/* Skills Chips (Dynamic, no fake skills) */}
         {applicant.skills && applicant.skills.length > 0 ? (
@@ -272,26 +274,28 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         ) : null}
 
         {/* Certificates Section (Dynamic, no fake certificates) */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("certifications", "Certifications")}</Text>
-          {Array.isArray(applicant.certificates) && applicant.certificates.length > 0 ? (
-            <View style={styles.pillsContainer}>
-              {applicant.certificates.map((cert, idx) => (
-                <View key={idx} style={styles.certPill}>
-                  <Ionicons name="ribbon-outline" size={16} color="#153e69" />
-                  <Text style={styles.certPillText}>
-                    {cert.name || cert} {cert.issuer ? `(${cert.issuer})` : ""}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyTextCard}>
-              <Ionicons name="ribbon-outline" size={18} color="rgba(10, 5, 4, 0.35)" />
-              <Text style={styles.emptySectionText}>No certificates uploaded.</Text>
-            </View>
-          )}
-        </View>
+        {Array.isArray(applicant.certificates) && applicant.certificates.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("certifications", "Certifications")}</Text>
+            {Array.isArray(applicant.certificates) && applicant.certificates.length > 0 ? (
+              <View style={styles.pillsContainer}>
+                {applicant.certificates.map((cert, idx) => (
+                  <View key={idx} style={styles.certPill}>
+                    <Ionicons name="ribbon-outline" size={16} color="#153e69" />
+                    <Text style={styles.certPillText}>
+                      {cert.name || cert} {cert.issuer ? `(${cert.issuer})` : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyTextCard}>
+                <Ionicons name="ribbon-outline" size={18} color="rgba(10, 5, 4, 0.35)" />
+                <Text style={styles.emptySectionText}>No certificates uploaded.</Text>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
 
       {/* Sticky Bottom Actions Bar */}
