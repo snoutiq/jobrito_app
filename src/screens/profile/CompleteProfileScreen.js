@@ -26,6 +26,53 @@ const SECONDARY = "#f2f2f3"; // Snow white
 const WARM_GOLD = "#f2c879"; // Warm gold
 const EMBER_ORANGE = "#f57f20"; // Ember orange
 const NEUTRAL = "#0a0504"; // Charcoal black
+const IMAGE_BASE_URL = "http://178.16.138.159/backend";
+
+const toTrimmedString = (value) => {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+};
+
+const normalizePhotoUri = (uri) => {
+  const value = toTrimmedString(uri);
+  if (!value) return "";
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("file://") ||
+    value.startsWith("data:")
+  ) {
+    return value;
+  }
+  return `${IMAGE_BASE_URL}${value.startsWith("/") ? "" : "/"}${value}`;
+};
+
+const normalizeSkillsValue = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => toTrimmedString(item)).filter(Boolean).join(", ");
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(", ");
+  }
+  return "";
+};
+
+const normalizeLocationPreferenceValue = (value) => {
+  const normalized = toTrimmedString(value);
+  if (!normalized) return "";
+  if (
+    normalized === "Both" ||
+    normalized === "Both (India & Overseas)" ||
+    normalized === "Both (Global & Domestic)"
+  ) {
+    return "Both";
+  }
+  return normalized;
+};
 
 export default function CompleteProfileScreen({ navigation }) {
   const { t } = useTranslation();
@@ -60,19 +107,44 @@ export default function CompleteProfileScreen({ navigation }) {
 
   useEffect(() => {
     if (profile) {
-      if (profile.profile_photo_path) setPhoto(profile.profile_photo_path);
+      const profilePhoto = normalizePhotoUri(profile.profile_photo_path || profile.profile_photo);
+      if (profilePhoto) setPhoto(profilePhoto);
+
       const profileName = profile.full_name || profile.name || "";
       const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(profileName);
       if (profileName && !isPhoneLike) setFullName(profileName);
-      if (profile.email) setEmail(profile.email);
-      if (profile.city) setCity(profile.city);
-      if (profile.experience_range) setExperienceRange(profile.experience_range);
-      if (profile.preferred_role) setPreferredRole(profile.preferred_role);
-      if (profile.current_employer) setCurrentEmployer(profile.current_employer);
-      if (profile.skills) setSkills(profile.skills);
+
+      const emailValue = toTrimmedString(profile.email || profile.contact_email || profile.user_email);
+      if (emailValue) setEmail(emailValue);
+
+      const cityValue = toTrimmedString(profile.city || profile.current_city || profile.location);
+      if (cityValue) setCity(cityValue);
+
+      const experienceValue = toTrimmedString(
+        profile.experience_range || profile.experienceRange || profile.experience || profile.experience_years
+      );
+      if (experienceValue) setExperienceRange(experienceValue);
+
+      const preferredRoleValue = toTrimmedString(profile.preferred_role || profile.preferredRole);
+      if (preferredRoleValue) setPreferredRole(preferredRoleValue);
+
+      const employerValue = toTrimmedString(
+        profile.current_employer || profile.currentEmployer || profile.current_company || profile.company
+      );
+      if (employerValue) setCurrentEmployer(employerValue);
+
+      const skillsValue = normalizeSkillsValue(profile.skills || profile.operations);
+      if (skillsValue) setSkills(skillsValue);
+
       if (profile.gender) setGender(profile.gender);
-      if (profile.job_type) setJobType(profile.job_type);
-      if (profile.location_preference) setLocationPreference(profile.location_preference);
+
+      const jobTypeValue = toTrimmedString(profile.job_type || profile.jobType);
+      if (jobTypeValue) setJobType(jobTypeValue);
+
+      const locationValue = normalizeLocationPreferenceValue(
+        profile.location_preference || profile.locationPreference
+      );
+      if (locationValue) setLocationPreference(locationValue);
     }
   }, [profile]);
 
@@ -122,18 +194,56 @@ export default function CompleteProfileScreen({ navigation }) {
   };
 
   const handleSubmit = async () => {
+    const trimmedFullName = toTrimmedString(fullName);
+    const trimmedEmail = toTrimmedString(email);
+    const trimmedCity = toTrimmedString(city);
+    const trimmedExperience = toTrimmedString(experienceRange);
+    const trimmedEmployer = toTrimmedString(currentEmployer);
+    const trimmedRole = toTrimmedString(preferredRole);
+    const trimmedSkills = normalizeSkillsValue(skills);
+    const trimmedLocation = normalizeLocationPreferenceValue(locationPreference);
+    const trimmedJobType = toTrimmedString(jobType);
+
+    if (!trimmedFullName) {
+      Alert.alert("Required Field", "Please enter your full name.");
+      return;
+    }
+    if (!trimmedExperience) {
+      Alert.alert("Required Field", "Please select your years of experience.");
+      return;
+    }
+    if (!trimmedEmployer) {
+      Alert.alert(
+        "Required Field",
+        "Please enter your current employer. Enter 'None' or 'Self-Employed' if you are currently seeking opportunities."
+      );
+      return;
+    }
+    if (!trimmedLocation) {
+      Alert.alert("Required Field", "Please select your work location preference.");
+      return;
+    }
+    if (trimmedLocation !== "Both" && !trimmedCity) {
+      Alert.alert("Required Field", "Please select your work city or region.");
+      return;
+    }
+    if (!trimmedRole) {
+      Alert.alert("Required Field", "Please select your preferred role.");
+      return;
+    }
+
     const payload = {
-      full_name: fullName,
-      email: email,
-      city: city,
-      experience_range: experienceRange,
-      preferred_role: preferredRole,
-      skills: skills,
+      full_name: trimmedFullName,
+      email: trimmedEmail,
+      city: trimmedLocation === "Both" ? trimmedCity || "Both (Global & Domestic)" : trimmedCity,
+      experience_range: trimmedExperience,
+      preferred_role: trimmedRole,
+      skills: trimmedSkills,
       profile_photo_path: photo,
-      current_employer: currentEmployer,
+      current_employer: trimmedEmployer,
       gender: gender,
-      job_type: jobType,
-      location_preference: locationPreference,
+      job_type: trimmedJobType,
+      location_preference: trimmedLocation,
     };
     try {
       await dispatch(updateProfile(payload)).unwrap();
@@ -441,9 +551,9 @@ function PersonalStep({ next, t, fullName, setFullName, gender, setGender }) {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, !fullName && styles.buttonDisabled]}
+        style={[styles.button, !toTrimmedString(fullName) && styles.buttonDisabled]}
         onPress={() => {
-          if (!fullName) {
+          if (!toTrimmedString(fullName)) {
             Alert.alert("Required Fields", "Please enter your full name.");
             return;
           }
@@ -553,7 +663,20 @@ function ExperienceStep({
         })}
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={next}>
+      <TouchableOpacity 
+        style={[styles.button, (!toTrimmedString(experienceRange) || !toTrimmedString(currentEmployer)) && styles.buttonDisabled]} 
+        onPress={() => {
+          if (!toTrimmedString(experienceRange)) {
+            Alert.alert("Required Fields", "Please select your years of experience.");
+            return;
+          }
+          if (!toTrimmedString(currentEmployer)) {
+            Alert.alert("Required Fields", "Please enter your current employer. Enter 'None' or 'Self-Employed' if you are currently seeking opportunities.");
+            return;
+          }
+          next();
+        }}
+      >
         <Text style={styles.buttonText}>{t("saveAndContinue")}</Text>
       </TouchableOpacity>
     </View>
@@ -709,10 +832,11 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
       </View>
 
       <TouchableOpacity
-        style={[styles.button, !city && styles.buttonDisabled]}
+        style={[styles.button, (!toTrimmedString(city) || city === "Select State" || city === "Select Region") && styles.buttonDisabled]}
         onPress={() => {
-          if (!city) {
-            Alert.alert("Required Field", "Please select your work location preference.");
+          if (!toTrimmedString(city) || city === "Select State" || city === "Select Region") {
+            const placeType = locationPreference === "India" ? "state" : "region";
+            Alert.alert("Required Field", `Please select a ${placeType} for your work location preference.`);
             return;
           }
           next();
@@ -922,9 +1046,9 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
       />
 
       <TouchableOpacity
-        style={[styles.button, (loading || !preferredRole) && styles.buttonDisabled]}
+        style={[styles.button, (loading || !toTrimmedString(preferredRole)) && styles.buttonDisabled]}
         onPress={onSubmit}
-        disabled={loading || !preferredRole}
+        disabled={loading || !toTrimmedString(preferredRole)}
       >
         {loading ? (
           <ActivityIndicator color="#ffffff" />

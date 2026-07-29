@@ -70,6 +70,9 @@ export const normalizeProfile = (u) => {
     locationPreference: userObj.location_preference || availability.location_preference || userObj.job_location || "",
     employerOnboardingCompleted: !!(userObj.employerOnboardingCompleted || userObj.has_completed_onboarding || emp.is_completed),
     chefOnboardingCompleted: !!(userObj.chefOnboardingCompleted || userObj.has_completed_onboarding || chef.approval_status),
+    role: userObj.role || userObj.active_role || userObj.user_role || "",
+    active_role: userObj.active_role || userObj.role || userObj.user_role || "",
+    user_role: userObj.user_role || userObj.active_role || userObj.role || "",
     
     // Employer-specific profile details autofill
     business_name: emp.business_name || emp.company_name || "",

@@ -110,7 +110,8 @@ export default function HomeScreen({ navigation }) {
 
       // Check completeness (only for Job Seeker / Talent role and AFTER initial load completes)
       if (isInitialProfileLoadComplete) {
-        if (!hasModalBeenDismissedThisSession && profile?.role === "job_seeker") {
+        const userRole = profile?.role || profile?.active_role || profile?.user_role;
+        if (!hasModalBeenDismissedThisSession && (userRole === "job_seeker" || userRole === "candidate")) {
           const pct = getDynamicCompletion();
           if (pct < 100) {
             setCompletionModalVisible(true);
