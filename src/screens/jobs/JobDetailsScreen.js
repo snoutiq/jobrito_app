@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, Share, StyleSheet, Text, View, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -19,6 +19,36 @@ const formatPostedTime = (postedDate) => {
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "1 day ago";
   return `${diffDays} days ago`;
+};
+
+const getDisplayStatusText = (statusStr) => {
+  if (!statusStr) return "";
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return "UNDER PROCESS";
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return "DISCUSSION PENDING";
+  }
+  return s;
+};
+
+const getStatusBadgeColors = (statusStr) => {
+  if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return { bg: "rgba(245, 127, 32, 0.06)", text: "#f57f20", border: "rgba(245, 127, 32, 0.2)" };
+  }
+  if (s === "SHORTLISTED" || s === "CONTACTED") {
+    return { bg: "rgba(21, 105, 62, 0.06)", text: "#15693e", border: "rgba(21, 105, 62, 0.2)" };
+  }
+  if (s === "JOB CLOSED") {
+    return { bg: "rgba(10, 5, 4, 0.04)", text: "rgba(10, 5, 4, 0.6)", border: "rgba(10, 5, 4, 0.15)" };
+  }
+  return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
 };
 
 export default function JobDetailsScreen({ route }) {
@@ -86,6 +116,40 @@ export default function JobDetailsScreen({ route }) {
                     false;
   const isApplying = applyingJobId === job?.id || applyLoading;
 
+  const isReferral = job?.category === "referral" || job?.is_referral;
+  const effectiveRoleSource =
+    job?.submitted_by_role ||
+    job?.posted_by_role ||
+    job?.active_role ||
+    job?.user_role ||
+    job?.creator?.role ||
+    job?.creator?.active_role ||
+    "";
+  const effectiveRole = effectiveRoleSource.toLowerCase();
+  const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+  const isChefOrJobSeeker = ["chef", "jobseeker", "job_seeker", "talent", "candidate"].includes(normalizedRole);
+  const showApply = !isReferral && !isChefOrJobSeeker;
+
+  const app = (applicationHistory || []).find((a) => String(a.jobId) === String(job?.id || jobId));
+  const statusText = app ? getDisplayStatusText(app.status) : null;
+  const statusColors = app ? getStatusBadgeColors(app.status) : null;
+
+  const handleCall = () => {
+    const phoneNumber =
+      job?.creator?.mobile_number ||
+      job?.mobile_number ||
+      job?.phone ||
+      job?.contact_phone ||
+      job?.creator?.phone ||
+      "+919876543210";
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
+      Alert.alert(
+        t("error", "Error"),
+        (t("couldNotOpenDialer", "Could not open dialer: ") || "Could not open dialer: ") + err.message,
+      );
+    });
+  };
+
   return (
     <ScreenWrapper edges={["left", "right", "bottom"]} contentStyle={styles.page}>
       <View style={styles.heroCard}>
@@ -100,13 +164,19 @@ export default function JobDetailsScreen({ route }) {
             </View>
             <Text style={styles.positionTitle}>{title}</Text>
             <View style={styles.tagRow}>
-              <View style={[styles.tag, styles.tagUrgent]}>
-                <Text style={styles.tagUrgentText}>{t("jobDetails.urgentHiring", "Urgent Hiring")}</Text>
-              </View>
+              {statusText && (
+                <View style={[styles.tag, { backgroundColor: statusColors.bg, borderWidth: 1, borderColor: statusColors.border }]}>
+                  <Text style={{ color: statusColors.text, fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.3 }}>{statusText}</Text>
+                </View>
+              )}
               <View style={[styles.tag, styles.tagFullTime]}>
                 <Text style={styles.tagFullTimeText}>{t("jobDetails.fullTime", "Full Time")}</Text>
               </View>
             </View>
+          </View>
+          <View style={styles.timeBadge}>
+            <Ionicons name="time-outline" size={12} color="rgba(10, 5, 4, 0.6)" />
+            <Text style={styles.timeBadgeText}>{postedTime}</Text>
           </View>
         </View>
 
@@ -138,15 +208,6 @@ export default function JobDetailsScreen({ route }) {
               <Text style={styles.metaValue}>{experience}</Text>
             </View>
           </View>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons name="time-outline" size={16} color={colors.success} />
-            </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>{t("jobDetails.posted", "Posted")}</Text>
-              <Text style={styles.metaValue}>{postedTime}</Text>
-            </View>
-          </View>
           {job?.contract_duration ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
@@ -158,25 +219,25 @@ export default function JobDetailsScreen({ route }) {
               </View>
             </View>
           ) : null}
-          {job?.hasOwnProperty("visa_assistance") ? (
+          {job?.visa_assistance ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
                 <Ionicons name="card-outline" size={16} color={colors.success} />
               </View>
               <View style={styles.metaItemContent}>
                 <Text style={styles.metaLabel}>{t("jobDetails.visaAssistance", "Visa Assistance")}</Text>
-                <Text style={styles.metaValue}>{job.visa_assistance ? t("jobDetails.available", "Available") : t("jobDetails.notProvided", "Not Provided")}</Text>
+                <Text style={styles.metaValue}>{t("jobDetails.available", "Available")}</Text>
               </View>
             </View>
           ) : null}
-          {job?.hasOwnProperty("accommodation_available") ? (
+          {job?.accommodation_available ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
                 <Ionicons name="home-outline" size={16} color={colors.primary} />
               </View>
               <View style={styles.metaItemContent}>
                 <Text style={styles.metaLabel}>{t("jobDetails.accommodation", "Accommodation")}</Text>
-                <Text style={styles.metaValue}>{job.accommodation_available ? t("jobDetails.provided", "Provided") : t("jobDetails.notAvailable", "Not Available")}</Text>
+                <Text style={styles.metaValue}>{t("jobDetails.provided", "Provided")}</Text>
               </View>
             </View>
           ) : null}
@@ -228,34 +289,32 @@ export default function JobDetailsScreen({ route }) {
         </View>
       )}
 
-      {Boolean(location) && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("jobDetails.locationMap", "Location Map")}</Text>
-          <View style={styles.mapCard}>
-            <View style={styles.mapTile} />
-            <View style={styles.mapOverlay}>
-              <View style={styles.mapPin}>
-                <Ionicons name="location" size={18} color={colors.white} />
-              </View>
-              <Text style={styles.mapText}>{location}</Text>
-            </View>
-          </View>
-        </View>
-      )}
+
 
       <View style={styles.bottomSpacer} />
 
       <View style={styles.bottomBar}>
-        <AppButton
-          title={isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
-          onPress={() => setShowCallModal(true)}
-          loading={isApplying}
-          disabled={isApplied || isApplying}
-          style={[
-            styles.applyButton,
-            isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" }
-          ]}
-        />
+        {showApply ? (
+          <AppButton
+            title={isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
+            onPress={() => setShowCallModal(true)}
+            loading={isApplying}
+            disabled={isApplied || isApplying}
+            style={[
+              styles.applyButton,
+              isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" }
+            ]}
+          />
+        ) : (
+          <AppButton
+            title={t("jobs.callNow", "Call Now")}
+            onPress={handleCall}
+            style={[
+              styles.applyButton,
+              { backgroundColor: "#f57f20" }
+            ]}
+          />
+        )}
         <Pressable onPress={handleShare} style={styles.chatButton}>
           <Ionicons name="share-social-outline" size={18} color={colors.primary} />
         </Pressable>
@@ -547,5 +606,20 @@ const styles = StyleSheet.create({
   },
   metaItemContent: {
     flex: 1,
+  },
+  timeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: "rgba(10, 5, 4, 0.05)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+  },
+  timeBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "rgba(10, 5, 4, 0.6)",
   },
 });

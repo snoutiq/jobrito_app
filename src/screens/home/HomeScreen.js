@@ -14,6 +14,7 @@ import {
   Image,
   RefreshControl,
   TextInput,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,6 +30,8 @@ import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppLoader from "../../components/common/AppLoader";
+import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -42,54 +45,50 @@ export default function HomeScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
 
-  // Profile Completion Modal States
-  const [
-    hasModalBeenDismissedThisSession,
-    setHasModalBeenDismissedThisSession,
-  ] = useState(false);
+  // Profile Wizard States
+  const [hasModalBeenDismissedThisSession, setHasModalBeenDismissedThisSession] = useState(false);
   const [completionModalVisible, setCompletionModalVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [submittingProfile, setSubmittingProfile] = useState(false);
-  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] =
-    useState(false);
+  const [isInitialProfileLoadComplete, setIsInitialProfileLoadComplete] = useState(false);
+  const [visitCount, setVisitCount] = useState(1);
+  const [currentProgressStep, setCurrentProgressStep] = useState(1);
 
-  const [formName, setFormName] = useState("");
-  const [formEmail, setFormEmail] = useState("");
-  const [formCity, setFormCity] = useState("");
-  const [formSkills, setFormSkills] = useState("");
-  const [formEmployer, setFormEmployer] = useState("");
-  const [formGender, setFormGender] = useState("");
+  // Form Fields State
+  const [photo, setPhoto] = useState(null);
+  const [fullName, setFullName] = useState("");
+  const [gender, setGender] = useState("male");
+  const [experienceRange, setExperienceRange] = useState("1-3 Years");
+  const [currentEmployer, setCurrentEmployer] = useState("");
+  const [jobType, setJobType] = useState("Full Time");
+  const [locationPreference, setLocationPreference] = useState("India");
+  const [city, setCity] = useState("");
+  const [preferredRole, setPreferredRole] = useState("Kitchen Production");
+  const [skills, setSkills] = useState("");
 
-  const getDynamicCompletion = () => {
-    if (!profile) return 100;
-
-    let fields = 0;
-    let filled = 0;
-
-    fields++;
-    if (profile.name && profile.name !== "Guest User" && profile.name.trim())
-      filled++;
-    else if (profile.full_name && profile.full_name.trim()) filled++;
-
-    fields++;
-    if (profile.email && profile.email.trim()) filled++;
-
-    fields++;
-    if (profile.city && profile.city.trim()) filled++;
-
-    fields++;
-    const skills = profile.skills;
-    if (Array.isArray(skills) && skills.length > 0) filled++;
-    else if (typeof skills === "string" && skills.trim()) filled++;
-
-    fields++;
-    if (profile.current_employer && profile.current_employer.trim()) filled++;
-
-    fields++;
-    if (profile.gender && profile.gender.trim()) filled++;
-
-    return Math.round((filled / fields) * 100);
-  };
+  // Keep track of app session visits to Home screen
+  useEffect(() => {
+    const checkVisitCount = async () => {
+      try {
+        if (!global.hasIncrementedHomeVisitThisSession) {
+          global.hasIncrementedHomeVisitThisSession = true;
+          const savedCountStr = await AsyncStorage.getItem("@jobconnect/home_visit_count");
+          const currentCount = savedCountStr ? parseInt(savedCountStr, 10) : 0;
+          const newCount = currentCount + 1;
+          await AsyncStorage.setItem("@jobconnect/home_visit_count", String(newCount));
+          setVisitCount(newCount);
+        } else {
+          const savedCountStr = await AsyncStorage.getItem("@jobconnect/home_visit_count");
+          if (savedCountStr) {
+            setVisitCount(parseInt(savedCountStr, 10));
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to check/update home visit count:", err);
+      }
+    };
+    checkVisitCount();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -112,27 +111,46 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     if (profile) {
-      setFormName(profile.full_name || profile.name || "");
-      setFormEmail(profile.email || "");
-      setFormCity(profile.city || "");
-      setFormSkills(
+      setFullName(profile.full_name || profile.name || "");
+      setGender(profile.gender || "male");
+      setPhoto(profile.profile_photo_path || profile.profile_photo || null);
+      setExperienceRange(profile.experience_range || "1-3 Years");
+      setCurrentEmployer(profile.current_employer || "");
+      setJobType(profile.job_type || "Full Time");
+      setLocationPreference(profile.location_preference || "India");
+      setCity(profile.city || "");
+      setPreferredRole(profile.preferred_role || "Kitchen Production");
+      setSkills(
         Array.isArray(profile.skills)
           ? profile.skills.join(", ")
-          : profile.skills || "",
+          : profile.skills || ""
       );
-      setFormEmployer(profile.current_employer || "");
-      setFormGender(profile.gender || "");
 
-      // Check completeness (only for Job Seeker / Talent role and AFTER initial load completes)
-      if (isInitialProfileLoadComplete) {
-        const userRole =
-          profile?.role || profile?.active_role || profile?.user_role;
-        if (
-          !hasModalBeenDismissedThisSession &&
-          (userRole === "job_seeker" || userRole === "candidate")
-        ) {
-          const pct = getDynamicCompletion();
-          if (pct < 100) {
+      // Determine if profile is fully complete
+      const isNameFilled = !!(profile.full_name || profile.name || "").trim() && profile.name !== "Guest User";
+      const isGenderFilled = !!profile.gender;
+      const isExperienceFilled = !!profile.experience_range;
+      const isEmployerFilled = !!profile.current_employer;
+      const isLocationFilled = !!profile.location_preference && !!profile.city;
+      const isRoleFilled = !!profile.preferred_role;
+
+      const isPhase1Incomplete = !isNameFilled || !isGenderFilled;
+      const isPhase2Incomplete = !isExperienceFilled || !isEmployerFilled || !isLocationFilled;
+      const isPhase3Incomplete = !isRoleFilled;
+
+      if (isInitialProfileLoadComplete && !hasModalBeenDismissedThisSession) {
+        const userRole = profile?.role || profile?.active_role || profile?.user_role;
+        const isEligibleRole = ["job_seeker", "candidate", "chef", "talent"].includes(String(userRole).toLowerCase());
+        
+        if (isEligibleRole) {
+          if (isPhase1Incomplete) {
+            setCurrentProgressStep(profile.profile_photo_path || profile.profile_photo ? 2 : 1);
+            setCompletionModalVisible(true);
+          } else if (isPhase2Incomplete && visitCount >= 2) {
+            setCurrentProgressStep(3);
+            setCompletionModalVisible(true);
+          } else if (isPhase3Incomplete && visitCount >= 3) {
+            setCurrentProgressStep(5);
             setCompletionModalVisible(true);
           } else {
             setCompletionModalVisible(false);
@@ -142,34 +160,73 @@ export default function HomeScreen({ navigation }) {
         }
       }
     }
-  }, [profile, hasModalBeenDismissedThisSession, isInitialProfileLoadComplete]);
+  }, [profile, isInitialProfileLoadComplete, visitCount, hasModalBeenDismissedThisSession]);
 
-  const handleSaveProfile = async () => {
+  const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
     try {
-      const updateData = {
-        full_name: formName,
-        email: formEmail,
-        city: formCity,
-        skills: formSkills,
-        current_employer: formEmployer,
-        gender: formGender,
-        experience_range: profile?.experience_range || "",
-        preferred_role: profile?.preferred_role || profile?.preference || "",
-      };
-
-      await dispatch(updateProfile(updateData)).unwrap();
+      await dispatch(updateProfile(fieldsToUpdate)).unwrap();
       await dispatch(fetchProfile()).unwrap();
-
-      setCompletionModalVisible(false);
-      setSuccessModalVisible(true);
+      return true;
     } catch (err) {
       Alert.alert(
         t("error", "Error"),
         err.message || "Failed to update profile details.",
       );
+      return false;
     } finally {
       setSubmittingProfile(false);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("permissionDenied", "Permission Denied"),
+          t("mediaLibraryPermissionRequired", "Sorry, we need camera roll permissions to upload a photo.")
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to select photo.");
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("permissionDenied", "Permission Denied"),
+          t("cameraPermissionRequired", "Sorry, we need camera permissions to take a photo.")
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open camera.");
     }
   };
 
@@ -641,229 +698,381 @@ export default function HomeScreen({ navigation }) {
         }}
       />
 
-      {/* Profile Completion Modal */}
-      {(() => {
-        const isNameEmpty =
-          !(profile?.full_name || profile?.name || "").trim() ||
-          profile?.name === "Guest User";
-        const isEmailEmpty = !(profile?.email || "").trim();
-        const isCityEmpty = !(profile?.city || "").trim();
-        const isSkillsEmpty =
-          !profile?.skills ||
-          (Array.isArray(profile?.skills) && profile?.skills.length === 0) ||
-          (typeof profile?.skills === "string" && !profile?.skills.trim());
-        const isEmployerEmpty = !(profile?.current_employer || "").trim();
-        const isGenderEmpty = !(profile?.gender || "").trim();
+      {/* Profile Completion Modal Wizard */}
+      <Modal
+        visible={completionModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setCompletionModalVisible(false);
+          setHasModalBeenDismissedThisSession(true);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Question {currentProgressStep} of 5
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setCompletionModalVisible(false);
+                  setHasModalBeenDismissedThisSession(true);
+                }}
+                style={styles.modalCloseBtn}
+              >
+                <Ionicons
+                  name="close"
+                  size={22}
+                  color="rgba(10, 5, 4, 0.6)"
+                />
+              </TouchableOpacity>
+            </View>
 
-        return (
-          <Modal
-            visible={completionModalVisible}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => {
-              setCompletionModalVisible(false);
-              setHasModalBeenDismissedThisSession(true);
-            }}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>
-                    {t("profile.completeYourProfile", "Complete Profile")}
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${currentProgressStep * 20}%` },
+                ]}
+              />
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+            >
+              {currentProgressStep === 1 && (
+                <View>
+                  <Text style={styles.inputLabel}>
+                    Add Profile Photo
                   </Text>
+                  <Text style={styles.modalSubtitle}>
+                    A professional photo helps you stand out to employers.
+                  </Text>
+
                   <TouchableOpacity
+                    style={styles.photoUploadCircle}
                     onPress={() => {
-                      setCompletionModalVisible(false);
-                      setHasModalBeenDismissedThisSession(true);
+                      Alert.alert(
+                        "Profile Photo",
+                        "Select profile photo source:",
+                        [
+                          { text: "Camera", onPress: handleTakePhoto },
+                          { text: "Gallery", onPress: handleUploadPhoto },
+                          { text: "Cancel", style: "cancel" }
+                        ]
+                      );
                     }}
-                    style={styles.modalCloseBtn}
                   >
-                    <Ionicons
-                      name="close"
-                      size={22}
-                      color="rgba(10, 5, 4, 0.6)"
-                    />
+                    {photo ? (
+                      <Image source={{ uri: photo }} style={styles.photoUploadImage} />
+                    ) : (
+                      <Ionicons name="camera-outline" size={32} color="rgba(10, 5, 4, 0.4)" />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalConfirmBtn}
+                    onPress={() => setCurrentProgressStep(2)}
+                  >
+                    <Text style={styles.modalConfirmBtnText}>
+                      {photo ? "Continue" : "Maybe Later"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
+              )}
 
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
-                >
+              {currentProgressStep === 2 && (
+                <View>
+                  <Text style={styles.inputLabel}>
+                    Personal Identity
+                  </Text>
                   <Text style={styles.modalSubtitle}>
-                    {t(
-                      "profile.completeModalSubtitle",
-                      "Please fill in the missing details to complete your profile.",
-                    )}
+                    Please enter your full name and select your gender.
                   </Text>
 
-                  {/* Conditionally Render Missing Fields */}
-                  {isNameEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.fullName", "Full Name")}
-                      </Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={formName}
-                        onChangeText={setFormName}
-                        placeholder={t(
-                          "profile.enterFullName",
-                          "Enter full name",
-                        )}
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  )}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Full Name</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={fullName}
+                      onChangeText={setFullName}
+                      placeholder="Enter full name"
+                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    />
+                  </View>
 
-                  {isEmailEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.emailAddress", "Email Address")}
-                      </Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={formEmail}
-                        onChangeText={setFormEmail}
-                        placeholder={t(
-                          "profile.enterEmail",
-                          "Enter email address",
-                        )}
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  )}
-
-                  {isCityEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.city", "City")}
-                      </Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={formCity}
-                        onChangeText={setFormCity}
-                        placeholder={t("profile.enterCity", "Enter city")}
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  )}
-
-                  {isSkillsEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.skills", "Skills (Comma separated)")}
-                      </Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={formSkills}
-                        onChangeText={setFormSkills}
-                        placeholder={t(
-                          "profile.enterSkills",
-                          "e.g. Kitchen, Communication",
-                        )}
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  )}
-
-                  {isEmployerEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.currentEmployer", "Current Employer")}
-                      </Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={formEmployer}
-                        onChangeText={setFormEmployer}
-                        placeholder={t(
-                          "profile.enterEmployer",
-                          "Enter current employer",
-                        )}
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  )}
-
-                  {isGenderEmpty && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>
-                        {t("profile.gender", "Gender")}
-                      </Text>
-                      <View style={styles.genderSelectRow}>
-                        {["Male", "Female"].map((g) => {
-                          const isSelected =
-                            formGender.toLowerCase() === g.toLowerCase();
-                          return (
-                            <TouchableOpacity
-                              key={g}
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Gender</Text>
+                    <View style={styles.genderSelectRow}>
+                      {["Male", "Female", "Other"].map((g) => {
+                        const isSelected = gender.toLowerCase() === g.toLowerCase();
+                        return (
+                          <TouchableOpacity
+                            key={g}
+                            style={[
+                              styles.genderSelectBtn,
+                              isSelected && styles.genderSelectBtnActive,
+                            ]}
+                            onPress={() => setGender(g.toLowerCase())}
+                          >
+                            <Text
                               style={[
-                                styles.genderOptionBtn,
-                                isSelected && styles.genderOptionBtnSelected,
+                                styles.genderSelectText,
+                                isSelected && styles.genderSelectTextActive,
                               ]}
-                              onPress={() => setFormGender(g)}
-                              activeOpacity={0.7}
                             >
-                              <Ionicons
-                                name={
-                                  g.toLowerCase() === "male"
-                                    ? "male-outline"
-                                    : "female-outline"
-                                }
-                                size={16}
-                                color={
-                                  isSelected ? "#153e69" : "rgba(10, 5, 4, 0.5)"
-                                }
-                                style={{ marginRight: 6 }}
-                              />
-                              <Text
-                                style={[
-                                  styles.genderOptionText,
-                                  isSelected && styles.genderOptionTextSelected,
-                                ]}
-                              >
-                                {t(`profile.${g.toLowerCase()}`, g)}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
+                              {g}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
-                  )}
-                </ScrollView>
+                  </View>
 
-                <TouchableOpacity
-                  style={styles.modalConfirmBtn}
-                  onPress={handleSaveProfile}
-                  disabled={submittingProfile}
-                >
-                  {submittingProfile ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <Text style={styles.modalConfirmBtnText}>
-                      {t("profile.saveAndComplete", "Save & Complete")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !fullName.trim() && { opacity: 0.5 }]}
+                    disabled={!fullName.trim() || submittingProfile}
+                    onPress={async () => {
+                      const ok = await saveProgressStep({
+                        full_name: fullName.trim(),
+                        gender: gender,
+                        profile_photo_path: photo,
+                      });
+                      if (ok) {
+                        setCompletionModalVisible(false);
+                        setSuccessModalVisible(true);
+                      }
+                    }}
+                  >
+                    {submittingProfile ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text style={styles.modalConfirmBtnText}>Save & Continue</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
 
-                <TouchableOpacity
-                  style={styles.modalSkipBtn}
-                  onPress={() => {
-                    setCompletionModalVisible(false);
-                    setHasModalBeenDismissedThisSession(true);
-                  }}
-                >
-                  <Text style={styles.modalSkipBtnText}>
-                    {t("skip", "Skip")}
+              {currentProgressStep === 3 && (
+                <View>
+                  <Text style={styles.inputLabel}>
+                    Work Experience
                   </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        );
-      })()}
+                  <Text style={styles.modalSubtitle}>
+                    Provide your experience details and job preference.
+                  </Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Experience</Text>
+                    <View style={styles.experienceOptionsRow}>
+                      {["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"].map((r) => {
+                        const isSelected = experienceRange === r;
+                        return (
+                          <TouchableOpacity
+                            key={r}
+                            style={[
+                              styles.experienceOptionBtn,
+                              isSelected && styles.experienceOptionBtnActive,
+                            ]}
+                            onPress={() => setExperienceRange(r)}
+                          >
+                            <Text
+                              style={[
+                                styles.experienceOptionText,
+                                isSelected && styles.experienceOptionTextActive,
+                              ]}
+                            >
+                              {r}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Current Employer</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={currentEmployer}
+                      onChangeText={setCurrentEmployer}
+                      placeholder="e.g. Self-Employed or hotel name"
+                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    />
+                  </View>
+
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Job Preference</Text>
+                    <View style={styles.jobTypeRow}>
+                      {["Full Time", "Part Time", "Freelance Chef"].map((t) => {
+                        const isSelected = jobType === t;
+                        return (
+                          <TouchableOpacity
+                            key={t}
+                            style={[
+                              styles.jobTypeBtn,
+                              isSelected && styles.jobTypeBtnActive,
+                            ]}
+                            onPress={() => setJobType(t)}
+                          >
+                            <Text
+                              style={[
+                                styles.jobTypeText,
+                                isSelected && styles.jobTypeTextActive,
+                              ]}
+                            >
+                              {t}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!experienceRange || !currentEmployer.trim()) && { opacity: 0.5 }]}
+                    disabled={!experienceRange || !currentEmployer.trim()}
+                    onPress={() => setCurrentProgressStep(4)}
+                  >
+                    <Text style={styles.modalConfirmBtnText}>Continue</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {currentProgressStep === 4 && (
+                <View>
+                  <Text style={styles.inputLabel}>
+                    Location Preference
+                  </Text>
+                  <Text style={styles.modalSubtitle}>
+                    Tell us where you would like to work.
+                  </Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred Region</Text>
+                    <View style={styles.locationPreferenceRow}>
+                      {["India", "Overseas", "Both"].map((p) => {
+                        const isSelected = locationPreference === p;
+                        return (
+                          <TouchableOpacity
+                            key={p}
+                            style={[
+                              styles.locationPreferenceBtn,
+                              isSelected && styles.locationPreferenceBtnActive,
+                            ]}
+                            onPress={() => setLocationPreference(p)}
+                          >
+                            <Text
+                              style={[
+                                styles.locationPreferenceText,
+                                isSelected && styles.locationPreferenceTextActive,
+                              ]}
+                            >
+                              {p}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred City / State</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={city}
+                      onChangeText={setCity}
+                      placeholder="e.g. Mumbai, Dubai"
+                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !city.trim() && { opacity: 0.5 }]}
+                    disabled={!city.trim() || submittingProfile}
+                    onPress={async () => {
+                      const ok = await saveProgressStep({
+                        experience_range: experienceRange,
+                        current_employer: currentEmployer.trim(),
+                        job_type: jobType,
+                        location_preference: locationPreference,
+                        city: city.trim(),
+                      });
+                      if (ok) {
+                        setCompletionModalVisible(false);
+                        setSuccessModalVisible(true);
+                      }
+                    }}
+                  >
+                    {submittingProfile ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text style={styles.modalConfirmBtnText}>Save & Continue</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {currentProgressStep === 5 && (
+                <View>
+                  <Text style={styles.inputLabel}>
+                    Preferred Role & Skills
+                  </Text>
+                  <Text style={styles.modalSubtitle}>
+                    Select your preferred kitchen role and list your skills.
+                  </Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred Role</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={preferredRole}
+                      onChangeText={setPreferredRole}
+                      placeholder="e.g. Kitchen Production, Executive Chef"
+                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    />
+                  </View>
+
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Skills (comma separated)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={skills}
+                      onChangeText={setSkills}
+                      placeholder="e.g. Indian, Continental, Food Safety"
+                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!preferredRole.trim() || !skills.trim()) && { opacity: 0.5 }]}
+                    disabled={!preferredRole.trim() || !skills.trim() || submittingProfile}
+                    onPress={async () => {
+                      const ok = await saveProgressStep({
+                        preferred_role: preferredRole.trim(),
+                        skills: skills.trim(),
+                      });
+                      if (ok) {
+                        setCompletionModalVisible(false);
+                        setSuccessModalVisible(true);
+                      }
+                    }}
+                  >
+                    {submittingProfile ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text style={styles.modalConfirmBtnText}>Save & Complete</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Success Modal */}
       <Modal
@@ -893,7 +1102,7 @@ export default function HomeScreen({ navigation }) {
                 { textAlign: "center", marginBottom: 10 },
               ]}
             >
-              {t("profile.profileCompleted", "Profile Completed!")}
+              Details Saved!
             </Text>
             <Text
               style={[
@@ -901,17 +1110,14 @@ export default function HomeScreen({ navigation }) {
                 { textAlign: "center", marginBottom: 20 },
               ]}
             >
-              {t(
-                "profile.profileCompletedSubtitle",
-                "Your profile details have been saved successfully.",
-              )}
+              Your profile details have been saved successfully.
             </Text>
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
               onPress={() => setSuccessModalVisible(false)}
             >
               <Text style={styles.modalConfirmBtnText}>
-                {t("gotIt", "Got It")}
+                Got It
               </Text>
             </TouchableOpacity>
           </View>
@@ -1343,9 +1549,38 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 4,
   },
-  genderOptionBtn: {
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: "rgba(10, 5, 4, 0.1)",
+    borderRadius: 3,
+    marginVertical: 12,
+    width: "100%",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#153e69",
+    borderRadius: 3,
+  },
+  photoUploadCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#f2f2f3",
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    marginVertical: 16,
+  },
+  photoUploadImage: {
+    width: "100%",
+    height: "100%",
+  },
+  genderSelectBtn: {
     flex: 1,
-    flexDirection: "row",
     height: 44,
     borderRadius: 10,
     borderWidth: 1.5,
@@ -1354,16 +1589,99 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#ffffff",
   },
-  genderOptionBtnSelected: {
+  genderSelectBtnActive: {
     borderColor: "#153e69",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
-  genderOptionText: {
+  genderSelectText: {
     fontSize: 13,
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
-  genderOptionTextSelected: {
+  genderSelectTextActive: {
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  experienceOptionsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 6,
+  },
+  experienceOptionBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    backgroundColor: "#ffffff",
+  },
+  experienceOptionBtnActive: {
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  experienceOptionText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  experienceOptionTextActive: {
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  jobTypeRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
+  },
+  jobTypeBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  jobTypeBtnActive: {
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  jobTypeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  jobTypeTextActive: {
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  locationPreferenceRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
+  },
+  locationPreferenceBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  locationPreferenceBtnActive: {
+    borderColor: "#153e69",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  locationPreferenceText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  locationPreferenceTextActive: {
     color: "#153e69",
     fontWeight: "700",
   },

@@ -40,6 +40,7 @@ export const getSavedJobs = async () => {
   const normalized = rawJobs.map((item) => {
     const jobSource = item.job || item;
     return {
+      ...jobSource,
       id: String(jobSource.id || item.id),
       title: jobSource.title || "Job Opportunity",
       employer: jobSource.company || jobSource.employer || "Company",

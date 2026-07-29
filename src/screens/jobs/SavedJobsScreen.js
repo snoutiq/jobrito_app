@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -41,6 +42,36 @@ const formatSavedTime = (savedAt) => {
   return `Saved ${date.toLocaleDateString("en-US", options)}`;
 };
 
+const getDisplayStatusText = (statusStr) => {
+  if (!statusStr) return "";
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return "UNDER PROCESS";
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return "DISCUSSION PENDING";
+  }
+  return s;
+};
+
+const getStatusBadgeColors = (statusStr) => {
+  if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return { bg: "rgba(245, 127, 32, 0.06)", text: "#f57f20", border: "rgba(245, 127, 32, 0.2)" };
+  }
+  if (s === "SHORTLISTED" || s === "CONTACTED") {
+    return { bg: "rgba(21, 105, 62, 0.06)", text: "#15693e", border: "rgba(21, 105, 62, 0.2)" };
+  }
+  if (s === "JOB CLOSED") {
+    return { bg: "rgba(10, 5, 4, 0.04)", text: "rgba(10, 5, 4, 0.6)", border: "rgba(10, 5, 4, 0.15)" };
+  }
+  return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+};
+
 export default function SavedJobsScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -57,6 +88,22 @@ export default function SavedJobsScreen({ navigation }) {
     dispatch(fetchSavedJobs());
     dispatch(fetchApplicationHistory());
   }, [dispatch]);
+
+  const handleCall = (job) => {
+    const phoneNumber =
+      job.creator?.mobile_number ||
+      job.mobile_number ||
+      job.phone ||
+      job.contact_phone ||
+      job.creator?.phone ||
+      "+919876543210";
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
+      Alert.alert(
+        t("error", "Error"),
+        (t("couldNotOpenDialer", "Could not open dialer: ") || "Could not open dialer: ") + err.message,
+      );
+    });
+  };
 
   const handleApplyPress = (job) => {
     setSelectedJob(job);
@@ -93,6 +140,24 @@ export default function SavedJobsScreen({ navigation }) {
     const jobOpenings = item.open_positions ?? item.openings ?? 0;
     const jobType = item.job_type ?? item.type ?? "Full-time";
     const savedDate = formatSavedTime(item.savedAt);
+
+    const isReferral = item.category === "referral" || item.is_referral;
+    const effectiveRoleSource =
+      item.submitted_by_role ||
+      item.posted_by_role ||
+      item.active_role ||
+      item.user_role ||
+      item.creator?.role ||
+      item.creator?.active_role ||
+      "";
+    const effectiveRole = effectiveRoleSource.toLowerCase();
+    const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+    const isChefOrJobSeeker = ["chef", "jobseeker", "job_seeker", "talent", "candidate"].includes(normalizedRole);
+    const showApply = !isReferral && !isChefOrJobSeeker;
+
+    const app = (applicationHistory || []).find((a) => String(a.jobId) === String(item.id));
+    const statusText = app ? getDisplayStatusText(app.status) : null;
+    const statusColors = app ? getStatusBadgeColors(app.status) : null;
 
     return (
       <Pressable
@@ -138,6 +203,14 @@ export default function SavedJobsScreen({ navigation }) {
             </View>
           </View>
 
+          {statusText && (
+            <View style={[styles.statusBadge, { backgroundColor: statusColors.bg, borderColor: statusColors.border, marginRight: 6 }]}>
+              <Text style={[styles.statusBadgeText, { color: statusColors.text }]}>
+                {statusText}
+              </Text>
+            </View>
+          )}
+
           <TouchableOpacity
             onPress={() => handleUnsave(item.id, item.title)}
             style={styles.starBtn}
@@ -167,19 +240,32 @@ export default function SavedJobsScreen({ navigation }) {
 
         <View style={styles.divider} />
         <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.applyBtn, isApplied && styles.appliedBtn]}
-            disabled={isApplied}
-            activeOpacity={0.8}
-            onPress={() => handleApplyPress(item)}
-          >
-            <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
-              {isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
-            </Text>
-            {!isApplied && (
-              <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
-            )}
-          </TouchableOpacity>
+          {showApply ? (
+            <TouchableOpacity
+              style={[styles.applyBtn, isApplied && styles.appliedBtn]}
+              disabled={isApplied}
+              activeOpacity={0.8}
+              onPress={() => handleApplyPress(item)}
+            >
+              <Text style={[styles.applyBtnText, isApplied && styles.appliedBtnText]}>
+                {isApplied ? t("jobDetails.applied", "✓ Applied") : t("jobDetails.applyNow", "Apply Now")}
+              </Text>
+              {!isApplied && (
+                <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.applyBtn, { backgroundColor: "#f57f20" }]}
+              activeOpacity={0.8}
+              onPress={() => handleCall(item)}
+            >
+              <Ionicons name="call" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.applyBtnText}>
+                {t("jobs.callNow", "Call Now")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Pressable>
     );
@@ -390,5 +476,18 @@ const styles = StyleSheet.create({
   },
   appliedBtnText: {
     color: "rgba(10, 5, 4, 0.6)",
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignSelf: "center",
+  },
+  statusBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
   },
 });

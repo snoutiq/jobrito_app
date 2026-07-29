@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,6 +41,36 @@ const formatAppliedTime = (appliedOn) => {
   return date.toLocaleDateString("en-US", options);
 };
 
+const getDisplayStatusText = (statusStr) => {
+  if (!statusStr) return "";
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return "UNDER PROCESS";
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return "DISCUSSION PENDING";
+  }
+  return s;
+};
+
+const getStatusBadgeColors = (statusStr) => {
+  if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+  const s = statusStr.toUpperCase().trim();
+  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+    return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
+  }
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return { bg: "rgba(245, 127, 32, 0.06)", text: "#f57f20", border: "rgba(245, 127, 32, 0.2)" };
+  }
+  if (s === "SHORTLISTED" || s === "CONTACTED") {
+    return { bg: "rgba(21, 105, 62, 0.06)", text: "#15693e", border: "rgba(21, 105, 62, 0.2)" };
+  }
+  if (s === "JOB CLOSED") {
+    return { bg: "rgba(10, 5, 4, 0.04)", text: "rgba(10, 5, 4, 0.6)", border: "rgba(10, 5, 4, 0.15)" };
+  }
+  return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+};
+
 export default function ApplicationHistoryScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -68,6 +99,22 @@ export default function ApplicationHistoryScreen({ navigation }) {
     "CONTACTED": t("applications.status.contacted", "Contacted"),
     "DECISION PENDING": t("applications.status.decisionPending", "Decision Pending"),
     "JOB CLOSED": t("applications.status.jobClosed", "Job Closed")
+  };
+
+  const handleCall = (job) => {
+    const phoneNumber =
+      job?.creator?.mobile_number ||
+      job?.mobile_number ||
+      job?.phone ||
+      job?.contact_phone ||
+      job?.creator?.phone ||
+      "+919876543210";
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
+      Alert.alert(
+        t("error", "Error"),
+        (t("couldNotOpenDialer", "Could not open dialer: ") || "Could not open dialer: ") + err.message,
+      );
+    });
   };
 
   useEffect(() => {
@@ -104,17 +151,26 @@ export default function ApplicationHistoryScreen({ navigation }) {
     const appliedDate = formatAppliedTime(item.appliedOn);
     
     // Determine status badge color
-    const status = (item.status || "UNDER REVIEW").toUpperCase();
-    let statusBg = "rgba(242, 200, 121, 0.12)";
-    let statusTextColor = "#f2c879";
-    
-    if (status === "SHORTLISTED" || status === "CONTACTED") {
-      statusBg = "rgba(21, 105, 62, 0.08)";
-      statusTextColor = "#15693e";
-    } else if (status === "JOB CLOSED") {
-      statusBg = "#f2f2f3";
-      statusTextColor = "rgba(10, 5, 4, 0.6)";
-    }
+    const displayStatus = getDisplayStatusText(item.status || "UNDER REVIEW");
+    const statusColors = getStatusBadgeColors(item.status || "UNDER REVIEW");
+    const statusBg = statusColors.bg;
+    const statusTextColor = statusColors.text;
+
+    const jobObj = item.job || {};
+    const isReferral = jobObj.category === "referral" || jobObj.is_referral;
+    const effectiveRoleSource =
+      jobObj.submitted_by_role ||
+      jobObj.posted_by_role ||
+      jobObj.active_role ||
+      jobObj.user_role ||
+      jobObj.creator?.role ||
+      jobObj.creator?.active_role ||
+      item.submitted_by_role ||
+      "";
+    const effectiveRole = effectiveRoleSource.toLowerCase();
+    const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
+    const isChefOrJobSeeker = ["chef", "jobseeker", "job_seeker", "talent", "candidate"].includes(normalizedRole);
+    const showApply = !isReferral && !isChefOrJobSeeker;
 
     return (
       <Pressable
@@ -146,9 +202,9 @@ export default function ApplicationHistoryScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusBg, borderColor: statusColors.border }]}>
             <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
-              {status}
+              {displayStatus}
             </Text>
           </View>
         </View>
@@ -174,20 +230,33 @@ export default function ApplicationHistoryScreen({ navigation }) {
 
         <View style={styles.divider} />
         <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.viewDetailsBtn}
-            activeOpacity={0.8}
-            onPress={() => {
-              if (item.jobId) {
-                navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
-              }
-            }}
-          >
-            <Text style={styles.viewDetailsBtnText}>
-              {t("applications.viewDetails", "View Details")}
-            </Text>
-            <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
-          </TouchableOpacity>
+          {showApply ? (
+            <TouchableOpacity
+              style={styles.viewDetailsBtn}
+              activeOpacity={0.8}
+              onPress={() => {
+                if (item.jobId) {
+                  navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
+                }
+              }}
+            >
+              <Text style={styles.viewDetailsBtnText}>
+                {t("applications.viewDetails", "View Details")}
+              </Text>
+              <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.viewDetailsBtn, { backgroundColor: "#f57f20" }]}
+              activeOpacity={0.8}
+              onPress={() => handleCall(item.job)}
+            >
+              <Ionicons name="call" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.viewDetailsBtnText}>
+                {t("jobs.callNow", "Call Now")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Pressable>
     );
@@ -479,14 +548,17 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignSelf: "center",
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: 9,
+    fontWeight: "800",
     textTransform: "uppercase",
+    letterSpacing: 0.3,
   },
   detailsRow: {
     flexDirection: "row",
