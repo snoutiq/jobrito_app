@@ -286,37 +286,6 @@ export default function ProfileScreen({ navigation }) {
     >
       {/* Top Header */}
       <View style={styles.headerSection}>
-        <Pressable onPress={handleAvatarPress} style={styles.avatarContainer}>
-          <View style={styles.avatarCircle}>
-            {profile?.profile_photo_path ? (
-              <Image
-                source={{ uri: profile.profile_photo_path }}
-                style={styles.avatarImage}
-              />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={30} color="#153e69" />
-              </View>
-            )}
-          </View>
-          <View style={styles.cameraBadge}>
-            <Ionicons name="camera" size={11} color="#ffffff" />
-          </View>
-        </Pressable>
-
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{displayName}</Text>
-          {(profile?.phone || profile?.mobile_number) ? (
-            <Text style={styles.userPhone}>
-              {profile.phone || profile.mobile_number}
-            </Text>
-          ) : null}
-          {Boolean(profile?.city || profile?.country) && (
-            <Text style={styles.userTag}>
-              {profile.city && profile.country ? `${profile.city}, ${profile.country}` : (profile.city || profile.country)}
-            </Text>
-          )}
-        </View>
       </View>
 
       {/* Talent Profile Card */}
@@ -341,12 +310,6 @@ export default function ProfileScreen({ navigation }) {
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>{t("profile.currentLocation", "Current Location:")}</Text>
                   <Text style={styles.detailValue}>{displayCity}</Text>
-                </Text>
-              ) : null}
-              {displayPrefLocation ? (
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>{t("profile.preferredJobLocation", "Preferred Job Location:")}</Text>
-                  <Text style={styles.detailValue}>{displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)" ? "India & Overseas" : displayPrefLocation}</Text>
                 </Text>
               ) : null}
               {displayExperience ? (
