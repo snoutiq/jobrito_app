@@ -52,6 +52,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const displayCity = applicant.city || "";
   const displayExperience = applicant.experience_range || "";
   const displayEmployer = applicant.current_company || applicant.current_employer || "";
+  const displayRole = applicant.preferred_role || applicant.current_role || applicant.cuisine_specialty || "";
   
   // Dynamic API Availability mapping
   const displayAvailability = applicant.availability_status
@@ -156,19 +157,36 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Intro Section (No unnecessary bordered background box) */}
-        <View style={styles.profileIntroSection}>
-          <View style={styles.avatarWrapper}>
-            <Image source={avatarSource} style={styles.largeAvatar} />
-          </View>
-          <Text style={styles.profileName}>{displayName}</Text>
-          {displayCity ? (
-            <View style={styles.locationRow}>
-              <Ionicons name="location" size={14} color="#153e69" />
-              <Text style={styles.locationText}>{displayCity}</Text>
+        <View style={styles.reviewCard}>
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatarContainer}>
+              <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
             </View>
-          ) : null}
-          {matchScore ? <MatchBadge score={matchScore} style={styles.matchBadgeDetail} /> : null}
+            <View style={styles.profileInfo}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={styles.chefName}>{displayName}</Text>
+                </View>
+              </View>
+              {displayRole ? (
+                <Text style={styles.chefTitle}>Current Role: {displayRole}</Text>
+              ) : null}
+              <View style={styles.profileDetailsList}>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.profileInfoLabel}>Current Location: </Text>
+                  <Text style={styles.profileInfoValue}>{displayCity || "N/A"}</Text>
+                </Text>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.profileInfoLabel}>Experience: </Text>
+                  <Text style={styles.profileInfoValue}>{displayExperience || "N/A"}</Text>
+                </Text>
+                <Text numberOfLines={1} style={styles.detailRowText}>
+                  <Text style={styles.profileInfoLabel}>Availability: </Text>
+                  <Text style={styles.profileInfoValue}>{displayAvailability || "N/A"}</Text>
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* About Section */}
@@ -355,6 +373,70 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+  },
+  reviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.08)",
+    shadowColor: "#000",
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+    marginBottom: 16,
+  },
+  profileHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  avatarContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
+    backgroundColor: "#f2f2f3",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  profileDetailsList: {
+    marginTop: 8,
+    gap: 4,
+  },
+  detailRowText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  chefName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 6,
+  },
+  chefTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#153e69",
+    marginBottom: 8,
+  },
+  profileInfoLabel: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "700",
+  },
+  profileInfoValue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0a0504",
   },
   sectionContainer: {
     marginBottom: 24,
