@@ -106,6 +106,12 @@ export const normalizeProfile = (u) => {
     availability_info: availability,
     languages: availability.languages || [],
     operations: userObj.skills || [],
+    linkedin: (userObj.socials || root.socials || {}).linkedin || chef.linkedin_link || chef.linkedin || "",
+    instagram: (userObj.socials || root.socials || {}).instagram || chef.instagram_link || chef.instagram || "",
+    facebook: (userObj.socials || root.socials || {}).facebook || chef.facebook_link || chef.facebook || "",
+    twitter: (userObj.socials || root.socials || {}).twitter || chef.twitter_link || chef.twitter || "",
+    youtube: (userObj.socials || root.socials || {}).youtube || "",
+    website: (userObj.socials || root.socials || {}).website || "",
   };
 };
 

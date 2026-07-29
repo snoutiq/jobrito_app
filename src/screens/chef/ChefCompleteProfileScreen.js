@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProfile, setProfileData, resetUser } from "../../redux/slices/userSlice";
+import { fetchProfile, setProfileData, resetUser, updateProfile } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { 
   setChefOnboardingCompleted, 
@@ -694,11 +694,22 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       setCalendlyLink(formattedCalendly);
       formData.append("calendly_link", formattedCalendly || "");
 
-      // Append social links
-      if (linkedinLink) formData.append("linkedin", linkedinLink);
-      if (instagramLink) formData.append("instagram", instagramLink);
-      if (facebookLink) formData.append("facebook", facebookLink);
-      if (twitterLink) formData.append("twitter", twitterLink);
+      // Append social links in all common formats to ensure backend maps it correctly
+      formData.append("linkedin", linkedinLink || "");
+      formData.append("linkedin_link", linkedinLink || "");
+      formData.append("linkedinLink", linkedinLink || "");
+
+      formData.append("instagram", instagramLink || "");
+      formData.append("instagram_link", instagramLink || "");
+      formData.append("instagramLink", instagramLink || "");
+
+      formData.append("facebook", facebookLink || "");
+      formData.append("facebook_link", facebookLink || "");
+      formData.append("facebookLink", facebookLink || "");
+
+      formData.append("twitter", twitterLink || "");
+      formData.append("twitter_link", twitterLink || "");
+      formData.append("twitterLink", twitterLink || "");
 
       // Location Preference Mapping
       let locPref = "Both";
@@ -742,20 +753,39 @@ export default function ChefCompleteProfileScreen({ navigation }) {
         });
       }
 
-      // Photo file upload
+      // Photo file upload - support both profile_photo and profile_photo_path keys
       if (photoUri) {
-        const uriParts = photoUri.split("/");
-        const fileName = uriParts[uriParts.length - 1];
-        const fileType = fileName.split(".").pop();
-        formData.append("profile_photo", {
-          uri: Platform.OS === "android" ? photoUri : photoUri.replace("file://", ""),
-          name: fileName,
-          type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
-        });
+        if (photoUri.startsWith("http://") || photoUri.startsWith("https://")) {
+          formData.append("profile_photo", photoUri);
+          formData.append("profile_photo_path", photoUri);
+        } else {
+          const uriParts = photoUri.split("/");
+          const fileName = uriParts[uriParts.length - 1];
+          const fileType = fileName.split(".").pop();
+          const fileObj = {
+            uri: Platform.OS === "android" ? photoUri : photoUri.replace("file://", ""),
+            name: fileName,
+            type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
+          };
+          formData.append("profile_photo", fileObj);
+          formData.append("profile_photo_path", fileObj);
+        }
       }
 
-      // Call API
+      // Call API to save chef onboarding details
       const apiResponse = await saveChefOnboarding(formData);
+
+      // Call general profile update API to ensure name and profile photo are saved in core table
+      const updatePayload = {
+        full_name: fullName,
+        name: fullName,
+        city: currentCity,
+        country,
+        experience_range: experienceYears,
+        preferred_role: professionalTitle,
+        profile_photo_path: photoUri,
+      };
+      await dispatch(updateProfile(updatePayload)).unwrap();
 
       const profilePayload = {
         ...profile,

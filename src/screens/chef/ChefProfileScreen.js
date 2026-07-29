@@ -421,9 +421,11 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
             {logoSource ? (
-              <Image source={logoSource} style={styles.avatar} />
+              <View style={styles.avatarContainer}>
+                <Image source={logoSource} style={styles.avatarImage} resizeMode="cover" />
+              </View>
             ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <View style={[styles.avatarContainer, styles.avatarPlaceholder]}>
                 <Ionicons name="person" size={28} color="rgba(10, 5, 4, 0.6)" />
               </View>
             )}
@@ -732,16 +734,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#153e69",
+    overflow: "hidden",
     marginRight: 16,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#f2f2f3",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   avatarPlaceholder: {
-    backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },

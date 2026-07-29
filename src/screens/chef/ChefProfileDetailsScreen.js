@@ -24,11 +24,12 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function ChefProfileDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
-  const chef = route?.params?.chef;
+  const chefParam = route?.params?.chef;
   const { profile: loggedInProfile } = useSelector((state) => state.user);
   const isOwnProfile = route?.params?.isOwnProfile || 
-                       (loggedInProfile && String(loggedInProfile.id) === String(chef?.id)) || 
+                       (loggedInProfile && String(loggedInProfile.id) === String(chefParam?.id)) || 
                        false;
+  const chef = isOwnProfile && loggedInProfile ? loggedInProfile : chefParam;
 
   // Booking Modal States
   const [bookingVisible, setBookingVisible] = useState(false);
@@ -55,7 +56,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   }
 
   const handleOpenBooking = () => {
-    const url = chef?.calendly_link || chef?.calendlyUrl || chef?.calendlyLink;
+    const url = displayCalendly;
     if (url && url.trim()) {
       Linking.openURL(url).catch((err) => {
         Alert.alert(t("error", "Error"), "Could not open Calendly link: " + err.message);
@@ -78,7 +79,8 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const displayBio = chef.bio || "";
 
   const getLogoSource = () => {
-    const uri = chef?.profile_photo_path || chef?.profile_photo;
+    const chefProfile = chef.chef_profile || chef.chef_profile_details || chef;
+    const uri = chef?.profile_photo_path || chef?.profile_photo || chefProfile?.profile_photo_path || chefProfile?.profile_photo || chef?.user?.profile_photo_path;
     if (!uri) return null;
     if (
       uri.startsWith("http://") ||
@@ -92,6 +94,8 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   };
 
   const logoSource = getLogoSource();
+  const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef;
+  const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || "";
 
   const getSkillsList = () => {
     const list = chef.skills || chef.operations || [];
@@ -159,40 +163,37 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
 
   const getActiveSocials = () => {
     const list = [];
+    const chefProfile = chef.chef_profile || chef.chef_profile_details || chef;
+    const socials = chef.socials || chefProfile.socials || {};
     
-    const ln = chef.linkedin;
-    if (ln && ln.trim()) {
+    const ln = socials.linkedin || chef.linkedin || chefProfile.linkedin || chef.linkedin_link || chefProfile.linkedin_link;
+    if (ln && ln.trim() && ln !== "https://linkedin.com/") {
       list.push({ platform: "LinkedIn", icon: "logo-linkedin", color: "#0077b5", bgColor: "rgba(0, 119, 181, 0.1)", url: ln });
     }
     
-    const ig = chef.instagram;
+    const ig = socials.instagram || chef.instagram || chefProfile.instagram || chef.instagram_link || chefProfile.instagram_link;
     if (ig && ig.trim()) {
       list.push({ platform: "Instagram", icon: "logo-instagram", color: "#e1306c", bgColor: "rgba(225, 48, 108, 0.1)", url: ig });
     }
     
-    const fb = chef.facebook;
+    const fb = socials.facebook || chef.facebook || chefProfile.facebook || chef.facebook_link || chefProfile.facebook_link;
     if (fb && fb.trim()) {
       list.push({ platform: "Facebook", icon: "logo-facebook", color: "#1877f2", bgColor: "rgba(24, 119, 242, 0.1)", url: fb });
     }
     
-    const tw = chef.twitter || chef.twitterLink;
+    const tw = socials.twitter || chef.twitter || chefProfile.twitter || chef.twitter_link || chefProfile.twitter_link || chef.twitterLink;
     if (tw && tw.trim()) {
       list.push({ platform: "Twitter", icon: "logo-twitter", color: "#000000", bgColor: "rgba(10, 5, 4, 0.06)", url: tw });
     }
     
-    const yt = chef.youtube;
+    const yt = socials.youtube || chef.youtube || chefProfile.youtube || chef.youtube_link || chefProfile.youtube_link;
     if (yt && yt.trim()) {
       list.push({ platform: "YouTube", icon: "logo-youtube", color: "#ff0000", bgColor: "rgba(255, 0, 0, 0.08)", url: yt });
     }
     
-    const web = chef.website || chef.portfolio;
+    const web = socials.website || chef.website || chefProfile.website || chef.portfolio;
     if (web && web.trim()) {
       list.push({ platform: "Website", icon: "globe-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: web });
-    }
-    
-    const cal = chef.calendly_link || chef.calendlyUrl || chef.calendlyLink;
-    if (cal && cal.trim()) {
-      list.push({ platform: "Calendly", icon: "calendar-outline", color: "#153e69", bgColor: "rgba(21, 62, 105, 0.08)", url: cal });
     }
     
     return list;
@@ -301,7 +302,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.mainProfileCard}>
+        <View style={styles.reviewCard}>
           {/* Header Block: Avatar & Core Info */}
           <View style={styles.profileHeaderRow}>
             {logoSource ? (
@@ -355,93 +356,83 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
               </View>
             </View>
           </View>
-
-          {/* Divider */}
-          {(Boolean(displayBio) || getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0 || getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
-            <View style={styles.cardDivider} />
-          )}
-
-          {/* Section 1: About Me (Bio) */}
-          {Boolean(displayBio) && (
-            <View style={styles.cardSubSection}>
-              <Text style={styles.mainCardHeaderTitle}>{t("professionalSummary", "About Me")}</Text>
-              <Text style={styles.bioText}>{displayBio}</Text>
-            </View>
-          )}
-
-          {/* Divider */}
-          {Boolean(displayBio) && (getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0 || getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
-            <View style={styles.cardDivider} />
-          )}
-
-          {/* Section 2: Expertise & Skills */}
-          {(getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0) && (
-            <View style={styles.cardSubSection}>
-              <Text style={styles.mainCardHeaderTitle}>{t("skillsAndExpertise", "Expertise & Skills")}</Text>
-              
-              {/* Cuisines & Regional Experience */}
-              {(getCuisinesList().length > 0 || getRegionalList().length > 0) && (
-                <Text style={styles.inlineRowText}>
-                  {getCuisinesList().length > 0 && (
-                    <>
-                      <Text style={styles.inlineLabel}>{t("cuisineExpertise")}: </Text>
-                      <Text style={styles.inlineValue}>{getCuisinesList().join(", ")}</Text>
-                    </>
-                  )}
-                  {getRegionalList().length > 0 && (
-                    <>
-                      {getCuisinesList().length > 0 && <Text style={styles.inlineSeparator}>  |  </Text>}
-                      <Text style={styles.inlineLabel}>{t("regionalExperience")}: </Text>
-                      <Text style={styles.inlineValue}>{getRegionalList().join(", ")}</Text>
-                    </>
-                  )}
-                </Text>
-              )}
-
-              {/* Core Skills */}
-              {getSkillsList().length > 0 && (
-                <Text style={[styles.inlineRowText, { marginTop: 12 }]}>
-                  <Text style={styles.inlineLabel}>{t("coreSkills")}: </Text>
-                  <Text style={styles.inlineValue}>{getSkillsList().join(", ")}</Text>
-                </Text>
-              )}
-            </View>
-          )}
-
-          {/* Divider */}
-          {(getCuisinesList().length > 0 || getSkillsList().length > 0 || getRegionalList().length > 0) && (getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
-            <View style={styles.cardDivider} />
-          )}
-
-          {/* Section 3: Preferences & General */}
-          {(getEmploymentList().length > 0 || getLanguagesList().length > 0) && (
-            <View style={[styles.cardSubSection, { marginBottom: 0 }]}>
-              <Text style={styles.mainCardHeaderTitle}>{t("preferencesAndDetails", "Preferences & General")}</Text>
-
-              {/* Employment Preference & Languages Spoken */}
-              <Text style={styles.inlineRowText}>
-                {getEmploymentList().length > 0 && (
-                  <>
-                    <Text style={styles.inlineLabel}>{t("employmentPreference")}: </Text>
-                    <Text style={styles.inlineValue}>{getEmploymentList().join(", ")}</Text>
-                  </>
-                )}
-                {getLanguagesList().length > 0 && (
-                  <>
-                    {getEmploymentList().length > 0 && <Text style={styles.inlineSeparator}>  |  </Text>}
-                    <Text style={styles.inlineLabel}>{t("languagesSpoken")}: </Text>
-                    <Text style={styles.inlineValue}>{getLanguagesList().join(", ")}</Text>
-                  </>
-                )}
-              </Text>
-            </View>
-          )}
         </View>
 
-        {/* Social Profiles */}
+        {/* Section 1: Bio */}
+        {Boolean(displayBio) && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="document-text" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("professionalSummary", "Professional Bio")}</Text>
+            </View>
+            <Text style={styles.reviewSecBioText}>{displayBio}</Text>
+          </View>
+        )}
+
+        {/* Section 2: Cuisines */}
+        {getCuisinesList().length > 0 && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="restaurant" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("cuisineExpertise", "Cuisine Specialization")}</Text>
+            </View>
+            <View style={styles.reviewPillContainer}>
+              {getCuisinesList().map((cuisine) => (
+                <View key={cuisine} style={styles.reviewPill}>
+                  <Text style={styles.reviewPillText}>{cuisine}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Section 3: Operational Expertise */}
+        {getSkillsList().length > 0 && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="stats-chart" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("coreSkills", "Operational Expertise")}</Text>
+            </View>
+            <View style={styles.reviewPillContainer}>
+              {getSkillsList().map((op) => (
+                <View key={op} style={styles.reviewPill}>
+                  <Text style={styles.reviewPillText}>{op}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Section 4: Calendly Booking Card */}
+        {Boolean(displayCalendly) && (
+          <View style={styles.reviewCard}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="calendar-sharp" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("bookAppointment", "Book Appointment")}</Text>
+            </View>
+            <Text style={styles.bookingCardDesc}>
+              {t("bookingDescription", "Schedule a 1-on-1 consultation or interview session directly with the chef using Calendly.")}
+            </Text>
+            <TouchableOpacity
+              style={styles.calendlyButton}
+              activeOpacity={0.8}
+              onPress={handleOpenBooking}
+            >
+              <Ionicons name="calendar-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+              <Text style={styles.calendlyButtonText}>
+                {t("bookSession", "Book Session via Calendly")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Section 5: Social Profiles */}
         {getActiveSocials().length > 0 && (
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.sectionTitleCap}>{t("socialProfiles")}</Text>
+          <View style={[styles.reviewCard, { borderWidth: 0, shadowOpacity: 0, elevation: 0 }]}>
+            <View style={styles.reviewSecTitleRow}>
+              <Ionicons name="link-sharp" size={18} color="#153e69" />
+              <Text style={styles.reviewSecTitle}>{t("socialProfiles", "Social Profiles")}</Text>
+            </View>
             <View style={styles.socialRow}>
               {getActiveSocials().map((item, idx) => (
                 <TouchableOpacity
@@ -628,20 +619,53 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    gap: 16,
+    gap: 10,
     paddingBottom: 40,
   },
-  mainProfileCard: {
+  reviewCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 24,
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.12)",
-    padding: 20,
-    shadowColor: "#0a0504",
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    borderColor: "#f2f2f3",
+    shadowColor: "#000",
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  reviewSecTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  reviewSecTitle: {
+    fontSize: 14,
+    fontWeight: "750",
+    color: "#153e69",
+    marginLeft: 8,
+  },
+  reviewSecBioText: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.7)",
+    lineHeight: 18,
+  },
+  reviewPillContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  reviewPill: {
+    backgroundColor: "rgba(21, 62, 105, 0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reviewPillText: {
+    fontSize: 12,
+    color: "#153e69",
+    fontWeight: "600",
   },
   profileHeaderRow: {
     flexDirection: "row",
@@ -652,9 +676,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
+    width: 90,
+    height: 90,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: "#153e69",
     overflow: "hidden",
@@ -906,11 +930,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 1,
-    shadowColor: "#0a0504",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   footer: {
     padding: 16,
@@ -1051,5 +1070,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  bookingCardDesc: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  calendlyButton: {
+    backgroundColor: "#153e69",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  calendlyButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
