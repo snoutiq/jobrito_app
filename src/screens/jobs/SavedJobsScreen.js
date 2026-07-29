@@ -23,35 +23,44 @@ import { applyJob, fetchApplicationHistory } from "../../redux/slices/applicatio
 
 const PRIMARY_GREEN = "#153e69";
 
-const formatSavedTime = (savedAt) => {
-  if (!savedAt) return "Saved recently";
-  const date = new Date(savedAt);
-  if (Number.isNaN(date.getTime())) return "Saved recently";
+const formatSavedTime = (dateStr, t) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
   
   const diffMs = Date.now() - date.getTime();
   const diffHours = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)));
   const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
   
-  if (diffHours === 0) return "Saved just now";
-  if (diffHours < 24) return `Saved ${diffHours}h ago`;
-  if (diffDays === 1) return "Saved yesterday";
-  if (diffDays < 7) return `Saved ${diffDays}d ago`;
-  if (diffDays >= 7 && diffDays < 14) return "Saved 1w ago";
+  if (diffHours === 0) return t("savedJobs.justNow", "Saved just now");
+  if (diffHours < 24) return t("savedJobs.hoursAgo", "Saved {{count}}h ago", { count: diffHours });
+  if (diffDays === 1) return t("savedJobs.yesterday", "Saved yesterday");
+  if (diffDays < 7) return t("savedJobs.daysAgo", "Saved {{count}}d ago", { count: diffDays });
+  if (diffDays >= 7 && diffDays < 14) return t("savedJobs.weeksAgo", "Saved 1w ago");
   
   const options = { day: "numeric", month: "short" };
-  return `Saved ${date.toLocaleDateString("en-US", options)}`;
+  return t("savedJobs.onDate", "Saved {{date}}", { date: date.toLocaleDateString("en-US", options) });
 };
 
-const getDisplayStatusText = (statusStr) => {
+const getDisplayStatusText = (statusStr, t) => {
   if (!statusStr) return "";
   const s = statusStr.toUpperCase().trim();
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return "UNDER PROCESS";
+    return t("status.underProcess", "UNDER PROCESS");
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return "DISCUSSION PENDING";
+    return t("status.discussionPending", "DISCUSSION PENDING");
   }
-  return s;
+  if (s === "SHORTLISTED") {
+    return t("status.shortlisted", "SHORTLISTED");
+  }
+  if (s === "CONTACTED") {
+    return t("status.contacted", "CONTACTED");
+  }
+  if (s === "JOB CLOSED") {
+    return t("status.jobClosed", "JOB CLOSED");
+  }
+  return t(`status.${s.toLowerCase()}`, s);
 };
 
 const getStatusBadgeColors = (statusStr) => {
@@ -139,7 +148,7 @@ export default function SavedJobsScreen({ navigation }) {
     
     const jobOpenings = item.open_positions ?? item.openings ?? 0;
     const jobType = item.job_type ?? item.type ?? "Full-time";
-    const savedDate = formatSavedTime(item.savedAt);
+    const savedDate = formatSavedTime(item.savedAt, t);
 
     const isReferral = item.category === "referral" || item.is_referral;
     const effectiveRoleSource =
@@ -156,7 +165,7 @@ export default function SavedJobsScreen({ navigation }) {
     const showApply = !isReferral && !isChefOrJobSeeker;
 
     const app = (applicationHistory || []).find((a) => String(a.jobId) === String(item.id));
-    const statusText = app ? getDisplayStatusText(app.status) : null;
+    const statusText = app ? getDisplayStatusText(app.status, t) : null;
     const statusColors = app ? getStatusBadgeColors(app.status) : null;
 
     return (

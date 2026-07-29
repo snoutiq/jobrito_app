@@ -23,34 +23,43 @@ import { fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 
 const PRIMARY_GREEN = "#153e69";
 
-const formatAppliedTime = (appliedOn) => {
-  if (!appliedOn) return "Recently";
+const formatAppliedTime = (appliedOn, t) => {
+  if (!appliedOn) return t("applications.recently", "Recently");
   const date = new Date(appliedOn);
-  if (Number.isNaN(date.getTime())) return "Recently";
+  if (Number.isNaN(date.getTime())) return t("applications.recently", "Recently");
   
   const diffMs = Date.now() - date.getTime();
   const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
   
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays >= 7 && diffDays < 14) return "1 week ago";
+  if (diffDays === 0) return t("applications.today", "Today");
+  if (diffDays === 1) return t("applications.yesterday", "Yesterday");
+  if (diffDays < 7) return t("applications.daysAgo", "{{count}} days ago", { count: diffDays });
+  if (diffDays >= 7 && diffDays < 14) return t("applications.weeksAgo", "1 week ago");
   
   // Format as "DD MMM" (e.g., "12 Oct", "30 Sep")
   const options = { day: "numeric", month: "short" };
   return date.toLocaleDateString("en-US", options);
 };
 
-const getDisplayStatusText = (statusStr) => {
+const getDisplayStatusText = (statusStr, t) => {
   if (!statusStr) return "";
   const s = statusStr.toUpperCase().trim();
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return "UNDER PROCESS";
+    return t("status.underProcess", "UNDER PROCESS");
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return "DISCUSSION PENDING";
+    return t("status.discussionPending", "DISCUSSION PENDING");
   }
-  return s;
+  if (s === "SHORTLISTED") {
+    return t("status.shortlisted", "SHORTLISTED");
+  }
+  if (s === "CONTACTED") {
+    return t("status.contacted", "CONTACTED");
+  }
+  if (s === "JOB CLOSED") {
+    return t("status.jobClosed", "JOB CLOSED");
+  }
+  return t(`status.${s.toLowerCase()}`, s);
 };
 
 const getStatusBadgeColors = (statusStr) => {
@@ -148,10 +157,10 @@ export default function ApplicationHistoryScreen({ navigation }) {
   const renderItem = ({ item }) => {
     const jobOpenings = item.job?.open_positions ?? item.job?.openings ?? 0;
     const jobType = item.job?.job_type ?? item.job?.type ?? "Full-time";
-    const appliedDate = formatAppliedTime(item.appliedOn);
+    const appliedDate = formatAppliedTime(item.appliedOn, t);
     
     // Determine status badge color
-    const displayStatus = getDisplayStatusText(item.status || "UNDER REVIEW");
+    const displayStatus = getDisplayStatusText(item.status || "UNDER REVIEW", t);
     const statusColors = getStatusBadgeColors(item.status || "UNDER REVIEW");
     const statusBg = statusColors.bg;
     const statusTextColor = statusColors.text;

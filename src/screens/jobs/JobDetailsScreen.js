@@ -10,27 +10,36 @@ import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 
-const formatPostedTime = (postedDate) => {
-  if (!postedDate) return "Recently";
+const formatPostedTime = (postedDate, t) => {
+  if (!postedDate) return t("jobDetails.recently", "Recently");
   const posted = new Date(postedDate);
-  if (Number.isNaN(posted.getTime())) return "Recently";
+  if (Number.isNaN(posted.getTime())) return t("jobDetails.recently", "Recently");
   const diffMs = Date.now() - posted.getTime();
   const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "1 day ago";
-  return `${diffDays} days ago`;
+  if (diffDays === 0) return t("jobDetails.today", "Today");
+  if (diffDays === 1) return t("jobDetails.oneDayAgo", "1 day ago");
+  return t("jobDetails.daysAgo", "{{count}} days ago", { count: diffDays });
 };
 
-const getDisplayStatusText = (statusStr) => {
+const getDisplayStatusText = (statusStr, t) => {
   if (!statusStr) return "";
   const s = statusStr.toUpperCase().trim();
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return "UNDER PROCESS";
+    return t("status.underProcess", "UNDER PROCESS");
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return "DISCUSSION PENDING";
+    return t("status.discussionPending", "DISCUSSION PENDING");
   }
-  return s;
+  if (s === "SHORTLISTED") {
+    return t("status.shortlisted", "SHORTLISTED");
+  }
+  if (s === "CONTACTED") {
+    return t("status.contacted", "CONTACTED");
+  }
+  if (s === "JOB CLOSED") {
+    return t("status.jobClosed", "JOB CLOSED");
+  }
+  return t(`status.${s.toLowerCase()}`, s);
 };
 
 const getStatusBadgeColors = (statusStr) => {
@@ -91,7 +100,7 @@ export default function JobDetailsScreen({ route }) {
   const location = job?.location;
   const salary = job?.salary;
   const experience = job?.experience || job?.experience_range || t("jobDetails.notSpecified", "Not Specified");
-  const postedTime = formatPostedTime(job?.postedDate || job?.created_at);
+  const postedTime = formatPostedTime(job?.postedDate || job?.created_at, t);
   const jobRequirements = Array.isArray(job?.requirements) 
     ? job.requirements.filter(Boolean) 
     : typeof job?.requirements === "string" 
@@ -131,7 +140,7 @@ export default function JobDetailsScreen({ route }) {
   const showApply = !isReferral && !isChefOrJobSeeker;
 
   const app = (applicationHistory || []).find((a) => String(a.jobId) === String(job?.id || jobId));
-  const statusText = app ? getDisplayStatusText(app.status) : null;
+  const statusText = app ? getDisplayStatusText(app.status, t) : null;
   const statusColors = app ? getStatusBadgeColors(app.status) : null;
 
   const handleCall = () => {

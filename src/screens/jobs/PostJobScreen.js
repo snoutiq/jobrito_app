@@ -88,6 +88,42 @@ export default function PostJobScreen({ navigation, route }) {
     "Internship",
   ];
 
+  const getRegionLabel = (r) => {
+    switch (r) {
+      case "India": return t("regions.india", "India");
+      case "KSA": return t("regions.ksa", "KSA");
+      case "Dubai": return t("regions.dubai", "Dubai");
+      case "Europe": return t("regions.europe", "Europe");
+      default: return r;
+    }
+  };
+
+  const getExperienceLabel = (opt) => {
+    if (opt.startsWith("Entry")) return t("experience.entry", "Entry Level (0-2 years)");
+    if (opt.startsWith("Mid")) return t("experience.mid", "Mid-Level (3-5 years)");
+    if (opt.startsWith("Senior")) return t("experience.senior", "Senior (5+ and above)");
+    return opt;
+  };
+
+  const getJobTypeLabel = (opt) => {
+    switch (opt?.toLowerCase()) {
+      case "full-time":
+      case "full time":
+        return t("jobType.fullTime", "Full-time");
+      case "part-time":
+      case "part time":
+        return t("jobType.partTime", "Part-time");
+      case "contract":
+        return t("jobType.contract", "Contract");
+      case "internship":
+        return t("jobType.internship", "Internship");
+      case "freelance":
+        return t("jobType.freelance", "Freelance");
+      default:
+        return opt;
+    }
+  };
+
   // Autofill fields from user profile if available
   useEffect(() => {
     if (profile) {
@@ -444,7 +480,7 @@ export default function PostJobScreen({ navigation, route }) {
                           isActive && styles.regionChipTextActive,
                         ]}
                       >
-                        {r}
+                        {getRegionLabel(r)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -602,7 +638,7 @@ export default function PostJobScreen({ navigation, route }) {
                     onPress={() => setShowExpDropdown(!showExpDropdown)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.textInput}>{experience}</Text>
+                    <Text style={styles.textInput}>{getExperienceLabel(experience)}</Text>
                     <Ionicons
                       name={showExpDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
@@ -630,7 +666,7 @@ export default function PostJobScreen({ navigation, route }) {
                               },
                             ]}
                           >
-                            {opt}
+                            {getExperienceLabel(opt)}
                           </Text>
                           {experience === opt && (
                             <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
@@ -643,7 +679,7 @@ export default function PostJobScreen({ navigation, route }) {
 
                 {/* Job Type Dropdown */}
                 <View style={[styles.inputGroup, { marginTop: 14 }]}>
-                  <Text style={styles.inputLabel}>Job Type</Text>
+                  <Text style={styles.inputLabel}>{t("postJob.jobType", "Job Type")}</Text>
                   <TouchableOpacity
                     style={[
                       styles.inputWrapper,
@@ -652,7 +688,7 @@ export default function PostJobScreen({ navigation, route }) {
                     onPress={() => setShowJobTypeDropdown(!showJobTypeDropdown)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.textInput}>{jobType}</Text>
+                    <Text style={styles.textInput}>{getJobTypeLabel(jobType)}</Text>
                     <Ionicons
                       name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
@@ -680,7 +716,7 @@ export default function PostJobScreen({ navigation, route }) {
                               },
                             ]}
                           >
-                            {opt}
+                            {getJobTypeLabel(opt)}
                           </Text>
                           {jobType === opt && (
                             <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
@@ -839,11 +875,11 @@ export default function PostJobScreen({ navigation, route }) {
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="bar-chart-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{experience}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getExperienceLabel(experience)}</Text>
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="time-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{jobType}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getJobTypeLabel(jobType)}</Text>
                   </View>
                 </View>
 

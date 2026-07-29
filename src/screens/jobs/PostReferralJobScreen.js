@@ -107,6 +107,42 @@ export default function PostReferralJobScreen({ navigation, route }) {
     { label: "Agency", value: "agency" },
   ];
 
+  const getRegionLabel = (r) => {
+    switch (r) {
+      case "India": return t("regions.india", "India");
+      case "KSA": return t("regions.ksa", "KSA");
+      case "Dubai": return t("regions.dubai", "Dubai");
+      case "Europe": return t("regions.europe", "Europe");
+      default: return r;
+    }
+  };
+
+  const getExperienceLabel = (opt) => {
+    if (opt.startsWith("Entry")) return t("experience.entry", "Entry Level (0-2 years)");
+    if (opt.startsWith("Mid")) return t("experience.mid", "Mid-Level (3-5 years)");
+    if (opt.startsWith("Senior")) return t("experience.senior", "Senior (5+ and above)");
+    return opt;
+  };
+
+  const getJobTypeLabel = (opt) => {
+    switch (opt?.toLowerCase()) {
+      case "full-time":
+      case "full time":
+        return t("jobType.fullTime", "Full-time");
+      case "part-time":
+      case "part time":
+        return t("jobType.partTime", "Part-time");
+      case "contract":
+        return t("jobType.contract", "Contract");
+      case "internship":
+        return t("jobType.internship", "Internship");
+      case "freelance":
+        return t("jobType.freelance", "Freelance");
+      default:
+        return opt;
+    }
+  };
+
   // Autofill fields from user profile if available
   useEffect(() => {
     if (profile) {
@@ -695,7 +731,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     onPress={() => setShowExpDropdown(!showExpDropdown)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.textInput}>{experienceRange}</Text>
+                    <Text style={styles.textInput}>{getExperienceLabel(experienceRange)}</Text>
                     <Ionicons
                       name={showExpDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
@@ -723,7 +759,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                               },
                             ]}
                           >
-                            {opt}
+                            {getExperienceLabel(opt)}
                           </Text>
                           {experienceRange === opt && (
                             <Ionicons
@@ -751,7 +787,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     onPress={() => setShowJobTypeDropdown(!showJobTypeDropdown)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.textInput}>{jobType}</Text>
+                    <Text style={styles.textInput}>{getJobTypeLabel(jobType)}</Text>
                     <Ionicons
                       name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
@@ -779,7 +815,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                               },
                             ]}
                           >
-                            {opt}
+                            {getJobTypeLabel(opt)}
                           </Text>
                           {jobType === opt && (
                             <Ionicons
@@ -969,11 +1005,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="bar-chart-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{experienceRange}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getExperienceLabel(experienceRange)}</Text>
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="time-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{jobType}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getJobTypeLabel(jobType)}</Text>
                   </View>
                 </View>
 

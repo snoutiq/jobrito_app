@@ -51,6 +51,48 @@ export default function MyJobsScreen({ navigation, route }) {
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  const getJobTypeLabel = (opt) => {
+    switch (opt?.toLowerCase()) {
+      case "full-time":
+      case "full time":
+        return t("jobType.fullTime", "Full-time");
+      case "part-time":
+      case "part time":
+        return t("jobType.partTime", "Part-time");
+      case "contract":
+        return t("jobType.contract", "Contract");
+      case "internship":
+        return t("jobType.internship", "Internship");
+      case "freelance":
+        return t("jobType.freelance", "Freelance");
+      default:
+        return opt;
+    }
+  };
+
+  const getStatusLabel = (status, activeTabVal) => {
+    const s = (normalizeStatus(status) || activeTabVal).toLowerCase();
+    switch (s) {
+      case "pending": return t("status.pending", "PENDING");
+      case "active": return t("status.active", "ACTIVE");
+      case "closed": return t("status.closed", "CLOSED");
+      case "new": return t("status.new", "NEW");
+      case "under review":
+      case "under_review":
+        return t("status.underProcess", "UNDER PROCESS");
+      case "rejected":
+      case "reject":
+      case "declined":
+        return t("status.discussionPending", "DISCUSSION PENDING");
+      case "shortlisted":
+        return t("status.shortlisted", "SHORTLISTED");
+      case "contacted":
+        return t("status.contacted", "CONTACTED");
+      default:
+        return t(`status.${s}`, s.toUpperCase());
+    }
+  };
+
   const isEmployer =
     activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
   const jobsToShow = isEmployer
@@ -180,7 +222,7 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const renderJobCard = (job, isActive = false) => {
     const jobOpenings = job.open_positions ?? job.openings ?? 0;
-    const jobType = job.job_type ?? job.type ?? "Full-time";
+    const jobType = getJobTypeLabel(job.job_type ?? job.type ?? "Full-time");
     const jobDate = job.created_at
       ? formatDate(job.created_at)
       : job.date_posted || job.date || "";
@@ -257,7 +299,7 @@ export default function MyJobsScreen({ navigation, route }) {
                   activeTab === "closed" && { color: "rgba(10, 5, 4, 0.6)" },
                 ]}
               >
-                {(normalizeStatus(job.status) || activeTab).toUpperCase()}
+                {getStatusLabel(job.status, activeTab)}
               </Text>
             </View>
           </View>
