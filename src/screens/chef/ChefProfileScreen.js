@@ -100,8 +100,9 @@ export default function ChefProfileScreen({ navigation }) {
     const hasBio = !!profile.bio;
     const hasCuisines = !!(profile.cuisines || profile.cuisine_specialty);
     const hasSkills = !!(profile.operations || profile.skills);
+    const hasSocial = !!(profile.linkedin || profile.instagram || profile.facebook || profile.twitter);
 
-    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly;
+    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly && hasSocial;
 
     if (isActuallyComplete) {
       const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
@@ -110,7 +111,7 @@ export default function ChefProfileScreen({ navigation }) {
       }
     }
 
-    let totalFields = 11;
+    let totalFields = 12;
     let filledFields = 0;
 
     if (profile?.full_name || profile?.name) filledFields++;
@@ -138,6 +139,11 @@ export default function ChefProfileScreen({ navigation }) {
 
     // Calendly Link (Only if it's actually set and not default domain placeholder)
     if (hasCalendly) {
+      filledFields++;
+    }
+
+    // Social Links
+    if (hasSocial) {
       filledFields++;
     }
 
@@ -170,6 +176,11 @@ export default function ChefProfileScreen({ navigation }) {
                             !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
     if (!isCalendlyValid) {
       missed.push("Calendly");
+    }
+
+    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    if (!hasSocial) {
+      missed.push(t("socialLinks", "Social Links"));
     }
  
     return missed;
@@ -204,7 +215,47 @@ export default function ChefProfileScreen({ navigation }) {
       return t("profile.addCalendlyAction", "Add Calendly Link");
     }
 
+    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    if (!hasSocial) {
+      return t("profile.addSocialLinksAction", "Add Social Media Links");
+    }
+
     return t("profile.completeProfilePrompt", "Complete your profile details");
+  };
+
+  const getMissingFieldStep = () => {
+    if (!profile?.profile_photo_path && !profile?.profile_photo) return 1;
+    if (!profile?.bio) return 3;
+    
+    const langs = profile?.languages;
+    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+      return 1;
+    }
+
+    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
+    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+      return 2;
+    }
+
+    const ops = profile?.operations || profile?.skills;
+    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+      return 2;
+    }
+
+    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid = calendly && 
+                            calendly.trim().length > 0 && 
+                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    if (!isCalendlyValid) {
+      return 4;
+    }
+
+    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    if (!hasSocial) {
+      return 5;
+    }
+
+    return 1;
   };
 
   const completionPercent = getProfileCompletionPercentage();
@@ -510,7 +561,7 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
               {/* Dynamic Missing Field / Add Action */}
               <Pressable
                 style={styles.addSkillsBar}
-                onPress={() => navigation.navigate("ChefCompleteProfile")}
+                onPress={() => navigation.navigate("ChefCompleteProfile", { step: getMissingFieldStep() })}
               >
                 <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
                 <Ionicons 

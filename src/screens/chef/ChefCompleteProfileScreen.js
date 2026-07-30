@@ -92,7 +92,7 @@ const operationsList = [
   "Other"
 ];
 
-export default function ChefCompleteProfileScreen({ navigation }) {
+export default function ChefCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
@@ -346,6 +346,15 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   useEffect(() => {
     const loadSavedStep = async () => {
       try {
+        const routeStep = route?.params?.step || route?.params?.initialStep;
+        if (routeStep) {
+          const parsedStep = parseInt(routeStep, 10);
+          if (parsedStep >= 1 && parsedStep <= 7) {
+            setStep(parsedStep);
+            return;
+          }
+        }
+
         const savedStep = await getChefOnboardingStep();
         if (savedStep) {
           const parsedStep = parseInt(savedStep, 10);
@@ -358,7 +367,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
       }
     };
     loadSavedStep();
-  }, []);
+  }, [route?.params?.step, route?.params?.initialStep]);
 
   useEffect(() => {
     const saveCurrentStep = async () => {
