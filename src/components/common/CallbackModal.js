@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -153,13 +154,17 @@ export default function CallbackModal({
               </Text>.
             </Text>
 
-            <TouchableOpacity
-              style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalConfirmBtn,
+                { width: "100%", marginTop: 0 },
+                pressed && { opacity: 0.7 }
+              ]}
               onPress={handleSuccessClose}
-              activeOpacity={0.8}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Text style={styles.modalConfirmBtnText}>Got it</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
