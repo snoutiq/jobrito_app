@@ -11,7 +11,7 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -86,6 +86,95 @@ export default function App() {
   });
 
   const [showModal, setShowModal] = React.useState(false);
+
+  const handleDeepLinkRoute = async (url) => {
+    if (!url) return;
+    console.log("🔗 [Processing Deep Link]:", url);
+    
+    // Parse route parameters
+    let cleanUrl = url
+      .replace("jobrito://", "")
+      .replace("https://jobrito.com/", "")
+      .replace("http://178.16.138.159/", "");
+    
+    cleanUrl = cleanUrl.split("?")[0];
+    const parts = cleanUrl.split("/");
+    if (parts.length < 2) return;
+
+    const type = parts[0].toLowerCase(); // 'job' or 'chef'
+    const id = parts[1]; // resource ID
+
+    const token = store.getState().auth.token;
+    
+    if (token) {
+      // User is logged in! Navigate immediately using navigationRef
+      const checkReady = setInterval(() => {
+        if (navigationRef.isReady()) {
+          clearInterval(checkReady);
+          const activeRole = store.getState().auth.user?.active_role || store.getState().user?.activeRole;
+          const roleLower = String(activeRole || "").toLowerCase();
+          
+          if (type === "job") {
+            if (roleLower === "employer") {
+              navigationRef.navigate("MyJobDetails", { 
+                jobId: id, 
+                job: { id: id, title: "Job Opportunity" } 
+              });
+            } else {
+              navigationRef.navigate("JobDetails", { jobId: id });
+            }
+          } else if (type === "chef") {
+            navigationRef.navigate("ChefProfileDetails", { userId: id });
+          }
+        }
+      }, 250);
+      setTimeout(() => clearInterval(checkReady), 10000);
+    } else {
+      // User is NOT logged in! Store pending link in AsyncStorage and navigate to Login
+      try {
+        await AsyncStorage.setItem(
+          "@pending_deep_link",
+          JSON.stringify({ type, id })
+        );
+        
+        const checkReady = setInterval(() => {
+          if (navigationRef.isReady()) {
+            clearInterval(checkReady);
+            navigationRef.navigate("Login");
+          }
+        }, 250);
+        setTimeout(() => clearInterval(checkReady), 10000);
+      } catch (err) {
+        console.warn("Failed to store pending deep link:", err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // 1. Handle incoming deep links while the app is running (foreground/background)
+    const handleUrlEvent = (event) => {
+      handleDeepLinkRoute(event.url);
+    };
+    const subscription = Linking.addEventListener("url", handleUrlEvent);
+
+    // 2. Handle initial deep link if the app was opened from a closed/killed state
+    const checkInitialUrl = async () => {
+      try {
+        const url = await Linking.getInitialURL();
+        if (url) {
+          console.log("🔗 [Initial Deep Link URL]:", url);
+          handleDeepLinkRoute(url);
+        }
+      } catch (err) {
+        console.warn("Failed to get initial deep link URL:", err);
+      }
+    };
+    checkInitialUrl();
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     async function checkPermission() {

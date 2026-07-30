@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,6 +38,17 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const [selectedTime, setSelectedTime] = useState("");
   const [purpose, setPurpose] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  const handleShare = async () => {
+    try {
+      const id = chef?.id;
+      await Share.share({
+        message: `Check out Chef ${displayName} on JobRito!\n\nLink: https://jobrito.com/chef/${id}`,
+      });
+    } catch (error) {
+      Alert.alert("Unable to share", "Please try again.");
+    }
+  };
 
   React.useEffect(() => {
     if (chef?.id && !isOwnProfile) {
@@ -349,6 +361,9 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefProfile")}</Text>
         </View>
+        <TouchableOpacity onPress={handleShare} style={styles.shareHeaderButton}>
+          <Ionicons name="share-social-outline" size={20} color="#0a0504" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -649,6 +664,15 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
     marginRight: 10,
+  },
+  shareHeaderButton: {
+    padding: 6,
+    borderRadius: 18,
+    backgroundColor: "#f2f2f3",
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 16,

@@ -421,10 +421,10 @@ export default function HomeScreen({ navigation }) {
     });
   };
 
-  const handleShare = async (title, company) => {
+  const handleShare = async (title, company, jobId) => {
     try {
       await Share.share({
-        message: `${t("checkOutOpening", "Check out this opening on Jobrito:")} ${title} ${t("at", "at")} ${company}!`,
+        message: `${t("checkOutOpening", "Check out this opening on Jobrito:")} ${title} ${t("at", "at")} ${company}!\n\nLink: https://jobrito.com/job/${jobId}`,
       });
     } catch (error) {
       Alert.alert(
@@ -723,7 +723,7 @@ export default function HomeScreen({ navigation }) {
 
                 <TouchableOpacity
                   style={styles.iconActionBtn}
-                  onPress={() => handleShare(job.title, job.company)}
+                  onPress={() => handleShare(job.title, job.company, job.id)}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="share-social" size={18} color="#153e69" />

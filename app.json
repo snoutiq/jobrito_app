@@ -2,6 +2,7 @@
   "expo": {
     "name": "JobRito",
     "slug": "jobconnect-hospitality-workforce",
+    "scheme": "jobrito",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/Jobrito full logo.png",

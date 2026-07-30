@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
@@ -195,9 +197,43 @@ function HomeOnlyStack() {
 export default function MainTabs() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole
   );
+
+  useEffect(() => {
+    const handlePendingDeepLink = async () => {
+      try {
+        const pendingStr = await AsyncStorage.getItem("@pending_deep_link");
+        if (pendingStr) {
+          const pending = JSON.parse(pendingStr);
+          await AsyncStorage.removeItem("@pending_deep_link");
+          
+          if (pending && pending.type && pending.id) {
+            const roleLower = String(activeRole || "").toLowerCase();
+            setTimeout(() => {
+              if (pending.type === "job") {
+                if (roleLower === "employer") {
+                  navigation.navigate("MyJobDetails", { 
+                    jobId: pending.id, 
+                    job: { id: pending.id, title: "Job Opportunity" } 
+                  });
+                } else {
+                  navigation.navigate("JobDetails", { jobId: pending.id });
+                }
+              } else if (pending.type === "chef") {
+                navigation.navigate("ChefProfileDetails", { userId: pending.id });
+              }
+            }, 800);
+          }
+        }
+      } catch (err) {
+        console.warn("Error handling pending deep link:", err);
+      }
+    };
+    handlePendingDeepLink();
+  }, [activeRole]);
 
   const isJobSeeker =
     activeRole === ROLES.JOB_SEEKER || activeRole === "job_seeker";
