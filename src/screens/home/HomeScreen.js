@@ -180,7 +180,20 @@ export default function HomeScreen({ navigation }) {
   const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
     try {
-      await dispatch(updateProfile(fieldsToUpdate)).unwrap();
+      const fullPayload = {
+        full_name: fullName.trim(),
+        gender: gender,
+        profile_photo_path: photo,
+        experience_range: experienceRange,
+        current_employer: currentEmployer.trim(),
+        job_type: jobType,
+        location_preference: locationPreference,
+        city: city.trim(),
+        preferred_role: preferredRole.trim(),
+        skills: skills.trim(),
+        ...fieldsToUpdate,
+      };
+      await dispatch(updateProfile(fullPayload)).unwrap();
       await dispatch(fetchProfile()).unwrap();
       return true;
     } catch (err) {
