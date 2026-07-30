@@ -5,7 +5,7 @@ import {
   updateBasicProfile as updateBasicProfileApi,
   verifyOtp as verifyOtpApi,
 } from "../../services/authApi";
-import { setStoredLanguage, setToken } from "../../services/storage";
+import { setStoredLanguage, setToken, setRefreshToken } from "../../services/storage";
 
 const resolveOnboardingFlag = (payload) =>
   payload?.has_completed_onboarding ?? payload?.hasCompletedOnboarding ?? false;
@@ -46,6 +46,10 @@ export const verifyOtp = createAsyncThunk(
       const message = payload?.message || "Authenticated successfully.";
       if (token) {
         await setToken(token);
+      }
+      const refreshToken = payload?.refresh_token || payload?.refreshToken;
+      if (refreshToken) {
+        await setRefreshToken(refreshToken);
       } // NOTE: language selection is handled separately in onboarding/profile flows
       return {
         token,

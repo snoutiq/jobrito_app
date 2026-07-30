@@ -200,15 +200,6 @@ export default function EmployerNotificationsScreen({ navigation }) {
           keyExtractor={(item, index) => item.id || String(index)}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchNotifications(true)} colors={[PRIMARY_GREEN]} />}
-          ListHeaderComponent={
-            <View style={styles.summaryCard}>
-              <Ionicons name="notifications-outline" size={22} color={PRIMARY_GREEN} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.summaryTitle}>{getSummaryTitle()}</Text>
-                <Text style={styles.summaryText}>{getSummaryText()}</Text>
-              </View>
-            </View>
-          }
           renderItem={({ item }) => {
             const isUnread = !item.is_read;
             const iconInfo = getNotificationIconInfo(item.type);

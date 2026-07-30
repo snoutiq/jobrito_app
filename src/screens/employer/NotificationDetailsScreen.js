@@ -45,7 +45,7 @@ export default function NotificationDetailsScreen({ route, navigation }) {
       <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("notificationDetails", "Notification")}</Text>
           <View style={{ width: 40 }} />
@@ -85,13 +85,11 @@ export default function NotificationDetailsScreen({ route, navigation }) {
     const isEmp = String(activeRole || "").toLowerCase() === "employer";
 
     if (isEmp) {
-      // If employer, navigate to MyJobDetails (which accepts job object)
       navigation.navigate("MyJobDetails", { 
         jobId: jobId, 
         job: { id: jobId, title: notification.title || "Job Opportunity" } 
       });
     } else {
-      // If seeker/chef, navigate to standard JobDetails
       navigation.navigate("JobDetails", { jobId: jobId });
     }
   };
@@ -106,73 +104,104 @@ export default function NotificationDetailsScreen({ route, navigation }) {
     });
   };
 
+  const isUnread = !notification.is_read;
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      {/* Header */}
+      {/* Seamless Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={20} color="#0a0504" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("notificationDetails", "Details")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Large Centered Icon */}
-        <View style={styles.iconContainer}>
-          <View style={[styles.iconBadge, { backgroundColor: iconInfo.bg }]}>
-            <Ionicons name={iconInfo.name} size={48} color={iconInfo.color} />
+        <View style={styles.detailCard}>
+          {/* Card Top Header */}
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBadgeCompact, { backgroundColor: iconInfo.bg }]}>
+              <Ionicons name={iconInfo.name} size={22} color={iconInfo.color} />
+            </View>
+            <View style={styles.headerMeta}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Text style={[styles.categoryText, { color: iconInfo.color }]}>
+                  {String(notification.type || "Update").toUpperCase()}
+                </Text>
+                {isUnread && <View style={styles.unreadDot} />}
+              </View>
+              <Text style={styles.timeText}>
+                {notification.created_at_formatted || notification.created_at || notification.time_ago || t("recent", "Recent")}
+              </Text>
+            </View>
           </View>
-        </View>
 
-        {/* Title and Time Info */}
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{notification.title || "Notification Update"}</Text>
-          <Text style={styles.timeText}>
-            {notification.created_at_formatted || notification.created_at || notification.time_ago || t("recent", "Recent")}
-          </Text>
-          {notification.time_ago && (
-            <Text style={styles.timeAgoText}>{notification.time_ago}</Text>
-          )}
-        </View>
+          {/* Separator */}
+          <View style={styles.cardSeparator} />
 
-        {/* Separator */}
-        <View style={styles.separator} />
+          {/* Title */}
+          <Text style={styles.titleText}>{notification.title || "Notification Update"}</Text>
 
-        {/* Notification Description/Body */}
-        <View style={styles.bodyContainer}>
-          <Text style={styles.bodyLabel}>{t("notificationMessage", "Message")}</Text>
+          {/* Message Body */}
           <Text style={styles.bodyText}>
             {notification.body || notification.message || notification.text || "-"}
           </Text>
-        </View>
 
-        {/* Dynamic Contextual Action Buttons */}
-        <View style={styles.actionsContainer}>
-          {hasJobId && (
-            <TouchableOpacity 
-              style={styles.primaryActionButton}
-              onPress={handleActionPress}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="briefcase-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-              <Text style={styles.actionButtonText}>
-                {t("viewJobDetails", "View Job Details")}
-              </Text>
-            </TouchableOpacity>
+          {/* Context Details (If any) */}
+          {(hasJobId || hasApplicationId) && (
+            <View style={styles.metaSection}>
+              <Text style={styles.metaSectionTitle}>{t("associatedDetails", "Associated Details")}</Text>
+              <View style={styles.metaGrid}>
+                {hasJobId && (
+                  <View style={styles.metaItem}>
+                    <Ionicons name="briefcase-outline" size={16} color="rgba(10, 5, 4, 0.4)" />
+                    <Text style={styles.metaItemText} numberOfLines={1}>
+                      Job ID: #{metadata.job_id || notification.job_id}
+                    </Text>
+                  </View>
+                )}
+                {hasApplicationId && (
+                  <View style={styles.metaItem}>
+                    <Ionicons name="document-text-outline" size={16} color="rgba(10, 5, 4, 0.4)" />
+                    <Text style={styles.metaItemText} numberOfLines={1}>
+                      Application ID: #{metadata.application_id || notification.application_id}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
           )}
 
-          {hasApplicationId && String(activeRole || "").toLowerCase() === "employer" && (
-            <TouchableOpacity 
-              style={[styles.primaryActionButton, { marginTop: 12, backgroundColor: "#f57f20" }]}
-              onPress={handleViewApplicantPress}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="people-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-              <Text style={styles.actionButtonText}>
-                {t("viewApplicantDetails", "View Applicant Profile")}
-              </Text>
-            </TouchableOpacity>
+          {/* Dynamic Contextual Action Buttons INSIDE the card as unified footer */}
+          {(hasJobId || hasApplicationId) && (
+            <View style={styles.cardActionsContainer}>
+              {hasJobId && (
+                <TouchableOpacity 
+                  style={styles.primaryActionButton}
+                  onPress={handleActionPress}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="briefcase" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text style={styles.actionButtonText}>
+                    {t("viewJobDetails", "View Job Details")}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {hasApplicationId && String(activeRole || "").toLowerCase() === "employer" && (
+                <TouchableOpacity 
+                  style={styles.secondaryActionButton}
+                  onPress={handleViewApplicantPress}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="people" size={18} color="#153e69" style={{ marginRight: 8 }} />
+                  <Text style={styles.secondaryActionButtonText}>
+                    {t("viewApplicantDetails", "View Applicant Profile")}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -183,7 +212,7 @@ export default function NotificationDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
   },
   header: {
     flexDirection: "row",
@@ -191,115 +220,168 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    backgroundColor: "#f8fafc", // matches background
+    borderBottomWidth: 0, // removed line divider
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.05)",
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
-    color: "#0a0504",
+    color: "#0f172a",
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
+    paddingBottom: 32,
+  },
+  detailCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.04)",
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.04,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  iconContainer: {
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  iconBadge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  iconBadgeCompact: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
   },
-  textContainer: {
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 10,
+  headerMeta: {
+    marginLeft: 12,
+    flex: 1,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0a0504",
-    textAlign: "center",
-    lineHeight: 28,
+  categoryText: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.0,
+  },
+  unreadDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#ef4444",
   },
   timeText: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 8,
-    fontWeight: "500",
-  },
-  timeAgoText: {
     fontSize: 12,
-    color: "rgba(10, 5, 4, 0.4)",
-    marginTop: 4,
+    color: "rgba(15, 23, 42, 0.45)",
+    marginTop: 2,
     fontWeight: "600",
-    textTransform: "uppercase",
   },
-  separator: {
-    width: "100%",
+  cardSeparator: {
     height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.1)",
-    marginVertical: 24,
+    backgroundColor: "rgba(15, 23, 42, 0.05)",
+    marginVertical: 18,
   },
-  bodyContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-    width: "100%",
-  },
-  bodyLabel: {
-    fontSize: 12,
+  titleText: {
+    fontSize: 20,
     fontWeight: "800",
-    color: PRIMARY_GREEN,
-    textTransform: "uppercase",
-    marginBottom: 8,
+    color: "#0f172a",
+    lineHeight: 28,
+    marginBottom: 12,
   },
   bodyText: {
-    fontSize: 15,
-    color: "#0a0504",
-    lineHeight: 22,
-    fontWeight: "500",
+    fontSize: 14.5,
+    color: "rgba(15, 23, 42, 0.7)",
+    lineHeight: 24,
+    fontWeight: "400",
   },
-  actionsContainer: {
+  metaSection: {
+    marginTop: 24,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(15, 23, 42, 0.05)",
+  },
+  metaSectionTitle: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "rgba(15, 23, 42, 0.4)",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  metaGrid: {
+    gap: 8,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  metaItemText: {
+    fontSize: 12,
+    color: "rgba(15, 23, 42, 0.65)",
+    fontWeight: "600",
+  },
+  cardActionsContainer: {
     width: "100%",
-    marginTop: 30,
+    marginTop: 24,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(15, 23, 42, 0.05)",
   },
   primaryActionButton: {
     flexDirection: "row",
     backgroundColor: PRIMARY_GREEN,
     borderRadius: 14,
-    height: 50,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
     shadowColor: PRIMARY_GREEN,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
   actionButtonText: {
     color: "#ffffff",
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  secondaryActionButton: {
+    flexDirection: "row",
+    backgroundColor: "rgba(21, 62, 105, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(21, 62, 105, 0.1)",
+    borderRadius: 14,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    marginTop: 12,
+  },
+  secondaryActionButtonText: {
+    color: "#153e69",
+    fontSize: 14,
     fontWeight: "800",
   },
   emptyContainer: {
@@ -309,8 +391,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    fontSize: 15,
-    color: "rgba(10, 5, 4, 0.6)",
+    fontSize: 14,
+    color: "rgba(15, 23, 42, 0.5)",
     textAlign: "center",
   },
 });

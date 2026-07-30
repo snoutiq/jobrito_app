@@ -754,7 +754,8 @@ apiClient.interceptors.response.use(
           onRefreshFailed(formattedErr);
 
           const status = refreshErr.response?.status || refreshErr.status;
-          const isNetworkOrServerError = !refreshErr.response || status >= 500 || status === 408 || refreshErr.code === "ECONNABORTED";
+          const isNoRefreshToken = refreshErr.message === "No refresh token available";
+          const isNetworkOrServerError = !isNoRefreshToken && (!refreshErr.response || status >= 500 || status === 408 || refreshErr.code === "ECONNABORTED");
 
           if (isNetworkOrServerError) {
             Logger.warn("Token refresh failed due to network or server error. Skipping auto-logout.", refreshErr);
@@ -786,17 +787,7 @@ apiClient.interceptors.response.use(
               Logger.warn("Could not dispatch logout:", storeError);
             }
 
-            // Show user alert
-            try {
-              const { CustomAlert } = require("../components/common/CustomAlert");
-              const i18n = require("../i18n").default;
-              CustomAlert.show(
-                i18n.t("sessionExpired", "Session Expired"),
-                i18n.t("sessionExpiredDesc", "Your session has expired. Please log in again to continue.")
-              );
-            } catch (alertErr) {
-              Logger.warn("Could not display session expired alert:", alertErr);
-            }
+            // Silent transition (no user alert modal)
           }
 
           reject(formattedErr);
