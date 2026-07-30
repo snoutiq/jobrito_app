@@ -893,7 +893,7 @@ export default function ChefCompleteProfileScreen({ navigation }) {
   };
 
   const getOnboardingCompletionPercent = () => {
-    let totalFields = 11;
+    let totalFields = 12;
     let filledFields = 0;
     
     if (fullName && fullName.trim()) filledFields++;
@@ -912,6 +912,15 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                             calendly.trim().length > 0 && 
                             !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
     if (isCalendlyValid) {
+      filledFields++;
+    }
+    
+    const hasSocial = (linkedinLink && linkedinLink.trim()) ||
+                      (instagramLink && instagramLink.trim()) ||
+                      (facebookLink && facebookLink.trim()) ||
+                      (twitterLink && twitterLink.trim()) ||
+                      (customSocialLinks && customSocialLinks.length > 0);
+    if (hasSocial) {
       filledFields++;
     }
     
@@ -975,14 +984,16 @@ export default function ChefCompleteProfileScreen({ navigation }) {
                       style={styles.avatarImage}
                     />
                   ) : (
-                    <View style={styles.avatarPlaceholder}>
-                      <Ionicons name="person" size={48} color="#153e69" style={{ opacity: 0.6 }} />
-                    </View>
+                    <>
+                      <View style={styles.avatarPlaceholder}>
+                        <Ionicons name="person" size={48} color="#153e69" style={{ opacity: 0.6 }} />
+                      </View>
+                      <View style={styles.avatarOverlay}>
+                        <Ionicons name="camera" size={20} color="#fff" />
+                        <Text style={styles.avatarOverlayText}>Add Photo</Text>
+                      </View>
+                    </>
                   )}
-                  <View style={styles.avatarOverlay}>
-                    <Ionicons name="camera" size={20} color="#fff" />
-                    <Text style={styles.avatarOverlayText}>Add Photo</Text>
-                  </View>
                   <View style={[styles.plusIcon, { backgroundColor: PRIMARY_GREEN }]}>
                     <Ionicons name="add" size={16} color="#fff" />
                   </View>

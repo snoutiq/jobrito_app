@@ -753,25 +753,50 @@ apiClient.interceptors.response.use(
           const formattedErr = formatErrorResponse(refreshErr);
           onRefreshFailed(formattedErr);
 
-          Logger.error("Refresh token expired or invalid. Performing auto-logout.");
-          
-          // Telemetry
-          analytics().logEvent("token_refresh_failed", {
-            message: formattedErr.message.substring(0, 100),
-          }).catch(() => {});
+          const status = refreshErr.response?.status || refreshErr.status;
+          const isNetworkOrServerError = !refreshErr.response || status >= 500 || status === 408 || refreshErr.code === "ECONNABORTED";
 
-          await clearAuthStorage();
-          clearClientState();
+          if (isNetworkOrServerError) {
+            Logger.warn("Token refresh failed due to network or server error. Skipping auto-logout.", refreshErr);
+          } else {
+            Logger.error("Refresh token expired or invalid. Performing auto-logout.");
 
-          try {
-            const storeModule = require("../redux/store");
-            const store = storeModule.default || storeModule;
-            if (store) {
-              const { logout } = require("../redux/slices/authSlice");
-              store.dispatch(logout());
+            // Telemetry
+            try {
+              if (typeof analytics !== "undefined" && typeof analytics === "function") {
+                analytics().logEvent("token_refresh_failed", {
+                  message: formattedErr.message.substring(0, 100),
+                }).catch(() => {});
+              }
+            } catch (telemetryErr) {
+              // Ignore telemetry error
             }
-          } catch (storeError) {
-            Logger.warn("Could not dispatch logout:", storeError);
+
+            await clearAuthStorage();
+            clearClientState();
+
+            try {
+              const storeModule = require("../redux/store");
+              const store = storeModule.default || storeModule;
+              if (store) {
+                const { logout } = require("../redux/slices/authSlice");
+                store.dispatch(logout());
+              }
+            } catch (storeError) {
+              Logger.warn("Could not dispatch logout:", storeError);
+            }
+
+            // Show user alert
+            try {
+              const { CustomAlert } = require("../components/common/CustomAlert");
+              const i18n = require("../i18n").default;
+              CustomAlert.show(
+                i18n.t("sessionExpired", "Session Expired"),
+                i18n.t("sessionExpiredDesc", "Your session has expired. Please log in again to continue.")
+              );
+            } catch (alertErr) {
+              Logger.warn("Could not display session expired alert:", alertErr);
+            }
           }
 
           reject(formattedErr);

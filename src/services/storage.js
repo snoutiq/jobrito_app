@@ -130,7 +130,6 @@ export const clearAuthStorage = async () => {
   cacheToken = null;
   cacheRefreshToken = null;
   cacheRole = null;
-  cacheLanguage = null;
 
   await Promise.all([
     SecureStore.deleteItemAsync(KEYS.token),
@@ -138,10 +137,6 @@ export const clearAuthStorage = async () => {
     AsyncStorage.multiRemove([
       KEYS.role,
       KEYS.profile,
-      KEYS.language,
-      KEYS.seenOnboarding,
-      KEYS.seenIntro,
-      KEYS.seenRoleSelection,
       KEYS.employerOnboardingCompleted,
       KEYS.chefOnboardingCompleted,
       KEYS.chefOnboardingStep,

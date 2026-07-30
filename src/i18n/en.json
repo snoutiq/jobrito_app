@@ -236,6 +236,8 @@
   "Cancel": "Cancel",
   "error": "Error",
   "success": "Success",
+  "sessionExpired": "Session Expired",
+  "sessionExpiredDesc": "Your session has expired. Please log in again to continue.",
   "employerOnboarding": {
     "businessNameRequired": "Please enter your Business Name.",
     "industrySegmentRequired": "Please select an Industry Segment.",
