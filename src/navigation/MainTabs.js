@@ -40,6 +40,7 @@ import SplashScreen from "../screens/auth/SplashScreen";
 import ProfileViewsScreen from "../screens/chef/ProfileViewsScreen";
 import ProjectRequestsScreen from "../screens/chef/ProjectRequestsScreen";
 import { setProfileData } from "../redux/slices/userSlice";
+import MyJobDetailsScreen from "../screens/employer/MyJobDetailsScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -72,6 +73,11 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
+        options={{ title: t("jobDetails") }}
+      />
+      <Stack.Screen
+        name="MyJobDetails"
+        component={MyJobDetailsScreen}
         options={{ title: t("jobDetails") }}
       />
       <Stack.Screen
@@ -253,6 +259,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
+        options={{ title: t("jobDetails") }}
+      />
+      <Stack.Screen
+        name="MyJobDetails"
+        component={MyJobDetailsScreen}
         options={{ title: t("jobDetails") }}
       />
       <Stack.Screen

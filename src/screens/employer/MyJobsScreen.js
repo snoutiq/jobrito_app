@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -97,11 +97,16 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const isEmployer =
     activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
-  const jobsToShow = isEmployer
-    ? submittedJobs?.length
-      ? submittedJobs
-      : myJobs || []
-    : myJobs || [];
+  const jobsToShow = useMemo(() => {
+    return isEmployer
+      ? myJobs && myJobs.length > 0
+        ? myJobs.map((mj) => {
+            const sj = (submittedJobs || []).find((x) => String(x.id) === String(mj.id));
+            return sj ? { ...sj, ...mj } : mj;
+          })
+        : submittedJobs || []
+      : myJobs || [];
+  }, [isEmployer, myJobs, submittedJobs]);
 
   const fetchAllData = React.useCallback(() => {
     if (isEmployer) {
@@ -238,7 +243,7 @@ export default function MyJobsScreen({ navigation, route }) {
         style={styles.jobCard}
         activeOpacity={0.95}
         onPress={() => {
-          navigation.navigate("JobDetails", { jobId: job.id, job: job });
+          navigation.navigate("MyJobDetails", { jobId: job.id, job: job });
         }}
       >
         <View style={styles.jobHeader}>

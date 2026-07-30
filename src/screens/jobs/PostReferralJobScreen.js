@@ -852,7 +852,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       )}
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       multiline
-                      numberOfLines={5}
+                      numberOfLines={4}
                       style={[styles.textInput, styles.multilineInput]}
                       onFocus={() => setActiveField("description")}
                       onBlur={() => setActiveField(null)}
@@ -1018,9 +1018,25 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 {/* Bio / Description */}
                 <View style={[styles.reviewBioContainer, { borderLeftWidth: 3, borderLeftColor: PRIMARY_GREEN, paddingLeft: 10, marginTop: 4 }]}>
                   <Text style={styles.reviewBioLabel}>{t("postJob.jobDescription", "Job Description")}</Text>
-                  <Text style={styles.reviewBioText} numberOfLines={3}>
-                    {description.trim() || "No description provided."}
-                  </Text>
+                  <View style={{ 
+                    height: 85, 
+                    backgroundColor: "#f8f9fa", 
+                    borderRadius: 8, 
+                    padding: 8, 
+                    borderWidth: 1, 
+                    borderColor: "rgba(10, 5, 4, 0.05)",
+                    marginTop: 6 
+                  }}>
+                    <ScrollView 
+                      nestedScrollEnabled 
+                      showsVerticalScrollIndicator={true} 
+                      persistentScrollbar={true}
+                    >
+                      <Text style={styles.reviewBioText}>
+                        {description.trim() || "No description provided."}
+                      </Text>
+                    </ScrollView>
+                  </View>
                 </View>
               </View>
 
@@ -1366,10 +1382,12 @@ const styles = StyleSheet.create({
   multilineWrapper: {
     alignItems: "flex-start",
     paddingVertical: 10,
+    height: 110,
   },
   multilineInput: {
     textAlignVertical: "top",
-    minHeight: 80,
+    height: "100%",
+    width: "100%",
   },
   tipBox: {
     flexDirection: "row",
