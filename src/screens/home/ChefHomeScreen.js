@@ -398,7 +398,7 @@ export default function ChefHomeScreen({ navigation }) {
               {/* Action buttons rendering */}
               <View style={styles.actionsContainer}>
                 {!showApply ? (
-                  // Call (Text), Copy Link (Icon), Share (Icon), Favorite (Icon)
+                  // Call (Text), Share (Icon), Favorite (Icon)
                   <>
                     <TouchableOpacity
                       style={styles.textActionBtn}
@@ -408,18 +408,6 @@ export default function ChefHomeScreen({ navigation }) {
                       <Text style={styles.textActionBtnText}>
                         {t("call", "Call")}
                       </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.iconActionBtn}
-                      onPress={() => copyToClipboard(job.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={isCopied ? "checkmark" : "link"}
-                        size={18}
-                        color={isCopied ? "#2e7d32" : "#153e69"}
-                      />
                     </TouchableOpacity>
                   </>
                 ) : (
