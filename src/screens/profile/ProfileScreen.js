@@ -248,30 +248,85 @@ export default function ProfileScreen({ navigation }) {
     return "English (Device default)";
   };
 
+  const getMissingFieldStep = () => {
+    if (!profile) return 1;
+    
+    // Step 1: Photo
+    if (!profile.profile_photo_path && !profile.profile_photo) {
+      return 1;
+    }
+    
+    // Step 2: Personal Info (Full Name, Gender)
+    if (!profile.full_name || !profile.gender) {
+      return 2;
+    }
+    
+    // Step 3: Professional (Experience, Current Employer, Job Type)
+    if (!profile.experience_range || !profile.current_employer || !profile.job_type) {
+      return 3;
+    }
+    
+    // Step 4: Location (Location Preference, City)
+    if (!profile.location_preference || !profile.city) {
+      return 4;
+    }
+    
+    // Step 5: Specialization (Preferred Role, Skills)
+    if (!profile.preferred_role || !profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
+      return 5;
+    }
+    
+    return 1;
+  };
+
   const getMissingFieldText = () => {
-    if (!profile) return t("profile.addSkills", "Add Skills");
+    if (!profile) return t("profile.completeProfilePrompt", "Complete your profile details");
 
     if (completion >= 100) {
       return t("profile.editProfile", "Edit Profile");
     }
 
+    // Step 1: Photo
     if (!profile.profile_photo_path && !profile.profile_photo) {
       return t("profile.addPhotoAction", "Add Profile Photo");
     }
-    if (!profile.city) {
-      return t("profile.addCityAction", "Add Current City");
-    }
-    if (!profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
-      return t("profile.addSkillsAction", "Add Skills");
-    }
-    if (!profile.current_employer) {
-      return t("profile.addEmployerAction", "Add Current Employer");
+    
+    // Step 2: Personal Info
+    if (!profile.full_name) {
+      return t("profile.addFullNameAction", "Add Full Name");
     }
     if (!profile.gender) {
       return t("profile.addGenderAction", "Add Gender");
     }
     
-    return t("profile.editProfile", "Edit Profile");
+    // Step 3: Professional
+    if (!profile.experience_range) {
+      return t("profile.addExperienceAction", "Add Experience Range");
+    }
+    if (!profile.current_employer) {
+      return t("profile.addEmployerAction", "Add Current Employer");
+    }
+    if (!profile.job_type) {
+      return t("profile.addJobTypeAction", "Add Job Type Preference");
+    }
+    
+    // Step 4: Location
+    if (!profile.location_preference) {
+      return t("profile.addLocationPreference", "Add Location Preference");
+    }
+    if (!profile.city) {
+      return t("profile.addCityAction", "Add Current City");
+    }
+    
+    // Step 5: Specialization
+    if (!profile.preferred_role) {
+      return t("profile.addPreferredRole", "Add Preferred Role");
+    }
+    if (!profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
+      return t("profile.addSkillsAction", "Add Skills");
+    }
+    
+    return t("profile.completeProfilePrompt", "Complete your profile details");
   };
 
   return (
@@ -350,7 +405,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Dynamic Missing Field / Add Skills Action */}
           <Pressable
             style={styles.addSkillsBar}
-            onPress={() => navigation.navigate("CompleteProfileScreen")}
+            onPress={() => navigation.navigate("CompleteProfileScreen", { step: getMissingFieldStep() })}
           >
             <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
             <Ionicons 

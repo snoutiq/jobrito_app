@@ -86,13 +86,24 @@ const normalizeLocationPreferenceValue = (value) => {
   return "";
 };
 
-export default function CompleteProfileScreen({ navigation }) {
+export default function CompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   
   const { profile, loading } = useSelector((state) => state.user);
   
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    if (route?.params?.step) {
+      return route.params.step;
+    }
+    return 1;
+  });
+
+  useEffect(() => {
+    if (route?.params?.step) {
+      setStep(route.params.step);
+    }
+  }, [route?.params?.step]);
 
   // Profile Form States
   const [photo, setPhoto] = useState(null);
