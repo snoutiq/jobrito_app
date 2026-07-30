@@ -109,13 +109,13 @@ export default function CompleteProfileScreen({ navigation, route }) {
   const [photo, setPhoto] = useState(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [gender, setGender] = useState("male");
-  const [experienceRange, setExperienceRange] = useState("0-2 Years");
+  const [gender, setGender] = useState("");
+  const [experienceRange, setExperienceRange] = useState("");
   const [currentEmployer, setCurrentEmployer] = useState("");
-  const [jobType, setJobType] = useState("Full Time");
-  const [locationPreference, setLocationPreference] = useState("India");
+  const [jobType, setJobType] = useState("");
+  const [locationPreference, setLocationPreference] = useState("");
   const [city, setCity] = useState("");
-  const [preferredRole, setPreferredRole] = useState("Kitchen Production");
+  const [preferredRole, setPreferredRole] = useState("");
   const [skills, setSkills] = useState("");
 
   useLayoutEffect(() => {
@@ -131,40 +131,40 @@ export default function CompleteProfileScreen({ navigation, route }) {
   useEffect(() => {
     if (profile) {
       const profilePhoto = normalizePhotoUri(profile.profile_photo_path || profile.profile_photo);
-      if (profilePhoto) setPhoto(profilePhoto);
+      setPhoto(profilePhoto || null);
 
       const profileName = profile.full_name || profile.name || "";
       const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(profileName);
-      if (profileName && !isPhoneLike) setFullName(profileName);
+      setFullName(profileName && !isPhoneLike ? profileName : "");
 
       const emailValue = toTrimmedString(profile.email || profile.contact_email || profile.user_email);
-      if (emailValue) setEmail(emailValue);
+      setEmail(emailValue);
 
       const cityValue = toTrimmedString(
         profile.city || profile.current_city || profile.location || profile.job_location || profile.jobLocation
       );
-      if (cityValue) setCity(cityValue);
+      setCity(cityValue);
 
       const experienceValue = toTrimmedString(
         profile.experience_range || profile.experienceRange || profile.experience || profile.experience_years
       );
-      if (experienceValue) setExperienceRange(experienceValue);
+      setExperienceRange(experienceValue);
 
       const preferredRoleValue = toTrimmedString(profile.preferred_role || profile.preferredRole);
-      if (preferredRoleValue) setPreferredRole(preferredRoleValue);
+      setPreferredRole(preferredRoleValue);
 
       const employerValue = toTrimmedString(
         profile.current_employer || profile.currentEmployer || profile.current_company || profile.company
       );
-      if (employerValue) setCurrentEmployer(employerValue);
+      setCurrentEmployer(employerValue);
 
       const skillsValue = normalizeSkillsValue(profile.skills || profile.operations);
-      if (skillsValue) setSkills(skillsValue);
+      setSkills(skillsValue);
 
-      if (profile.gender) setGender(profile.gender);
+      setGender(profile.gender ? toTrimmedString(profile.gender).toLowerCase() : "");
 
       const jobTypeValue = toTrimmedString(profile.job_type || profile.jobType);
-      if (jobTypeValue) setJobType(jobTypeValue);
+      setJobType(jobTypeValue);
 
       const locationPrefRaw = toTrimmedString(
         profile.location_preference || profile.locationPreference || profile.job_location || profile.jobLocation
@@ -181,6 +181,8 @@ export default function CompleteProfileScreen({ navigation, route }) {
         } else if (overseasRegions.includes(cityValue)) {
           setLocationPreference("Overseas");
         }
+      } else {
+        setLocationPreference("");
       }
     }
   }, [profile]);
