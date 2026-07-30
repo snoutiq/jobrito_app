@@ -351,6 +351,14 @@ export default function SettingsScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("TalentSettings")}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="settings-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>{t("settingsTitle", "Settings")}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+          </TouchableOpacity>
+          <View style={styles.divider} />
           <TouchableOpacity style={styles.logoutRow} onPress={() => setShowLogoutModal(true)}>
             <View style={styles.menuLeft}>
               <Ionicons name="log-out-outline" size={18} color="#f57f20" />

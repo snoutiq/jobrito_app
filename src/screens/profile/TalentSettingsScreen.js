@@ -57,7 +57,6 @@ export default function TalentSettingsScreen({ navigation }) {
               console.warn("Delete account API failed:", err);
             }
             await performLogout();
-            Alert.alert(t("success"), t("accountDeleted", "Your account has been deleted."));
           },
         },
       ]
