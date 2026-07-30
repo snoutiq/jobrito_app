@@ -35,6 +35,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getEmployerNotifications } from "../../services/notificationApi";
 import { getDailyPostLimit } from "../../services/jobApi";
 
+const PRIMARY_GREEN = "#153e69";
+
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -184,13 +186,14 @@ export default function HomeScreen({ navigation }) {
         
         if (isEligibleRole) {
           if (isPhase1Incomplete) {
-            setCurrentProgressStep(profile.profile_photo_path || profile.profile_photo ? 2 : 1);
+            setCurrentProgressStep(1);
             setCompletionModalVisible(true);
           } else if (isPhase2Incomplete && visitCount >= 2) {
-            setCurrentProgressStep(3);
+            const isExpEmployerFilled = !!profile.experience_range && !!profile.current_employer;
+            setCurrentProgressStep(isExpEmployerFilled ? 3 : 2);
             setCompletionModalVisible(true);
           } else if (isPhase3Incomplete && visitCount >= 3) {
-            setCurrentProgressStep(5);
+            setCurrentProgressStep(4);
             setCompletionModalVisible(true);
           } else {
             setCompletionModalVisible(false);
@@ -759,9 +762,7 @@ export default function HomeScreen({ navigation }) {
           }
           return false;
         }}
-      />
-
-      {/* Profile Completion Modal Wizard */}
+      />      {/* Profile Completion Modal Wizard */}
       <Modal
         visible={completionModalVisible}
         animationType="slide"
@@ -775,7 +776,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Question {currentProgressStep} of 5
+                Profile Setup (Step {currentProgressStep} of 4)
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -797,7 +798,7 @@ export default function HomeScreen({ navigation }) {
               <View
                 style={[
                   styles.progressBarFill,
-                  { width: `${currentProgressStep * 20}%` },
+                  { width: `${currentProgressStep * 25}%` },
                 ]}
               />
             </View>
@@ -809,94 +810,111 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 1 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Add Profile Photo
+                    Personal Info & Photo
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    A professional photo helps you stand out to employers.
+                    A professional photo and profile details help recruiters find you.
                   </Text>
 
-                  <TouchableOpacity
-                    style={styles.photoUploadCircle}
-                    onPress={() => {
-                      Alert.alert(
-                        "Profile Photo",
-                        "Select profile photo source:",
-                        [
-                          { text: "Camera", onPress: handleTakePhoto },
-                          { text: "Gallery", onPress: handleUploadPhoto },
-                          { text: "Cancel", style: "cancel" }
-                        ]
-                      );
-                    }}
-                  >
-                    {photo ? (
-                      <Image source={{ uri: photo }} style={styles.photoUploadImage} />
-                    ) : (
-                      <Ionicons name="camera-outline" size={32} color="rgba(10, 5, 4, 0.4)" />
-                    )}
-                  </TouchableOpacity>
+                  <View style={styles.wizardRow}>
+                    {/* Left Column: Photo */}
+                    <View style={styles.wizardLeftCol}>
+                      <View style={{ alignSelf: "center", position: "relative" }}>
+                        <TouchableOpacity
+                          style={styles.photoUploadCircleCompact}
+                          onPress={() => {
+                            Alert.alert(
+                              "Profile Photo",
+                              "Select profile photo source:",
+                              [
+                                { text: "Camera", onPress: handleTakePhoto },
+                                { text: "Gallery", onPress: handleUploadPhoto },
+                                { text: "Cancel", style: "cancel" }
+                              ]
+                            );
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          {photo ? (
+                            <Image source={{ uri: photo }} style={styles.photoUploadImage} />
+                          ) : (
+                            <Ionicons name="person" size={36} color="rgba(10, 5, 4, 0.15)" />
+                          )}
+                        </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.modalConfirmBtn}
-                    onPress={() => setCurrentProgressStep(2)}
-                  >
-                    <Text style={styles.modalConfirmBtnText}>
-                      {photo ? "Continue" : "Maybe Later"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                        {/* Side edit/add badge icon */}
+                        <TouchableOpacity
+                          style={styles.photoUploadBadgeCompact}
+                          onPress={() => {
+                            Alert.alert(
+                              "Profile Photo",
+                              "Select profile photo source:",
+                              [
+                                { text: "Camera", onPress: handleTakePhoto },
+                                { text: "Gallery", onPress: handleUploadPhoto },
+                                { text: "Cancel", style: "cancel" }
+                              ]
+                            );
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons 
+                            name={photo ? "pencil" : "add"} 
+                            size={12} 
+                            color="#ffffff" 
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
 
-              {currentProgressStep === 2 && (
-                <View>
-                  <Text style={styles.inputLabel}>
-                    Personal Identity
-                  </Text>
-                  <Text style={styles.modalSubtitle}>
-                    Please enter your full name and select your gender.
-                  </Text>
+                    {/* Right Column: Name & Gender */}
+                    <View style={styles.wizardRightCol}>
+                      <View style={styles.inputGroup}>
+                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Full Name</Text>
+                        <View style={[styles.inputWrapper, { height: 42, paddingHorizontal: 10 }]}>
+                          <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                          <TextInput
+                            style={[styles.textInputWithIcon, { fontSize: 13 }]}
+                            value={fullName}
+                            onChangeText={setFullName}
+                            placeholder="Full name"
+                            placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                          />
+                        </View>
+                      </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Full Name</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={fullName}
-                      onChangeText={setFullName}
-                      placeholder="Enter full name"
-                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    />
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Gender</Text>
-                    <View style={styles.genderSelectRow}>
-                      {["Male", "Female", "Other"].map((g) => {
-                        const isSelected = gender.toLowerCase() === g.toLowerCase();
-                        return (
-                          <TouchableOpacity
-                            key={g}
-                            style={[
-                              styles.genderSelectBtn,
-                              isSelected && styles.genderSelectBtnActive,
-                            ]}
-                            onPress={() => setGender(g.toLowerCase())}
-                          >
-                            <Text
-                              style={[
-                                styles.genderSelectText,
-                                isSelected && styles.genderSelectTextActive,
-                              ]}
-                            >
-                              {g}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
+                      <View style={[styles.inputGroup, { marginBottom: 0 }]}>
+                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Gender</Text>
+                        <View style={[styles.genderSelectRow, { gap: 6 }]}>
+                          {["Male", "Female", "Other"].map((g) => {
+                            const isSelected = gender.toLowerCase() === g.toLowerCase();
+                            return (
+                              <TouchableOpacity
+                                key={g}
+                                style={[
+                                  styles.genderSelectBtnCompact,
+                                  isSelected && styles.genderSelectBtnActive,
+                                ]}
+                                onPress={() => setGender(g.toLowerCase())}
+                              >
+                                <Text
+                                  style={[
+                                    styles.genderSelectTextCompact,
+                                    isSelected && styles.genderSelectTextActive,
+                                  ]}
+                                >
+                                  {g}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
                     </View>
                   </View>
 
                   <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !fullName.trim() && { opacity: 0.5 }]}
+                    style={[styles.modalConfirmBtn, { marginTop: 16 }, !fullName.trim() && { opacity: 0.5 }]}
                     disabled={!fullName.trim() || submittingProfile}
                     onPress={async () => {
                       const ok = await saveProgressStep({
@@ -919,7 +937,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
               )}
 
-              {currentProgressStep === 3 && (
+              {currentProgressStep === 2 && (
                 <View>
                   <Text style={styles.inputLabel}>
                     Work Experience
@@ -929,7 +947,7 @@ export default function HomeScreen({ navigation }) {
                   </Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Experience</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Experience</Text>
                     <View style={styles.experienceOptionsRow}>
                       {["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"].map((r) => {
                         const isSelected = experienceRange === r;
@@ -957,21 +975,25 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Current Employer</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={currentEmployer}
-                      onChangeText={setCurrentEmployer}
-                      placeholder="e.g. Self-Employed or hotel name"
-                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    />
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Current Employer</Text>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="business-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.textInputWithIcon}
+                        value={currentEmployer}
+                        onChangeText={setCurrentEmployer}
+                        placeholder="e.g. Self-Employed or hotel name"
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Job Preference</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Job Preference</Text>
                     <View style={styles.jobTypeRow}>
                       {["Full Time", "Part Time", "Freelance Chef"].map((t) => {
                         const isSelected = jobType === t;
+                        const iconName = t === "Full Time" ? "briefcase-outline" : t === "Part Time" ? "time-outline" : "restaurant-outline";
                         return (
                           <TouchableOpacity
                             key={t}
@@ -981,14 +1003,21 @@ export default function HomeScreen({ navigation }) {
                             ]}
                             onPress={() => setJobType(t)}
                           >
-                            <Text
-                              style={[
-                                styles.jobTypeText,
-                                isSelected && styles.jobTypeTextActive,
-                              ]}
-                            >
-                              {t}
-                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                              <Ionicons
+                                name={iconName}
+                                size={14}
+                                color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.5)"}
+                              />
+                              <Text
+                                style={[
+                                  styles.jobTypeText,
+                                  isSelected && styles.jobTypeTextActive,
+                                ]}
+                              >
+                                {t}
+                              </Text>
+                            </View>
                           </TouchableOpacity>
                         );
                       })}
@@ -998,14 +1027,14 @@ export default function HomeScreen({ navigation }) {
                   <TouchableOpacity
                     style={[styles.modalConfirmBtn, { marginTop: 20 }, (!experienceRange || !currentEmployer.trim()) && { opacity: 0.5 }]}
                     disabled={!experienceRange || !currentEmployer.trim()}
-                    onPress={() => setCurrentProgressStep(4)}
+                    onPress={() => setCurrentProgressStep(3)}
                   >
                     <Text style={styles.modalConfirmBtnText}>Continue</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
-              {currentProgressStep === 4 && (
+              {currentProgressStep === 3 && (
                 <View>
                   <Text style={styles.inputLabel}>
                     Location Preference
@@ -1015,10 +1044,11 @@ export default function HomeScreen({ navigation }) {
                   </Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred Region</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Region</Text>
                     <View style={styles.locationPreferenceRow}>
                       {["India", "Overseas", "Both"].map((p) => {
                         const isSelected = locationPreference === p;
+                        const iconName = p === "India" ? "pin-outline" : p === "Overseas" ? "globe-outline" : "earth-outline";
                         return (
                           <TouchableOpacity
                             key={p}
@@ -1028,14 +1058,21 @@ export default function HomeScreen({ navigation }) {
                             ]}
                             onPress={() => setLocationPreference(p)}
                           >
-                            <Text
-                              style={[
-                                styles.locationPreferenceText,
-                                isSelected && styles.locationPreferenceTextActive,
-                              ]}
-                            >
-                              {p}
-                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                              <Ionicons
+                                name={iconName}
+                                size={14}
+                                color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.5)"}
+                              />
+                              <Text
+                                style={[
+                                  styles.locationPreferenceText,
+                                  isSelected && styles.locationPreferenceTextActive,
+                                ]}
+                              >
+                                {p}
+                              </Text>
+                            </View>
                           </TouchableOpacity>
                         );
                       })}
@@ -1043,14 +1080,17 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred City / State</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={city}
-                      onChangeText={setCity}
-                      placeholder="e.g. Mumbai, Dubai"
-                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    />
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred City / State</Text>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="location-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.textInputWithIcon}
+                        value={city}
+                        onChangeText={setCity}
+                        placeholder="e.g. Mumbai, Dubai"
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
                   </View>
 
                   <TouchableOpacity
@@ -1079,7 +1119,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
               )}
 
-              {currentProgressStep === 5 && (
+              {currentProgressStep === 4 && (
                 <View>
                   <Text style={styles.inputLabel}>
                     Preferred Role & Skills
@@ -1089,25 +1129,31 @@ export default function HomeScreen({ navigation }) {
                   </Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Preferred Role</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={preferredRole}
-                      onChangeText={setPreferredRole}
-                      placeholder="e.g. Kitchen Production, Executive Chef"
-                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    />
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Role</Text>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="star-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.textInputWithIcon}
+                        value={preferredRole}
+                        onChangeText={setPreferredRole}
+                        placeholder="e.g. Kitchen Production, Executive Chef"
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)" }]}>Skills (comma separated)</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={skills}
-                      onChangeText={setSkills}
-                      placeholder="e.g. Indian, Continental, Food Safety"
-                      placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    />
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Skills (comma separated)</Text>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="construct-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.textInputWithIcon}
+                        value={skills}
+                        onChangeText={setSkills}
+                        placeholder="e.g. Indian, Continental, Food Safety"
+                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                      />
+                    </View>
                   </View>
 
                   <TouchableOpacity
@@ -1468,34 +1514,35 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
   modalContainer: {
     backgroundColor: "#ffffff",
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 28,
+    padding: 24,
     width: "100%",
     maxWidth: 340,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "800",
     color: "#0a0504",
-    marginBottom: 6,
+    marginBottom: 4,
+    letterSpacing: -0.2,
   },
   modalSubtitle: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 18,
-    marginBottom: 20,
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.55)",
+    lineHeight: 19,
+    marginBottom: 16,
   },
   slotsList: {
     gap: 10,
@@ -1530,17 +1577,22 @@ const styles = StyleSheet.create({
   },
   modalConfirmBtn: {
     backgroundColor: "#153e69",
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
-    marginTop: 8,
+    marginBottom: 8,
+    marginTop: 12,
+    shadowColor: "#153e69",
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   modalConfirmBtnText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
   modalSkipBtn: {
     paddingVertical: 8,
@@ -1600,14 +1652,36 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   textInput: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    height: 48,
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.08)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
     color: "#0a0504",
-    backgroundColor: "#ffffff",
-    fontSize: 13,
+    backgroundColor: "#f8fafc",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.08)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    width: "100%",
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  textInputWithIcon: {
+    flex: 1,
+    height: "100%",
+    color: "#0a0504",
+    fontSize: 14,
+    fontWeight: "500",
   },
   modalHeader: {
     flexDirection: "row",
@@ -1626,39 +1700,113 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   progressBarContainer: {
-    height: 6,
-    backgroundColor: "rgba(10, 5, 4, 0.1)",
-    borderRadius: 3,
-    marginVertical: 12,
+    height: 4,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 2,
+    marginVertical: 14,
     width: "100%",
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
     backgroundColor: "#153e69",
-    borderRadius: 3,
+    borderRadius: 2,
   },
   photoUploadCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: "#f2f2f3",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#f1f5f9",
     borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.12)",
-    alignSelf: "center",
+    borderColor: "rgba(10, 5, 4, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    marginVertical: 16,
+  },
+  photoUploadBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#153e69",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   photoUploadImage: {
     width: "100%",
     height: "100%",
   },
+  wizardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+    marginVertical: 4,
+  },
+  wizardLeftCol: {
+    width: 84,
+    alignItems: "center",
+  },
+  wizardRightCol: {
+    flex: 1,
+  },
+  photoUploadCircleCompact: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  photoUploadBadgeCompact: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#153e69",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  genderSelectBtnCompact: {
+    flex: 1,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  genderSelectTextCompact: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.6)",
+  },
   genderSelectBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 10,
+    height: 48,
+    borderRadius: 12,
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.12)",
     alignItems: "center",
@@ -1685,10 +1833,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   experienceOptionBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.12)",
     backgroundColor: "#ffffff",
   },
@@ -1712,9 +1860,9 @@ const styles = StyleSheet.create({
   },
   jobTypeBtn: {
     flex: 1,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.12)",
     alignItems: "center",
     justifyContent: "center",
@@ -1740,9 +1888,9 @@ const styles = StyleSheet.create({
   },
   locationPreferenceBtn: {
     flex: 1,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.12)",
     alignItems: "center",
     justifyContent: "center",
