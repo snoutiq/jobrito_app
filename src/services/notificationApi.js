@@ -28,11 +28,23 @@ export const getEmployerNotifications = async (role) => {
 };
 
 export const markNotificationAsRead = async (notificationId) => {
-  const response = await apiClient.put(`/fcm/notifications/${notificationId}/read`);
+  const response = await apiClient.post(`/notifications/seen`, {
+    id: notificationId,
+  });
   return response.data;
 };
 
-export const markAllNotificationsAsRead = async (role) => {
+export const markAllNotificationsAsRead = async (role, unreadIds = []) => {
+  if (unreadIds && unreadIds.length > 0) {
+    try {
+      await Promise.all(
+        unreadIds.map((id) => apiClient.post(`/notifications/seen`, { id }))
+      );
+      return { success: true };
+    } catch (e) {
+      console.warn("Failed to mark all as read via seen endpoints:", e);
+    }
+  }
   let apiRole = "talent";
   if (role) {
     const r = role.toLowerCase().replace(/[\s_-]/g, "");

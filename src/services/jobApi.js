@@ -68,3 +68,8 @@ export const getMyJobs = async () => {
   const response = await apiClient.get(API_ENDPOINTS.MY_JOBS);
   return response.data;
 };
+
+export const getDailyPostLimit = async () => {
+  const response = await apiClient.get("/user/daily-posts");
+  return response.data;
+};

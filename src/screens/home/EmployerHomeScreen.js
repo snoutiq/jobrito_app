@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import { getDailyPostLimit } from "../../services/jobApi";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -23,6 +24,30 @@ export default function EmployerHomeScreen({ navigation }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const { metrics, loading } = useSelector((state) => state.employer);
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [checkingLimit, setCheckingLimit] = useState(false);
+
+  const checkPostLimitAndNavigate = async (targetScreen) => {
+    if (checkingLimit) return;
+    setCheckingLimit(true);
+    try {
+      const res = await getDailyPostLimit();
+      if (res && res.success && res.can_post_today === false) {
+        setToastMessage(t("dailyPostLimitComplete", "Daily job post limit completed!"));
+        setTimeout(() => {
+          setToastMessage("");
+        }, 1000);
+      } else {
+        navigation.navigate(targetScreen);
+      }
+    } catch (err) {
+      console.warn("Failed to check daily post limit:", err);
+      navigation.navigate(targetScreen);
+    } finally {
+      setCheckingLimit(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -177,7 +202,7 @@ export default function EmployerHomeScreen({ navigation }) {
           <TouchableOpacity
             style={styles.actionItem}
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("Post Job")}
+            onPress={() => checkPostLimitAndNavigate("Post Job")}
           >
             <View style={[styles.actionIconBox, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
               <Ionicons name="add-circle" size={26} color={PRIMARY_GREEN} />
@@ -220,6 +245,12 @@ export default function EmployerHomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {Boolean(toastMessage) && (
+        <View style={styles.toastContainer}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -434,5 +465,29 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     fontSize: 12,
     marginTop: 3,
+  },
+  toastContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(10, 5, 4, 0.9)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  toastText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

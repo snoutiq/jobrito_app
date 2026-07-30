@@ -18,6 +18,7 @@ import {
 } from "../../redux/slices/employerSlice";
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
+import { getDailyPostLimit } from "../../services/jobApi";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -37,6 +38,38 @@ const formatDate = (dateStr) => {
 export default function MyJobsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [checkingLimit, setCheckingLimit] = useState(false);
+
+  const checkPostLimitAndNavigate = async () => {
+    if (checkingLimit) return;
+    setCheckingLimit(true);
+    try {
+      const res = await getDailyPostLimit();
+      if (res && res.success && res.can_post_today === false) {
+        setToastMessage(t("dailyPostLimitComplete", "Daily job post limit completed!"));
+        setTimeout(() => {
+          setToastMessage("");
+        }, 1000);
+      } else {
+        if (isEmployer) {
+          navigation.navigate("Post Job");
+        } else {
+          navigation.navigate("Post Referral Job");
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to check daily post limit:", err);
+      if (isEmployer) {
+        navigation.navigate("Post Job");
+      } else {
+        navigation.navigate("Post Referral Job");
+      }
+    } finally {
+      setCheckingLimit(false);
+    }
+  };
 
   // Redux Selectors
   const submittedJobs = useSelector((state) => state.employer.submittedJobs);
@@ -559,14 +592,16 @@ export default function MyJobsScreen({ navigation, route }) {
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
         activeOpacity={0.8}
-        onPress={() => {
-          isEmployer
-            ? navigation.navigate("Post Job")
-            : navigation.navigate("Post Referral Job");
-        }}
+        onPress={checkPostLimitAndNavigate}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
+
+      {Boolean(toastMessage) && (
+        <View style={styles.toastContainer}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -852,6 +887,30 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 5,
+  },
+  toastContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(10, 5, 4, 0.9)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  toastText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

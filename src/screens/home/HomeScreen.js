@@ -33,10 +33,35 @@ import AppLoader from "../../components/common/AppLoader";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getEmployerNotifications } from "../../services/notificationApi";
+import { getDailyPostLimit } from "../../services/jobApi";
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [checkingLimit, setCheckingLimit] = useState(false);
+
+  const checkPostLimitAndNavigate = async (targetScreen) => {
+    if (checkingLimit) return;
+    setCheckingLimit(true);
+    try {
+      const res = await getDailyPostLimit();
+      if (res && res.success && res.can_post_today === false) {
+        setToastMessage(t("dailyPostLimitComplete", "Daily job post limit completed!"));
+        setTimeout(() => {
+          setToastMessage("");
+        }, 1000);
+      } else {
+        navigation.navigate(targetScreen);
+      }
+    } catch (err) {
+      console.warn("Failed to check daily post limit:", err);
+      navigation.navigate(targetScreen);
+    } finally {
+      setCheckingLimit(false);
+    }
+  };
 
   const { feedJobs, savedJobs, applyingJobId } = useSelector(
     (state) => state.job,
@@ -702,11 +727,17 @@ export default function HomeScreen({ navigation }) {
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate("Post Referral Job")}
+        onPress={() => checkPostLimitAndNavigate("Post Referral Job")}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
+
+      {Boolean(toastMessage) && (
+        <View style={styles.toastContainer}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
 
       <CallbackModal
         visible={showCallModal}
@@ -1754,11 +1785,35 @@ const styles = StyleSheet.create({
 },
 
 poweredRibbonText: {
-  fontSize: 10,
-  fontStyle: "italic",
-  fontWeight: "800",
-  letterSpacing: 0.8,
-  color: "#153e69",
-  textTransform: "uppercase",
-},
+    fontSize: 10,
+    fontStyle: "italic",
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    color: "#153e69",
+    textTransform: "uppercase",
+  },
+  toastContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(10, 5, 4, 0.9)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  toastText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });
