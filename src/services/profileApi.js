@@ -107,6 +107,8 @@ export const normalizeProfile = (u) => {
     bio: chef.bio || "",
     calendly_link: chef.calendly_link || "",
     availability_info: availability,
+    availability: userObj.availability_status || userObj.availability || "",
+    availability_status: userObj.availability_status || userObj.availability || "",
     languages: availability.languages || [],
     operations: userObj.skills || [],
     linkedin: (userObj.socials || root.socials || {}).linkedin || chef.linkedin_link || chef.linkedin || "",

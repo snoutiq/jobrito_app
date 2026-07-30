@@ -902,7 +902,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   };
 
   const getOnboardingCompletionPercent = () => {
-    let totalFields = 12;
+    let totalFields = 14;
     let filledFields = 0;
     
     if (fullName && fullName.trim()) filledFields++;
@@ -915,6 +915,8 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     if (languages.length > 0) filledFields++;
     if (selectedCuisines.length > 0) filledFields++;
     if (selectedOperations.length > 0) filledFields++;
+    if (locationPreference) filledFields++;
+    if (employmentPreference.length > 0) filledFields++;
     
     const calendly = calendlyLink;
     const isCalendlyValid = calendly && 
@@ -1535,7 +1537,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Job Location Preference */}
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Job Location Preference</Text>
+                <Text style={styles.sectionTitleText}>Job Location Preference <Text style={{ color: "red" }}>*</Text></Text>
               </View>
               <View style={styles.pillsRow}>
                 {locationPrefOptions.map((lp) => {
@@ -1558,7 +1560,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Employment Preference */}
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="briefcase-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Employment Preference</Text>
+                <Text style={styles.sectionTitleText}>Employment Preference <Text style={{ color: "red" }}>*</Text></Text>
               </View>
               <View style={styles.pillsRow}>
                 {employmentOptions.map((ep) => {

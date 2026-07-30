@@ -101,8 +101,19 @@ export default function ChefProfileScreen({ navigation }) {
     const hasCuisines = !!(profile.cuisines || profile.cuisine_specialty);
     const hasSkills = !!(profile.operations || profile.skills);
     const hasSocial = !!(profile.linkedin || profile.instagram || profile.facebook || profile.twitter);
+    
+    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    
+    const getEmploymentPref = () => {
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+        return profile.availability_info.employment_preference;
+      }
+      return profile.employmentPreference || profile.employment_preference;
+    };
+    const empPref = getEmploymentPref();
+    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
 
-    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly && hasSocial;
+    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly && hasSocial && hasLocationPref && hasEmploymentPref;
 
     if (isActuallyComplete) {
       const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
@@ -111,7 +122,7 @@ export default function ChefProfileScreen({ navigation }) {
       }
     }
 
-    let totalFields = 12;
+    let totalFields = 14;
     let filledFields = 0;
 
     if (profile?.full_name || profile?.name) filledFields++;
@@ -144,6 +155,16 @@ export default function ChefProfileScreen({ navigation }) {
 
     // Social Links
     if (hasSocial) {
+      filledFields++;
+    }
+
+    // Location Preference
+    if (hasLocationPref) {
+      filledFields++;
+    }
+
+    // Employment Preference
+    if (hasEmploymentPref) {
       filledFields++;
     }
 
@@ -182,6 +203,23 @@ export default function ChefProfileScreen({ navigation }) {
     if (!hasSocial) {
       missed.push(t("socialLinks", "Social Links"));
     }
+
+    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    if (!hasLocationPref) {
+      missed.push(t("locationPreference", "Job Location Preference"));
+    }
+
+    const getEmploymentPref = () => {
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+        return profile.availability_info.employment_preference;
+      }
+      return profile.employmentPreference || profile.employment_preference;
+    };
+    const empPref = getEmploymentPref();
+    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    if (!hasEmploymentPref) {
+      missed.push(t("employmentPreference", "Employment Preference"));
+    }
  
     return missed;
   };
@@ -205,6 +243,23 @@ export default function ChefProfileScreen({ navigation }) {
     const ops = profile?.operations || profile?.skills;
     if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
       return t("profile.addSkillsAction", "Add Operational Skills");
+    }
+
+    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    if (!hasLocationPref) {
+      return t("profile.addLocationPreference", "Add Job Location Preference");
+    }
+
+    const getEmploymentPref = () => {
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+        return profile.availability_info.employment_preference;
+      }
+      return profile.employmentPreference || profile.employment_preference;
+    };
+    const empPref = getEmploymentPref();
+    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    if (!hasEmploymentPref) {
+      return t("profile.addEmploymentPreference", "Add Employment Preference");
     }
 
     const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
@@ -240,6 +295,23 @@ export default function ChefProfileScreen({ navigation }) {
     const ops = profile?.operations || profile?.skills;
     if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
       return 2;
+    }
+
+    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    if (!hasLocationPref) {
+      return 3;
+    }
+
+    const getEmploymentPref = () => {
+      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+        return profile.availability_info.employment_preference;
+      }
+      return profile.employmentPreference || profile.employment_preference;
+    };
+    const empPref = getEmploymentPref();
+    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    if (!hasEmploymentPref) {
+      return 3;
     }
 
     const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
@@ -428,7 +500,11 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
     // 3. Update server API via dedicated toggle helper
     try {
-      await updateChefAvailability(newStatus);
+      const response = await updateChefAvailability(newStatus);
+      if (response && response.success && response.user) {
+        const { normalizeProfile } = require("../../services/profileApi");
+        dispatch(setProfileData(normalizeProfile(response.user)));
+      }
     } catch (err) {
       console.warn("Failed to update availability on server:", err);
     }
