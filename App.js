@@ -1,7 +1,7 @@
 import "react-native-gesture-handler";
 import React, { useEffect } from "react";
 import { Alert } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { Provider } from "react-redux";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -75,6 +75,8 @@ Notifications.setNotificationHandler({
   }),
 });
 
+export const navigationRef = createNavigationContainerRef();
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     InstrumentSans_400Regular,
@@ -106,6 +108,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Check if the app was opened by a notification when it was closed/killed
+    async function checkInitialNotification() {
+      try {
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response) {
+          console.log("🔔 [App opened from killed state by notification]:", JSON.stringify(response, null, 2));
+          const checkReady = setInterval(() => {
+            if (navigationRef.isReady()) {
+              clearInterval(checkReady);
+              navigationRef.navigate("EmployerNotifications");
+            }
+          }, 250);
+          setTimeout(() => clearInterval(checkReady), 10000);
+        }
+      } catch (err) {
+        console.warn("Failed to check last notification response:", err);
+      }
+    }
+    checkInitialNotification();
+
     // Listen for notifications received while the app is in the foreground
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
       console.log("🔔 [Foreground Notification Received]:", JSON.stringify(notification, null, 2));
@@ -116,6 +138,22 @@ export default function App() {
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
       console.log("🔔 [Notification Interacted/Tapped]:", JSON.stringify(response, null, 2));
       console.log("🔔 [Interacted Notification Data]:", JSON.stringify(response.notification.request.content.data, null, 2));
+      
+      try {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate("EmployerNotifications");
+        } else {
+          const checkReady = setInterval(() => {
+            if (navigationRef.isReady()) {
+              clearInterval(checkReady);
+              navigationRef.navigate("EmployerNotifications");
+            }
+          }, 250);
+          setTimeout(() => clearInterval(checkReady), 10000);
+        }
+      } catch (err) {
+        console.warn("Failed to navigate on notification tap:", err);
+      }
     });
 
     return () => {
@@ -174,7 +212,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <Provider store={store}>
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef}>
             <StatusBar style="dark" />
             <RootNavigator />
 

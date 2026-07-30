@@ -41,6 +41,7 @@ import ProfileViewsScreen from "../screens/chef/ProfileViewsScreen";
 import ProjectRequestsScreen from "../screens/chef/ProjectRequestsScreen";
 import { setProfileData } from "../redux/slices/userSlice";
 import MyJobDetailsScreen from "../screens/employer/MyJobDetailsScreen";
+import NotificationDetailsScreen from "../screens/employer/NotificationDetailsScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -176,6 +177,13 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="EmployerNotifications"
         component={EmployerNotificationsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="NotificationDetails"
+        component={NotificationDetailsScreen}
         options={{
           headerShown: false,
         }}
@@ -397,6 +405,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="EmployerNotifications"
         component={EmployerNotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NotificationDetails"
+        component={NotificationDetailsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

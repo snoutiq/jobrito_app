@@ -56,22 +56,30 @@ export default function EmployerNotificationsScreen({ navigation }) {
     }, [activeRole])
   );
 
-  const handleMarkAsRead = async (item) => {
-    if (item.is_read) return;
-    setNotifications((prev) =>
-      prev.map((n) => (String(n.id) === String(item.id) ? { ...n, is_read: true } : n))
-    );
-    try {
-      await markNotificationAsRead(item.id);
-    } catch (e) {
-      // ignore errors
+  const handleMarkAsRead = (item) => {
+    // 1. Mark as read locally if not already read
+    if (!item.is_read) {
+      setNotifications((prev) =>
+        prev.map((n) => (String(n.id) === String(item.id) ? { ...n, is_read: true } : n))
+      );
     }
+    
+    // 2. Navigate to details screen
+    navigation.navigate("NotificationDetails", {
+      notification: item,
+      onMarkAsRead: (id) => {
+        setNotifications((prev) =>
+          prev.map((n) => (String(n.id) === String(id) ? { ...n, is_read: true } : n))
+        );
+      }
+    });
   };
 
   const handleMarkAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     try {
-      await markAllNotificationsAsRead(activeRole);
+      await markAllNotificationsAsRead(activeRole, unreadIds);
     } catch (e) {
       // ignore errors
     }
@@ -79,6 +87,26 @@ export default function EmployerNotificationsScreen({ navigation }) {
 
   // Unread Count
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const getSummaryTitle = () => {
+    const roleLower = String(activeRole || "").toLowerCase();
+    if (roleLower === "chef") {
+      return t("chefNotifications", "Chef Notifications");
+    } else if (roleLower === "talent" || roleLower === "jobseeker" || roleLower === "job_seeker") {
+      return t("talentNotifications", "Talent Notifications");
+    }
+    return t("employerNotifications", "Employer Notifications");
+  };
+
+  const getSummaryText = () => {
+    const roleLower = String(activeRole || "").toLowerCase();
+    if (roleLower === "chef") {
+      return t("chefNotificationsSummary", "Stay updated on consultation requests, project status, and messages.");
+    } else if (roleLower === "talent" || roleLower === "jobseeker" || roleLower === "job_seeker") {
+      return t("talentNotificationsSummary", "Stay updated on your job applications, shortlists, and recommendations.");
+    }
+    return t("employerNotificationsSummary", "Stay updated on job applications, profile views, and candidate responses.");
+  };
 
   // Filtered List
   const filteredNotifications = notifications.filter((n) => {
@@ -176,10 +204,8 @@ export default function EmployerNotificationsScreen({ navigation }) {
             <View style={styles.summaryCard}>
               <Ionicons name="notifications-outline" size={22} color={PRIMARY_GREEN} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.summaryTitle}>{t("notifications", "Employer Notifications")}</Text>
-                <Text style={styles.summaryText}>
-                  {t("notificationsSummary", "Stay updated on job applications, profile views, and candidate responses.")}
-                </Text>
+                <Text style={styles.summaryTitle}>{getSummaryTitle()}</Text>
+                <Text style={styles.summaryText}>{getSummaryText()}</Text>
               </View>
             </View>
           }
