@@ -261,9 +261,11 @@ const CardStack = forwardRef(({
                 </Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onViewOtherFilters}>
-              <Text style={styles.emptyStateButtonTextSecondary}>{t("viewOtherFilters", "View Other Filters")}</Text>
-            </TouchableOpacity>
+            {onViewOtherFilters ? (
+              <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onViewOtherFilters}>
+                <Text style={styles.emptyStateButtonTextSecondary}>{t("viewOtherFilters", "View Other Filters")}</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity style={styles.emptyStateButtonSecondary} onPress={onBackToJobs}>
               <Text style={styles.emptyStateButtonTextSecondary}>{t("backToJobs", "Back to Jobs")}</Text>
             </TouchableOpacity>

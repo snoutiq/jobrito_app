@@ -211,13 +211,6 @@ export default function ApplicantListScreen({ route, navigation }) {
   };
 
   // Empty State CTA Handlers
-  const handleViewOtherFilters = () => {
-    setActiveFilter("all");
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-  };
-
   const handleBackToJobs = () => {
     navigation.goBack();
     if (Platform.OS !== 'web') {
@@ -360,7 +353,6 @@ export default function ApplicantListScreen({ route, navigation }) {
           onRejectButton={(applicant) => handleStatusUpdateAndShowUndo(applicant, "rejected")}
           onSwipeRight={(applicant) => handleSwipeGesture(applicant, "right")}
           onSwipeLeft={(applicant) => handleSwipeGesture(applicant, "left")}
-          onViewOtherFilters={handleViewOtherFilters} // For empty state CTA
           onBackToJobs={handleBackToJobs} // For empty state CTA
           onUndo={handleUndo}
           canUndo={swipeHistory.length > 0}

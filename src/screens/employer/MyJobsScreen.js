@@ -47,7 +47,9 @@ export default function MyJobsScreen({ navigation, route }) {
     (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
 
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState(
+    route?.params?.activeTab || route?.params?.initialTab || "active"
+  );
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -116,10 +118,11 @@ export default function MyJobsScreen({ navigation, route }) {
   }, [navigation, fetchAllData]);
 
   useEffect(() => {
-    if (route?.params?.activeTab) {
-      setActiveTab(route.params.activeTab);
+    const targetTab = route?.params?.activeTab || route?.params?.initialTab;
+    if (targetTab) {
+      setActiveTab(targetTab);
     }
-  }, [route?.params?.activeTab]);
+  }, [route?.params?.activeTab, route?.params?.initialTab]);
 
   useEffect(() => {
     setLocalJobs(jobsToShow);

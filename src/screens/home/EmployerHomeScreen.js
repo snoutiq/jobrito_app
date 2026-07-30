@@ -104,9 +104,7 @@ export default function EmployerHomeScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />}
       >
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("MyJobs")}
+        <View
           style={styles.mainStatsCard}
         >
           <View style={styles.statsCardHeader}>
@@ -135,13 +133,17 @@ export default function EmployerHomeScreen({ navigation }) {
               <Text style={styles.subStatLabel}>{t("contacted")}</Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
         <View style={styles.statusMainCard}>
           <Text style={styles.statusCardTitle}>{t("jobStatus", "JOB STATUS")}</Text>
           
           <View style={styles.statusRow}>
-            <View style={styles.statusItem}>
+            <TouchableOpacity 
+              style={styles.statusItem} 
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate("MyJobs", { initialTab: "pending" })}
+            >
               <View style={[styles.smallStatIconBox, { backgroundColor: "rgba(242, 200, 121, 0.12)" }]}>
                 <Ionicons name="hourglass-outline" size={20} color="#f2c879" />
               </View>
@@ -149,11 +151,15 @@ export default function EmployerHomeScreen({ navigation }) {
                 <Text style={styles.statusLabel}>{t("pendingJobs", "Pending Jobs")}</Text>
                 <Text style={styles.statusValue}>{pendingJobsCount}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.verticalStatusDivider} />
 
-            <View style={styles.statusItem}>
+            <TouchableOpacity 
+              style={styles.statusItem} 
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate("MyJobs", { initialTab: "active" })}
+            >
               <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
                 <Ionicons name="briefcase-outline" size={20} color="#153e69" />
               </View>
@@ -161,7 +167,7 @@ export default function EmployerHomeScreen({ navigation }) {
                 <Text style={styles.statusLabel}>{t("activeJobs", "Active Jobs")}</Text>
                 <Text style={styles.statusValue}>{activeJobsCount}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
