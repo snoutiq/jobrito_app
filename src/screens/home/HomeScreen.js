@@ -180,30 +180,78 @@ export default function HomeScreen({ navigation }) {
       const isPhase2Incomplete = !isExperienceFilled || !isEmployerFilled || !isLocationFilled;
       const isPhase3Incomplete = !isRoleFilled;
 
-      if (isInitialProfileLoadComplete && !hasModalBeenDismissedThisSession) {
-        const userRole = profile?.role || profile?.active_role || profile?.user_role;
-        const isEligibleRole = ["job_seeker", "candidate", "chef", "talent"].includes(String(userRole).toLowerCase());
-        
-        if (isEligibleRole) {
+      const checkModalDelayAndShow = async () => {
+        if (isInitialProfileLoadComplete && !hasModalBeenDismissedThisSession) {
+          const userRole = profile?.role || profile?.active_role || profile?.user_role;
+          const isEligibleRole = ["job_seeker", "candidate", "chef", "talent"].includes(String(userRole).toLowerCase());
+          
+          if (!isEligibleRole) {
+            setCompletionModalVisible(false);
+            return;
+          }
+
+          const now = Date.now();
+          const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+          // Initialize first_seen_at if not present
+          let firstSeenStr = await AsyncStorage.getItem("@first_seen_at");
+          if (!firstSeenStr) {
+            firstSeenStr = String(now);
+            await AsyncStorage.setItem("@first_seen_at", firstSeenStr);
+          }
+          const firstSeen = parseInt(firstSeenStr, 10);
+
+          // Fetch phase completion times
+          const phase1CompStr = await AsyncStorage.getItem("@phase1_completed_at");
+          const phase2CompStr = await AsyncStorage.getItem("@phase2_completed_at");
+
+          const phase1Time = phase1CompStr ? parseInt(phase1CompStr, 10) : firstSeen;
+          const phase2Time = phase2CompStr ? parseInt(phase2CompStr, 10) : firstSeen;
+
           if (isPhase1Incomplete) {
             setCurrentProgressStep(1);
             setCompletionModalVisible(true);
-          } else if (isPhase2Incomplete && visitCount >= 2) {
-            const isExpEmployerFilled = !!profile.experience_range && !!profile.current_employer;
-            setCurrentProgressStep(isExpEmployerFilled ? 3 : 2);
-            setCompletionModalVisible(true);
-          } else if (isPhase3Incomplete && visitCount >= 3) {
-            setCurrentProgressStep(4);
-            setCompletionModalVisible(true);
           } else {
-            setCompletionModalVisible(false);
+            // Phase 1 is complete! Set completed time if not set
+            if (!phase1CompStr) {
+              await AsyncStorage.setItem("@phase1_completed_at", String(now));
+            }
+
+            // Check Phase 2 (Second Modal) -> minimum 12 hours after Phase 1 completion
+            if (isPhase2Incomplete) {
+              const timeSincePhase1 = now - phase1Time;
+              if (timeSincePhase1 >= TWELVE_HOURS) {
+                const isExpEmployerFilled = !!profile.experience_range && !!profile.current_employer;
+                setCurrentProgressStep(isExpEmployerFilled ? 3 : 2);
+                setCompletionModalVisible(true);
+              } else {
+                setCompletionModalVisible(false);
+              }
+            } else {
+              // Phase 2 is complete! Set completed time if not set
+              if (!phase2CompStr) {
+                await AsyncStorage.setItem("@phase2_completed_at", String(now));
+              }
+
+              // Check Phase 3 (Third Modal) -> minimum 12 hours after Phase 2 completion
+              if (isPhase3Incomplete) {
+                const timeSincePhase2 = now - phase2Time;
+                if (timeSincePhase2 >= TWELVE_HOURS) {
+                  setCurrentProgressStep(4);
+                  setCompletionModalVisible(true);
+                } else {
+                  setCompletionModalVisible(false);
+                }
+              } else {
+                setCompletionModalVisible(false);
+              }
+            }
           }
-        } else {
-          setCompletionModalVisible(false);
         }
-      }
+      };
+      checkModalDelayAndShow();
     }
-  }, [profile, isInitialProfileLoadComplete, visitCount, hasModalBeenDismissedThisSession]);
+  }, [profile, isInitialProfileLoadComplete, hasModalBeenDismissedThisSession]);
 
   const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
@@ -762,7 +810,8 @@ export default function HomeScreen({ navigation }) {
           }
           return false;
         }}
-      />      {/* Profile Completion Modal Wizard */}
+      />
+      {/* Profile Completion Modal Wizard */}
       <Modal
         visible={completionModalVisible}
         animationType="slide"
@@ -923,6 +972,9 @@ export default function HomeScreen({ navigation }) {
                         profile_photo_path: photo,
                       });
                       if (ok) {
+                        try {
+                          await AsyncStorage.setItem("@phase1_completed_at", String(Date.now()));
+                        } catch (err) {}
                         setCompletionModalVisible(false);
                         setSuccessModalVisible(true);
                       }
@@ -1105,6 +1157,9 @@ export default function HomeScreen({ navigation }) {
                         city: city.trim(),
                       });
                       if (ok) {
+                        try {
+                          await AsyncStorage.setItem("@phase2_completed_at", String(Date.now()));
+                        } catch (err) {}
                         setCompletionModalVisible(false);
                         setSuccessModalVisible(true);
                       }
@@ -1122,35 +1177,35 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 4 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Preferred Role & Skills
+                    Which Position Best Matches Your Experience?
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    Select your preferred kitchen role and list your skills.
+                    Tell us your preferred hospitality/kitchen role and specialized skills.
                   </Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Role</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Role / Position</Text>
                     <View style={styles.inputWrapper}>
-                      <Ionicons name="star-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+                      <Ionicons name="medal-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
                       <TextInput
                         style={styles.textInputWithIcon}
                         value={preferredRole}
                         onChangeText={setPreferredRole}
-                        placeholder="e.g. Kitchen Production, Executive Chef"
+                        placeholder="e.g. Executive Chef, Commi 1, Steward"
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                       />
                     </View>
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Skills (comma separated)</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Key Skills (comma separated)</Text>
                     <View style={styles.inputWrapper}>
                       <Ionicons name="construct-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
                       <TextInput
                         style={styles.textInputWithIcon}
                         value={skills}
                         onChangeText={setSkills}
-                        placeholder="e.g. Indian, Continental, Food Safety"
+                        placeholder="e.g. Continental, Tandoor, Food Safety"
                         placeholderTextColor="rgba(10, 5, 4, 0.3)"
                       />
                     </View>
