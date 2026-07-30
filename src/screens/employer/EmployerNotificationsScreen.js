@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import {
   getEmployerNotifications,
@@ -23,6 +24,9 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function EmployerNotificationsScreen({ navigation }) {
   const { t } = useTranslation();
+  const activeRole = useSelector(
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
+  );
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,7 +39,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
       setLoading(true);
     }
     try {
-      const res = await getEmployerNotifications();
+      const res = await getEmployerNotifications(activeRole);
       const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
       setNotifications(list);
     } catch (err) {
@@ -49,7 +53,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
-    }, [])
+    }, [activeRole])
   );
 
   const handleMarkAsRead = async (item) => {
@@ -67,7 +71,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
   const handleMarkAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     try {
-      await markAllNotificationsAsRead();
+      await markAllNotificationsAsRead(activeRole);
     } catch (e) {
       // ignore errors
     }

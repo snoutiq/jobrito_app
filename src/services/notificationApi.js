@@ -13,17 +13,35 @@ export const getNotificationSettings = async () => {
   return response.data;
 };
 
-export const getEmployerNotifications = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_NOTIFICATIONS);
+export const getEmployerNotifications = async (role) => {
+  let apiRole = "talent";
+  if (role) {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    if (r === "chef") {
+      apiRole = "chef";
+    } else if (r === "employer") {
+      apiRole = "employer";
+    }
+  }
+  const response = await apiClient.get(`/fcm/notifications?role=${apiRole}`);
   return response.data;
 };
 
 export const markNotificationAsRead = async (notificationId) => {
-  const response = await apiClient.put(`${API_ENDPOINTS.EMPLOYER_NOTIFICATIONS}/${notificationId}/read`);
+  const response = await apiClient.put(`/fcm/notifications/${notificationId}/read`);
   return response.data;
 };
 
-export const markAllNotificationsAsRead = async () => {
-  const response = await apiClient.put(`${API_ENDPOINTS.EMPLOYER_NOTIFICATIONS}/mark-all-read`);
+export const markAllNotificationsAsRead = async (role) => {
+  let apiRole = "talent";
+  if (role) {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    if (r === "chef") {
+      apiRole = "chef";
+    } else if (r === "employer") {
+      apiRole = "employer";
+    }
+  }
+  const response = await apiClient.put(`/fcm/notifications/mark-all-read?role=${apiRole}`);
   return response.data;
 };

@@ -44,6 +44,13 @@ export const normalizeProfile = (u) => {
       availability = {};
     }
   }
+  const rootAvailabilityStatus = userObj.availability_status || userObj.availability;
+  if (rootAvailabilityStatus) {
+    availability = {
+      ...availability,
+      availability_status: rootAvailabilityStatus,
+    };
+  }
 
   return {
     id: userObj.id,

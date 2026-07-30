@@ -60,7 +60,7 @@ export default function ChefHomeScreen({ navigation }) {
 
       // Fetch notifications count
       try {
-        const res = await getEmployerNotifications();
+        const res = await getEmployerNotifications("chef");
         const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
         const unread = list.filter((n) => !n.is_read).length;
         if (active) {

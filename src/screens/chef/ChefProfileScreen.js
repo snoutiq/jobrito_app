@@ -486,13 +486,27 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
   const handleToggleAvailability = async (value) => {
     const newStatus = value ? "Available" : "Unavailable";
-    
+    const newAvailabilityInfo = profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)
+      ? { ...profile.availability_info, availability_status: newStatus }
+      : { availability_status: newStatus };
+
     // 1. Update Redux store
-    dispatch(setProfileData({ availability: newStatus }));
+    dispatch(
+      setProfileData({
+        availability: newStatus,
+        availability_status: newStatus,
+        availability_info: newAvailabilityInfo,
+      })
+    );
     
     // 2. Update Storage
     try {
-      const updatedProfile = { ...profile, availability: newStatus };
+      const updatedProfile = { 
+        ...profile, 
+        availability: newStatus, 
+        availability_status: newStatus,
+        availability_info: newAvailabilityInfo 
+      };
       await setStoredProfile(updatedProfile);
     } catch (e) {
       console.warn("Failed to store updated availability locally:", e);
