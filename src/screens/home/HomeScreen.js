@@ -671,57 +671,44 @@ export default function HomeScreen({ navigation }) {
 
               {/* Action buttons rendering */}
               <View style={styles.actionsContainer}>
-                {!showApply ? (
-                  // Call (Text), Share (Icon), Favorite (Icon)
-                  <>
-                    <TouchableOpacity
-                      style={styles.textActionBtn}
-                      onPress={() => handleCall(job)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.textActionBtnText}>
-                        {t("call", "Call")}
+                {showApply ? (
+                  // employer/admin/agency: Apply Now only (no Call)
+                  <TouchableOpacity
+                    style={[
+                      styles.textActionBtn,
+                      isApplied && styles.textActionBtnApplied,
+                    ]}
+                    onPress={() =>
+                      isApplied || isApplying ? null : handleApplyPress(job)
+                    }
+                    disabled={isApplied || isApplying}
+                    activeOpacity={0.7}
+                  >
+                    {isApplying ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.textActionBtnText,
+                          isApplied && styles.textActionBtnTextApplied,
+                        ]}
+                      >
+                        {isApplied
+                          ? "✓ " + t("applied", "Applied")
+                          : t("applyNow", "Apply Now")}
                       </Text>
-                    </TouchableOpacity>
-                  </>
+                    )}
+                  </TouchableOpacity>
                 ) : (
-                  // Direct/Overseas Job: Apply Now (Text), Call (Icon), Share (Icon), Favorite (Icon)
-                  <>
-                    <TouchableOpacity
-                      style={[
-                        styles.textActionBtn,
-                        isApplied && styles.textActionBtnApplied,
-                      ]}
-                      onPress={() =>
-                        isApplied || isApplying ? null : handleApplyPress(job)
-                      }
-                      disabled={isApplied || isApplying}
-                      activeOpacity={0.7}
-                    >
-                      {isApplying ? (
-                        <ActivityIndicator size="small" color="#ffffff" />
-                      ) : (
-                        <Text
-                          style={[
-                            styles.textActionBtnText,
-                            isApplied && styles.textActionBtnTextApplied,
-                          ]}
-                        >
-                          {isApplied
-                            ? "✓ " + t("applied", "Applied")
-                            : t("applyNow", "Apply Now")}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.iconActionBtn}
-                      onPress={() => handleCall(job)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="call" size={18} color="#153e69" />
-                    </TouchableOpacity>
-                  </>
+                  // chef/job_seeker/talent/referral: Call button (same size as Apply)
+                  <TouchableOpacity
+                    style={[styles.textActionBtn, { flexDirection: "row", gap: 6 }]}
+                    onPress={() => handleCall(job)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="call" size={16} color="#ffffff" />
+                    <Text style={styles.textActionBtnText}>Call Now</Text>
+                  </TouchableOpacity>
                 )}
 
                 <TouchableOpacity
@@ -760,7 +747,11 @@ export default function HomeScreen({ navigation }) {
                     ]}
                   >
                     Posted By •{" "}
-                    {effectiveRoleSource.replace(/_/g, " ").toUpperCase()}
+                    {(() => {
+                      const roleDisplay = effectiveRoleSource.replace(/_/g, " ").toLowerCase();
+                      if (roleDisplay === "jobseeker" || roleDisplay === "job seeker") return "TALENT";
+                      return roleDisplay.toUpperCase();
+                    })()}
                   </Text>
                 </View>
               ) : null}

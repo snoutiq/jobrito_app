@@ -33,6 +33,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
+import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 const PRIMARY_GREEN = "#153e69";
 
 const countriesList = [
@@ -1055,49 +1056,34 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Country Selection */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Country</Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
+                <ModalPickerTrigger
                   onPress={() => {
-                    setShowCountryDropdown(!showCountryDropdown);
+                    setShowCountryDropdown(true);
                     setShowCityDropdown(false);
                   }}
-                  style={[styles.inputWrapper, showCountryDropdown && styles.inputWrapperActive]}
-                >
-                  <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <Text style={[styles.textInput, !selectedCountry && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                    {selectedCountry || "Select Country"}
-                  </Text>
-                  <Ionicons name={showCountryDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
-                </TouchableOpacity>
-
-                {showCountryDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
-                      {countriesList.map((opt) => (
-                        <TouchableOpacity
-                          key={opt}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setSelectedCountry(opt);
-                            if (opt === "Other") {
-                              setCountry("");
-                            } else {
-                              setCountry(opt);
-                            }
-                            setShowCountryDropdown(false);
-                            // Clear city when country changes
-                            setCurrentCity("");
-                            setSelectedCity("");
-                          }}
-                        >
-                          <Text style={[styles.dropdownItemText, selectedCountry === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                            {opt}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
+                  label={selectedCountry}
+                  placeholder="Select Country"
+                  isOpen={showCountryDropdown}
+                  leftIcon="globe-outline"
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showCountryDropdown}
+                  onClose={() => setShowCountryDropdown(false)}
+                  title="Select Country"
+                  options={countriesList}
+                  selectedValue={selectedCountry}
+                  onSelect={(opt) => {
+                    setSelectedCountry(opt);
+                    if (opt === "Other") {
+                      setCountry("");
+                    } else {
+                      setCountry(opt);
+                    }
+                    setCurrentCity("");
+                    setSelectedCity("");
+                  }}
+                />
               </View>
 
               {/* Custom Country TextInput */}
@@ -1137,56 +1123,47 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   </View>
                 ) : (
                   <>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
+                    <ModalPickerTrigger
                       onPress={() => {
                         if (!selectedCountry) {
                           Alert.alert("Select Country", "Please select a country first.");
                           return;
                         }
-                        setShowCityDropdown(!showCityDropdown);
+                        setShowCityDropdown(true);
                         setShowCountryDropdown(false);
                       }}
-                      style={[
-                        styles.inputWrapper,
-                        !selectedCountry && { backgroundColor: "#f2f2f3", borderColor: "rgba(10, 5, 4, 0.15)" },
-                        showCityDropdown && styles.inputWrapperActive
-                      ]}
-                      disabled={!selectedCountry}
-                    >
-                      <Ionicons name="location-outline" size={20} color={selectedCountry ? "rgba(10, 5, 4, 0.6)" : "rgba(10, 5, 4, 0.4)"} style={styles.inputIconLeft} />
-                      <Text style={[styles.textInput, (!selectedCity || !currentCity) && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                        {!selectedCountry 
-                          ? "Select Country First" 
-                          : (selectedCity === "Other" ? (currentCity || "Type your city name") : (currentCity || "Select City"))
+                      label={selectedCity === "Other" ? (currentCity || "") : (currentCity || "")}
+                      placeholder={!selectedCountry ? "Select Country First" : "Select City"}
+                      isOpen={showCityDropdown}
+                      leftIcon="location-outline"
+                      style={[styles.inputWrapper, !selectedCountry && { backgroundColor: "#f2f2f3" }]}
+                    />
+                    <ModalPicker
+                      visible={showCityDropdown}
+                      onClose={() => setShowCityDropdown(false)}
+                      title="Select City"
+                      options={citiesByCountry[selectedCountry] || ["Other"]}
+                      selectedValue={selectedCity}
+                      onSelect={(opt) => {
+                        setSelectedCity(opt);
+                        if (opt === "Other") {
+                          setCurrentCity("");
+                        } else {
+                          setCurrentCity(opt);
                         }
-                      </Text>
-                      <Ionicons name={showCityDropdown ? "chevron-up" : "chevron-down"} size={20} color={selectedCountry ? "rgba(10, 5, 4, 0.6)" : "rgba(10, 5, 4, 0.4)"} />
-                    </TouchableOpacity>
-
-                    {showCityDropdown && selectedCountry && (
-                      <View style={styles.dropdownContainer}>
-                        <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
-                          {(citiesByCountry[selectedCountry] || ["Other"]).map((opt) => (
-                            <TouchableOpacity
-                              key={opt}
-                              style={styles.dropdownItem}
-                              onPress={() => {
-                                setSelectedCity(opt);
-                                if (opt === "Other") {
-                                  setCurrentCity("");
-                                } else {
-                                  setCurrentCity(opt);
-                                }
-                                setShowCityDropdown(false);
-                              }}
-                            >
-                              <Text style={[styles.dropdownItemText, selectedCity === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                                {opt}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
+                      }}
+                    />
+                    {selectedCity === "Other" && (
+                      <View style={[styles.inputWrapper, { marginTop: 8 }, activeInput === "customCity" && styles.inputWrapperActive]}>
+                        <TextInput
+                          value={currentCity}
+                          onChangeText={setCurrentCity}
+                          placeholder="Type your city name"
+                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                          style={styles.textInput}
+                          onFocus={() => setActiveInput("customCity")}
+                          onBlur={() => setActiveInput(null)}
+                        />
                       </View>
                     )}
                   </>
@@ -1454,35 +1431,21 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                 <Text style={styles.sectionTitleText}>Years of Experience</Text>
               </View>
               <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowExpDropdown(!showExpDropdown)}
-                  style={[styles.inputWrapper, showExpDropdown && styles.inputWrapperActive]}
-                >
-                  <Text style={[styles.textInput, !experienceYears && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                    {experienceYears || "Select total years in industry"}
-                  </Text>
-                  <Ionicons name={showExpDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
-                </TouchableOpacity>
-
-                {showExpDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    {experienceOptions.map((opt) => (
-                      <TouchableOpacity
-                        key={opt}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setExperienceYears(opt);
-                          setShowExpDropdown(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, experienceYears === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                          {opt}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowExpDropdown(true)}
+                  label={experienceYears}
+                  placeholder="Select total years in industry"
+                  isOpen={showExpDropdown}
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showExpDropdown}
+                  onClose={() => setShowExpDropdown(false)}
+                  title="Years of Experience"
+                  options={experienceOptions}
+                  selectedValue={experienceYears}
+                  onSelect={(val) => setExperienceYears(val)}
+                />
               </View>
 
               {/* Continue Button */}
@@ -1589,35 +1552,21 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                 <Text style={styles.sectionTitleText}>Availability</Text>
               </View>
               <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowAvailDropdown(!showAvailDropdown)}
-                  style={[styles.inputWrapper, showAvailDropdown && styles.inputWrapperActive]}
-                >
-                  <Text style={[styles.textInput, !availability && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                    {availability || "Select availability"}
-                  </Text>
-                  <Ionicons name={showAvailDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
-                </TouchableOpacity>
-
-                {showAvailDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    {availabilityOptions.map((opt) => (
-                      <TouchableOpacity
-                        key={opt}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setAvailability(opt);
-                          setShowAvailDropdown(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, availability === opt && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                          {opt}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowAvailDropdown(true)}
+                  label={availability}
+                  placeholder="Select availability"
+                  isOpen={showAvailDropdown}
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showAvailDropdown}
+                  onClose={() => setShowAvailDropdown(false)}
+                  title="Availability"
+                  options={availabilityOptions}
+                  selectedValue={availability}
+                  onSelect={(val) => setAvailability(val)}
+                />
               </View>
 
               {/* Professional Bio */}

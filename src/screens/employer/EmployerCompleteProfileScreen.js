@@ -25,6 +25,7 @@ import colors from "../../constants/colors";
 import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
 import * as Location from "expo-location";
+import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -545,38 +546,21 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Industry Segment Dropdown */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("industrySegment", "Industry Segment")} <Text style={styles.required}>*</Text></Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowSegmentDropdown(!showSegmentDropdown)}
-                  style={[
-                    styles.inputWrapper,
-                    showSegmentDropdown && styles.inputWrapperActive
-                  ]}
-                >
-                  <Text style={[styles.textInput, !industrySegment && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                    {industrySegment || t("employerCompleteProfile.selectIndustrySegment", "Select an industry segment")}
-                  </Text>
-                  <Ionicons name={showSegmentDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
-                </TouchableOpacity>
-
-                {showSegmentDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    {segments.map((item) => (
-                      <TouchableOpacity
-                        key={item}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setIndustrySegment(item);
-                          setShowSegmentDropdown(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, industrySegment === item && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowSegmentDropdown(true)}
+                  label={industrySegment}
+                  placeholder={t("employerCompleteProfile.selectIndustrySegment", "Select an industry segment")}
+                  isOpen={showSegmentDropdown}
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showSegmentDropdown}
+                  onClose={() => setShowSegmentDropdown(false)}
+                  title={t("industrySegment", "Industry Segment")}
+                  options={segments}
+                  selectedValue={industrySegment}
+                  onSelect={(val) => setIndustrySegment(val)}
+                />
               </View>
 
               {/* Business Location */}
@@ -716,39 +700,21 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Preferred Language */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("preferredLanguage", "Preferred Language")}</Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowLangDropdown(!showLangDropdown)}
-                  style={[
-                    styles.inputWrapper,
-                    showLangDropdown && styles.inputWrapperActive
-                  ]}
-                >
-                  <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <Text style={styles.textInput}>
-                    {preferredLanguage}
-                  </Text>
-                  <Ionicons name={showLangDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
-                </TouchableOpacity>
-
-                {showLangDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    {languages.map((item) => (
-                      <TouchableOpacity
-                        key={item}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setPreferredLanguage(item);
-                          setShowLangDropdown(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, preferredLanguage === item && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowLangDropdown(true)}
+                  label={preferredLanguage}
+                  isOpen={showLangDropdown}
+                  leftIcon="globe-outline"
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showLangDropdown}
+                  onClose={() => setShowLangDropdown(false)}
+                  title={t("preferredLanguage", "Preferred Language")}
+                  options={languages}
+                  selectedValue={preferredLanguage}
+                  onSelect={(val) => setPreferredLanguage(val)}
+                />
               </View>
 
               {/* Disclaimer Checkbox */}
@@ -919,39 +885,22 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Select Relationship Dropdown */}
               <View style={styles.inputGroup}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowRelationDropdown(!showRelationDropdown)}
-                  style={[
-                    styles.inputWrapper,
-                    showRelationDropdown && styles.inputWrapperActive
-                  ]}
-                >
-                  <Ionicons name="people-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <Text style={[styles.textInput, !managerRelationship && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                    {managerRelationship || t("employerCompleteProfile.selectRelationship", "Select Relationship")}
-                  </Text>
-                  <Ionicons name={showRelationDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
-                </TouchableOpacity>
-
-                {showRelationDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    {relationships.map((item) => (
-                      <TouchableOpacity
-                        key={item}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setManagerRelationship(item);
-                          setShowRelationDropdown(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, managerRelationship === item && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowRelationDropdown(true)}
+                  label={managerRelationship}
+                  placeholder={t("employerCompleteProfile.selectRelationship", "Select Relationship")}
+                  isOpen={showRelationDropdown}
+                  leftIcon="people-outline"
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showRelationDropdown}
+                  onClose={() => setShowRelationDropdown(false)}
+                  title={t("employerCompleteProfile.relationship", "Relationship")}
+                  options={relationships}
+                  selectedValue={managerRelationship}
+                  onSelect={(val) => setManagerRelationship(val)}
+                />
               </View>
 
               {/* Mobile Number */}

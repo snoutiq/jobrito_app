@@ -21,6 +21,7 @@ import { setProfileData } from "../../redux/slices/userSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import { getDailyPostLimit } from "../../services/jobApi";
 import colors from "../../constants/colors";
+import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 
 const PRIMARY_GREEN = "#153e69";
 const { width } = Dimensions.get("window");
@@ -544,39 +545,23 @@ export default function PostJobScreen({ navigation, route }) {
                 
                 <View style={[styles.inlineRow, { marginBottom: 12 }]}>
                   {/* Currency Selector */}
-                  <View style={{ flex: 1, marginRight: 8, position: "relative", zIndex: 20, elevation: 20 }}>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-                      style={[styles.inputWrapper, showCurrencyDropdown && styles.inputWrapperActive]}
-                    >
-                      <Text style={[styles.textInput, !salaryCurrency && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
-                        {salaryCurrency || "Currency"}
-                      </Text>
-                      <Ionicons name={showCurrencyDropdown ? "chevron-up" : "chevron-down"} size={16} color="rgba(10, 5, 4, 0.6)" />
-                    </TouchableOpacity>
-                    
-                    {showCurrencyDropdown && (
-                      <View style={styles.dropdownContainer}>
-                        {["INR (₹)", "USD ($)", "SAR (SR)", "AED (AED)", "EUR (€)", "GBP (£)"].map((curr) => {
-                          const code = curr.split(" ")[0];
-                          return (
-                            <TouchableOpacity
-                              key={code}
-                              style={styles.dropdownItem}
-                              onPress={() => {
-                                setSalaryCurrency(code);
-                                setShowCurrencyDropdown(false);
-                              }}
-                            >
-                              <Text style={[styles.dropdownItemText, salaryCurrency === code && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                                {curr}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    )}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <ModalPickerTrigger
+                      onPress={() => setShowCurrencyDropdown(true)}
+                      label={salaryCurrency}
+                      placeholder="Currency"
+                      isOpen={showCurrencyDropdown}
+                      style={styles.inputWrapper}
+                    />
+                    <ModalPicker
+                      visible={showCurrencyDropdown}
+                      onClose={() => setShowCurrencyDropdown(false)}
+                      title="Select Currency"
+                      options={["INR", "USD", "SAR", "AED", "EUR", "GBP"]}
+                      selectedValue={salaryCurrency}
+                      onSelect={(val) => setSalaryCurrency(val)}
+                      renderOption={(opt) => ({ INR: "INR (₹)", USD: "USD ($)", SAR: "SAR (SR)", AED: "AED (AED)", EUR: "EUR (€)", GBP: "GBP (£)" }[opt] || opt)}
+                    />
                   </View>
 
                   {/* Min Salary */}
@@ -630,103 +615,43 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
 
                 {/* Experience Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14, position: "relative", zIndex: 20, elevation: 20 }]}>
+                <View style={[styles.inputGroup, { marginTop: 14 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.experienceRequired")}</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputWrapper,
-                      showExpDropdown && styles.inputWrapperActive,
-                    ]}
-                    onPress={() => setShowExpDropdown(!showExpDropdown)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.textInput}>{getExperienceLabel(experience)}</Text>
-                    <Ionicons
-                      name={showExpDropdown ? "chevron-up" : "chevron-down"}
-                      size={18}
-                      color="rgba(10, 5, 4, 0.6)"
-                    />
-                  </TouchableOpacity>
-
-                  {showExpDropdown && (
-                    <View style={styles.dropdownContainer}>
-                      {experienceOptions.map((opt) => (
-                        <TouchableOpacity
-                          key={opt}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setExperience(opt);
-                            setShowExpDropdown(false);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              experience === opt && {
-                                color: PRIMARY_GREEN,
-                                fontWeight: "700",
-                              },
-                            ]}
-                          >
-                            {getExperienceLabel(opt)}
-                          </Text>
-                          {experience === opt && (
-                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
-                          )}
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                  <ModalPickerTrigger
+                    onPress={() => setShowExpDropdown(true)}
+                    label={getExperienceLabel(experience)}
+                    isOpen={showExpDropdown}
+                    style={styles.inputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showExpDropdown}
+                    onClose={() => setShowExpDropdown(false)}
+                    title={t("postJob.experienceRequired")}
+                    options={experienceOptions}
+                    selectedValue={experience}
+                    onSelect={(val) => setExperience(val)}
+                    renderOption={getExperienceLabel}
+                  />
                 </View>
 
                 {/* Job Type Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14, position: "relative", zIndex: 20, elevation: 20 }]}>
+                <View style={[styles.inputGroup, { marginTop: 14 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.jobType", "Job Type")}</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputWrapper,
-                      showJobTypeDropdown && styles.inputWrapperActive,
-                    ]}
-                    onPress={() => setShowJobTypeDropdown(!showJobTypeDropdown)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.textInput}>{getJobTypeLabel(jobType)}</Text>
-                    <Ionicons
-                      name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
-                      size={18}
-                      color="rgba(10, 5, 4, 0.6)"
-                    />
-                  </TouchableOpacity>
-
-                  {showJobTypeDropdown && (
-                    <View style={styles.dropdownContainer}>
-                      {jobTypeOptions.map((opt) => (
-                        <TouchableOpacity
-                          key={opt}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setJobType(opt);
-                            setShowJobTypeDropdown(false);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              jobType === opt && {
-                                color: PRIMARY_GREEN,
-                                fontWeight: "700",
-                              },
-                            ]}
-                          >
-                            {getJobTypeLabel(opt)}
-                          </Text>
-                          {jobType === opt && (
-                            <Ionicons name="checkmark" size={16} color={PRIMARY_GREEN} />
-                          )}
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                  <ModalPickerTrigger
+                    onPress={() => setShowJobTypeDropdown(true)}
+                    label={getJobTypeLabel(jobType)}
+                    isOpen={showJobTypeDropdown}
+                    style={styles.inputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showJobTypeDropdown}
+                    onClose={() => setShowJobTypeDropdown(false)}
+                    title={t("postJob.jobType", "Job Type")}
+                    options={jobTypeOptions}
+                    selectedValue={jobType}
+                    onSelect={(val) => setJobType(val)}
+                    renderOption={getJobTypeLabel}
+                  />
                 </View>
 
                 {/* Job Description */}
