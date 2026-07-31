@@ -517,6 +517,22 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Pressable>
 
+        {/* Item: Help & Support */}
+        <Pressable
+          style={styles.menuItem}
+          onPress={() => navigation.navigate("HelpSupport")}
+        >
+          <View style={styles.menuItemLeft}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="headset-outline" size={18} color="rgba(10, 5, 4, 0.6)" />
+            </View>
+            <Text style={styles.menuItemLabel}>{t("helpSupportTitle", "Help & Support")}</Text>
+          </View>
+          <View style={styles.menuItemRight}>
+            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.15)" />
+          </View>
+        </Pressable>
+
         {/* Item: Logout */}
         <Pressable
           style={[styles.menuItem, { borderBottomWidth: 0 }]}
