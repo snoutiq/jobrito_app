@@ -392,7 +392,7 @@ const isAvailable =
           if (!isMounted) return;
 
           if (myJobsRes) {
-            const jobs = myJobsRes.jobs || myJobsRes.data || (Array.isArray(myJobsRes) ? myJobsRes : []);
+            const jobs = myJobsRes.created_jobs || myJobsRes.jobs || myJobsRes.data || (Array.isArray(myJobsRes) ? myJobsRes : []);
             if (Array.isArray(jobs)) {
               setPostedJobsCount(jobs.length);
             }

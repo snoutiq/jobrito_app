@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0,
-    zIndex: 2,
+    zIndex: -1,
   },
 });
