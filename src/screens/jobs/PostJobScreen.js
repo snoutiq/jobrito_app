@@ -714,9 +714,9 @@ const handleSubmitJob = async () => {
 
               {/* Footer actions for Step 2 */}
               <View style={styles.footerRowStep2}>
-                <TouchableOpacity style={styles.saveDraftLink} onPress={handleSaveAsDraft} activeOpacity={0.7}>
+                {/* <TouchableOpacity style={styles.saveDraftLink} onPress={handleSaveAsDraft} activeOpacity={0.7}>
                   <Text style={styles.saveDraftLinkText}>{t("postJob.saveDraft")}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <TouchableOpacity style={styles.primaryNextBtnSmall} activeOpacity={0.8} onPress={handleNextStep2}>
                   <Text style={styles.primaryNextBtnText}>{t("postJob.next")}</Text>
@@ -1326,7 +1326,7 @@ const styles = StyleSheet.create({
   },
   footerRowStep2: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     marginTop: 10,
   },
