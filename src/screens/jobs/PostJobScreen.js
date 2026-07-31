@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { submitCommunityJob, storeEmployerJob } from "../../redux/slices/jobSlice";
-import { setProfileData } from "../../redux/slices/userSlice";
+import { setProfileData, fetchProfile } from "../../redux/slices/userSlice";
+import { useFocusEffect } from "@react-navigation/native";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import { getDailyPostLimit } from "../../services/jobApi";
 import colors from "../../constants/colors";
@@ -78,6 +79,7 @@ export default function PostJobScreen({ navigation, route }) {
   // Step 3: Contact & Review
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const regions = ["India", "KSA", "Dubai"];
   const experienceOptions = [
@@ -127,19 +129,27 @@ export default function PostJobScreen({ navigation, route }) {
     }
   };
 
-  // Autofill fields from user profile if available
+  // Fetch profile immediately when screen opens — ensures data is fresh after login
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchProfile());
+    }, [dispatch])
+  );
+
+  // Autofill fields from user profile if available — only fills empty fields to avoid overwriting user input
   useEffect(() => {
     if (profile) {
       const bName = profile.business_name || profile.businessName || profile.company || "";
       const cPerson = profile.contact_person_name || profile.name || profile.full_name || profile.contactName || "";
 
-      setBusinessName(bName);
-      setContactPerson(cPerson);
-      setContactPhone(profile.business_mobile || profile.phone || profile.mobile_number || profile.contactPhone || "");
-      setContactEmail(profile.business_email || profile.email || profile.contactEmail || "");
+      // Only set if not already filled by user
+      setBusinessName((prev) => prev.trim() ? prev : bName);
+      setContactPerson((prev) => prev.trim() ? prev : cPerson);
+      setContactPhone((prev) => prev.trim() ? prev : (profile.business_mobile || profile.phone || profile.mobile_number || profile.contactPhone || ""));
+      setContactEmail((prev) => prev.trim() ? prev : (profile.business_email || profile.email || profile.contactEmail || ""));
 
       if (bName.trim() && cPerson.trim()) {
-        setStep(2);
+        setStep((prev) => prev === 1 ? 2 : prev);
       }
     }
   }, [profile]);
@@ -199,55 +209,72 @@ export default function PostJobScreen({ navigation, route }) {
     }
   };
 
-  const handleSubmitJob = async () => {
-    if (!contactPhone.trim()) {
-      Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
-      return;
-    }
-    if (!contactEmail.trim()) {
-      Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
-      return;
-    }
+const handleSubmitJob = async () => {
+  if (isSubmitting) return; // Prevent duplicate submissions
 
-    const combinedSalary = salaryMin && salaryMax 
-      ? `${salaryCurrency} ${salaryMin} - ${salaryMax}`
-      : salaryMin 
-        ? `${salaryCurrency} ${salaryMin}+`
-        : "";
+  if (!contactPhone.trim()) {
+    Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
+    return;
+  }
+  if (!contactEmail.trim()) {
+    Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
+    return;
+  }
 
-    const jobData = {
-      title: jobTitle,
-      category: region.toLowerCase(),
-      company: businessName,
-      location: location,
-      salary: combinedSalary,
-      salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
-      salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
-      salary_currency: salaryCurrency,
-      contact_info: contactEmail,
-      description: jobDescription,
-      job_type: jobType,
-      experience_range: experience,
-      open_positions: parseInt(openPositions, 10) || 1,
-    };
+  setIsSubmitting(true);
 
-    try {
-      // Dispatch the action to store the job
-      const result = await dispatch(storeEmployerJob(jobData));
+  const combinedSalary = salaryMin && salaryMax
+    ? `${salaryCurrency} ${salaryMin} - ${salaryMax}`
+    : salaryMin
+      ? `${salaryCurrency} ${salaryMin}+`
+      : "";
 
-      if (storeEmployerJob.fulfilled.match(result)) {
-                if (route.params?.isOnboarding) {
-          // Save completion in local storage and profile storage so restart doesn''t reload onboarding screen.
-          await persistEmployerOnboardingComplete();
-        }
-        setStep(4);
-      } else {
-        Alert.alert(t("error"), t("postJob.submitFailed", "Failed to submit job posting. Please try again."));
-      }
-    } catch (err) {
-      Alert.alert(t("error"), err.message || t("postJob.errorOccurred", "Something went wrong."));
-    }
+  const jobData = {
+    title: jobTitle,
+    category: region.toLowerCase(),
+    company: businessName,
+    location: location,
+    salary: combinedSalary,
+    salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
+    salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
+    salary_currency: salaryCurrency,
+    contact_info: contactEmail,
+    description: jobDescription,
+    job_type: jobType,
+    experience_range: experience,
+    open_positions: parseInt(openPositions, 10) || 1,
   };
+
+  try {
+    const result = await dispatch(storeEmployerJob(jobData));
+
+    if (storeEmployerJob.fulfilled.match(result)) {
+      if (route.params?.isOnboarding) {
+        await persistEmployerOnboardingComplete();
+      }
+      setStep(4);
+    } else {
+      const serverError = result.payload;
+      let errorMessage = t("postJob.submitFailed", "Failed to submit job posting. Please try again.");
+      if (serverError && typeof serverError === "object") {
+        if (serverError.errors && typeof serverError.errors === "object") {
+          errorMessage = Object.entries(serverError.errors)
+            .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(" ") : val}`)
+            .join("\n");
+        } else if (serverError.message) {
+          errorMessage = serverError.message;
+        }
+      } else if (typeof serverError === "string") {
+        errorMessage = serverError;
+      }
+      Alert.alert(t("error"), errorMessage);
+    }
+  } catch (err) {
+    Alert.alert(t("error"), err.message || t("postJob.errorOccurred", "Something went wrong."));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleSaveAsDraft = () => {
     Alert.alert(
@@ -839,7 +866,7 @@ export default function PostJobScreen({ navigation, route }) {
 
               {/* Footer step 3 */}
               <View style={[styles.footerContainer, { marginTop: 36 }]}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.primaryNextBtn}
                   activeOpacity={0.8}
                   onPress={handleSubmitJob}
@@ -851,7 +878,20 @@ export default function PostJobScreen({ navigation, route }) {
                     color="#ffffff"
                     style={{ marginLeft: 6 }}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                <TouchableOpacity
+  style={[styles.primaryNextBtn, isSubmitting && { opacity: 0.6 }]}
+  activeOpacity={0.8}
+  onPress={handleSubmitJob}
+  disabled={isSubmitting}
+>
+  <Text style={styles.primaryNextBtnText}>
+    {isSubmitting ? "Submitting..." : t("postJob.submitApproval", "Submit For Approval")}
+  </Text>
+  {!isSubmitting && (
+    <Ionicons name="paper-plane" size={18} color="#ffffff" style={{ marginLeft: 8 }} />
+  )}
+</TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.saveDraftLink}
