@@ -26,17 +26,18 @@ export default function OtpInput({ value = "", onChangeText, length = 6 }) {
         importantForAutofill="yes"
         caretHidden={true}
       />
-      <View style={styles.boxRow} pointerEvents="none">
+      <View style={styles.boxRow}>
         {Array.from({ length }).map((_, index) => {
           const digit = digits[index] || "";
           const active = index === digits.length || (digits.length === length && index === length - 1);
           return (
-            <View
+            <Pressable
               key={index}
               style={[styles.box, active && styles.boxActive]}
+              onPress={() => inputRef.current?.focus()}
             >
               <Text style={styles.boxText}>{digit}</Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -83,6 +84,7 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.01,
+    opacity: 0,
+    zIndex: 2,
   },
 });

@@ -400,7 +400,7 @@ export default function SwipeCard({
                   ) : null}
                   {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
                     <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Preferred Call: </Text>
+                      <Text style={styles.profileInfoLabel}>Preferred Callback Time: </Text>
                       <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
                     </Text>
                   )}

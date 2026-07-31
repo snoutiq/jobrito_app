@@ -369,7 +369,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                 ) : null}
                 {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
                   <Text numberOfLines={1} style={styles.detailRowText}>
-                    <Text style={styles.profileInfoLabel}>Preferred Call: </Text>
+                    <Text style={styles.profileInfoLabel}>Callback Time: </Text>
                     <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
                   </Text>
                 )}
