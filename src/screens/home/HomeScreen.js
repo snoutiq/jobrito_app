@@ -858,6 +858,8 @@ export default function HomeScreen({ navigation }) {
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             >
               {currentProgressStep === 1 && (
                 <View>

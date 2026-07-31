@@ -3,12 +3,20 @@ import { Pressable, StyleSheet, Text, View, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/colors";
 
-export default function PhoneInput({ value, onChangeText, prefix = "+91", flag = "🇮🇳", onPrefixPress }) {
+export default function PhoneInput({
+  value,
+  onChangeText,
+  prefix = "+91",
+  flag = "\u{1F1EE}\u{1F1F3}",
+  onPrefixPress,
+}) {
   return (
     <View style={styles.container}>
       <Pressable
         onPress={onPrefixPress}
         style={({ pressed }) => [styles.prefix, pressed && styles.prefixPressed]}
+        hitSlop={8}
+        accessibilityRole="button"
       >
         <Text style={styles.flagText}>{flag}</Text>
         <Text style={styles.prefixText}>{prefix}</Text>
@@ -22,6 +30,11 @@ export default function PhoneInput({ value, onChangeText, prefix = "+91", flag =
         placeholder="Enter mobile number"
         placeholderTextColor="rgba(10, 5, 4, 0.4)"
         keyboardType="phone-pad"
+        textContentType="telephoneNumber"
+        autoComplete="tel"
+        autoCorrect={false}
+        spellCheck={false}
+        returnKeyType="done"
         maxLength={10}
       />
     </View>

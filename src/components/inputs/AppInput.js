@@ -14,6 +14,7 @@ export default function AppInput({
   secureTextEntry = false,
   containerStyle,
   inputStyle,
+  ...textInputProps
 }) {
   const { t } = useTranslation();
 
@@ -30,6 +31,7 @@ export default function AppInput({
         numberOfLines={numberOfLines}
         secureTextEntry={secureTextEntry}
         style={[styles.input, multiline && styles.multiline, inputStyle]}
+        {...textInputProps}
       />
     </View>
   );
@@ -60,4 +62,3 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
 });
-

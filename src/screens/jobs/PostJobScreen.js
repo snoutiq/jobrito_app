@@ -544,7 +544,7 @@ export default function PostJobScreen({ navigation, route }) {
                 
                 <View style={[styles.inlineRow, { marginBottom: 12 }]}>
                   {/* Currency Selector */}
-                  <View style={{ flex: 1, marginRight: 8 }}>
+                  <View style={{ flex: 1, marginRight: 8, position: "relative", zIndex: 20, elevation: 20 }}>
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
@@ -580,7 +580,7 @@ export default function PostJobScreen({ navigation, route }) {
                   </View>
 
                   {/* Min Salary */}
-                  <View style={{ flex: 1, marginRight: 8 }}>
+                  <View style={{ flex: 1, marginRight: 8, position: "relative", zIndex: 20, elevation: 20 }}>
                     <View style={[styles.inputWrapper, activeField === "salaryMin" && styles.inputWrapperActive]}>
                       <TextInput
                         value={salaryMin}
@@ -630,7 +630,7 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
 
                 {/* Experience Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14 }]}>
+                <View style={[styles.inputGroup, { marginTop: 14, position: "relative", zIndex: 20, elevation: 20 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.experienceRequired")}</Text>
                   <TouchableOpacity
                     style={[
@@ -680,7 +680,7 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
 
                 {/* Job Type Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14 }]}>
+                <View style={[styles.inputGroup, { marginTop: 14, position: "relative", zIndex: 20, elevation: 20 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.jobType", "Job Type")}</Text>
                   <TouchableOpacity
                     style={[
@@ -730,7 +730,7 @@ export default function PostJobScreen({ navigation, route }) {
                 </View>
 
                 {/* Job Description */}
-                <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                <View style={[styles.inputGroup, { marginTop: 8, position: "relative", zIndex: 20, elevation: 20 }]}>
                   <Text style={styles.inputLabel}>{t("postJob.jobDescription")}</Text>
                   <View
                     style={[
@@ -1567,12 +1567,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-
-
-
-
-
-
-
-

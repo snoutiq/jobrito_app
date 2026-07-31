@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 
@@ -14,30 +14,38 @@ export default function ScreenWrapper({
 }) {
   return (
     <SafeAreaView edges={edges} style={[styles.safeArea, style]}>
-      {scroll ? (
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={[
-            styles.content,
-            centerContent && styles.centerContent,
-            contentStyle,
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View
-          style={[
-            styles.fill,
-            styles.content,
-            centerContent && styles.centerContent,
-            contentStyle,
-          ]}
-        >
-          {children}
-        </View>
-      )}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {scroll ? (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={[
+              styles.content,
+              centerContent && styles.centerContent,
+              contentStyle,
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+            contentInsetAdjustmentBehavior="automatic"
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View
+            style={[
+              styles.fill,
+              styles.content,
+              centerContent && styles.centerContent,
+              contentStyle,
+            ]}
+          >
+            {children}
+          </View>
+        )}
+      </KeyboardAvoidingView>
       {showBottomShadow ? <View style={styles.bottomShadow} /> : null}
     </SafeAreaView>
   );
@@ -47,6 +55,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  flex: {
+    flex: 1,
   },
   scroll: {
     flex: 1,

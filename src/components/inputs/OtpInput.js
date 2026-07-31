@@ -11,8 +11,14 @@ export default function OtpInput({ value = "", onChangeText, length = 6 }) {
     onChangeText?.(next);
   };
 
+  const focusInput = () => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  };
+
   return (
-    <View style={styles.wrapper}>
+    <Pressable style={styles.wrapper} onPress={focusInput} accessible={false}>
       <TextInput
         ref={inputRef}
         value={value}
@@ -22,26 +28,23 @@ export default function OtpInput({ value = "", onChangeText, length = 6 }) {
         autoFocus
         style={styles.hiddenInput}
         textContentType="oneTimeCode"
-        autoComplete="sms-otp"
+        autoComplete="one-time-code"
         importantForAutofill="yes"
         caretHidden={true}
+        showSoftInputOnFocus={true}
       />
       <View style={styles.boxRow}>
         {Array.from({ length }).map((_, index) => {
           const digit = digits[index] || "";
           const active = index === digits.length || (digits.length === length && index === length - 1);
           return (
-            <Pressable
-              key={index}
-              style={[styles.box, active && styles.boxActive]}
-              onPress={() => inputRef.current?.focus()}
-            >
+            <View key={index} style={[styles.box, active && styles.boxActive]}>
               <Text style={styles.boxText}>{digit}</Text>
-            </Pressable>
+            </View>
           );
         })}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -84,7 +87,6 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0,
-    zIndex: -1,
+    opacity: 0.01,
   },
 });
