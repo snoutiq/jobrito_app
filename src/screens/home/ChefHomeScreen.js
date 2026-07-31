@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
 poweredRibbonText: {
     fontSize: 8,
     fontStyle: "italic",
-    fontWeight: "800",
+    fontWeight: "600",
     letterSpacing: 0.8,
     color: "#153e69",
     textTransform: "uppercase",

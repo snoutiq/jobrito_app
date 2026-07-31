@@ -475,13 +475,13 @@ const handleSubmitJob = async () => {
                   <Ionicons name="arrow-forward" size={18} color="#ffffff" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.saveDraftLink}
                   onPress={handleSaveAsDraft}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.saveDraftLinkText}>{t("postJob.saveDraft")}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           )}
