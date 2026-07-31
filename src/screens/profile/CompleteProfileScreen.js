@@ -125,6 +125,18 @@ export default function CompleteProfileScreen({ navigation, route }) {
   }, [navigation]);
 
   useEffect(() => {
+    setPhoto(null);
+    setFullName("");
+    setEmail("");
+    setGender("");
+    setExperienceRange("");
+    setCurrentEmployer("");
+    setJobType("");
+    setLocationPreference("");
+    setCity("");
+    setPreferredRole("");
+    setSkills("");
+
     dispatch(fetchProfile());
   }, [dispatch]);
 
@@ -1015,13 +1027,18 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
   const [jobTitleModalVisible, setJobTitleModalVisible] = useState(false);
   const [jobTitleSearch, setJobTitleSearch] = useState("");
 
-  // Auto detect initial category
+  // Auto detect category from the currently selected role.
   useEffect(() => {
-    const initialCat = Object.keys(categoryJobTitles).find(cat => 
+    if (!preferredRole) {
+      setSelectedCategory("Kitchen Production");
+      return;
+    }
+
+    const initialCat = Object.keys(categoryJobTitles).find((cat) =>
       categoryJobTitles[cat].includes(preferredRole)
     ) || "Kitchen Production";
     setSelectedCategory(initialCat);
-  }, []);
+  }, [preferredRole]);
 
   const jobTitlesList = categoryJobTitles[selectedCategory] || [];
   const filteredJobTitles = jobTitlesList.filter(title => 
