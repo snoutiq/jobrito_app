@@ -99,7 +99,7 @@ import { getStoredLanguage, setStoredLanguage,setSeenIntro } from "../../service
 
       <View style={styles.footer}>
         <Text style={styles.footerLine} />
-        <Text style={styles.footerBrand}>JobRito Hospitality Network</Text>
+        <Text style={styles.footerBrand}>Jobrito Hospitality Network</Text>
         <View style={styles.footerIcons}>
           <Ionicons name="restaurant-outline" size={16} color={colors.mutedText} />
           <Ionicons name="cafe-outline" size={16} color={colors.mutedText} />

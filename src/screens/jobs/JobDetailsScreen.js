@@ -89,7 +89,7 @@ export default function JobDetailsScreen({ route }) {
     try {
       const id = jobId || job?.id;
       await Share.share({
-        message: `${job?.title || "Job"} at ${job?.company || "JobRito"}\n\nLink: https://jobrito.com/job/${id}`,
+        message: `${job?.title || "Job"} at ${job?.company || "Jobrito"}\n\nLink: https://jobrito.com/job/${id}`,
       });
     } catch (error) {
       Alert.alert("Unable to share", "Please try again.");

@@ -112,7 +112,6 @@ export default function PostReferralJobScreen({ navigation, route }) {
       case "India": return t("regions.india", "India");
       case "KSA": return t("regions.ksa", "KSA");
       case "Dubai": return t("regions.dubai", "Dubai");
-      case "Europe": return t("regions.europe", "Europe");
       default: return r;
     }
   };
@@ -413,6 +412,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         style={{ flex: 1 }}
       >
         {/* Custom Header */}
@@ -787,7 +787,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     onPress={() => setShowJobTypeDropdown(!showJobTypeDropdown)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.textInput}>{getJobTypeLabel(jobType)}</Text>
+                    <Text style={styles.textInput}>{jobType}</Text>
                     <Ionicons
                       name={showJobTypeDropdown ? "chevron-up" : "chevron-down"}
                       size={18}
@@ -815,7 +815,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                               },
                             ]}
                           >
-                            {getJobTypeLabel(opt)}
+                            {opt}
                           </Text>
                           {jobType === opt && (
                             <Ionicons
@@ -852,7 +852,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       )}
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       multiline
-                      numberOfLines={4}
+                      numberOfLines={5}
                       style={[styles.textInput, styles.multilineInput]}
                       onFocus={() => setActiveField("description")}
                       onBlur={() => setActiveField(null)}
@@ -909,7 +909,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
               {/* Top Banner Card */}
               <View style={styles.step3BannerBox}>
                 <Text style={styles.step3BannerText}>
-                  {t("postJob.contactInfoBanner", "Almost done! We just need your Contact Information so applicants know how to reach you or where to send their CVs.")}
+                  {t("postJob.contactInfoBanner", "Almost done!")}
                 </Text>
               </View>
 
@@ -1005,11 +1005,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="bar-chart-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getExperienceLabel(experienceRange)}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{experienceRange}</Text>
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="time-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{getJobTypeLabel(jobType)}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{jobType}</Text>
                   </View>
                 </View>
 
@@ -1018,25 +1018,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 {/* Bio / Description */}
                 <View style={[styles.reviewBioContainer, { borderLeftWidth: 3, borderLeftColor: PRIMARY_GREEN, paddingLeft: 10, marginTop: 4 }]}>
                   <Text style={styles.reviewBioLabel}>{t("postJob.jobDescription", "Job Description")}</Text>
-                  <View style={{ 
-                    height: 85, 
-                    backgroundColor: "#f8f9fa", 
-                    borderRadius: 8, 
-                    padding: 8, 
-                    borderWidth: 1, 
-                    borderColor: "rgba(10, 5, 4, 0.05)",
-                    marginTop: 6 
-                  }}>
-                    <ScrollView 
-                      nestedScrollEnabled 
-                      showsVerticalScrollIndicator={true} 
-                      persistentScrollbar={true}
-                    >
-                      <Text style={styles.reviewBioText}>
-                        {description.trim() || "No description provided."}
-                      </Text>
-                    </ScrollView>
-                  </View>
+                  <Text style={styles.reviewBioText} numberOfLines={3}>
+                    {description.trim() || "No description provided."}
+                  </Text>
                 </View>
               </View>
 
@@ -1382,12 +1366,10 @@ const styles = StyleSheet.create({
   multilineWrapper: {
     alignItems: "flex-start",
     paddingVertical: 10,
-    height: 110,
   },
   multilineInput: {
     textAlignVertical: "top",
-    height: "100%",
-    width: "100%",
+    minHeight: 80,
   },
   tipBox: {
     flexDirection: "row",

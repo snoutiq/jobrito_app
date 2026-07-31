@@ -606,7 +606,7 @@ apiClient.interceptors.request.use(
     // 9. Secure Headers
     const requestId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const appVersion = Constants.expoConfig?.version || "1.0.0";
-    const deviceName = Device.modelName || Device.deviceName || "JobRito Mobile";
+    const deviceName = Device.modelName || Device.deviceName || "Jobrito Mobile";
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
     config.headers["X-Request-ID"] = requestId;

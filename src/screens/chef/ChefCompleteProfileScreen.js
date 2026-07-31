@@ -143,7 +143,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const regionalOptions = ["Saudi Arabia", "UAE", "GCC", "International", "India"];
   const locationPrefOptions = ["India", "Overseas", "Both (India & Overseas)"];
   const employmentOptions = ["Full Time", "Contract", "Freelance", "Project Based", "Consultant"];
-  const availabilityOptions = ["Available Immediately", "1 Month Notice", "2 Months Notice", "Currently Employed"];
+  const availabilityOptions = ["Available Immediately", "Currently Employed"];
 
   // --- Step 4 State ---
   const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
@@ -944,6 +944,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -1538,6 +1539,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
                 <Text style={styles.sectionTitleText}>Job Location Preference <Text style={{ color: "red" }}>*</Text></Text>
+                <Text style={styles.sectionTitleText}>Job Location Preference</Text>
               </View>
               <View style={styles.pillsRow}>
                 {locationPrefOptions.map((lp) => {
@@ -1561,6 +1563,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="briefcase-outline" size={20} color={PRIMARY_GREEN} />
                 <Text style={styles.sectionTitleText}>Employment Preference <Text style={{ color: "red" }}>*</Text></Text>
+                <Text style={styles.sectionTitleText}>Employment Preference</Text>
               </View>
               <View style={styles.pillsRow}>
                 {employmentOptions.map((ep) => {

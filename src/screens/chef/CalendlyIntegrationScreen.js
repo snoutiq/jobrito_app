@@ -200,7 +200,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               <Text style={styles.stepBadgeText}>1</Text>
             </View>
             <Text style={styles.stepText}>
-              {t("calendly.step1", "Employers and restaurant owners browse your chef profile on JobRito.")}
+              {t("calendly.step1", "Employers and restaurant owners browse your chef profile on Jobrito.")}
             </Text>
           </View>
           <View style={styles.guideStep}>

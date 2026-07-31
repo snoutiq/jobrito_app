@@ -509,7 +509,7 @@ export default function ChefHomeScreen({ navigation }) {
                       roleBorderColor && { color: roleBorderColor },
                     ]}
                   >
-                    Powered By •{" "}
+                    Posted By •{" "}
                     {effectiveRoleSource.replace(/_/g, " ").toUpperCase()}
                   </Text>
                 </View>
@@ -1149,7 +1149,7 @@ const styles = StyleSheet.create({
 },
 
 poweredRibbonText: {
-    fontSize: 10,
+    fontSize: 8,
     fontStyle: "italic",
     fontWeight: "800",
     letterSpacing: 0.8,

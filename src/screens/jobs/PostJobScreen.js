@@ -78,7 +78,7 @@ export default function PostJobScreen({ navigation, route }) {
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
 
-  const regions = ["India", "KSA", "Dubai", "Europe"];
+  const regions = ["India", "KSA", "Dubai"];
   const experienceOptions = [
     "Entry Level (0-2 years)",
     "Mid-Level (3-5 years)",
@@ -96,7 +96,6 @@ export default function PostJobScreen({ navigation, route }) {
       case "India": return t("regions.india", "India");
       case "KSA": return t("regions.ksa", "KSA");
       case "Dubai": return t("regions.dubai", "Dubai");
-      case "Europe": return t("regions.europe", "Europe");
       default: return r;
     }
   };

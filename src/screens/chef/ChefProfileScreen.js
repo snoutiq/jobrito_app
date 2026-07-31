@@ -73,19 +73,41 @@ export default function ChefProfileScreen({ navigation }) {
     return [];
   };
 
+  // const getAvailability = () => {
+  //   if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
+  //     return profile.availability_info.availability_status || profile.availability || "Available for Consultation";
+  //   }
+  //   return profile?.availability || "Available for Consultation";
+  // };
   const getAvailability = () => {
-    if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
-      return profile.availability_info.availability_status || profile.availability || "Available for Consultation";
-    }
-    return profile?.availability || "Available for Consultation";
-  };
-  const displayAvailability = getAvailability();
+  if (
+    profile?.availability_info &&
+    typeof profile.availability_info === "object" &&
+    !Array.isArray(profile.availability_info)
+  ) {
+    return (
+      profile.availability_info.availability_status ||
+      profile.availability ||
+      "Available for Consultation"
+    );
+  }
 
-  const isAvailable = 
-    displayAvailability === "Available" || 
-    displayAvailability === "Available for Consultation" || 
-    displayAvailability === "Available Immediately" ||
-    displayAvailability === "Available immediately";
+  return profile?.availability || "Available for Consultation";
+};
+
+  // const displayAvailability = getAvailability();
+  const availability = getAvailability();
+
+const displayAvailability =
+  availability === "Unavailable"
+    ? "Currently Employed"
+    : availability;
+
+const isAvailable =
+  availability === "Available" ||
+  availability === "Available for Consultation" ||
+  availability === "Available Immediately" ||
+  availability === "Available immediately";
 
   const getProfileCompletionPercentage = () => {
     if (!profile) return 0;
@@ -472,7 +494,7 @@ export default function ChefProfileScreen({ navigation }) {
 ⚙️ *Operational Expertise:* ${operations}
 🟢 *Status:* ${displayAvailability}
 ----------------------------------
-🔗 View full profile & book consultation on JobRito app:
+🔗 View full profile & book consultation on Jobrito app:
 http://jobrito.com/chefs/${profile?.id || "profile"}
 `;
       
@@ -617,7 +639,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>Availability: </Text>
-                  <Text style={styles.detailValue}>{displayAvailability || "N/A"}</Text>
+                  {/* <Text style={styles.detailValue}>{displayAvailability || "N/A"}</Text> */}
+                 <Text style={styles.detailValue}>
+  {displayAvailability || "N/A"}
+</Text>
                 </Text>
               </View>
             </View>
@@ -863,6 +888,10 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
         onRequestClose={() => setShowLogoutModal(false)}
       >
         <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowLogoutModal(false)}
+          />
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setShowLogoutModal(false)}

@@ -43,7 +43,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     try {
       const id = chef?.id;
       await Share.share({
-        message: `Check out Chef ${displayName} on JobRito!\n\nLink: https://jobrito.com/chef/${id}`,
+        message: `Check out Chef ${displayName} on Jobrito!\n\nLink: https://jobrito.com/chef/${id}`,
       });
     } catch (error) {
       Alert.alert("Unable to share", "Please try again.");

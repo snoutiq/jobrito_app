@@ -64,7 +64,7 @@ export default function MyJobDetailsScreen({ route }) {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `${job?.title || "Job"} at ${job?.company || "JobRito"}`,
+        message: `${job?.title || "Job"} at ${job?.company || "Jobrito"}`,
       });
     } catch (error) {
       Alert.alert("Unable to share", "Please try again.");

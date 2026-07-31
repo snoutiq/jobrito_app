@@ -535,7 +535,7 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       {/* Footer version text */}
-      <Text style={styles.footerVersion}>JobRito v4.2.0</Text>
+      <Text style={styles.footerVersion}>Jobrito v4.2.0</Text>
 
       {/* Logout Confirmation Modal */}
       <Modal

@@ -1,5 +1,5 @@
 {
-  "appName": "JobRito",
+  "appName": "Jobrito",
   "loading": "Loading",
   "loginTitle": "OTP Login",
   "phoneNumber": "Phone Number",
@@ -97,7 +97,7 @@
     "profileComplete": "Profile Complete {{completion}}%",
     "finishNow": "Finish Now",
     "signOut": "Sign out of your account",
-    "logoutConfirm": "Are you sure you want to log out of JobRito?",
+    "logoutConfirm": "Are you sure you want to log out of Jobrito?",
     "menu": {
       "personalInfo": "Personal Information",
       "personalInfoSubtitle": "Manage your contact details and address",
@@ -119,7 +119,7 @@
     "logoutConfirmTitle": "Logout?"
   },
   "login": {
-    "title": "Welcome to JobRito",
+    "title": "Welcome to Jobrito",
     "subtitle": "Enter your WhatsApp number to get started with your hospitality career.",
     "phoneNumberPlaceholder": "Enter your WhatsApp number",
     "requestOtpButton": "Send OTP",
@@ -317,7 +317,7 @@
     "jobDescription": "Job Description",
     "jobDescriptionPlaceholder": "Outline the main responsibilities and required skills for this role...",
     "tipText": "Detailed job descriptions attract 40% more qualified applicants. Be sure to mention specific benefits!",
-    "contactInfoBanner": "Almost done! We just need your Contact Information so applicants know how to reach you or where to send their CVs.",
+    "contactInfoBanner": "Almost done!",
     "phoneNumber": "Phone Number",
     "phonePlaceholder": "+1 (555) 000-0000",
     "phoneCaption": "We'll only show this to verified applicants.",
@@ -383,7 +383,7 @@
   "notifications": "Notifications",
   "noNotifications": "You have no new notifications.",
   "customerSupport": "Customer Support",
-  "connectingSupport": "Connecting you to JobRito support team...",
+  "connectingSupport": "Connecting you to Jobrito support team...",
   "applicantList": "Applicant List",
   "noApplicantsCategory": "No applicants in this category.",
   "viewTalent": "View Talent",
@@ -608,7 +608,7 @@
     "hint": "Example: https://calendly.com/your-name/30min",
     "btnSave": "Save Calendly Link",
     "whyIntegrate": "Why integrate Calendly?",
-    "step1": "Employers and restaurant owners browse your chef profile on JobRito.",
+    "step1": "Employers and restaurant owners browse your chef profile on Jobrito.",
     "step2": "They click 'Book Consultation' to view your available time slots.",
     "step3": "Calls are automatically synced into your Google/Outlook calendar.",
     "noAccount": "Don't have a Calendly account yet?",

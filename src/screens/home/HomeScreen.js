@@ -593,10 +593,10 @@ export default function HomeScreen({ navigation }) {
               key={job.id}
               style={[
                 styles.card,
-                roleBorderColor && {
-                  borderLeftColor: roleBorderColor,
-                  borderLeftWidth: 4,
-                },
+                roleBorderColor && Platform.select({
+                  ios: { borderColor: roleBorderColor, borderWidth: 1.5 },
+                  android: { borderLeftColor: roleBorderColor, borderLeftWidth: 4 }
+                }),
                 isHighlighted && styles.highlightedCard,
               ]}
             >
@@ -759,7 +759,7 @@ export default function HomeScreen({ navigation }) {
                       roleBorderColor && { color: roleBorderColor },
                     ]}
                   >
-                    Powered By •{" "}
+                    Posted By •{" "}
                     {effectiveRoleSource.replace(/_/g, " ").toUpperCase()}
                   </Text>
                 </View>
@@ -1991,7 +1991,7 @@ const styles = StyleSheet.create({
 },
 
 poweredRibbonText: {
-    fontSize: 10,
+    fontSize: 8,
     fontStyle: "italic",
     fontWeight: "800",
     letterSpacing: 0.8,
