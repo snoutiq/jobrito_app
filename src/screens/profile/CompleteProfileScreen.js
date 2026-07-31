@@ -217,7 +217,11 @@ export default function CompleteProfileScreen({ navigation, route }) {
   }, [navigation, step, t]);
 
   const handleSkip = () => {
-    navigation.goBack();
+    if (step < 5) {
+      setStep(step + 1);
+    } else {
+      navigation.goBack();
+    }
   };
 
   const next = () => {

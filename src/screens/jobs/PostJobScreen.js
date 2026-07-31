@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { submitCommunityJob, storeEmployerJob } from "../../redux/slices/jobSlice";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
+import { getDailyPostLimit } from "../../services/jobApi";
 import colors from "../../constants/colors";
 
 const PRIMARY_GREEN = "#153e69";
@@ -47,6 +48,8 @@ export default function PostJobScreen({ navigation, route }) {
   const [step, setStep] = useState(() => {
     return savedBusinessName.trim() && savedContactName.trim() ? 2 : 1;
   }); // 1: Business Info, 2: Job Details, 3: Contact & Review, 4: Success
+  const [toastMessage, setToastMessage] = useState("");
+  const [checkingLimit, setCheckingLimit] = useState(false);
   const hasSavedBusinessBasics = savedBusinessName.trim() && savedContactName.trim();
   const visibleStep = hasSavedBusinessBasics ? Math.max(step, 2) : step;
 
@@ -974,10 +977,30 @@ export default function PostJobScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.primaryNextBtn}
                   activeOpacity={0.8}
-                  onPress={() => {
-                    handleReset();
-                    if (route?.params?.isOnboarding) {
-                      handleExitOnboarding();
+                  onPress={async () => {
+                    if (checkingLimit) return;
+                    setCheckingLimit(true);
+                    try {
+                      const res = await getDailyPostLimit();
+                      if (res && res.success && res.can_post_today === false) {
+                        setToastMessage(t("dailyPostLimitComplete", "Daily job post limit completed!"));
+                        setTimeout(() => {
+                          setToastMessage("");
+                        }, 1000);
+                      } else {
+                        handleReset();
+                        if (route?.params?.isOnboarding) {
+                          handleExitOnboarding();
+                        }
+                      }
+                    } catch (err) {
+                      console.warn("Failed to check daily post limit:", err);
+                      handleReset();
+                      if (route?.params?.isOnboarding) {
+                        handleExitOnboarding();
+                      }
+                    } finally {
+                      setCheckingLimit(false);
                     }
                   }}
                 >
@@ -1004,6 +1027,11 @@ export default function PostJobScreen({ navigation, route }) {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      {toastMessage ? (
+        <View style={styles.toastContainer}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -1514,6 +1542,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "800",
     color: "rgba(10, 5, 4, 0.6)",
+  },
+  toastContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(10, 5, 4, 0.9)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  toastText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

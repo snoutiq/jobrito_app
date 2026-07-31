@@ -85,14 +85,14 @@ export default function HomeScreen({ navigation }) {
   // Form Fields State
   const [photo, setPhoto] = useState(null);
   const [fullName, setFullName] = useState("");
-  const [gender, setGender] = useState("male");
-  const [experienceRange, setExperienceRange] = useState("1-3 Years");
+  const [gender, setGender] = useState("");
+  const [experienceRange, setExperienceRange] = useState("");
   const [currentEmployer, setCurrentEmployer] = useState("");
-  const [jobType, setJobType] = useState("Full Time");
-  const [locationPreference, setLocationPreference] = useState("India");
+  const [jobType, setJobType] = useState("");
+  const [locationPreference, setLocationPreference] = useState("");
   const [city, setCity] = useState("");
-  const [preferredRole, setPreferredRole] = useState("Kitchen Production");
-  const [skills, setSkills] = useState("");
+  const [preferredRole, setPreferredRole] = useState("");
+  const [skills, setSkills] = useState(null || "");
 
   // Keep track of app session visits to Home screen
   useEffect(() => {
@@ -154,14 +154,14 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || profile.name || "");
-      setGender(profile.gender || "male");
+      setGender(profile.gender || "");
       setPhoto(profile.profile_photo_path || profile.profile_photo || null);
-      setExperienceRange(profile.experience_range || "1-3 Years");
+      setExperienceRange(profile.experience_range || "");
       setCurrentEmployer(profile.current_employer || "");
-      setJobType(profile.job_type || "Full Time");
-      setLocationPreference(profile.location_preference || "India");
+      setJobType(profile.job_type || "");
+      setLocationPreference(profile.location_preference || "");
       setCity(profile.city || "");
-      setPreferredRole(profile.preferred_role || "Kitchen Production");
+      setPreferredRole(profile.preferred_role || "");
       setSkills(
         Array.isArray(profile.skills)
           ? profile.skills.join(", ")
@@ -256,20 +256,23 @@ export default function HomeScreen({ navigation }) {
   const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
     try {
-      const fullPayload = {
-        full_name: fullName.trim(),
-        gender: gender,
-        profile_photo_path: photo,
-        experience_range: experienceRange,
-        current_employer: currentEmployer.trim(),
-        job_type: jobType,
-        location_preference: locationPreference,
-        city: city.trim(),
-        preferred_role: preferredRole.trim(),
-        skills: skills.trim(),
+      const fullPayload = {};
+      if (fullName.trim()) fullPayload.full_name = fullName.trim();
+      if (gender) fullPayload.gender = gender;
+      if (photo) fullPayload.profile_photo_path = photo;
+      if (experienceRange) fullPayload.experience_range = experienceRange;
+      if (currentEmployer.trim()) fullPayload.current_employer = currentEmployer.trim();
+      if (jobType) fullPayload.job_type = jobType;
+      if (locationPreference) fullPayload.location_preference = locationPreference;
+      if (city.trim()) fullPayload.city = city.trim();
+      if (preferredRole.trim()) fullPayload.preferred_role = preferredRole.trim();
+      if (skills.trim()) fullPayload.skills = skills.trim();
+
+      const mergedPayload = {
+        ...fullPayload,
         ...fieldsToUpdate,
       };
-      await dispatch(updateProfile(fullPayload)).unwrap();
+      await dispatch(updateProfile(mergedPayload)).unwrap();
       await dispatch(fetchProfile()).unwrap();
       return true;
     } catch (err) {

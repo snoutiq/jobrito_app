@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   RefreshControl,
+  BackHandler,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -52,6 +53,19 @@ export default function EmployerHomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchEmployerDashboard());
+
+      const onBackPress = () => {
+        // Exit the app directly when back is pressed on the Employer Home Screen
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
     }, [dispatch])
   );
 
