@@ -303,6 +303,11 @@ export default function MainTabs() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="EmployerHome"
+        component={EmployerHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
         options={{ title: t("jobDetails") }}

@@ -38,7 +38,7 @@ export default function PostJobScreen({ navigation, route }) {
   const goToDashboard = () => {
     const role = (activeRole || "").toLowerCase().replace(" ", "").replace("_", "");
     if (role === "employer" || role === "chef") {
-      navigation.navigate("Tabs");
+      navigation.navigate("EmployerHome");
     } else {
       navigation.navigate("Home");
     }
@@ -978,9 +978,8 @@ const handleSubmitJob = async () => {
                     handleReset();
                     if (route?.params?.isOnboarding) {
                       handleExitOnboarding();
-                      goToDashboard();
                     } else {
-                      navigation.popToTop();
+                      goToDashboard();
                     }
                   }}
                 >
