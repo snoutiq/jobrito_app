@@ -143,6 +143,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
         return;
       }
+      if (contactPhone.trim().length !== 10) {
+        Alert.alert(t("error"), t("employerOnboarding.mobileNumberInvalid"));
+        return;
+      }
       if (!contactEmail.trim()) {
         Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
         return;
@@ -168,6 +172,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
       if (!managerPhone.trim()) {
         Alert.alert(t("error"), t("employerOnboarding.managerPhoneRequired"));
+        return;
+      }
+      if (managerPhone.trim().length !== 10) {
+        Alert.alert(t("error"), t("employerOnboarding.mobileNumberInvalid"));
         return;
       }
     }

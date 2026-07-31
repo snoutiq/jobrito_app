@@ -244,6 +244,7 @@
     "businessLocationRequired": "Please enter your Business Location.",
     "contactNameRequired": "Please enter contact person name.",
     "contactPhoneRequired": "Please enter mobile number.",
+    "mobileNumberInvalid": "Mobile number must be 10 digits.",
     "contactEmailRequired": "Please enter email address.",
     "locationsRequired": "Please complete all operational locations fields.",
     "managerNameRequired": "Please enter full name.",
