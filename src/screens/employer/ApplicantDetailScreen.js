@@ -20,6 +20,7 @@ import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import { getAvatarUrl, getAbsoluteProfilePhotoUrl } from "../../components/SwipeDeck/SwipeCard";
 import MatchBadge from "../../components/SwipeDeck/MatchBadge";
 import Timeline from "../../components/SwipeDeck/Timeline";
+import { getMatchScore } from "../../services/employerApi"; // Import getMatchScore
 
 export default function ApplicantDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -36,11 +37,25 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
   // Local state to manage the applicant's status for immediate UI feedback
   const [localStatus, setLocalStatus] = useState(applicant?.status);
+  // State for match score
+  const [fetchedMatchScore, setFetchedMatchScore] = useState(applicant?.match_score || applicant?.match?.score);
+
 
   // Sync local state if the applicant from Redux changes
   useEffect(() => {
     setLocalStatus(applicant?.status);
-  }, [applicant?.status]);
+    // If applicant changes or score is not yet set, try to fetch
+    if (applicant && (fetchedMatchScore === null || fetchedMatchScore === undefined) && (applicant.id || applicant.application_id)) {
+        const appId = applicant.id || applicant.application_id;
+        getMatchScore(appId)
+            .then(data => {
+                if (data?.match_percentage != null) {
+                    setFetchedMatchScore(data.match_percentage);
+                }
+            })
+            .catch(error => console.error("Failed to fetch match score:", error));
+    }
+  }, [applicant, fetchedMatchScore]); // Include fetchedMatchScore in dependency array
 
   if (!applicant) {
     return (
@@ -157,7 +172,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   };
 
   // Match score (no random generation)
-  const matchScore = applicant.match_score || applicant.match?.score;
+  const matchScore = fetchedMatchScore; // Use the fetched score
 
   // Real profile photo URL mapping
   const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
@@ -328,6 +343,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                 <View style={{ flex: 1, paddingRight: 8 }}>
                   <Text style={styles.chefName}>{displayName}</Text>
                 </View>
+                {matchScore != null && <MatchBadge score={matchScore} />}
               </View>
               {displayRole ? (
                 <Text style={styles.chefTitle}>Current Role: {displayRole}</Text>
