@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import i18n from "../i18n";
 
@@ -33,6 +33,11 @@ export default function RootNavigator() {
   );
 
   const [bootstrapping, setBootstrapping] = useState(true);
+  const [videoFinished, setVideoFinished] = useState(false);
+
+  const handleVideoEnd = useCallback(() => {
+    setVideoFinished(true);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -83,11 +88,11 @@ export default function RootNavigator() {
     };
   }, [dispatch, sessionResetKey]);
 
-  if (bootstrapping) {
-    return <SplashScreen />;
+  if (bootstrapping || !videoFinished) {
+    return <SplashScreen onVideoEnd={handleVideoEnd} />;
   }
 
-  if (reduxToken && !activeRole) return <SplashScreen />;
+  if (reduxToken && !activeRole) return null;
 
   if (reduxToken) {
     console.log("RootNavigator -> MainTabs", reduxToken);
