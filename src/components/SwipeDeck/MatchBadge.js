@@ -6,12 +6,12 @@ export default function MatchBadge({ score = 85, style }) {
   // Determine color theme based on score range
   const isHighMatch = score >= 80;
   const badgeBg = isHighMatch ? "rgba(21, 62, 105, 0.08)" : "rgba(242, 200, 121, 0.12)";
-  const textColor = isHighMatch ? "#153e69" : "#f2c879";
+  const textColor = isHighMatch ? "#153e69" : "green";
 
   return (
     <View style={[styles.badge, { backgroundColor: badgeBg }, style]}>
       <Ionicons name="sparkles" size={12} color={textColor} style={styles.icon} />
-      <Text style={[styles.text, { color: textColor }]}>{score}% Match</Text>
+      <Text style={[styles.text, { color: textColor }]}>{score}% <Text style={{color: 'green'}}>Match</Text></Text>
     </View>
   );
 }
