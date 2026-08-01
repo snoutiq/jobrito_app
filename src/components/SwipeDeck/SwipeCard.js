@@ -346,6 +346,11 @@ export default function SwipeCard({
           </View>
         )}
 
+        {/* Match Score Badge — top-left corner */}
+        {matchScore != null && (
+          <MatchBadge score={matchScore} style={styles.matchBadge} />
+        )}
+
         {/* Scrollable Card Body showing full details */}
         {/* Card Body showing essential details up to Core Skills */}
         <View style={styles.cardScrollContent}>
@@ -517,6 +522,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 18,
     gap: 5,
     zIndex: 10,
+  },
+  matchBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    borderTopLeftRadius: 26,
+    borderBottomRightRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    zIndex: 10,
+    borderWidth: 0,
+    borderRadius: 0,
   },
   statusBadgeShortlisted: {
     backgroundColor: '#4CAF50',

@@ -62,3 +62,10 @@ export const closeJob = async (jobId) => {
   return response.data;
 };
 
+export const getMatchScore = async (applicationId) => {
+  const response = await apiClient.post("/applications/match-score", {
+    application_id: applicationId,
+  });
+  return response.data;
+};
+

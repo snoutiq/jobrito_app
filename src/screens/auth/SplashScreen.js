@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { StyleSheet, StatusBar, View, Animated } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 
 const videoSource = require("../../assets/JobritoSplashAnimation.mp4");
 
 export default function SplashScreen({ onVideoEnd }) {
-  const [opacity] = useState(new Animated.Value(0));
+  const opacity = useRef(new Animated.Value(0)).current;
 
   const player = useVideoPlayer(videoSource, (p) => {
     p.loop = false;
@@ -13,25 +13,29 @@ export default function SplashScreen({ onVideoEnd }) {
   });
 
   useEffect(() => {
-    const subscription = player.addListener("playToEnd", () => {
+    // Listen for playback status — fade in as soon as video starts playing
+    const statusSub = player.addListener("statusChange", ({ status }) => {
+      if (status === "readyToPlay") {
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+
+    // Listen for video end
+    const endSub = player.addListener("playToEnd", () => {
       if (onVideoEnd) {
         onVideoEnd();
       }
     });
 
     return () => {
-      subscription.remove();
+      statusSub.remove();
+      endSub.remove();
     };
   }, [player, onVideoEnd]);
-
-  const handleReadyForDisplay = () => {
-    // Fade in the video once it's ready — eliminates white flash & blink
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
 
   return (
     <View style={styles.container}>
@@ -44,7 +48,6 @@ export default function SplashScreen({ onVideoEnd }) {
           nativeControls={false}
           allowsFullscreen={false}
           allowsPictureInPicture={false}
-          onReadyForDisplay={handleReadyForDisplay}
         />
       </Animated.View>
     </View>
@@ -54,7 +57,7 @@ export default function SplashScreen({ onVideoEnd }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000", // black bg shown while video loads — prevents white flash
+    backgroundColor: "#000000",
   },
   videoWrapper: {
     flex: 1,

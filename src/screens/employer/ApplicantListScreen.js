@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Assuming @react-native-async-storage/async-storage is installed
 import { useTranslation } from "react-i18next";
 import { fetchEmployerDashboard, updateApplicantStatus } from "../../redux/slices/employerSlice";
+import { getMatchScore } from "../../services/employerApi";
 import CardStack from "../../components/SwipeDeck/CardStack";
 
 export default function ApplicantListScreen({ route, navigation }) {
@@ -32,6 +33,9 @@ export default function ApplicantListScreen({ route, navigation }) {
   const undoTimeoutRef = useRef(null);
   const cardStackRef = useRef(null);
 
+  // Match scores map: { [applicationId]: matchPercentage }
+  const [matchScores, setMatchScores] = useState({});
+
   // Get active job and applicants from the Redux store
   const selectedJob = useSelector((state) =>
     state.employer.submittedJobs.find((j) => j.id === jobId)
@@ -47,6 +51,33 @@ export default function ApplicantListScreen({ route, navigation }) {
     }
   }, [dispatch]);
 
+  // Fetch match scores for all applicants whenever applicant list changes
+  useEffect(() => {
+    if (applicants.length === 0) return;
+    const fetchScores = async () => {
+      const results = await Promise.allSettled(
+        applicants.map(async (a) => {
+          const appId = a.id || a.application_id;
+          if (!appId) return null;
+          try {
+            const data = await getMatchScore(appId);
+            return { id: appId, score: data?.match_percentage ?? null };
+          } catch {
+            return null;
+          }
+        })
+      );
+      const scoreMap = {};
+      results.forEach((r) => {
+        if (r.status === "fulfilled" && r.value) {
+          scoreMap[r.value.id] = r.value.score;
+        }
+      });
+      setMatchScores(scoreMap);
+    };
+    fetchScores();
+  }, [applicants]);
+
   // Calculate dynamic stats
   const totalApplied = applicants.length;
   const shortlistedCount = applicants.filter((a) => a.status?.toLowerCase() === "shortlisted").length;
@@ -54,17 +85,23 @@ export default function ApplicantListScreen({ route, navigation }) {
   const rejectedCount = applicants.filter((a) => a.status?.toLowerCase() === "rejected").length;
   const pendingCount = applicants.filter((a) => a.status?.toLowerCase() === "new" || a.status?.toLowerCase() === "pending").length;
 
-  // Filter applicants
+  // Filter applicants + inject match_score from fetched map
   // FIX: memoize so reference sirf tab change ho jab actual data/filter change ho,
   // har parent re-render pe naya array na bane (yehi CardStack ko baar baar reset kar raha tha)
   const filteredApplicants = useMemo(() => {
-    return applicants.filter((item) => {
-      const status = item.status?.toLowerCase();
-      if (activeFilter === "all") return true;
-      if (activeFilter === "new") return status === "new" || status === "pending";
-      return status === activeFilter;
-    });
-  }, [applicants, activeFilter]);
+    return applicants
+      .filter((item) => {
+        const status = item.status?.toLowerCase();
+        if (activeFilter === "all") return true;
+        if (activeFilter === "new") return status === "new" || status === "pending";
+        return status === activeFilter;
+      })
+      .map((item) => {
+        const appId = item.id || item.application_id;
+        const score = matchScores[appId];
+        return score != null ? { ...item, match_score: score } : item;
+      });
+  }, [applicants, activeFilter, matchScores]);
 
   // Handle activeIndex reset when filter changes
   useEffect(() => {
