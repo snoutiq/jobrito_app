@@ -403,12 +403,12 @@ export default function SwipeCard({
                       <Text style={styles.profileInfoValue}>{displayAvailability}</Text>
                     </Text>
                   ) : null}
-                  {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
+                  {/* {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
                     <Text numberOfLines={1} style={styles.detailRowText}>
                       <Text style={styles.profileInfoLabel}>Callback Time: </Text>
                       <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
                     </Text>
-                  )}
+                  )} */}
                 </View>
               </View>
             </View>
