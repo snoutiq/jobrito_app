@@ -19,7 +19,7 @@ export const fetchFeedJobs = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch jobs");
     }
-  }
+  },
 );
 
 export const fetchSavedJobs = createAsyncThunk(
@@ -30,7 +30,7 @@ export const fetchSavedJobs = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch saved jobs");
     }
-  }
+  },
 );
 
 export const toggleSaveJob = createAsyncThunk(
@@ -41,7 +41,7 @@ export const toggleSaveJob = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to toggle save job");
     }
-  }
+  },
 );
 
 export const fetchJobDetails = createAsyncThunk(
@@ -52,7 +52,7 @@ export const fetchJobDetails = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch job details");
     }
-  }
+  },
 );
 
 export const submitCommunityJob = createAsyncThunk(
@@ -61,9 +61,11 @@ export const submitCommunityJob = createAsyncThunk(
     try {
       return await submitCommunityJobApi(data);
     } catch (error) {
-      return rejectWithValue(error?.message || "Failed to submit community job");
+      return rejectWithValue(
+        error?.message || "Failed to submit community job",
+      );
     }
-  }
+  },
 );
 
 export const storeEmployerJob = createAsyncThunk(
@@ -74,7 +76,7 @@ export const storeEmployerJob = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to store job");
     }
-  }
+  },
 );
 
 export const createJobPost = createAsyncThunk(
@@ -92,7 +94,7 @@ export const createJobPost = createAsyncThunk(
       };
       return rejectWithValue(serialized);
     }
-  }
+  },
 );
 
 export const fetchMyJobs = createAsyncThunk(
@@ -103,7 +105,7 @@ export const fetchMyJobs = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch my jobs");
     }
-  }
+  },
 );
 
 export const applyJob = createAsyncThunk(
@@ -114,7 +116,7 @@ export const applyJob = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to apply to job");
     }
-  }
+  },
 );
 
 const initialState = {
@@ -189,9 +191,50 @@ const jobSlice = createSlice({
         state.error = null;
         state.success = false;
       })
+      // .addCase(fetchMyJobs.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.myJobs = action.payload?.created_jobs || action.payload || []; // Changed from .jobs to .created_jobs
+      //   state.success = true;
+      // })
       .addCase(fetchMyJobs.fulfilled, (state, action) => {
         state.loading = false;
-        state.myJobs = action.payload?.created_jobs || action.payload || []; // Changed from .jobs to .created_jobs
+        const payload = action.payload || {};
+        const createdJobs = Array.isArray(payload.created_jobs)
+          ? payload.created_jobs
+          : [];
+        const pendingJobs = Array.isArray(payload.pending_created_jobs)
+          ? payload.pending_created_jobs
+          : [];
+        const fallback =
+          !createdJobs.length && !pendingJobs.length
+            ? Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload.jobs)
+                ? payload.jobs
+                : Array.isArray(payload.data)
+                  ? payload.data
+                  : []
+            : [];
+
+        // Merge created + pending jobs; force status "pending" if backend ever omits it
+        const merged = [
+          ...createdJobs,
+          ...pendingJobs.map((job) => ({
+            ...job,
+            status: job.status || "pending",
+          })),
+          ...fallback,
+        ];
+
+        // De-dupe by id
+        const seen = new Set();
+        state.myJobs = merged.filter((job) => {
+          const id = String(job.id);
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+
         state.success = true;
       })
       .addCase(fetchMyJobs.rejected, (state, action) => {
@@ -263,7 +306,9 @@ const jobSlice = createSlice({
         if (state.jobDetails && state.jobDetails.id === jobId) {
           state.jobDetails.applied = true;
         }
-        const savedJob = state.savedJobs.find((j) => String(j.id) === String(jobId));
+        const savedJob = state.savedJobs.find(
+          (j) => String(j.id) === String(jobId),
+        );
         if (savedJob) {
           savedJob.applied = true;
         }
@@ -287,7 +332,9 @@ const jobSlice = createSlice({
           if (state.jobDetails && state.jobDetails.id === jobId) {
             state.jobDetails.applied = true;
           }
-          const savedJob = state.savedJobs.find((j) => String(j.id) === String(jobId));
+          const savedJob = state.savedJobs.find(
+            (j) => String(j.id) === String(jobId),
+          );
           if (savedJob) {
             savedJob.applied = true;
           }
@@ -313,7 +360,9 @@ const jobSlice = createSlice({
         if (state.jobDetails && state.jobDetails.id === jobId) {
           state.jobDetails.applied = true;
         }
-        const savedJob = state.savedJobs.find((j) => String(j.id) === String(jobId));
+        const savedJob = state.savedJobs.find(
+          (j) => String(j.id) === String(jobId),
+        );
         if (savedJob) {
           savedJob.applied = true;
         }
@@ -337,7 +386,9 @@ const jobSlice = createSlice({
           if (state.jobDetails && state.jobDetails.id === jobId) {
             state.jobDetails.applied = true;
           }
-          const savedJob = state.savedJobs.find((j) => String(j.id) === String(jobId));
+          const savedJob = state.savedJobs.find(
+            (j) => String(j.id) === String(jobId),
+          );
           if (savedJob) {
             savedJob.applied = true;
           }
@@ -349,13 +400,14 @@ const jobSlice = createSlice({
       .addCase(toggleSaveJob.fulfilled, (state, action) => {
         const jobId = action.meta.arg;
         const result = action.payload;
-        
+
         // Find if job is saved in backend response or toggle locally
-        const isSaved = result && result.hasOwnProperty("saved")
-          ? result.saved
-          : result && result.hasOwnProperty("status")
-          ? result.status === "saved"
-          : null;
+        const isSaved =
+          result && result.hasOwnProperty("saved")
+            ? result.saved
+            : result && result.hasOwnProperty("status")
+              ? result.status === "saved"
+              : null;
 
         state.feedJobs = state.feedJobs.map((j) => {
           if (String(j.id) === String(jobId)) {
@@ -367,17 +419,23 @@ const jobSlice = createSlice({
         });
 
         // Sync state.savedJobs list
-        const updatedJob = state.feedJobs.find((j) => String(j.id) === String(jobId));
+        const updatedJob = state.feedJobs.find(
+          (j) => String(j.id) === String(jobId),
+        );
         if (updatedJob) {
           if (updatedJob.saved) {
             if (!state.savedJobs.some((j) => String(j.id) === String(jobId))) {
               state.savedJobs.push(updatedJob);
             }
           } else {
-            state.savedJobs = state.savedJobs.filter((j) => String(j.id) !== String(jobId));
+            state.savedJobs = state.savedJobs.filter(
+              (j) => String(j.id) !== String(jobId),
+            );
           }
         } else {
-          state.savedJobs = state.savedJobs.filter((j) => String(j.id) !== String(jobId));
+          state.savedJobs = state.savedJobs.filter(
+            (j) => String(j.id) !== String(jobId),
+          );
         }
       })
       .addCase(toggleSaveJob.rejected, (state, action) => {

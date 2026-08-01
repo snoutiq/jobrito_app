@@ -1,56 +1,27 @@
 import React, { useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Text, View, Linking } from "react-native";
+import { Alert, Share, StyleSheet, Text, View, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 
-const formatPostedTime = (postedDate, t) => {
-  if (!postedDate) return t("jobDetails.recently", "Recently");
-  const posted = new Date(postedDate);
-  if (Number.isNaN(posted.getTime())) return t("jobDetails.recently", "Recently");
-  const diffMs = Date.now() - posted.getTime();
-  const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-  if (diffDays === 0) return t("jobDetails.today", "Today");
-  if (diffDays === 1) return t("jobDetails.oneDayAgo", "1 day ago");
-  return t("jobDetails.daysAgo", "{{count}} days ago", { count: diffDays });
-};
-
-const getDisplayStatusText = (statusStr, t) => {
-  if (!statusStr) return "";
-  const s = statusStr.toUpperCase().trim();
-  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return t("status.underProcess", "UNDER PROCESS");
-  }
-  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return t("status.discussionPending", "DISCUSSION PENDING");
-  }
-  if (s === "SHORTLISTED") {
-    return t("status.shortlisted", "SHORTLISTED");
-  }
-  if (s === "CONTACTED") {
-    return t("status.contacted", "CONTACTED");
-  }
-  if (s === "JOB CLOSED") {
-    return t("status.jobClosed", "JOB CLOSED");
-  }
-  return t(`status.${s.toLowerCase()}`, s);
-};
+// API fields from /my-jobs:
+// id, title, status, location, date_posted, openings, type, applicants
 
 const getStatusBadgeColors = (statusStr) => {
   if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
   const s = statusStr.toUpperCase().trim();
-  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
+  if (s === "PENDING" || s === "UNDER REVIEW" || s === "UNDER_REVIEW" || s === "NEW") {
     return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
     return { bg: "rgba(245, 127, 32, 0.06)", text: "#f57f20", border: "rgba(245, 127, 32, 0.2)" };
   }
-  if (s === "SHORTLISTED" || s === "CONTACTED") {
+  if (s === "ACTIVE" || s === "SHORTLISTED" || s === "CONTACTED") {
     return { bg: "rgba(21, 105, 62, 0.06)", text: "#15693e", border: "rgba(21, 105, 62, 0.2)" };
   }
-  if (s === "JOB CLOSED") {
+  if (s === "CLOSED" || s === "JOB CLOSED") {
     return { bg: "rgba(10, 5, 4, 0.04)", text: "rgba(10, 5, 4, 0.6)", border: "rgba(10, 5, 4, 0.15)" };
   }
   return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
@@ -59,12 +30,11 @@ const getStatusBadgeColors = (statusStr) => {
 export default function MyJobDetailsScreen({ route }) {
   const { t } = useTranslation();
   const job = route?.params?.job;
-  const [showCallModal, setShowCallModal] = useState(false);
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `${job?.title || "Job"} at ${job?.company || "Jobrito"}`,
+        message: `${job?.title || "Job"} - ${job?.location || "Jobrito"}`,
       });
     } catch (error) {
       Alert.alert("Unable to share", "Please try again.");
@@ -79,108 +49,146 @@ export default function MyJobDetailsScreen({ route }) {
     );
   }
 
-  const title = job?.title;
-  const company = job?.company;
-  const location = job?.location;
-  const salary = job?.salary;
-  const experience = job?.experience || job?.experience_range || t("jobDetails.notSpecified", "Not Specified");
-  const postedTime = formatPostedTime(job?.postedDate || job?.created_at, t);
-  
-  const jobRequirements = Array.isArray(job?.requirements) 
-    ? job.requirements.filter(Boolean) 
-    : typeof job?.requirements === "string" 
-      ? job.requirements.split("\n").map(r => r.trim()).filter(Boolean)
-      : [];
-      
-  const jobBenefits = Array.isArray(job?.benefits) 
-    ? job.benefits.filter(Boolean) 
-    : typeof job?.benefits === "string" 
-      ? job.benefits.split("\n").map(b => b.trim()).filter(Boolean)
+  // ✅ Map only what API actually returns
+  const title       = job?.title;
+  const location    = job?.location;
+  const jobType     = job?.type || "Full-time";
+  const openings    = job?.openings;
+  const datePosted  = job?.date_posted;
+  const status      = job?.status;
+  const applicants  = Array.isArray(job?.applicants) ? job.applicants : [];
+
+  // Optional fields — only shown if API returns them in future
+  const company     = job?.company || job?.business_name;
+  const salary      = job?.salary || job?.salary_range;
+  const experience  = job?.experience || job?.experience_range;
+  const description = job?.description;
+
+  const jobRequirements = Array.isArray(job?.requirements)
+    ? job.requirements.filter(Boolean)
+    : typeof job?.requirements === "string"
+      ? job.requirements.split("\n").map((r) => r.trim()).filter(Boolean)
       : [];
 
-  const isReferral = job?.category === "referral" || job?.is_referral;
-  const effectiveRoleSource =
-    job?.submitted_by_role ||
-    job?.posted_by_role ||
-    job?.active_role ||
-    job?.user_role ||
-    job?.creator?.role ||
-    job?.creator?.active_role ||
-    "";
-  const effectiveRole = effectiveRoleSource.toLowerCase();
-  const normalizedRole = effectiveRole.replace(/[\s_]/g, "");
-  const isChefOrJobSeeker = ["chef", "jobseeker", "job_seeker", "talent", "candidate"].includes(normalizedRole);
-  const showApply = !isReferral && !isChefOrJobSeeker;
+  const jobBenefits = Array.isArray(job?.benefits)
+    ? job.benefits.filter(Boolean)
+    : typeof job?.benefits === "string"
+      ? job.benefits.split("\n").map((b) => b.trim()).filter(Boolean)
+      : [];
 
-  const handleCall = () => {
-    const phoneNumber =
-      job?.creator?.mobile_number ||
-      job?.mobile_number ||
-      job?.phone ||
-      job?.contact_phone ||
-      job?.creator?.phone ||
-      "+919876543210";
-    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert(
-        t("error", "Error"),
-        (t("couldNotOpenDialer", "Could not open dialer: ") || "Could not open dialer: ") + err.message,
-      );
-    });
-  };
+  const statusColors = getStatusBadgeColors(status);
 
   return (
     <ScreenWrapper edges={["left", "right", "bottom"]} contentStyle={styles.page}>
+
+      {/* ── Hero Card ── */}
       <View style={styles.heroCard}>
         <View style={styles.heroTop}>
           <View style={styles.brandAvatar}>
             <Ionicons name="restaurant" size={24} color={colors.primaryDark} />
           </View>
           <View style={styles.heroTextBlock}>
-            <View style={styles.titleRow}>
-              <Text style={styles.companyTitle}>{company}</Text>
-              <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-            </View>
-            <Text style={styles.positionTitle}>{title}</Text>
-            <View style={styles.tagRow}>
-              <View style={[styles.tag, styles.tagFullTime]}>
-                <Text style={styles.tagFullTimeText}>{t("jobDetails.fullTime", "Full Time")}</Text>
+            {/* Company — only if returned by API */}
+            {company ? (
+              <View style={styles.titleRow}>
+                <Text style={styles.companyTitle}>{company}</Text>
+                <Ionicons name="checkmark-circle" size={14} color={colors.success} />
               </View>
+            ) : null}
+
+            <Text style={styles.positionTitle}>{title}</Text>
+
+            <View style={styles.tagRow}>
+              {/* Job Type tag */}
+              <View style={[styles.tag, styles.tagFullTime]}>
+                <Text style={styles.tagFullTimeText}>{jobType}</Text>
+              </View>
+              {/* Status badge */}
+              {status ? (
+                <View style={[styles.tag, { backgroundColor: statusColors.bg, borderWidth: 1, borderColor: statusColors.border }]}>
+                  <Text style={[styles.tagFullTimeText, { color: statusColors.text }]}>
+                    {status.toUpperCase()}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </View>
-          <View style={styles.timeBadge}>
-            <Ionicons name="time-outline" size={12} color="rgba(10, 5, 4, 0.6)" />
-            <Text style={styles.timeBadgeText}>{postedTime}</Text>
-          </View>
+
+          {/* Posted date */}
+          {datePosted ? (
+            <View style={styles.timeBadge}>
+              <Ionicons name="time-outline" size={12} color="rgba(10, 5, 4, 0.6)" />
+              <Text style={styles.timeBadgeText}>{datePosted}</Text>
+            </View>
+          ) : null}
         </View>
 
+        {/* ── Meta Grid ── */}
         <View style={styles.metaGrid}>
+          {/* Location — always shown if present */}
+          {location ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="location-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>{t("jobDetails.location", "Location")}</Text>
+                <Text style={styles.metaValue}>{location}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {/* Open Positions / Openings */}
+          {openings != null ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="people-outline" size={16} color={colors.success} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>{t("jobDetails.openPositions", "Open Positions")}</Text>
+                <Text style={styles.metaValue}>{openings}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {/* Applicants count */}
           <View style={styles.metaItem}>
             <View style={styles.metaIcon}>
-              <Ionicons name="cash-outline" size={16} color={colors.success} />
+              <Ionicons name="person-outline" size={16} color={colors.primary} />
             </View>
             <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>{t("jobDetails.salary", "Salary")}</Text>
-              <Text style={styles.metaValue}>{salary}</Text>
+              <Text style={styles.metaLabel}>{t("jobDetails.applicants", "Applicants")}</Text>
+              <Text style={styles.metaValue}>{applicants.length}</Text>
             </View>
           </View>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons name="location-outline" size={16} color={colors.primary} />
+
+          {/* Salary — only if API returns it */}
+          {salary ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="cash-outline" size={16} color={colors.success} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>{t("jobDetails.salary", "Salary")}</Text>
+                <Text style={styles.metaValue}>{salary}</Text>
+              </View>
             </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>{t("jobDetails.location", "Location")}</Text>
-              <Text style={styles.metaValue}>{location}</Text>
+          ) : null}
+
+          {/* Experience — only if API returns it */}
+          {experience ? (
+            <View style={styles.metaItem}>
+              <View style={styles.metaIcon}>
+                <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.metaItemContent}>
+                <Text style={styles.metaLabel}>{t("jobDetails.experience", "Experience")}</Text>
+                <Text style={styles.metaValue}>{experience}</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
-            </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>{t("jobDetails.experience", "Experience")}</Text>
-              <Text style={styles.metaValue}>{experience}</Text>
-            </View>
-          </View>
+          ) : null}
+
+          {/* Conditional extras — only if API returns them */}
           {job?.contract_duration ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
@@ -192,6 +200,7 @@ export default function MyJobDetailsScreen({ route }) {
               </View>
             </View>
           ) : null}
+
           {job?.visa_assistance ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
@@ -203,6 +212,7 @@ export default function MyJobDetailsScreen({ route }) {
               </View>
             </View>
           ) : null}
+
           {job?.accommodation_available ? (
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
@@ -214,27 +224,18 @@ export default function MyJobDetailsScreen({ route }) {
               </View>
             </View>
           ) : null}
-          {job?.open_positions ? (
-            <View style={styles.metaItem}>
-              <View style={styles.metaIcon}>
-                <Ionicons name="people-outline" size={16} color={colors.success} />
-              </View>
-              <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>{t("jobDetails.openPositions", "Open Positions")}</Text>
-                <Text style={styles.metaValue}>{job.open_positions}</Text>
-              </View>
-            </View>
-          ) : null}
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("jobDetails.aboutRole", "About the Role")}</Text>
-        <Text style={styles.bodyText}>
-          {job?.description}
-        </Text>
-      </View>
+      {/* ── Description — only if API returns it ── */}
+      {description ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("jobDetails.aboutRole", "About the Role")}</Text>
+          <Text style={styles.bodyText}>{description}</Text>
+        </View>
+      ) : null}
 
+      {/* ── Requirements ── */}
       {jobRequirements.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "Key Requirements")}</Text>
@@ -249,6 +250,7 @@ export default function MyJobDetailsScreen({ route }) {
         </View>
       )}
 
+      {/* ── Benefits ── */}
       {jobBenefits.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "Benefits & Perks")}</Text>
@@ -369,6 +371,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  metaItemContent: {
+    flex: 1,
+  },
   metaLabel: {
     color: colors.mutedText,
     fontSize: 11,
@@ -433,19 +438,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   applyButton: {
-    flex: 1,
-  },
-  chatButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  metaItemContent: {
     flex: 1,
   },
   timeBadge: {
