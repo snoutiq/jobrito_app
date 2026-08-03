@@ -388,7 +388,7 @@ export default function CompleteProfileScreen({ navigation, route }) {
           </View>
 
           <View style={styles.progressRow}>
-            <Text style={styles.stepText}>Profile Completion</Text>
+            <Text style={styles.stepText}>{t("profile.profileCompletion", "Profile Completion")}</Text>
             <Text style={styles.complete}>{progressText}</Text>
           </View>
 
@@ -1039,10 +1039,10 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
   return (
     <View style={styles.content}>
       <Text style={styles.heading}>
-        Which position best matches your experience?
+        {t("positionBestMatchesTitle", "Which position best matches your experience?")}
       </Text>
       <Text style={styles.subHeadingText}>
-        Select the role that defines your expertise in the hospitality industry.
+        {t("positionBestMatchesSubtitle", "Select the role that defines your expertise in the hospitality industry.")}
       </Text>
       
       <View style={{ gap: 12, marginBottom: 20 }}>
@@ -1090,9 +1090,9 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
         })}
       </View>
 
-      <Text style={[styles.label, { marginTop: 14 }]}>Additional Skills (comma separated)</Text>
+      <Text style={[styles.label, { marginTop: 14 }]}>{t("additionalSkillsLabel", "Additional Skills (comma separated)")}</Text>
       <TextInput
-        placeholder="e.g. Fine Dining, Chocolate tempering"
+        placeholder={t("additionalSkillsPlaceholder", "e.g. Fine Dining, Chocolate tempering")}
         placeholderTextColor="rgba(10, 5, 4, 0.4)"
         value={skills}
         onChangeText={setSkills}
@@ -1115,7 +1115,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
       </TouchableOpacity>
 
       <TouchableOpacity onPress={onSkip} style={{ marginTop: 16 }}>
-        <Text style={styles.later}>Maybe Later</Text>
+        <Text style={styles.later}>{t("maybeLater", "Maybe Later")}</Text>
       </TouchableOpacity>
 
       {/* Specific Job Title Search Modal */}

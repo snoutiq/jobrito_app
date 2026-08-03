@@ -1020,13 +1020,13 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Full Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.inputLabel}>{t("fullName", "Full Name")}</Text>
                 <View style={[styles.inputWrapper, activeInput === "fullName" && styles.inputWrapperActive]}>
                   <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={fullName}
                     onChangeText={setFullName}
-                    placeholder="Enter your full name"
+                    placeholder={t("enterFullName", "Enter your full name")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={() => setActiveInput("fullName")}
@@ -1037,7 +1037,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Professional Title */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Professional Title</Text>
+                <Text style={styles.inputLabel}>{t("professionalTitle", "Professional Title")}</Text>
                 <View style={[styles.inputWrapper, activeInput === "professionalTitle" && styles.inputWrapperActive]}>
                   <Ionicons name="restaurant-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
@@ -1055,7 +1055,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Country Selection */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Country</Text>
+                <Text style={styles.inputLabel}>{t("country", "Country")}</Text>
                 <ModalPickerTrigger
                   onPress={() => {
                     setShowCountryDropdown(true);
@@ -1478,7 +1478,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Regional Experience */}
               <View style={styles.sectionHeader}>
                 <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Regional Experience</Text>
+                <Text style={styles.sectionTitleText}>{t("regionalExperience", "Regional Experience")}</Text>
               </View>
               <View style={styles.pillsRow}>
                 {regionalOptions.map((r) => {
@@ -1501,8 +1501,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Job Location Preference */}
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Job Location Preference <Text style={{ color: "red" }}>*</Text></Text>
-                <Text style={styles.sectionTitleText}>Job Location Preference</Text>
+                <Text style={styles.sectionTitleText}>{t("jobLocationPreference", "Job Location Preference")} <Text style={{ color: "red" }}>*</Text></Text>
               </View>
               <View style={styles.pillsRow}>
                 {locationPrefOptions.map((lp) => {
@@ -1525,8 +1524,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               {/* Employment Preference */}
               <View style={[styles.sectionHeader, { marginTop: 20 }]}>
                 <Ionicons name="briefcase-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Employment Preference <Text style={{ color: "red" }}>*</Text></Text>
-                <Text style={styles.sectionTitleText}>Employment Preference</Text>
+                <Text style={styles.sectionTitleText}>{t("employmentPreference", "Employment Preference")} <Text style={{ color: "red" }}>*</Text></Text>
               </View>
               <View style={styles.pillsRow}>
                 {employmentOptions.map((ep) => {

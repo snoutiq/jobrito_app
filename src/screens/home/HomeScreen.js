@@ -901,7 +901,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Complete your profile
+                {t("completeProfileModalTitle", "Complete your profile")}
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -937,10 +937,10 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 1 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Personal Info & Photo
+                    {t("personalInfoPhotoTitle", "Personal Info & Photo")}
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    A professional photo and profile details help recruiters find you.
+                    {t("personalInfoPhotoSubtitle", "A professional photo and profile details help recruiters find you.")}
                   </Text>
 
                   <View style={styles.wizardRow}>
@@ -997,21 +997,21 @@ export default function HomeScreen({ navigation }) {
                     {/* Right Column: Name & Gender */}
                     <View style={styles.wizardRightCol}>
                       <View style={styles.inputGroup}>
-                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Full Name</Text>
+                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("fullName", "Full Name")}</Text>
                         <View style={[styles.inputWrapper, { height: 42, paddingHorizontal: 10 }]}>
                           <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
                           <TextInput
                             style={[styles.textInputWithIcon, { fontSize: 13 }]}
                             value={fullName}
                             onChangeText={setFullName}
-                            placeholder="Full name"
+                            placeholder={t("enterFullName", "Enter full name")}
                             placeholderTextColor="rgba(10, 5, 4, 0.3)"
                           />
                         </View>
                       </View>
 
                       <View style={[styles.inputGroup, { marginBottom: 0 }]}>
-                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Gender</Text>
+                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("genderLabel", "Gender")}</Text>
                         <View style={[styles.genderSelectRow, { gap: 6 }]}>
                           {["Male", "Female", "Other"].map((g) => {
                             const isSelected = gender.toLowerCase() === g.toLowerCase();
@@ -1061,7 +1061,7 @@ export default function HomeScreen({ navigation }) {
                     {submittingProfile ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text style={styles.modalConfirmBtnText}>Save & Continue</Text>
+                      <Text style={styles.modalConfirmBtnText}>{t("saveAndContinue", "Save & Continue")}</Text>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1070,14 +1070,14 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 2 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Work Experience & Location
+                    {t("workExperienceLocationTitle", "Work Experience & Location")}
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    Share your experience and the place where you want to work.
+                    {t("workExperienceLocationSubtitle", "Share your experience and the place where you want to work.")}
                   </Text>
 
                   <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Experience</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("experienceLabel", "Experience")}</Text>
                     <View style={styles.experienceOptionsRow}>
                       {["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"].map((r) => {
                         const isSelected = experienceRange === r;
@@ -1105,7 +1105,7 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Current Employer</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("currentEmployerLabel", "Current Employer")}</Text>
                     <View style={styles.inputWrapper}>
                       <Ionicons name="business-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
                       <TextInput
@@ -1119,7 +1119,7 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Job Preference</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("jobPreferenceLabel", "Job Preference")}</Text>
                     <View style={styles.jobTypeRow}>
                       {["Full Time", "Part Time", "Freelance Chef"].map((t) => {
                         const isSelected = jobType === t;
@@ -1155,7 +1155,7 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Region</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("preferredRegionLabel", "Preferred Region")}</Text>
                     <View style={styles.locationPreferenceRow}>
                       {["India", "Overseas", "Both"].map((p) => {
                         const isSelected = locationPreference === p;
@@ -1191,7 +1191,7 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred City / State</Text>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("preferredCityLabel", "Preferred City / State")}</Text>
                     <View style={styles.inputWrapper}>
                       <Ionicons name="location-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
                       <TextInput
@@ -1226,7 +1226,7 @@ export default function HomeScreen({ navigation }) {
                     {submittingProfile ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text style={styles.modalConfirmBtnText}>Continue</Text>
+                      <Text style={styles.modalConfirmBtnText}>{t("continue", "Continue")}</Text>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1235,10 +1235,10 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 3 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Which position best matches your experience?
+                    {t("positionBestMatchesTitle", "Which position best matches your experience?")}
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    Select the role that defines your expertise in the hospitality industry.
+                    {t("positionBestMatchesSubtitle", "Select the role that defines your expertise in the hospitality industry.")}
                   </Text>
 
                   <View style={{ gap: 12, marginBottom: 20 }}>
@@ -1276,7 +1276,7 @@ export default function HomeScreen({ navigation }) {
                               }}
                             >
                               <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                                {preferredRole || "Select specific job title..."}
+                                {preferredRole || t("selectSpecificJobTitle", "Select specific job title...")}
                               </Text>
                               <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
                             </Pressable>
@@ -1286,9 +1286,9 @@ export default function HomeScreen({ navigation }) {
                     })}
                   </View>
 
-                  <Text style={[styles.inputLabel, { marginTop: 14 }]}>Additional Skills (comma separated)</Text>
+                  <Text style={[styles.inputLabel, { marginTop: 14 }]}>{t("additionalSkillsLabel", "Additional Skills (comma separated)")}</Text>
                   <TextInput
-                    placeholder="e.g. Fine Dining, Chocolate tempering"
+                    placeholder={t("additionalSkillsPlaceholder", "e.g. Fine Dining, Chocolate tempering")}
                     placeholderTextColor="rgba(10, 5, 4, 0.3)"
                     value={skills}
                     onChangeText={setSkills}
@@ -1331,7 +1331,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select {selectedCategory} Title</Text>
+              <Text style={styles.modalTitle}>{t("selectCategoryTitle", "Select {{category}} Title", { category: selectedCategory })}</Text>
               <TouchableOpacity onPress={() => setJobTitleModalVisible(false)}>
                 <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
@@ -1340,7 +1340,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.inputWrapper}>
               <Ionicons name="search" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
               <TextInput
-                placeholder="Search job titles..."
+                placeholder={t("searchJobTitlesPlaceholder", "Search job titles...")}
                 placeholderTextColor="rgba(10, 5, 4, 0.3)"
                 value={jobTitleSearch}
                 onChangeText={setJobTitleSearch}
@@ -1369,7 +1369,7 @@ export default function HomeScreen({ navigation }) {
               {((categoryJobTitles[selectedCategory] || []).filter((item) =>
                 item.toLowerCase().includes(jobTitleSearch.toLowerCase())
               )).length === 0 && (
-                <Text style={styles.noResultsText}>No matching job titles found.</Text>
+                <Text style={styles.noResultsText}>{t("noMatchingJobTitles", "No matching job titles found.")}</Text>
               )}
             </ScrollView>
           </View>
@@ -1404,7 +1404,7 @@ export default function HomeScreen({ navigation }) {
                 { textAlign: "center", marginBottom: 10 },
               ]}
             >
-              Details Saved!
+              {t("detailsSavedTitle", "Details Saved!")}
             </Text>
             <Text
               style={[
@@ -1412,14 +1412,14 @@ export default function HomeScreen({ navigation }) {
                 { textAlign: "center", marginBottom: 20 },
               ]}
             >
-              Your profile details have been saved successfully.
+              {t("detailsSavedSubtitle", "Your profile details have been saved successfully.")}
             </Text>
             <TouchableOpacity
               style={[styles.modalConfirmBtn, { width: "100%", marginTop: 0 }]}
               onPress={() => setSuccessModalVisible(false)}
             >
               <Text style={styles.modalConfirmBtnText}>
-                Got It
+                {t("gotIt", "Got It")}
               </Text>
             </TouchableOpacity>
           </View>
