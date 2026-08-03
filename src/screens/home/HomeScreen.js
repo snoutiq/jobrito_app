@@ -15,6 +15,7 @@ import {
   RefreshControl,
   TextInput,
   Platform,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -37,6 +38,50 @@ import { getDailyPostLimit } from "../../services/jobApi";
 import { getProfileCompletionPercent } from "../../utils/profileCompletion";
 
 const PRIMARY_GREEN = "#153e69";
+
+const categoryJobTitles = {
+  "Kitchen Production": [
+    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker",
+    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker",
+    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff",
+    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew",
+    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff",
+    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff",
+    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis",
+    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward",
+    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff",
+    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook",
+    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member",
+    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker",
+    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker",
+    "Tea Maker", "Utility Worker", "Vegetable Cutter", "Wok Cook"
+  ],
+  "Restaurant Operations": [
+    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor",
+    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward",
+    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker"
+  ],
+  "Café & Beverage": [
+    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker",
+    "Juice Maker", "Smoothie Specialist", "Beverage Specialist"
+  ],
+  "QSR & Fast Food": [
+    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff",
+    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew"
+  ],
+  "Catering & Banquet": [
+    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator",
+    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
+  ]
+};
+
+const categories = [
+  { id: "Kitchen Production", title: "Kitchen Production", icon: "restaurant-outline" },
+  { id: "Restaurant Operations", title: "Restaurant Operations", icon: "business-outline" },
+  { id: "Café & Beverage", title: "Café & Beverage", icon: "cafe-outline" },
+  { id: "QSR & Fast Food", title: "QSR & Fast Food", icon: "tv-outline" },
+  { id: "Catering & Banquet", title: "Catering & Banquet", icon: "settings-outline" },
+];
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -93,6 +138,9 @@ export default function HomeScreen({ navigation }) {
   const [locationPreference, setLocationPreference] = useState("");
   const [city, setCity] = useState("");
   const [preferredRole, setPreferredRole] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Kitchen Production");
+  const [jobTitleModalVisible, setJobTitleModalVisible] = useState(false);
+  const [jobTitleSearch, setJobTitleSearch] = useState("");
   const [skills, setSkills] = useState(null || "");
 
   // Keep track of app session visits to Home screen
@@ -198,7 +246,7 @@ export default function HomeScreen({ navigation }) {
           }
 
           const now = Date.now();
-          const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+          const TWO_MINUTES = 2 * 60 * 1000;
 
           // Initialize first_seen_at if not present
           let firstSeenStr = await AsyncStorage.getItem("@first_seen_at");
@@ -219,32 +267,27 @@ export default function HomeScreen({ navigation }) {
             setCurrentProgressStep(1);
             setCompletionModalVisible(true);
           } else {
-            // Phase 1 is complete! Set completed time if not set
             if (!phase1CompStr) {
               await AsyncStorage.setItem("@phase1_completed_at", String(now));
             }
 
-            // Check Phase 2 (Second Modal) -> minimum 12 hours after Phase 1 completion
             if (isPhase2Incomplete) {
               const timeSincePhase1 = now - phase1Time;
-              if (timeSincePhase1 >= TWELVE_HOURS) {
-                const isExpEmployerFilled = !!profile.experience_range && !!profile.current_employer;
-                setCurrentProgressStep(isExpEmployerFilled ? 3 : 2);
+              if (timeSincePhase1 >= TWO_MINUTES) {
+                setCurrentProgressStep(2);
                 setCompletionModalVisible(true);
               } else {
                 setCompletionModalVisible(false);
               }
             } else {
-              // Phase 2 is complete! Set completed time if not set
               if (!phase2CompStr) {
                 await AsyncStorage.setItem("@phase2_completed_at", String(now));
               }
 
-              // Check Phase 3 (Third Modal) -> minimum 12 hours after Phase 2 completion
               if (isPhase3Incomplete) {
                 const timeSincePhase2 = now - phase2Time;
-                if (timeSincePhase2 >= TWELVE_HOURS) {
-                  setCurrentProgressStep(4);
+                if (timeSincePhase2 >= TWO_MINUTES) {
+                  setCurrentProgressStep(3);
                   setCompletionModalVisible(true);
                 } else {
                   setCompletionModalVisible(false);
@@ -376,6 +419,18 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     dispatch(fetchSavedJobs());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!preferredRole) {
+      setSelectedCategory("Kitchen Production");
+      return;
+    }
+
+    const initialCat = Object.keys(categoryJobTitles).find((cat) =>
+      categoryJobTitles[cat].includes(preferredRole)
+    ) || "Kitchen Production";
+    setSelectedCategory(initialCat);
+  }, [preferredRole]);
 
   useEffect(() => {
     if (feedJobs) {
@@ -826,7 +881,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Profile Setup • {completionPercent}% complete
+                Complete your profile
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -848,7 +903,7 @@ export default function HomeScreen({ navigation }) {
               <View
                 style={[
                   styles.progressBarFill,
-                  { width: `${Math.min(Math.max(completionPercent, 0), 100)}%` },
+                  { width: `${(currentProgressStep / 3) * 100}%` },
                 ]}
               />
             </View>
@@ -995,10 +1050,10 @@ export default function HomeScreen({ navigation }) {
               {currentProgressStep === 2 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Work Experience
+                    Work Experience & Location
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    Provide your experience details and job preference.
+                    Share your experience and the place where you want to work.
                   </Text>
 
                   <View style={styles.inputGroup}>
@@ -1079,26 +1134,7 @@ export default function HomeScreen({ navigation }) {
                     </View>
                   </View>
 
-                  <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!experienceRange || !currentEmployer.trim()) && { opacity: 0.5 }]}
-                    disabled={!experienceRange || !currentEmployer.trim()}
-                    onPress={() => setCurrentProgressStep(3)}
-                  >
-                    <Text style={styles.modalConfirmBtnText}>Continue</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {currentProgressStep === 3 && (
-                <View>
-                  <Text style={styles.inputLabel}>
-                    Location Preference
-                  </Text>
-                  <Text style={styles.modalSubtitle}>
-                    Tell us where you would like to work.
-                  </Text>
-
-                  <View style={styles.inputGroup}>
+                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
                     <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Region</Text>
                     <View style={styles.locationPreferenceRow}>
                       {["India", "Overseas", "Both"].map((p) => {
@@ -1149,8 +1185,8 @@ export default function HomeScreen({ navigation }) {
                   </View>
 
                   <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !city.trim() && { opacity: 0.5 }]}
-                    disabled={!city.trim() || submittingProfile}
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!experienceRange || !currentEmployer.trim() || !city.trim()) && { opacity: 0.5 }]}
+                    disabled={!experienceRange || !currentEmployer.trim() || !city.trim() || submittingProfile}
                     onPress={async () => {
                       const ok = await saveProgressStep({
                         experience_range: experienceRange,
@@ -1163,56 +1199,81 @@ export default function HomeScreen({ navigation }) {
                         try {
                           await AsyncStorage.setItem("@phase2_completed_at", String(Date.now()));
                         } catch (err) {}
-                        setCompletionModalVisible(false);
-                        setSuccessModalVisible(true);
+                        setCurrentProgressStep(3);
                       }
                     }}
                   >
                     {submittingProfile ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text style={styles.modalConfirmBtnText}>Save & Continue</Text>
+                      <Text style={styles.modalConfirmBtnText}>Continue</Text>
                     )}
                   </TouchableOpacity>
                 </View>
               )}
 
-              {currentProgressStep === 4 && (
+              {currentProgressStep === 3 && (
                 <View>
                   <Text style={styles.inputLabel}>
-                    Which Position Best Matches Your Experience?
+                    Which position best matches your experience?
                   </Text>
                   <Text style={styles.modalSubtitle}>
-                    Tell us your preferred hospitality/kitchen role and specialized skills.
+                    Select the role that defines your expertise in the hospitality industry.
                   </Text>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Preferred Role / Position</Text>
-                    <View style={styles.inputWrapper}>
-                      <Ionicons name="medal-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.textInputWithIcon}
-                        value={preferredRole}
-                        onChangeText={setPreferredRole}
-                        placeholder="e.g. Executive Chef, Commi 1, Steward"
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
+                  <View style={{ gap: 12, marginBottom: 20 }}>
+                    {categories.map((item) => {
+                      const isSelected = selectedCategory === item.id;
+                      return (
+                        <View key={item.id}>
+                          <TouchableOpacity
+                            style={[styles.roleCard, isSelected && styles.roleCardSelected]}
+                            onPress={() => {
+                              setSelectedCategory(item.id);
+                              if (selectedCategory !== item.id) {
+                                setPreferredRole("");
+                              }
+                            }}
+                            activeOpacity={0.9}
+                          >
+                            <View style={styles.roleCardLeft}>
+                              <View style={[styles.roleIconCircle, isSelected && styles.roleIconCircleActive]}>
+                                <Ionicons name={item.icon} size={20} color={PRIMARY_GREEN} />
+                              </View>
+                              <Text style={styles.roleCardTitle}>{item.title}</Text>
+                            </View>
+                            <View style={[styles.radioOutline, isSelected && styles.radioActive]}>
+                              {isSelected && <View style={styles.radioDotInner} />}
+                            </View>
+                          </TouchableOpacity>
+
+                          {isSelected && (
+                            <Pressable
+                              style={styles.inlineDropdownTrigger}
+                              onPress={() => {
+                                setJobTitleSearch("");
+                                setJobTitleModalVisible(true);
+                              }}
+                            >
+                              <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "rgba(10, 5, 4, 0.4)" }]}>
+                                {preferredRole || "Select specific job title..."}
+                              </Text>
+                              <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
+                            </Pressable>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
 
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>Key Skills (comma separated)</Text>
-                    <View style={styles.inputWrapper}>
-                      <Ionicons name="construct-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.textInputWithIcon}
-                        value={skills}
-                        onChangeText={setSkills}
-                        placeholder="e.g. Continental, Tandoor, Food Safety"
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  </View>
+                  <Text style={[styles.inputLabel, { marginTop: 14 }]}>Additional Skills (comma separated)</Text>
+                  <TextInput
+                    placeholder="e.g. Fine Dining, Chocolate tempering"
+                    placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                    value={skills}
+                    onChangeText={setSkills}
+                    style={styles.textInput}
+                  />
 
                   <TouchableOpacity
                     style={[styles.modalConfirmBtn, { marginTop: 20 }, (!preferredRole.trim() || !skills.trim()) && { opacity: 0.5 }]}
@@ -1231,10 +1292,64 @@ export default function HomeScreen({ navigation }) {
                     {submittingProfile ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text style={styles.modalConfirmBtnText}>Save & Complete</Text>
+                      <Text style={styles.modalConfirmBtnText}>{t("saveAndContinue", "Save & Continue")}</Text>
                     )}
                   </TouchableOpacity>
                 </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={jobTitleModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setJobTitleModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select {selectedCategory} Title</Text>
+              <TouchableOpacity onPress={() => setJobTitleModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Ionicons name="search" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
+              <TextInput
+                placeholder="Search job titles..."
+                placeholderTextColor="rgba(10, 5, 4, 0.3)"
+                value={jobTitleSearch}
+                onChangeText={setJobTitleSearch}
+                style={styles.textInputWithIcon}
+              />
+            </View>
+
+            <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled">
+              {((categoryJobTitles[selectedCategory] || []).filter((item) =>
+                item.toLowerCase().includes(jobTitleSearch.toLowerCase())
+              )).map((item, idx) => (
+                <TouchableOpacity
+                  key={`${item}-${idx}`}
+                  style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
+                  onPress={() => {
+                    setPreferredRole(item);
+                    setJobTitleModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
+                    {item}
+                  </Text>
+                  {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
+                </TouchableOpacity>
+              ))}
+              {((categoryJobTitles[selectedCategory] || []).filter((item) =>
+                item.toLowerCase().includes(jobTitleSearch.toLowerCase())
+              )).length === 0 && (
+                <Text style={styles.noResultsText}>No matching job titles found.</Text>
               )}
             </ScrollView>
           </View>
@@ -1579,8 +1694,8 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: "#ffffff",
-    borderRadius: 28,
-    padding: 24,
+    borderRadius: 24,
+    padding: 20,
     width: "100%",
     maxWidth: 340,
     shadowColor: "#0f172a",
@@ -1966,6 +2081,107 @@ const styles = StyleSheet.create({
   locationPreferenceTextActive: {
     color: "#153e69",
     fontWeight: "700",
+  },
+  roleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 16,
+    padding: 4,
+    backgroundColor: "#ffffff",
+  },
+  roleCardSelected: {
+    borderColor: "#153e69",
+  },
+  roleCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+    paddingRight: 8,
+  },
+  roleIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roleIconCircleActive: {
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  roleCardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0a0504",
+    flex: 1,
+  },
+  radioOutline: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioActive: {
+    borderColor: "#153e69",
+  },
+  radioDotInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#153e69",
+  },
+  inlineDropdownTrigger: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 40,
+    marginTop: 6,
+    marginBottom: 10,
+    marginLeft: 52,
+    backgroundColor: "#f2f2f3",
+  },
+  inlineDropdownTriggerText: {
+    fontSize: 14,
+    color: "#0a0504",
+    fontWeight: "600",
+  },
+  modalItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f3",
+  },
+  modalItemActive: {
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: "rgba(10, 5, 4, 0.6)",
+  },
+  modalItemTextActive: {
+    color: "#153e69",
+    fontWeight: "600",
+  },
+  noResultsText: {
+    textAlign: "center",
+    color: "rgba(10, 5, 4, 0.6)",
+    marginTop: 20,
+    fontSize: 14,
   },
   splashContainer: {
     flex: 1,
