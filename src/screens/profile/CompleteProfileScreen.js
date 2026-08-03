@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import * as ImagePicker from "expo-image-picker";
 import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
+import { getProfileCompletionPercent } from "../../utils/profileCompletion";
 
 const PRIMARY = "#153e69"; // Deep navy
 const SECONDARY = "#f2f2f3"; // Snow white
@@ -350,30 +351,20 @@ export default function CompleteProfileScreen({ navigation, route }) {
     });
   };
 
-  // Determine progress text matching the design screenshot
-  let progressPercentage = 0;
-  let progressText = "";
-  if (step === 1) {
-    progressPercentage = 0;
-    progressText = "0% Complete (0 of 5 Answered)";
-  } else if (step === 2) {
-    progressPercentage = 20;
-    progressText = "20% Complete (1 of 5 Answered)";
-  } else if (step === 3) {
-    progressPercentage = 40;
-    progressText = "40% Complete (2 of 5 Answered)";
-  } else if (step === 4) {
-    progressPercentage = 60;
-    progressText = "60% Complete (3 of 5 Answered)";
-  } else if (step === 5) {
-    if (preferredRole) {
-      progressPercentage = 100;
-      progressText = "100% Complete (5 of 5 Answered)";
-    } else {
-      progressPercentage = 80;
-      progressText = "80% Complete (4 of 5 Answered)";
-    }
-  }
+  const completionPercent = getProfileCompletionPercent(profile, {
+    photo,
+    fullName,
+    gender,
+    experienceRange,
+    currentEmployer,
+    city,
+    locationPreference,
+    preferredRole,
+    skills,
+  });
+
+  const progressPercentage = Math.min(Math.max(completionPercent, 0), 100);
+  const progressText = `${progressPercentage}% Complete`;
 
   return (
     <SafeAreaView style={styles.container}>

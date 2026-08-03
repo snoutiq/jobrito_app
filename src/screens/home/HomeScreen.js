@@ -34,6 +34,7 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getEmployerNotifications } from "../../services/notificationApi";
 import { getDailyPostLimit } from "../../services/jobApi";
+import { getProfileCompletionPercent } from "../../utils/profileCompletion";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -119,6 +120,7 @@ export default function HomeScreen({ navigation }) {
   }, []);
 
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const completionPercent = getProfileCompletionPercent(profile);
 
   useEffect(() => {
     let active = true;
@@ -190,6 +192,11 @@ export default function HomeScreen({ navigation }) {
             return;
           }
 
+          if (completionPercent >= 80) {
+            setCompletionModalVisible(false);
+            return;
+          }
+
           const now = Date.now();
           const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
@@ -251,7 +258,7 @@ export default function HomeScreen({ navigation }) {
       };
       checkModalDelayAndShow();
     }
-  }, [profile, isInitialProfileLoadComplete, hasModalBeenDismissedThisSession]);
+  }, [profile, isInitialProfileLoadComplete, hasModalBeenDismissedThisSession, completionPercent]);
 
   const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
@@ -819,7 +826,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Profile Setup (Step {currentProgressStep} of 4)
+                Profile Setup • {completionPercent}% complete
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -841,7 +848,7 @@ export default function HomeScreen({ navigation }) {
               <View
                 style={[
                   styles.progressBarFill,
-                  { width: `${currentProgressStep * 25}%` },
+                  { width: `${Math.min(Math.max(completionPercent, 0), 100)}%` },
                 ]}
               />
             </View>
