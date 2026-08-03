@@ -60,6 +60,7 @@ function HomeOnlyStack() {
         contentStyle: { backgroundColor: colors.background },
         animation: "slide_from_right",
         headerBackTitleVisible: false,
+        headerBackTitle: "",
       }}
     >
       <Stack.Screen
@@ -295,6 +296,7 @@ export default function MainTabs() {
         contentStyle: { backgroundColor: colors.background },
         animation: "slide_from_right",
         headerBackTitleVisible: false,
+        headerBackTitle: "",
       }}
     >
       <Stack.Screen
