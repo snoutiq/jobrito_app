@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from "react-native";
+import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Pressable } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Assuming @react-native-async-storage/async-storage is installed
@@ -35,6 +36,12 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   // Match scores map: { [applicationId]: matchPercentage }
   const [matchScores, setMatchScores] = useState({});
+
+  // Animated Swipe Hint States
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const hintDismissedRef = useRef(false);
+  const hintOpacity = useSharedValue(0);
+  const hintTranslateY = useSharedValue(20);
 
   // Get active job and applicants from the Redux store
   const selectedJob = useSelector((state) =>
@@ -110,6 +117,40 @@ export default function ApplicantListScreen({ route, navigation }) {
     setSwipeHistory([]); // Clear session history when changing filters
   }, [activeFilter]);
 
+  // First-time user swipe hint logic
+  useEffect(() => {
+    const checkAndShowHint = async () => {
+      if (hintDismissedRef.current || filteredApplicants.length === 0) return;
+      try {
+        const hasSeen = await AsyncStorage.getItem('@jobconnect/hasSeenSwipeHint');
+        if (hasSeen === null) {
+          setShowSwipeHint(true);
+          hintOpacity.value = withTiming(1, { duration: 400 });
+          hintTranslateY.value = withSpring(0, { damping: 12, stiffness: 100 });
+        }
+      } catch (e) {
+        console.warn("Failed to load swipe hint flag from storage", e);
+      }
+    };
+    checkAndShowHint();
+  }, [filteredApplicants.length]);
+
+  const dismissSwipeHint = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    hintOpacity.value = withTiming(0, { duration: 300 }, () => {
+      setShowSwipeHint(false);
+    });
+    hintTranslateY.value = withSpring(20);
+    hintDismissedRef.current = true; // Mark as dismissed for the current session
+    try {
+      await AsyncStorage.setItem('@jobconnect/hasSeenSwipeHint', 'true');
+    } catch (e) {
+      console.warn("Failed to save swipe hint flag to storage", e);
+    }
+  };
+
   // Animated progress bar setup
   const progressShared = useSharedValue(0);
   const deckLength = filteredApplicants.length;
@@ -123,6 +164,10 @@ export default function ApplicantListScreen({ route, navigation }) {
     return {
       width: `${progressShared.value * 100}%`,
     };
+  });
+
+  const animatedHintStyle = useAnimatedStyle(() => {
+    return { opacity: hintOpacity.value, transform: [{ translateY: hintTranslateY.value }] };
   });
 
   // Function to handle status update and show undo toast
@@ -378,6 +423,25 @@ export default function ApplicantListScreen({ route, navigation }) {
 
       {/* Tinder Card Stack and Actions Container */}
       <View style={styles.deckContainer}>
+        {showSwipeHint && (
+          <Animated.View style={[styles.swipeHintContainer, animatedHintStyle]}>
+            <View style={styles.swipeHintContent}>
+              <Ionicons name="swap-horizontal-outline" size={24} color="#153e69" />
+              <View style={styles.swipeHintTextContainer}>
+                <Text style={styles.swipeHintTitle}>Swipe to Review</Text>
+                <Text style={styles.swipeHintSubtitle}>
+                  Swipe left to shortlist, right to reject.
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              style={styles.swipeHintDismiss}
+              onPress={dismissSwipeHint}
+            >
+              <Ionicons name="close" size={18} color="rgba(10, 5, 4, 0.4)" />
+            </Pressable>
+          </Animated.View>
+        )}
         <CardStack
           ref={cardStackRef}
           key={activeFilter}
@@ -479,6 +543,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 8,
   },
+  swipeHintContainer: {
+    position: 'absolute',
+    top: -10,
+    left: 16,
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(21, 62, 105, 0.15)',
+    shadowColor: '#153e69',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    zIndex: 50,
+  },
+  swipeHintContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  swipeHintTextContainer: {
+    flex: 1,
+  },
+  swipeHintTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#153e69',
+  },
+  swipeHintSubtitle: {
+    fontSize: 12,
+    color: 'rgba(10, 5, 4, 0.6)',
+    marginTop: 2,
+  },
+  swipeHintDismiss: {
+    padding: 4,
+  },
   filterPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -507,6 +613,7 @@ const styles = StyleSheet.create({
   deckContainer: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 16,
   },
   undoToastContainer: {
     position: 'absolute',
