@@ -589,8 +589,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerLogo: {
-    width: 150,
-    height: 150,
+    width: 120,
+    height: 120,
   },
   headerLeft: {
     flexDirection: "row",

@@ -1315,8 +1315,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerLogo: {
-    width: 150,
-    height: 150,
+    width: 120,
+    height: 120,
   },
   headerLeft: {
     flexDirection: "row",
@@ -1969,8 +1969,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   splashLogoImage: {
-    width: 350,
+    width: 300,
     height: 150,
+    marginBottom: 20,
+  },
+  splashText: { 
+    fontSize: 13,
     alignSelf: "center",
     marginBottom: 20,
   },
