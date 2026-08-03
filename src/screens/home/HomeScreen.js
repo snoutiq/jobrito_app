@@ -643,6 +643,7 @@ export default function HomeScreen({ navigation }) {
           const isCopied = copiedJobId === job.id;
           const isPinned = job.is_pinned || false;
           const isHighlighted = highlightedJobId === job.id;
+          const isTraining = job._type === "training_opportunity";
 
           // Grand Hyatt and Global Talent are "Apply" jobs. Bombay Cafe is "Call & Share" referral.
           const isReferral = job.category === "referral";
@@ -679,6 +680,7 @@ export default function HomeScreen({ navigation }) {
                   ios: { borderColor: roleBorderColor, borderWidth: 1.5 },
                   android: { borderLeftColor: roleBorderColor, borderLeftWidth: 4 }
                 }),
+                isTraining && { backgroundColor: "#f2c879" },
                 isHighlighted && styles.highlightedCard,
               ]}
             >
@@ -699,10 +701,10 @@ export default function HomeScreen({ navigation }) {
                 <View style={{ flex: 1 }}>
                   {isReferral ? (
                     <Text style={styles.referralHeader}>Referral Job Post</Text>
-                  ) : (
-                    <Text style={styles.employerName}>{job.company}</Text>
+                  ) : ( 
+                    <Text style={[styles.employerName, isTraining && { color: "#153e69" }]}>{job.company}</Text>
                   )}
-                  <Text style={styles.jobTitle}>{job.title}</Text>
+                  <Text style={[styles.jobTitle, isTraining && { color: "#153e69" }]}>{job.title}</Text>
                 </View>
               </View>
 
@@ -713,7 +715,7 @@ export default function HomeScreen({ navigation }) {
                     size={15}
                     color="rgba(10, 5, 4, 0.6)"
                   />
-                  <Text style={styles.detailText}>
+                  <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
                     {t("location", "Location")}: {job.location}
                   </Text>
                 </View>
@@ -724,7 +726,7 @@ export default function HomeScreen({ navigation }) {
                       size={15}
                       color="rgba(10, 5, 4, 0.6)"
                     />
-                    <Text style={styles.detailText}>
+                    <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
                       {t("salary", "Salary")}: {job.salary}
                     </Text>
                   </View>
@@ -732,7 +734,8 @@ export default function HomeScreen({ navigation }) {
                 {(() => {
                   const jobExp =
                     job.experience ||
-                    job.experience_range ||
+                    job.experience_range || 
+                    job.duration ||
                     job.contract_duration;
                   return jobExp ? (
                     <View style={styles.detailItem}>
@@ -741,15 +744,15 @@ export default function HomeScreen({ navigation }) {
                         size={15}
                         color="rgba(10, 5, 4, 0.6)"
                       />
-                      <Text style={styles.detailText}>
+                      <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
                         {t("contract", "Contract")}: {jobExp}
                       </Text>
                     </View>
                   ) : null;
                 })()}
               </View>
-
-              <Text style={styles.jobDescription}>{job.description}</Text>
+              
+              <Text style={[styles.jobDescription, isTraining && { color: "#153e69" }]}>{job.description}</Text>
 
               {/* Action buttons rendering */}
               <View style={styles.actionsContainer}>
