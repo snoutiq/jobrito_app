@@ -41,46 +41,66 @@ const PRIMARY_GREEN = "#153e69";
 
 const categoryJobTitles = {
   "Kitchen Production": [
-    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker",
-    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker",
-    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff",
-    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew",
-    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff",
-    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff",
-    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis",
-    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward",
-    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff",
-    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook",
-    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member",
-    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker",
-    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker",
+    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker", 
+    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker", 
+    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff", 
+    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew", 
+    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff", 
+    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff", 
+    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis", 
+    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward", 
+    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff", 
+    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook", 
+    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member", 
+    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker", 
+    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker", 
     "Tea Maker", "Utility Worker", "Vegetable Cutter", "Wok Cook"
   ],
   "Restaurant Operations": [
-    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor",
-    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward",
+    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
+    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward", 
     "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker"
   ],
   "Café & Beverage": [
-    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker",
+    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker", 
     "Juice Maker", "Smoothie Specialist", "Beverage Specialist"
   ],
   "QSR & Fast Food": [
-    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff",
+    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff", 
     "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew"
   ],
   "Catering & Banquet": [
-    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator",
+    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
     "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
   ]
 };
 
 const categories = [
-  { id: "Kitchen Production", title: "Kitchen Production", icon: "restaurant-outline" },
-  { id: "Restaurant Operations", title: "Restaurant Operations", icon: "business-outline" },
-  { id: "Café & Beverage", title: "Café & Beverage", icon: "cafe-outline" },
-  { id: "QSR & Fast Food", title: "QSR & Fast Food", icon: "tv-outline" },
-  { id: "Catering & Banquet", title: "Catering & Banquet", icon: "settings-outline" },
+  {
+    id: "Kitchen Production",
+    title: "Kitchen Production Job Titles - Community Members",
+    icon: "restaurant-outline"
+  },
+  {
+    id: "Restaurant Operations",
+    title: "Restaurant Operations",
+    icon: "business-outline"
+  },
+  {
+    id: "Café & Beverage",
+    title: "Café & Beverage",
+    icon: "cafe-outline"
+  },
+  {
+    id: "QSR & Fast Food",
+    title: "QSR & Fast Food",
+    icon: "tv-outline"
+  },
+  {
+    id: "Catering & Banquet",
+    title: "Catering & Banquet",
+    icon: "settings-outline"
+  }
 ];
 
 export default function HomeScreen({ navigation }) {
