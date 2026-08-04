@@ -35,13 +35,10 @@ export default function PostJobScreen({ navigation, route }) {
     (state) => state.auth.user?.active_role ?? state.user?.activeRole
   );
 
+  // When on PostJobScreen, the user is assumed to be an employer.
+  // Always navigate to EmployerHome.
   const goToDashboard = () => {
-    const role = (activeRole || "").toLowerCase().replace(" ", "").replace("_", "");
-    if (role === "employer" || role === "chef") {
-      navigation.navigate("EmployerHome");
-    } else {
-      navigation.navigate("Home");
-    }
+    navigation.navigate("EmployerHome");
   };
 
   const savedBusinessName = profile?.business_name || profile?.businessName || profile?.company || "";
@@ -207,6 +204,12 @@ export default function PostJobScreen({ navigation, route }) {
     } catch (err) {
       console.warn("Failed to complete onboarding:", err);
     }
+    // Redux state update ke baad MainTabs stack switch hone ke liye
+    // thoda time dena zaroori hai, warna EmployerHome screen abhi
+    // registered nahi hoti purane navigator mein.
+    setTimeout(() => {
+      goToDashboard();
+    }, 150);
   };
 
 const handleSubmitJob = async () => {
