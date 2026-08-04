@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import nativeFirebase from "@react-native-firebase/app";
+import messaging from '@react-native-firebase/messaging'; // Firebase Messaging को इंपोर्ट करें
 
 // Firebase configuration from google-services.json
 const firebaseConfig = {
@@ -21,6 +22,7 @@ if (!getApps().length) {
 
 // Native Firebase instance (recommended for native features like Push Notifications, Analytics, Crashlytics)
 const firebaseNativeApp = nativeFirebase;
+messaging(); // Firebase Messaging को डिफ़ॉल्ट ऐप के साथ इनिशियलाइज़ करें
 
 export {
   firebaseJsApp,
