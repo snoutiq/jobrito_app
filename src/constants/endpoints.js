@@ -25,15 +25,15 @@ export const API_ENDPOINTS = {
   PROFILE_ROLE: "/profile/role",
   PROFILE_LANGUAGE: "/profile/language",
   PROFILE_DELETE: "/profile/delete",
-  PROFILE_SAVED: "/profile/saved",
-  PROFILE_APPLICATIONS: "/profile/applications",
-
+ 
   // Feed & Jobs
   FEED: "/feed",
   JOBS: "/jobs",
   MY_JOBS: "/my-jobs",
   JOBS_STORE: "/jobs/store",
   JOBS_COMMUNITY: "/jobs/community",
+  PROFILE_SAVED: "/jobs/saved",
+  PROFILE_APPLICATIONS: "/applications/history",
 
   // Chef
   CHEF_PROFILES: "/chef/profiles",

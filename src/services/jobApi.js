@@ -40,58 +40,28 @@ export const getSavedJobs = async () => {
     response.data?.saved_jobs ||
     response.data?.jobs ||
     (Array.isArray(response.data) ? response.data : []);
+
   const normalized = rawJobs.map((item) => {
-    const jobSource = item.job || item;
-    const isTraining =
-      (item.is_training ?? jobSource.is_training) ||
-      item.category === "training" ||
-      jobSource.category === "training";
-    const idVal = String(item.id || jobSource.id || (isTraining ? `training_${item.training_id}` : item.job_post_id));
+    const isTraining = !!item.is_training;
+    const idVal = String(item.id ?? item.job_post_id);
 
     return {
-      ...jobSource,
+      ...item,
       id: idVal,
       saved_id: item.saved_id,
-      job_post_id: item.job_post_id || jobSource.job_post_id || idVal,
-      training_id: item.training_id || jobSource.training_id,
+      job_post_id: item.job_post_id || idVal,
+      training_id: item.training_id,
       is_training: isTraining,
-      title: jobSource.title || item.title || "Job Opportunity",
-      employer:
-        jobSource.company ||
-        jobSource.employer ||
-        item.company ||
-        item.employer ||
-        "Company",
-      company:
-        jobSource.company ||
-        jobSource.employer ||
-        item.company ||
-        item.employer ||
-        "Company",
-      salary:
-        jobSource.salary ||
-        item.salary ||
-        (isTraining ? "Paid Stipend" : "Competitive Salary"),
-      location: jobSource.location || item.location || "Flexible",
-      job_type:
-        jobSource.job_type ||
-        item.job_type ||
-        (isTraining ? "Training / Program" : "Full-time"),
-      avatar:
-        jobSource.company_logo_url ||
-        jobSource.logo ||
-        jobSource.avatar ||
-        item.company_logo_url ||
-        item.logo ||
-        item.avatar ||
-        null,
-      savedAt:
-        item.saved_at ||
-        item.pivot?.created_at ||
-        item.created_at ||
-        item.savedAt ||
-        new Date().toISOString(),
-      applied: jobSource.applied || item.applied || false,
+      title: item.title || "Job Opportunity",
+      employer: item.company || "Company",
+      company: item.company || "Company",
+      salary: item.salary || (isTraining ? "Paid Stipend" : "Competitive Salary"),
+      location: item.location || "Flexible",
+      job_type: item.job_type || (isTraining ? "Training / Program" : "Full-time"),
+      avatar: item.company_logo_url || item.logo || item.avatar || null,
+      savedAt: item.saved_at || item.created_at || new Date().toISOString(),
+      applied: item.applied || false,
+      saved: item.saved ?? item.is_saved ?? true,
     };
   });
   return { success: true, jobs: normalized };

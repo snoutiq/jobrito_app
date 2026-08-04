@@ -22,68 +22,30 @@ export const getApplicationHistory = async (email) => {
     (Array.isArray(response.data) ? response.data : []);
 
   const normalized = rawApps.map((item) => {
-    const jobSource = item.job_post || item.job || item;
-    const isTraining =
-      (item.is_training ?? jobSource.is_training) ||
-      item.type === "training" ||
-      item.category === "training";
-    const jobIdVal =
-      item.job_post_id ||
-      item.job_id ||
-      item.training_id ||
-      jobSource.id ||
-      item.jobId ||
-      item.id;
-    const appId = item.application_id || item.id || jobIdVal;
+    const isTraining = !!item.is_training;
+    const jobIdVal = item.job_post_id ?? item.job_id ?? item.id;
+    const appId = item.application_id ?? item.id ?? jobIdVal;
 
     return {
       id: String(appId),
       jobId: String(jobIdVal),
-      title: jobSource.title || item.title || "Job Opportunity",
-      employer:
-        jobSource.company ||
-        jobSource.employer ||
-        item.company ||
-        item.employer ||
-        "Company Name",
-      avatar:
-        jobSource.company_logo_url ||
-        jobSource.logo ||
-        jobSource.avatar ||
-        item.company_logo_url ||
-        item.logo ||
-        item.avatar ||
-        null,
-      status: String(
-        item.status || item.application_status || "UNDER REVIEW",
-      ).toUpperCase(),
-      appliedOn:
-        item.applied_at ||
-        item.created_at ||
-        item.appliedOn ||
-        new Date().toISOString(),
+      title: item.title || "Job Opportunity",
+      employer: item.company || "Company Name",
+      avatar: item.company_logo_url || item.logo || item.avatar || null,
+      status: String(item.status || item.application_status || "APPLIED").toUpperCase(),
+      appliedOn: item.applied_at || item.created_at || new Date().toISOString(),
       job: {
-        ...jobSource,
         id: String(jobIdVal),
-        job_post_id: jobIdVal,
-        training_id: item.training_id ?? jobSource.training_id ?? null,
+        job_post_id: item.job_post_id,
+        training_id: item.training_id ?? null,
         is_training: isTraining,
-        title: jobSource.title || item.title || "Job Opportunity",
-        company:
-          jobSource.company ||
-          jobSource.employer ||
-          item.company ||
-          item.employer ||
-          "Company Name",
-        location: jobSource.location || item.location || "Flexible",
-        salary: jobSource.salary || item.salary || null,
-        job_type:
-          jobSource.job_type ||
-          item.job_type ||
-          (isTraining ? "Training / Program" : "Full-time"),
-        experience_range:
-          jobSource.experience_range || item.experience_range || null,
-        description: jobSource.description || item.description || "",
+        title: item.title || "Job Opportunity",
+        company: item.company || "Company Name",
+        location: item.location || "Flexible",
+        salary: item.salary || null,
+        job_type: item.job_type || (isTraining ? "Training / Program" : "Full-time"),
+        experience_range: item.experience_range || null,
+        description: item.description || "",
       },
     };
   });
