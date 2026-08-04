@@ -456,9 +456,15 @@ export default function HomeScreen({ navigation }) {
     if (feedJobs) {
       const favs = {};
       feedJobs.forEach((job) => {
-        const isSavedInList = (savedJobs || []).some(
-          (sj) => String(sj.id) === String(job.id),
-        );
+        const jobIdStr = String(job.id);
+        const isSavedInList = (savedJobs || []).some((sj) => {
+          const sjId = String(sj.id);
+          return (
+            sjId === jobIdStr ||
+            sjId === `training_${jobIdStr}` ||
+            String(sj.job_post_id) === jobIdStr
+          );
+        });
         favs[job.id] = job.saved || job.is_saved || isSavedInList || false;
       });
       setFavorites(favs);
