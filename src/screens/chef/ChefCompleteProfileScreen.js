@@ -752,8 +752,8 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         }
       }
       if (Array.isArray(finalOps)) {
-        finalOps.forEach((skill) => {
-          formData.append("skills[]", skill);
+        finalOps.forEach((operational_experty) => {
+          formData.append("operational_experties[]", operational_experty);
         });
       }
 
