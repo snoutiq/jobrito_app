@@ -45,7 +45,6 @@ import { setProfileData } from "../redux/slices/userSlice";
 import MyJobDetailsScreen from "../screens/employer/MyJobDetailsScreen";
 import NotificationDetailsScreen from "../screens/employer/NotificationDetailsScreen";
 
-
 const Stack = createNativeStackNavigator();
 
 function HomeOnlyStack() {
@@ -58,6 +57,7 @@ function HomeOnlyStack() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
+        headerBackButtonDisplayMode: "minimal",
         animation: "slide_from_right",
         headerBackTitleVisible: false,
         headerBackTitle: "",
@@ -73,17 +73,17 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: t("profileTab") }}
+        options={{ title: t("profileTab") , headerBackTitle: "" }}
       />
       <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
-        options={{ title: t("jobDetails") }}
+        options={{ title: t("jobDetails"), headerBackTitle: "" }}
       />
       <Stack.Screen
         name="MyJobDetails"
         component={MyJobDetailsScreen}
-        options={{ title: t("jobDetails") }}
+        options={{ title: t("jobDetails"), headerBackTitle: "" }}
       />
       <Stack.Screen
         name="ApplicantList"
@@ -98,7 +98,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="RoleSwitcher"
         component={RoleSwitcherScreen}
-        options={{ title: t("roleSwitcher") }}
+        options={{ title: t("roleSwitcher"), headerBackTitle: ""  }}
       />
       <Stack.Screen
         name="Language"
@@ -108,12 +108,12 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="PersonalInformation"
         component={PersonalInformationScreen}
-        options={{ title: t("personalInformation") }}
+        options={{ title: t("personalInformation"), headerBackTitle: ""  }}
       />
       <Stack.Screen
         name="EmployerDashboard"
         component={EmployerDashboardScreen}
-        options={{ title: t("employerDashboard") }}
+        options={{ title: t("employerDashboard"), headerBackTitle: ""  }}
       />
       <Stack.Screen
         name="CompleteProfileScreen"
@@ -201,7 +201,7 @@ export default function MainTabs() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const activeRole = useSelector(
-    (state) => state.auth.user?.active_role ?? state.user?.activeRole
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
 
   useEffect(() => {
@@ -211,21 +211,23 @@ export default function MainTabs() {
         if (pendingStr) {
           const pending = JSON.parse(pendingStr);
           await AsyncStorage.removeItem("@pending_deep_link");
-          
+
           if (pending && pending.type && pending.id) {
             const roleLower = String(activeRole || "").toLowerCase();
             setTimeout(() => {
               if (pending.type === "job") {
                 if (roleLower === "employer") {
-                  navigation.navigate("MyJobDetails", { 
-                    jobId: pending.id, 
-                    job: { id: pending.id, title: "Job Opportunity" } 
+                  navigation.navigate("MyJobDetails", {
+                    jobId: pending.id,
+                    job: { id: pending.id, title: "Job Opportunity" },
                   });
                 } else {
                   navigation.navigate("JobDetails", { jobId: pending.id });
                 }
               } else if (pending.type === "chef") {
-                navigation.navigate("ChefProfileDetails", { userId: pending.id });
+                navigation.navigate("ChefProfileDetails", {
+                  userId: pending.id,
+                });
               }
             }, 800);
           }
@@ -243,11 +245,11 @@ export default function MainTabs() {
   const isChef = activeRole === ROLES.CHEF || activeRole === "chef";
 
   const employerOnboardingCompleted = useSelector(
-    (state) => state.user.profile?.employerOnboardingCompleted
+    (state) => state.user.profile?.employerOnboardingCompleted,
   );
 
   const chefOnboardingCompleted = useSelector(
-    (state) => state.user.profile?.chefOnboardingCompleted
+    (state) => state.user.profile?.chefOnboardingCompleted,
   );
 
   if (isEmployer && !employerOnboardingCompleted) {
@@ -257,10 +259,7 @@ export default function MainTabs() {
           name="EmployerCompleteProfile"
           component={EmployerCompleteProfileScreen}
         />
-        <Stack.Screen
-          name="EmployerFirstJobPost"
-          component={PostJobScreen}
-        />
+        <Stack.Screen name="EmployerFirstJobPost" component={PostJobScreen} />
       </Stack.Navigator>
     );
   }
@@ -394,7 +393,7 @@ export default function MainTabs() {
         component={EmployerDashboardScreen}
         options={{ title: t("employerDashboard") }}
       />
-          <Stack.Screen
+      <Stack.Screen
         name="CompleteProfileScreen"
         component={CompleteProfileScreen}
         options={{
@@ -480,6 +479,3 @@ export default function MainTabs() {
     </Stack.Navigator>
   );
 }
-
-
-

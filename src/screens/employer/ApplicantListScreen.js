@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef ,useCallback} from "react";
 import { Linking, StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Pressable } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  runOnJS,
   withTiming,
 } from "react-native-reanimated";
 import * as Haptics from 'expo-haptics'; // Assuming expo-haptics is installed
@@ -171,42 +172,47 @@ export default function ApplicantListScreen({ route, navigation }) {
   });
 
   // Function to handle status update and show undo toast
-  const handleStatusUpdateAndShowUndo = async (applicant, newStatus) => {
+  const handleStatusUpdateAndShowUndo = useCallback((applicant, newStatus) => {
+    'worklet'; // Mark as worklet
     const oldStatus = applicant.status || 'new';
     const applicantId = applicant.id || applicant.application_id;
     const applicantName = applicant.name || applicant.full_name;
 
     const action = { applicantId, oldStatus, newStatus, applicantName };
     
-    // Add to undo history stack
-    setSwipeHistory((prev) => [...prev, action]);
-    setLastActionDetails(action);
-    setUndoToastVisible(true);
+    // All state updates and Redux dispatches must be run on JS thread
+    runOnJS(setSwipeHistory)((prev) => [...prev, action]);
+    runOnJS(setLastActionDetails)(action);
+    runOnJS(setUndoToastVisible)(true);
 
     // Clear any existing timeout
     if (undoTimeoutRef.current) {
-      clearTimeout(undoTimeoutRef.current);
+      runOnJS(clearTimeout)(undoTimeoutRef.current);
     }
     // Set new timeout to hide toast
-    undoTimeoutRef.current = setTimeout(() => {
-      setUndoToastVisible(false);
+    undoTimeoutRef.current = runOnJS(setTimeout)(() => {
+      runOnJS(setUndoToastVisible)(false);
     }, 5000); // 5 seconds
 
-    try {
-      await dispatch(updateApplicantStatus({ applicationId: applicantId, status: newStatus })).unwrap();
-      dispatch(fetchEmployerDashboard()); // Refresh dashboard to get updated counts
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      CustomAlert.show("Error", error || "Failed to update status. Please try again.");
-      // Revert states
-      setUndoToastVisible(false);
-      setLastActionDetails(null);
-      setSwipeHistory((prev) => prev.filter((item) => item.applicantId !== applicantId));
-    }
-  };
+    // Redux dispatch needs to be run on JS thread
+    runOnJS(async () => {
+      try {
+        await dispatch(updateApplicantStatus({ applicationId: applicantId, status: newStatus })).unwrap();
+        dispatch(fetchEmployerDashboard()); // Refresh dashboard to get updated counts
+      } catch (error) {
+        runOnJS(console.error)("Failed to update status:", error);
+        runOnJS(CustomAlert.show)("Error", error || "Failed to update status. Please try again.");
+        // Revert states
+        runOnJS(setUndoToastVisible)(false);
+        runOnJS(setLastActionDetails)(null);
+        runOnJS(setSwipeHistory)((prev) => prev.filter((item) => item.applicantId !== applicantId));
+      }
+    })(); // Immediately invoke the async function on JS thread
+  }, [dispatch, setSwipeHistory, setLastActionDetails, setUndoToastVisible]);
 
   // Swipe gesture handler - only increments card stack index, does NOT update status on server
-  const handleSwipeGesture = (applicant, direction) => {
+  const handleSwipeGesture = useCallback((applicant, direction) => {
+    'worklet'; // Mark as worklet
     const oldStatus = applicant.status || 'new';
     const applicantId = applicant.id || applicant.application_id;
     const applicantName = applicant.name || applicant.full_name;
@@ -214,8 +220,8 @@ export default function ApplicantListScreen({ route, navigation }) {
     const action = { applicantId, oldStatus, newStatus: oldStatus, applicantName, isSwipe: true, direction };
     
     // Add to history so rewind works, but don't call update API
-    setSwipeHistory((prev) => [...prev, action]);
-  };
+    runOnJS(setSwipeHistory)((prev) => [...prev, action]);
+  }, [setSwipeHistory]);
 
   const handleUndo = async () => {
     if (swipeHistory.length === 0) return;
