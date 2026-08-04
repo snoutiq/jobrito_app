@@ -543,11 +543,15 @@ export default function ChefHomeScreen({ navigation }) {
         onConfirm={async (timeSlot) => {
           if (selectedJob) {
             try {
+              const payload = {
+                jobId: selectedJob.id,
+                preferredCallTime: timeSlot,
+              };
+              if (selectedJob._type === "training_opportunity") {
+                payload.is_training = 1;
+              }
               await dispatch(
-                applyJob({
-                  jobId: selectedJob.id,
-                  preferredCallTime: timeSlot,
-                }),
+                applyJob(payload),
               ).unwrap();
               return true;
             } catch (err) {

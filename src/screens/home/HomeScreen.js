@@ -875,11 +875,15 @@ export default function HomeScreen({ navigation }) {
         onConfirm={async (timeSlot) => {
           if (selectedJob) {
             try {
+              const payload = {
+                jobId: selectedJob.id,
+                preferredCallTime: timeSlot,
+              };
+              if (selectedJob._type === "training_opportunity") {
+                payload.is_training = 1;
+              }
               await dispatch(
-                applyJob({
-                  jobId: selectedJob.id,
-                  preferredCallTime: timeSlot,
-                }),
+                applyJob(payload),
               ).unwrap();
               return true;
             } catch (err) {
@@ -1124,7 +1128,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={[styles.inputGroup, { marginTop: 10 }]}>
                     <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("jobPreferenceLabel", "Job Preference")}</Text>
                     <View style={styles.jobTypeRow}>
-                      {["Full Time", "Part Time", "Freelance Chef"].map((t) => {
+                      {["Full Time", "Part Time", ].map((t) => {
                         const isSelected = jobType === t;
                         const iconName = t === "Full Time" ? "briefcase-outline" : t === "Part Time" ? "time-outline" : "restaurant-outline";
                         return (

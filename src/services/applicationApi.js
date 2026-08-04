@@ -1,10 +1,14 @@
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/endpoints";
 
-export const applyJob = async (jobId, preferredCallTime) => {
-  const response = await apiClient.post(`${API_ENDPOINTS.JOBS}/${jobId}/apply`, {
-    preferred_call_time: preferredCallTime,
-  });
+export const applyJob = async (jobId, payload) => {
+  // The API expects snake_case keys. The component sends camelCase.
+  // We'll normalize the payload here to keep the API layer consistent.
+  const apiPayload = {
+    preferred_call_time: payload.preferredCallTime,
+    ...(payload.is_training && { is_training: payload.is_training }),
+  };
+  const response = await apiClient.post(`${API_ENDPOINTS.JOBS}/${jobId}/apply`, apiPayload);
   return response.data;
 };
 

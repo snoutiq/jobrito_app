@@ -641,7 +641,6 @@ function ExperienceStep({
   const jobTypes = [
     "Full Time",
     "Part Time",
-    "Freelance Chef",
   ];
   const [showPicker, setShowPicker] = useState(false);
 

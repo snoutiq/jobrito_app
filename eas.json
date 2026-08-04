@@ -16,6 +16,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascApiKeyId": "6NB6WGNGUX",
+        "ascApiKeyIssuerId": "a70a21a6-7964-44ea-a3b4-a8f0401ba2ff",
+        "ascApiKeyPath": "C:/Users/hp/Documents/job/jobconnect/AuthKey_6NB6WGNGUX.p8"
+      }
+    }
   }
 }

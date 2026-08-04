@@ -1,36 +1,32 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { applyJob as applyJobApi, getApplicationHistory as getApplicationHistoryApi } from "../../services/applicationApi";
 
+// Async thunk for fetching application history
+export const fetchApplicationHistory = createAsyncThunk(
+  "application/fetchApplicationHistory",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await getApplicationHistoryApi(email);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch application history");
+    }
+  }
+);
+
+// Async thunk for applying to a job
 export const applyJob = createAsyncThunk(
   "application/applyJob",
   async (arg, { rejectWithValue }) => {
     try {
-      let jobId;
-      let preferredCallTime;
-      if (typeof arg === "string") {
-        jobId = arg;
-      } else {
-        jobId = arg.jobId;
-        preferredCallTime = arg.preferredCallTime;
-      }
-      return await applyJobApi(jobId, preferredCallTime);
+      const { jobId, ...payload } = arg;
+      const response = await applyJobApi(jobId, payload);
+      return { ...response, jobId };
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to apply for job");
     }
   }
 );
-
-export const fetchApplicationHistory = createAsyncThunk(
-  "application/fetchApplicationHistory",
-  async (email, { rejectWithValue }) => {
-    try {
-      return await getApplicationHistoryApi(email);
-    } catch (error) {
-      return rejectWithValue(error?.message || "Failed to fetch application history");
-    }
-  }
-);
-
 const initialState = {
   history: [],
   lastApplication: null,

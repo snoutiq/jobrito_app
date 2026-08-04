@@ -105,7 +105,7 @@ export default function SavedJobsScreen({ navigation }) {
       job.phone ||
       job.contact_phone ||
       job.creator?.phone ||
-      "+919876543210";
+      "";
     Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
       Alert.alert(
         t("error", "Error"),
