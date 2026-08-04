@@ -410,7 +410,15 @@ const jobSlice = createSlice({
               : null;
 
         state.feedJobs = state.feedJobs.map((j) => {
-          if (String(j.id) === String(jobId)) {
+          const rawIdStr = String(j.id);
+          const argStr = String(jobId);
+          const isMatch =
+            rawIdStr === argStr ||
+            String(j.job_post_id) === argStr ||
+            (argStr.startsWith("training_") &&
+              rawIdStr === argStr.replace("training_", ""));
+
+          if (isMatch) {
             const currentSaved = j.saved || j.is_saved || false;
             const finalSaved = isSaved !== null ? isSaved : !currentSaved;
             return { ...j, saved: finalSaved, is_saved: finalSaved };
@@ -420,16 +428,28 @@ const jobSlice = createSlice({
 
         // Sync state.savedJobs list
         const updatedJob = state.feedJobs.find(
-          (j) => String(j.id) === String(jobId),
+          (j) =>
+            String(j.id) === String(jobId) ||
+            String(j.job_post_id) === String(jobId) ||
+            (String(jobId).startsWith("training_") &&
+              String(j.id) === String(jobId).replace("training_", "")),
         );
         if (updatedJob) {
           if (updatedJob.saved) {
-            if (!state.savedJobs.some((j) => String(j.id) === String(jobId))) {
+            if (
+              !state.savedJobs.some(
+                (j) =>
+                  String(j.id) === String(updatedJob.id) ||
+                  String(j.id) === String(jobId),
+              )
+            ) {
               state.savedJobs.push(updatedJob);
             }
           } else {
             state.savedJobs = state.savedJobs.filter(
-              (j) => String(j.id) !== String(jobId),
+              (j) =>
+                String(j.id) !== String(updatedJob.id) &&
+                String(j.id) !== String(jobId),
             );
           }
         } else {

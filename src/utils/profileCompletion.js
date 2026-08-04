@@ -37,7 +37,6 @@ export const getProfileCompletionPercent = (profile, formValues = {}) => {
     { value: formValues.city ?? profile?.city ?? profile?.job_location ?? profile?.jobLocation },
     { value: formValues.locationPreference ?? profile?.location_preference ?? profile?.locationPreference },
     { value: formValues.preferredRole ?? profile?.preferred_role ?? profile?.preferredRole },
-    { value: formValues.skills ?? profile?.skills ?? profile?.operations },
   ];
 
   const filled = checks.filter((item) => hasMeaningfulValue(item.value)).length;

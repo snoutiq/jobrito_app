@@ -55,18 +55,13 @@ export default function ProfileScreen({ navigation }) {
   const getDynamicCompletion = () => {
     if (!profile) return 0;
     
-    const hasLogo = !!(profile.company_logo || profile.companyLogo || profile.profile_photo_path);
-    const hasBusinessName = !!(profile.business_name || profile.businessName || profile.company);
-    const hasSegment = !!(profile.industry_segment || profile.segment);
-    const hasLocation = !!(profile.business_location || profile.location);
-
-    const isActuallyComplete = hasLogo && hasBusinessName && hasSegment && hasLocation;
-
-    if (isActuallyComplete) {
-      const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
-      if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
-        return apiPct;
-      }
+    const apiPct =
+      profile.completeness ??
+      profile.profile_completeness ??
+      profile.completionPercentage ??
+      profile.completion_percentage;
+    if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
+      return Math.round(Number(apiPct));
     }
 
     let fields = 0;
@@ -74,9 +69,7 @@ export default function ProfileScreen({ navigation }) {
     
     // 1. Name
     fields++;
-    if (profile.name && profile.name !== "Guest User" && profile.name.trim()) {
-      filled++;
-    } else if (profile.full_name && profile.full_name.trim()) {
+    if ((profile.name && profile.name !== "Guest User" && profile.name.trim()) || (profile.full_name && profile.full_name.trim())) {
       filled++;
     }
     
@@ -92,22 +85,13 @@ export default function ProfileScreen({ navigation }) {
       filled++;
     }
     
-    // 4. Skills
-    fields++;
-    const skills = profile.skills;
-    if (Array.isArray(skills) && skills.length > 0) {
-      filled++;
-    } else if (typeof skills === "string" && skills.trim()) {
-      filled++;
-    }
-    
-    // 5. Current Employer
+    // 4. Current Employer
     fields++;
     if (profile.current_employer && profile.current_employer.trim()) {
       filled++;
     }
     
-    // 6. Gender
+    // 5. Gender
     fields++;
     if (profile.gender && profile.gender.trim()) {
       filled++;
@@ -271,8 +255,8 @@ export default function ProfileScreen({ navigation }) {
       return 4;
     }
     
-    // Step 5: Specialization (Preferred Role, Skills)
-    if (!profile.preferred_role || !profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
+    // Step 5: Specialization (Preferred Role)
+    if (!profile.preferred_role) {
       return 5;
     }
     
@@ -282,7 +266,7 @@ export default function ProfileScreen({ navigation }) {
   const getMissingFieldText = () => {
     if (!profile) return t("profile.completeProfilePrompt", "Complete your profile details");
 
-    if (completion >= 100) {
+    if (completion >= 90) {
       return t("profile.editProfile", "Edit Profile");
     }
 
@@ -322,11 +306,8 @@ export default function ProfileScreen({ navigation }) {
     if (!profile.preferred_role) {
       return t("profile.addPreferredRole", "Add Preferred Role");
     }
-    if (!profile.skills || (Array.isArray(profile.skills) && profile.skills.length === 0)) {
-      return t("profile.addSkillsAction", "Add Skills");
-    }
     
-    return t("profile.completeProfilePrompt", "Complete your profile details");
+    return t("profile.editProfile", "Edit Profile");
   };
 
   return (
@@ -360,7 +341,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.profileDetailsList}>
               {displayCity ? (
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>{t("profile.currentLocation", "Current Location:")}</Text>
+                  <Text style={styles.detailLabel}>{t("profile.currentLocation", "Preferred Location:")}</Text>
                   <Text style={styles.detailValue}>{displayCity}</Text>
                 </Text>
               ) : null}

@@ -465,15 +465,39 @@ export default function HomeScreen({ navigation }) {
     }
   }, [feedJobs, savedJobs]);
 
-  const toggleFavorite = async (id) => {
-    const isFav = !favorites[id];
-    setFavorites((prev) => ({ ...prev, [id]: isFav }));
+  const toggleFavorite = async (jobOrId) => {
+    const job =
+      typeof jobOrId === "object"
+        ? jobOrId
+        : feedJobs.find((j) => String(j.id) === String(jobOrId));
+    const rawId = job ? job.id : jobOrId;
+    const isTraining =
+      job &&
+      (job.is_training ||
+        job._type === "training_opportunity" ||
+        job.category === "training" ||
+        job.type === "training");
+
+    let targetSaveId = rawId;
+    if (isTraining) {
+      if (!String(rawId).startsWith("training_")) {
+        targetSaveId =
+          job?.job_post_id ||
+          (job?.training_id
+            ? `training_${job.training_id}`
+            : `training_${rawId}`);
+      }
+    }
+
+    const keyStr = String(rawId);
+    const isFav = !favorites[keyStr];
+    setFavorites((prev) => ({ ...prev, [keyStr]: isFav }));
 
     try {
-      await dispatch(toggleSaveJob(id)).unwrap();
+      await dispatch(toggleSaveJob(targetSaveId)).unwrap();
     } catch (error) {
       // Rollback on error
-      setFavorites((prev) => ({ ...prev, [id]: !isFav }));
+      setFavorites((prev) => ({ ...prev, [keyStr]: !isFav }));
       Alert.alert(
         t("error", "Error"),
         error || t("failedToSaveJob", "Failed to save job."),
@@ -1293,22 +1317,12 @@ export default function HomeScreen({ navigation }) {
                     })}
                   </View>
 
-                  <Text style={[styles.inputLabel, { marginTop: 14 }]}>{t("additionalSkillsLabel", "Additional Skills (comma separated)")}</Text>
-                  <TextInput
-                    placeholder={t("additionalSkillsPlaceholder", "e.g. Fine Dining, Chocolate tempering")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                    value={skills}
-                    onChangeText={setSkills}
-                    style={styles.textInput}
-                  />
-
                   <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!preferredRole.trim() || !skills.trim()) && { opacity: 0.5 }]}
-                    disabled={!preferredRole.trim() || !skills.trim() || submittingProfile}
+                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !preferredRole.trim() && { opacity: 0.5 }]}
+                    disabled={!preferredRole.trim() || submittingProfile}
                     onPress={async () => {
                       const ok = await saveProgressStep({
                         preferred_role: preferredRole.trim(),
-                        skills: skills.trim(),
                       });
                       if (ok) {
                         setCompletionModalVisible(false);

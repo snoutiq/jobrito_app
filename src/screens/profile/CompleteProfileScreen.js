@@ -256,7 +256,6 @@ export default function CompleteProfileScreen({ navigation, route }) {
     const trimmedExperience = toTrimmedString(experienceRange);
     const trimmedEmployer = toTrimmedString(currentEmployer);
     const trimmedRole = toTrimmedString(preferredRole);
-    const trimmedSkills = normalizeSkillsValue(skills);
     const trimmedLocation = normalizeLocationPreferenceValue(locationPreference);
     const trimmedJobType = toTrimmedString(jobType);
 
@@ -293,7 +292,6 @@ export default function CompleteProfileScreen({ navigation, route }) {
       city: trimmedLocation === "Both" ? trimmedCity || "Both (Global & Domestic)" : trimmedCity,
       experience_range: trimmedExperience,
       preferred_role: trimmedRole,
-      skills: trimmedSkills,
       profile_photo_path: photo,
       current_employer: trimmedEmployer,
       gender: gender,
@@ -360,7 +358,6 @@ export default function CompleteProfileScreen({ navigation, route }) {
     city,
     locationPreference,
     preferredRole,
-    skills,
   });
 
   const progressPercentage = Math.min(Math.max(completionPercent, 0), 100);
@@ -1088,15 +1085,6 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
           );
         })}
       </View>
-
-      <Text style={[styles.label, { marginTop: 14 }]}>{t("additionalSkillsLabel", "Additional Skills (comma separated)")}</Text>
-      <TextInput
-        placeholder={t("additionalSkillsPlaceholder", "e.g. Fine Dining, Chocolate tempering")}
-        placeholderTextColor="rgba(10, 5, 4, 0.4)"
-        value={skills}
-        onChangeText={setSkills}
-        style={styles.input}
-      />
 
       <TouchableOpacity
         style={[styles.button, (loading || !toTrimmedString(preferredRole)) && styles.buttonDisabled]}

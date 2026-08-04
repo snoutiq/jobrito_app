@@ -36,18 +36,61 @@ export const toggleSaveJob = async (jobId) => {
 
 export const getSavedJobs = async () => {
   const response = await apiClient.get(API_ENDPOINTS.PROFILE_SAVED);
-  const rawJobs = response.data?.saved_jobs || response.data?.jobs || (Array.isArray(response.data) ? response.data : []);
+  const rawJobs =
+    response.data?.saved_jobs ||
+    response.data?.jobs ||
+    (Array.isArray(response.data) ? response.data : []);
   const normalized = rawJobs.map((item) => {
     const jobSource = item.job || item;
+    const isTraining =
+      (item.is_training ?? jobSource.is_training) ||
+      item.category === "training" ||
+      jobSource.category === "training";
+    const idVal = String(item.id || jobSource.id || (isTraining ? `training_${item.training_id}` : item.job_post_id));
+
     return {
       ...jobSource,
-      id: String(jobSource.id || item.id),
-      title: jobSource.title || "Job Opportunity",
-      employer: jobSource.company || jobSource.employer || "Company",
-      salary: jobSource.salary || "Competitive Salary",
-      location: jobSource.location || "Flexible",
-      avatar: jobSource.company_logo_url || jobSource.logo || jobSource.avatar || null,
-      savedAt: item.pivot?.created_at || item.created_at || item.savedAt || new Date().toISOString(),
+      id: idVal,
+      saved_id: item.saved_id,
+      job_post_id: item.job_post_id || jobSource.job_post_id || idVal,
+      training_id: item.training_id || jobSource.training_id,
+      is_training: isTraining,
+      title: jobSource.title || item.title || "Job Opportunity",
+      employer:
+        jobSource.company ||
+        jobSource.employer ||
+        item.company ||
+        item.employer ||
+        "Company",
+      company:
+        jobSource.company ||
+        jobSource.employer ||
+        item.company ||
+        item.employer ||
+        "Company",
+      salary:
+        jobSource.salary ||
+        item.salary ||
+        (isTraining ? "Paid Stipend" : "Competitive Salary"),
+      location: jobSource.location || item.location || "Flexible",
+      job_type:
+        jobSource.job_type ||
+        item.job_type ||
+        (isTraining ? "Training / Program" : "Full-time"),
+      avatar:
+        jobSource.company_logo_url ||
+        jobSource.logo ||
+        jobSource.avatar ||
+        item.company_logo_url ||
+        item.logo ||
+        item.avatar ||
+        null,
+      savedAt:
+        item.saved_at ||
+        item.pivot?.created_at ||
+        item.created_at ||
+        item.savedAt ||
+        new Date().toISOString(),
       applied: jobSource.applied || item.applied || false,
     };
   });

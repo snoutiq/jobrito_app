@@ -147,7 +147,12 @@ export default function SavedJobsScreen({ navigation }) {
     const isApplied = item.applied || isAppliedInFeed || isAppliedInHistory || false;
     
     const jobOpenings = item.open_positions ?? item.openings ?? 0;
-    const jobType = item.job_type ?? item.type ?? "Full-time";
+    const jobType =
+      item.job_type ??
+      item.type ??
+      (item.is_training || item.category === "training"
+        ? "Training / Program"
+        : "Full-time");
     const savedDate = formatSavedTime(item.savedAt, t);
 
     const isReferral = item.category === "referral" || item.is_referral;

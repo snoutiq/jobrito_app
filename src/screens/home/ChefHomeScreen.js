@@ -146,15 +146,39 @@ export default function ChefHomeScreen({ navigation }) {
     }
   }, [feedJobs, savedJobs]);
 
-  const toggleFavorite = async (id) => {
-    const isFav = !favorites[id];
-    setFavorites((prev) => ({ ...prev, [id]: isFav }));
+  const toggleFavorite = async (jobOrId) => {
+    const job =
+      typeof jobOrId === "object"
+        ? jobOrId
+        : feedJobs.find((j) => String(j.id) === String(jobOrId));
+    const rawId = job ? job.id : jobOrId;
+    const isTraining =
+      job &&
+      (job.is_training ||
+        job._type === "training_opportunity" ||
+        job.category === "training" ||
+        job.type === "training");
+
+    let targetSaveId = rawId;
+    if (isTraining) {
+      if (!String(rawId).startsWith("training_")) {
+        targetSaveId =
+          job?.job_post_id ||
+          (job?.training_id
+            ? `training_${job.training_id}`
+            : `training_${rawId}`);
+      }
+    }
+
+    const keyStr = String(rawId);
+    const isFav = !favorites[keyStr];
+    setFavorites((prev) => ({ ...prev, [keyStr]: isFav }));
 
     try {
-      await dispatch(toggleSaveJob(id)).unwrap();
+      await dispatch(toggleSaveJob(targetSaveId)).unwrap();
     } catch (error) {
       // Rollback on error
-      setFavorites((prev) => ({ ...prev, [id]: !isFav }));
+      setFavorites((prev) => ({ ...prev, [keyStr]: !isFav }));
       Alert.alert(
         t("error", "Error"),
         error || t("failedToSaveJob", "Failed to save job."),

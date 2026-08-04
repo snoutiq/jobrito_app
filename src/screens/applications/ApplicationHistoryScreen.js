@@ -44,6 +44,9 @@ const formatAppliedTime = (appliedOn, t) => {
 const getDisplayStatusText = (statusStr, t) => {
   if (!statusStr) return "";
   const s = statusStr.toUpperCase().trim();
+  if (s === "APPLIED") {
+    return t("status.applied", "APPLIED");
+  }
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
     return t("status.underProcess", "UNDER PROCESS");
   }
@@ -65,6 +68,9 @@ const getDisplayStatusText = (statusStr, t) => {
 const getStatusBadgeColors = (statusStr) => {
   if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
   const s = statusStr.toUpperCase().trim();
+  if (s === "APPLIED") {
+    return { bg: "rgba(21, 62, 105, 0.08)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
+  }
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
     return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
   }
@@ -156,7 +162,12 @@ export default function ApplicationHistoryScreen({ navigation }) {
 
   const renderItem = ({ item }) => {
     const jobOpenings = item.job?.open_positions ?? item.job?.openings ?? 0;
-    const jobType = item.job?.job_type ?? item.job?.type ?? "Full-time";
+    const jobType =
+      item.job?.job_type ??
+      item.job?.type ??
+      (item.job?.is_training || item.job?.category === "training"
+        ? "Training / Program"
+        : "Full-time");
     const appliedDate = formatAppliedTime(item.appliedOn, t);
     
     // Determine status badge color
