@@ -39,6 +39,14 @@ export default function ProfileScreen({ navigation }) {
     ? profile.operations.filter(Boolean).join(", ")
     : typeof profile?.operations === "string"
     ? profile.operations.trim()
+    : Array.isArray(profile?.chef_profile?.operational_experties)
+    ? profile.chef_profile.operational_experties.filter(Boolean).join(", ")
+    : typeof profile?.chef_profile?.operational_experties === "string"
+    ? profile.chef_profile.operational_experties.trim()
+    : Array.isArray(profile?.chef_profile?.operational_expertise)
+    ? profile.chef_profile.operational_expertise.filter(Boolean).join(", ")
+    : typeof profile?.chef_profile?.operational_expertise === "string"
+    ? profile.chef_profile.operational_expertise.trim()
     : "";
   const logoSource = profile?.profile_photo_path || profile?.profile_photo || profile?.company_logo || profile?.companyLogo || null;
 

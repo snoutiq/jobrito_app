@@ -21,11 +21,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import colors from "../../constants/colors";
-import { resetUser, setProfileData, fetchProfile } from "../../redux/slices/userSlice";
+import {
+  resetUser,
+  setProfileData,
+  fetchProfile,
+} from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage, setStoredProfile } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
-import { getChefAppointments, getChefDashboardStats, getChefProfileViews, saveChefOnboarding, updateChefAvailability } from "../../services/chefApi";
+import {
+  getChefAppointments,
+  getChefDashboardStats,
+  getChefProfileViews,
+  saveChefOnboarding,
+  updateChefAvailability,
+} from "../../services/chefApi";
 import { getMyJobs, getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
@@ -51,26 +61,43 @@ export default function ChefProfileScreen({ navigation }) {
   const [postedJobsCount, setPostedJobsCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const displayName = profile?.name || profile?.full_name || "Chef Rajesh Kumar";
-  const displayTitle = profile?.professionalTitle || profile?.preferred_role || "Culinary Consultant & Kitchen Setup Expert";
-  
-  console.log("[DEBUG ChefProfileScreen] Profile state:", JSON.stringify(profile));
-  
-  const displayCity = profile?.city && profile?.country 
-    ? `${profile.city}, ${profile.country}`
-    : profile?.city || profile?.country || "";
-  const displayPrefLocation = profile?.locationPreference || profile?.location_preference || "";
-  const displayExperience = profile?.experienceYears || profile?.experience_range || profile?.experience || "";
+  const displayName =
+    profile?.name || profile?.full_name || "Chef Rajesh Kumar";
+  const displayTitle =
+    profile?.professionalTitle ||
+    profile?.preferred_role ||
+    "Culinary Consultant & Kitchen Setup Expert";
+
+  console.log(
+    "[DEBUG ChefProfileScreen] Profile state:",
+    JSON.stringify(profile),
+  );
+
+  const displayCity =
+    profile?.city && profile?.country
+      ? `${profile.city}, ${profile.country}`
+      : profile?.city || profile?.country || "";
+  const displayPrefLocation =
+    profile?.locationPreference || profile?.location_preference || "";
+  const displayExperience =
+    profile?.experienceYears ||
+    profile?.experience_range ||
+    profile?.experience ||
+    "";
 
   const getRegionalList = () => {
     let list = [];
-    if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
+    if (
+      profile?.availability_info &&
+      typeof profile.availability_info === "object" &&
+      !Array.isArray(profile.availability_info)
+    ) {
       list = profile.availability_info.regional_experience || [];
     } else if (profile?.regional_experience) {
       list = profile.regional_experience;
     }
     if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    if (typeof list === "string") return list.split(",").map((x) => x.trim());
     return [];
   };
 
@@ -81,71 +108,106 @@ export default function ChefProfileScreen({ navigation }) {
   //   return profile?.availability || "Available for Consultation";
   // };
   const getAvailability = () => {
-  if (
-    profile?.availability_info &&
-    typeof profile.availability_info === "object" &&
-    !Array.isArray(profile.availability_info)
-  ) {
-    return (
-      profile.availability_info.availability_status ||
-      profile.availability ||
-      "Available for Consultation"
-    );
-  }
+    if (
+      profile?.availability_info &&
+      typeof profile.availability_info === "object" &&
+      !Array.isArray(profile.availability_info)
+    ) {
+      return (
+        profile.availability_info.availability_status ||
+        profile.availability ||
+        "Available for Consultation"
+      );
+    }
 
-  return profile?.availability || "Available for Consultation";
-};
+    return profile?.availability || "Available for Consultation";
+  };
 
   // const displayAvailability = getAvailability();
   const availability = getAvailability();
 
-const displayAvailability =
-  availability === "Unavailable"
-    ? "Currently Employed"
-    : availability;
+  const displayAvailability =
+    availability === "Unavailable" ? "Currently Employed" : availability;
 
-const isAvailable =
-  availability === "Available" ||
-  availability === "Available for Consultation" ||
-  availability === "Available Immediately" ||
-  availability === "Available immediately";
+  const isAvailable =
+    availability === "Available" ||
+    availability === "Available for Consultation" ||
+    availability === "Available Immediately" ||
+    availability === "Available immediately";
 
   const getProfileCompletionPercentage = () => {
     if (!profile) return 0;
-    
-    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const hasCalendly = calendly && 
-                        calendly.trim().length > 0 && 
-                        !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+
+    const calendly =
+      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const hasCalendly =
+      calendly &&
+      calendly.trim().length > 0 &&
+      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
 
     const hasPhoto = !!(profile.profile_photo_path || profile.profile_photo);
     const hasCity = !!profile.city;
     const hasBio = !!profile.bio;
     const hasCuisines = !!(profile.cuisines || profile.cuisine_specialty);
-    const hasSkills = !!(profile.operations || profile.skills);
-    const hasSocial = !!(profile.linkedin || profile.instagram || profile.facebook || profile.twitter);
-    
-    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
-    
+    const hasSkills = !!(
+      profile.operations ||
+      profile.skills ||
+      profile.chef_profile.operational_experties ||
+      profile.chef_profile.operational_expertise
+    );
+    const hasSocial = !!(
+      profile.linkedin ||
+      profile.instagram ||
+      profile.facebook ||
+      profile.twitter
+    );
+
+    const regionalExp = getRegionalList();
+    const hasRegionalExp = regionalExp && regionalExp.length > 0;
+
+    const hasLocationPref = !!(
+      profile.locationPreference || profile.location_preference
+    );
+
     const getEmploymentPref = () => {
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+      if (
+        profile.availability_info &&
+        typeof profile.availability_info === "object" &&
+        !Array.isArray(profile.availability_info) &&
+        Array.isArray(profile.availability_info.employment_preference)
+      ) {
         return profile.availability_info.employment_preference;
       }
       return profile.employmentPreference || profile.employment_preference;
     };
     const empPref = getEmploymentPref();
-    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    const hasEmploymentPref =
+      empPref &&
+      (Array.isArray(empPref)
+        ? empPref.length > 0
+        : typeof empPref === "string" && empPref.trim().length > 0);
 
-    const isActuallyComplete = hasPhoto && hasCity && hasBio && hasCuisines && hasSkills && hasCalendly && hasSocial && hasLocationPref && hasEmploymentPref;
+    const isActuallyComplete =
+      hasPhoto &&
+      hasCity &&
+      hasBio &&
+      hasCuisines &&
+      hasSkills &&
+      hasCalendly &&
+      hasSocial &&
+      hasLocationPref &&
+      hasEmploymentPref &&
+      hasRegionalExp;
 
-    if (isActuallyComplete) {
-      const apiPct = profile.completeness ?? profile.profile_completeness ?? profile.completionPercentage;
-      if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
-        return apiPct;
-      }
+    const apiPct =
+      profile.completeness ??
+      profile.profile_completeness ??
+      profile.completionPercentage;
+    if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
+      return Math.round(Number(apiPct));
     }
 
-    let totalFields = 14;
+    let totalFields = 16;
     let filledFields = 0;
 
     if (profile?.full_name || profile?.name) filledFields++;
@@ -153,21 +215,32 @@ const isAvailable =
     if (profile?.professionalTitle || profile?.preferred_role) filledFields++;
     if (profile?.city) filledFields++;
     if (profile?.country) filledFields++;
-    if (profile?.experienceYears || profile?.experience_range || profile?.experience) filledFields++;
+    if (
+      profile?.experienceYears ||
+      profile?.experience_range ||
+      profile?.experience
+    )
+      filledFields++;
     if (profile?.bio) filledFields++;
-    
+
     // Languages
     const langs = profile?.languages;
     if (Array.isArray(langs) && langs.length > 0) filledFields++;
-    else if (typeof langs === "string" && langs.trim().length > 0) filledFields++;
+    else if (typeof langs === "string" && langs.trim().length > 0)
+      filledFields++;
 
     // Cuisines
     const cuisines = profile?.cuisines || profile?.cuisine_specialty;
     if (Array.isArray(cuisines) && cuisines.length > 0) filledFields++;
-    else if (typeof cuisines === "string" && cuisines.trim().length > 0) filledFields++;
+    else if (typeof cuisines === "string" && cuisines.trim().length > 0)
+      filledFields++;
 
     // Skills/Operations
-    const ops = profile?.operations || profile?.skills;
+    const ops =
+      profile?.operations ||
+      profile?.skills ||
+      profile.chef_profile.operational_experties ||
+      profile.chef_profile.operational_expertise;
     if (Array.isArray(ops) && ops.length > 0) filledFields++;
     else if (typeof ops === "string" && ops.trim().length > 0) filledFields++;
 
@@ -191,109 +264,185 @@ const isAvailable =
       filledFields++;
     }
 
+    if (hasRegionalExp) {
+      filledFields++;
+    }
+
     return Math.round((filledFields / totalFields) * 100);
   };
 
   const getMissedOutFields = () => {
     const missed = [];
-    if (!profile?.profile_photo_path && !profile?.profile_photo) missed.push(t("profilePhoto", "Profile Photo"));
+    if (!profile?.profile_photo_path && !profile?.profile_photo)
+      missed.push(t("profilePhoto", "Profile Photo"));
     if (!profile?.bio) missed.push(t("bio", "Bio"));
-    
+
     const langs = profile?.languages;
-    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+    if (
+      !langs ||
+      (Array.isArray(langs) && langs.length === 0) ||
+      (typeof langs === "string" && !langs.trim())
+    ) {
       missed.push(t("languages", "Languages"));
     }
 
     const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+    if (
+      !cuisines ||
+      (Array.isArray(cuisines) && cuisines.length === 0) ||
+      (typeof cuisines === "string" && !cuisines.trim())
+    ) {
       missed.push(t("cuisines", "Cuisines"));
     }
 
     const ops = profile?.operations || profile?.skills;
-    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+    if (
+      !ops ||
+      (Array.isArray(ops) && ops.length === 0) ||
+      (typeof ops === "string" && !ops.trim())
+    ) {
       missed.push(t("skills", "Operational Skills"));
     }
 
-    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid = calendly && 
-                            calendly.trim().length > 0 && 
-                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    const calendly =
+      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid =
+      calendly &&
+      calendly.trim().length > 0 &&
+      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
     if (!isCalendlyValid) {
       missed.push("Calendly");
     }
 
-    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    const hasSocial =
+      profile?.linkedin ||
+      profile?.instagram ||
+      profile?.facebook ||
+      profile?.twitter;
     if (!hasSocial) {
       missed.push(t("socialLinks", "Social Links"));
     }
 
-    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    const hasLocationPref = !!(
+      profile.locationPreference || profile.location_preference
+    );
     if (!hasLocationPref) {
       missed.push(t("locationPreference", "Job Location Preference"));
     }
 
     const getEmploymentPref = () => {
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+      if (
+        profile.availability_info &&
+        typeof profile.availability_info === "object" &&
+        !Array.isArray(profile.availability_info) &&
+        Array.isArray(profile.availability_info.employment_preference)
+      ) {
         return profile.availability_info.employment_preference;
       }
       return profile.employmentPreference || profile.employment_preference;
     };
     const empPref = getEmploymentPref();
-    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    const hasEmploymentPref =
+      empPref &&
+      (Array.isArray(empPref)
+        ? empPref.length > 0
+        : typeof empPref === "string" && empPref.trim().length > 0);
     if (!hasEmploymentPref) {
       missed.push(t("employmentPreference", "Employment Preference"));
     }
- 
+
     return missed;
   };
 
   const getMissingFieldText = () => {
-    if (completionPercent >= 100) return t("profile.allInfoAdded", "All information added successfully!");
-    
-    if (!profile?.profile_photo_path && !profile?.profile_photo) return t("profile.addPhotoAction", "Add Profile Photo");
+    if (completionPercent >= 100)
+      return t("profile.allInfoAdded", "All information added successfully!");
+
+    if (!profile?.profile_photo_path && !profile?.profile_photo)
+      return t("profile.addPhotoAction", "Add Profile Photo");
     if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
-    
+
     const langs = profile?.languages;
-    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+    if (
+      !langs ||
+      (Array.isArray(langs) && langs.length === 0) ||
+      (typeof langs === "string" && !langs.trim())
+    ) {
       return t("profile.addLanguagesAction", "Add Languages");
     }
 
     const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+    if (
+      !cuisines ||
+      (Array.isArray(cuisines) && cuisines.length === 0) ||
+      (typeof cuisines === "string" && !cuisines.trim())
+    ) {
       return t("profile.addCuisinesAction", "Add Cuisines");
     }
 
-    const ops = profile?.operations || profile?.skills;
-    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+    const ops =
+      profile?.operations ||
+      profile?.skills ||
+      profile?.chef_profile?.operational_experties ||
+      profile?.chef_profile?.operational_expertise;
+    console.log("ChefProfileScreen - getMissingFieldText - ops value:", ops);
+    if (
+      !ops ||
+      (Array.isArray(ops) && ops.length === 0) ||
+      (typeof ops === "string" && !ops.trim())
+    ) {
+      console.log(
+        "ChefProfileScreen - getMissingFieldText - ops is missing. Array?",
+        Array.isArray(ops),
+        "length:",
+        ops?.length,
+      );
       return t("profile.addSkillsAction", "Add Operational Skills");
     }
 
-    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    const hasLocationPref = !!(
+      profile.locationPreference || profile.location_preference
+    );
     if (!hasLocationPref) {
       return t("profile.addLocationPreference", "Add Job Location Preference");
     }
 
     const getEmploymentPref = () => {
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+      if (
+        profile.availability_info &&
+        typeof profile.availability_info === "object" &&
+        !Array.isArray(profile.availability_info) &&
+        Array.isArray(profile.availability_info.employment_preference)
+      ) {
         return profile.availability_info.employment_preference;
       }
       return profile.employmentPreference || profile.employment_preference;
     };
     const empPref = getEmploymentPref();
-    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    const hasEmploymentPref =
+      empPref &&
+      (Array.isArray(empPref)
+        ? empPref.length > 0
+        : typeof empPref === "string" && empPref.trim().length > 0);
     if (!hasEmploymentPref) {
       return t("profile.addEmploymentPreference", "Add Employment Preference");
     }
 
-    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid = calendly && 
-                            calendly.trim().length > 0 && 
-                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    const calendly =
+      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid =
+      calendly &&
+      calendly.trim().length > 0 &&
+      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
     if (!isCalendlyValid) {
       return t("profile.addCalendlyAction", "Add Calendly Link");
     }
 
-    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    const hasSocial =
+      profile?.linkedin ||
+      profile?.instagram ||
+      profile?.facebook ||
+      profile?.twitter;
     if (!hasSocial) {
       return t("profile.addSocialLinksAction", "Add Social Media Links");
     }
@@ -304,48 +453,77 @@ const isAvailable =
   const getMissingFieldStep = () => {
     if (!profile?.profile_photo_path && !profile?.profile_photo) return 1;
     if (!profile?.bio) return 3;
-    
+
     const langs = profile?.languages;
-    if (!langs || (Array.isArray(langs) && langs.length === 0) || (typeof langs === "string" && !langs.trim())) {
+    if (
+      !langs ||
+      (Array.isArray(langs) && langs.length === 0) ||
+      (typeof langs === "string" && !langs.trim())
+    ) {
       return 1;
     }
 
     const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (!cuisines || (Array.isArray(cuisines) && cuisines.length === 0) || (typeof cuisines === "string" && !cuisines.trim())) {
+    if (
+      !cuisines ||
+      (Array.isArray(cuisines) && cuisines.length === 0) ||
+      (typeof cuisines === "string" && !cuisines.trim())
+    ) {
       return 2;
     }
 
     const ops = profile?.operations || profile?.skills;
-    if (!ops || (Array.isArray(ops) && ops.length === 0) || (typeof ops === "string" && !ops.trim())) {
+    if (
+      !ops ||
+      (Array.isArray(ops) && ops.length === 0) ||
+      (typeof ops === "string" && !ops.trim())
+    ) {
       return 2;
     }
 
-    const hasLocationPref = !!(profile.locationPreference || profile.location_preference);
+    const hasLocationPref = !!(
+      profile.locationPreference || profile.location_preference
+    );
     if (!hasLocationPref) {
       return 3;
     }
 
     const getEmploymentPref = () => {
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
+      if (
+        profile.availability_info &&
+        typeof profile.availability_info === "object" &&
+        !Array.isArray(profile.availability_info) &&
+        Array.isArray(profile.availability_info.employment_preference)
+      ) {
         return profile.availability_info.employment_preference;
       }
       return profile.employmentPreference || profile.employment_preference;
     };
     const empPref = getEmploymentPref();
-    const hasEmploymentPref = empPref && (Array.isArray(empPref) ? empPref.length > 0 : typeof empPref === "string" && empPref.trim().length > 0);
+    const hasEmploymentPref =
+      empPref &&
+      (Array.isArray(empPref)
+        ? empPref.length > 0
+        : typeof empPref === "string" && empPref.trim().length > 0);
     if (!hasEmploymentPref) {
       return 3;
     }
 
-    const calendly = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid = calendly && 
-                            calendly.trim().length > 0 && 
-                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
+    const calendly =
+      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const isCalendlyValid =
+      calendly &&
+      calendly.trim().length > 0 &&
+      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
     if (!isCalendlyValid) {
       return 4;
     }
 
-    const hasSocial = profile?.linkedin || profile?.instagram || profile?.facebook || profile?.twitter;
+    const hasSocial =
+      profile?.linkedin ||
+      profile?.instagram ||
+      profile?.facebook ||
+      profile?.twitter;
     if (!hasSocial) {
       return 5;
     }
@@ -364,11 +542,15 @@ const isAvailable =
         Notifications.scheduleNotificationAsync({
           content: {
             title: t("completeProfileAlertTitle", "Complete Your Profile!"),
-            body: t("completeProfileAlertBody", "Increase employer trust! Add: ") + missed.slice(0, 3).join(", "),
+            body:
+              t("completeProfileAlertBody", "Increase employer trust! Add: ") +
+              missed.slice(0, 3).join(", "),
             sound: true,
           },
           trigger: null,
-        }).catch(err => console.log("Failed to send profile completion notification:", err));
+        }).catch((err) =>
+          console.log("Failed to send profile completion notification:", err),
+        );
       }
     }
   }, [profile]);
@@ -380,7 +562,14 @@ const isAvailable =
       const fetchDashboardData = async () => {
         try {
           await dispatch(fetchProfile()).unwrap();
-          const [statsRes, appsRes, savedRes, appointmentsRes, viewsRes, myJobsRes] = await Promise.all([
+          const [
+            statsRes,
+            appsRes,
+            savedRes,
+            appointmentsRes,
+            viewsRes,
+            myJobsRes,
+          ] = await Promise.all([
             getChefDashboardStats().catch(() => null),
             getApplicationHistory().catch(() => null),
             getSavedJobs().catch(() => null),
@@ -392,7 +581,11 @@ const isAvailable =
           if (!isMounted) return;
 
           if (myJobsRes) {
-            const jobs = myJobsRes.created_jobs || myJobsRes.jobs || myJobsRes.data || (Array.isArray(myJobsRes) ? myJobsRes : []);
+            const jobs =
+              myJobsRes.created_jobs ||
+              myJobsRes.jobs ||
+              myJobsRes.data ||
+              (Array.isArray(myJobsRes) ? myJobsRes : []);
             if (Array.isArray(jobs)) {
               setPostedJobsCount(jobs.length);
             }
@@ -400,7 +593,10 @@ const isAvailable =
 
           let resolvedProfileViews = 0;
           if (viewsRes?.views && Array.isArray(viewsRes.views)) {
-            resolvedProfileViews = viewsRes.total_views !== undefined ? viewsRes.total_views : viewsRes.views.length;
+            resolvedProfileViews =
+              viewsRes.total_views !== undefined
+                ? viewsRes.total_views
+                : viewsRes.views.length;
           } else if (statsRes?.stats?.profile_views !== undefined) {
             resolvedProfileViews = statsRes.stats.profile_views;
           }
@@ -428,7 +624,10 @@ const isAvailable =
             setSavedJobsCount(savedRes.jobs.length);
           }
           if (appointmentsRes) {
-            const list = appointmentsRes.appointments || appointmentsRes.data || (Array.isArray(appointmentsRes) ? appointmentsRes : []);
+            const list =
+              appointmentsRes.appointments ||
+              appointmentsRes.data ||
+              (Array.isArray(appointmentsRes) ? appointmentsRes : []);
             setAppointmentCount(list.length);
           }
         } catch (err) {
@@ -443,12 +642,15 @@ const isAvailable =
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, []),
   );
 
   // Helper to determine the company logo source URL
   const getLogoSource = () => {
-    const uri = profile?.profile_photo_path || profile?.company_logo || profile?.companyLogo;
+    const uri =
+      profile?.profile_photo_path ||
+      profile?.company_logo ||
+      profile?.companyLogo;
     if (!uri) return null;
     if (
       uri.startsWith("http://") ||
@@ -458,7 +660,9 @@ const isAvailable =
     ) {
       return { uri };
     }
-    return { uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}` };
+    return {
+      uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`,
+    };
   };
 
   const logoSource = getLogoSource();
@@ -488,10 +692,20 @@ const isAvailable =
 
   const handleShareProfile = async () => {
     try {
-      const cuisines = profile?.cuisines?.join(", ") || profile?.cuisine_specializations?.join(", ") || "Multi Cuisine";
-      const experience = profile?.experience || profile?.years_of_experience || profile?.experienceYears || "N/A";
-      const operations = profile?.operations?.join(", ") || profile?.operational_expertises?.join(", ") || "Kitchen Operations";
-      
+      const cuisines =
+        profile?.cuisines?.join(", ") ||
+        profile?.cuisine_specializations?.join(", ") ||
+        "Multi Cuisine";
+      const experience =
+        profile?.experience ||
+        profile?.years_of_experience ||
+        profile?.experienceYears ||
+        "N/A";
+      const operations =
+        profile?.operations?.join(", ") ||
+        profile?.operational_expertises?.join(", ") ||
+        "Kitchen Operations";
+
       const shareText = `
 🍳 *CHEF PROFESSIONAL PROFILE* 🍳
 ----------------------------------
@@ -506,7 +720,7 @@ const isAvailable =
 🔗 View full profile & book consultation on Jobrito app:
 http://jobrito.com/chefs/${profile?.id || "profile"}
 `;
-      
+
       await Share.share({
         message: shareText.trim(),
       });
@@ -517,9 +731,12 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
   const handleToggleAvailability = async (value) => {
     const newStatus = value ? "Available" : "Unavailable";
-    const newAvailabilityInfo = profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)
-      ? { ...profile.availability_info, availability_status: newStatus }
-      : { availability_status: newStatus };
+    const newAvailabilityInfo =
+      profile?.availability_info &&
+      typeof profile.availability_info === "object" &&
+      !Array.isArray(profile.availability_info)
+        ? { ...profile.availability_info, availability_status: newStatus }
+        : { availability_status: newStatus };
 
     // 1. Update Redux store
     dispatch(
@@ -527,16 +744,16 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
         availability: newStatus,
         availability_status: newStatus,
         availability_info: newAvailabilityInfo,
-      })
+      }),
     );
-    
+
     // 2. Update Storage
     try {
-      const updatedProfile = { 
-        ...profile, 
-        availability: newStatus, 
+      const updatedProfile = {
+        ...profile,
+        availability: newStatus,
         availability_status: newStatus,
-        availability_info: newAvailabilityInfo 
+        availability_info: newAvailabilityInfo,
       };
       await setStoredProfile(updatedProfile);
     } catch (e) {
@@ -556,7 +773,8 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
   };
 
   const handleOpenCalendly = () => {
-    const link = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    const link =
+      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
     if (link) {
       const fullUrl = link.startsWith("http") ? link : `https://${link}`;
       Linking.openURL(fullUrl).catch(() => {
@@ -577,14 +795,19 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
     ml: "മലയാളം",
     kn: "ಕನ್ನಡ",
     te: "తెలుగు",
-    ta: "தமிழ்"
+    ta: "தமிழ்",
   };
 
   const currentLanguageName = LANGUAGE_LABELS[i18n.language] || "English";
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#153e69" />
       </SafeAreaView>
     );
@@ -595,20 +818,32 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("chefProfile", "Chef Profile")}</Text>
+          <Text style={styles.headerTitle}>
+            {t("chefProfile", "Chef Profile")}
+          </Text>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
             {logoSource ? (
               <View style={styles.avatarContainer}>
-                <Image source={logoSource} style={styles.avatarImage} resizeMode="cover" />
+                <Image
+                  source={logoSource}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
               </View>
             ) : (
               <View style={[styles.avatarContainer, styles.avatarPlaceholder]}>
@@ -618,51 +853,67 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             <View style={styles.profileTextInfo}>
               <Text style={styles.profileName}>{displayName}</Text>
               {Boolean(displayTitle) && (
-                <Text style={styles.profileTitle}>Current Role: {displayTitle}</Text>
+                <Text style={styles.profileTitle}>
+                  Current Role: {displayTitle}
+                </Text>
               )}
-              
+
               <View style={styles.profileDetailsList}>
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>Current Location: </Text>
                   <Text style={styles.detailValue}>{displayCity || "N/A"}</Text>
                 </Text>
-                
+
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Preferred Job Location: </Text>
+                  <Text style={styles.detailLabel}>
+                    Preferred Job Location:{" "}
+                  </Text>
                   <Text style={styles.detailValue}>
-                    {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
+                    {displayPrefLocation === "Both" ||
+                    displayPrefLocation === "Both (India & Overseas)"
                       ? "India & Overseas"
                       : displayPrefLocation || "N/A"}
                   </Text>
                 </Text>
-                
+
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>Experience: </Text>
-                  <Text style={styles.detailValue}>{displayExperience || "N/A"}</Text>
+                  <Text style={styles.detailValue}>
+                    {displayExperience || "N/A"}
+                  </Text>
                 </Text>
-                
+
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>Regional Experience: </Text>
-                  <Text style={styles.detailValue}>{getRegionalList().join(", ") || "N/A"}</Text>
+                  <Text style={styles.detailValue}>
+                    {getRegionalList().join(", ") || "N/A"}
+                  </Text>
                 </Text>
-                
+
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>Availability: </Text>
                   {/* <Text style={styles.detailValue}>{displayAvailability || "N/A"}</Text> */}
-                 <Text style={styles.detailValue}>
-  {displayAvailability || "N/A"}
-</Text>
+                  <Text style={styles.detailValue}>
+                    {displayAvailability || "N/A"}
+                  </Text>
                 </Text>
               </View>
             </View>
           </View>
 
-          <TouchableOpacity 
-            onPress={() => navigation.navigate("ChefProfileDetails", { chef: profile, isOwnProfile: true })}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ChefProfileDetails", {
+                chef: profile,
+                isOwnProfile: true,
+              })
+            }
             style={[styles.viewProfileBtn, { backgroundColor: PRIMARY_GREEN }]}
             activeOpacity={0.8}
           >
-            <Text style={styles.viewProfileBtnText}>{t("chefDashboard.viewProfile", "View Profile")}</Text>
+            <Text style={styles.viewProfileBtnText}>
+              {t("chefDashboard.viewProfile", "View Profile")}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -671,27 +922,44 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
           <View style={styles.completionCardContainer}>
             <View style={styles.completionCard}>
               <View style={styles.completionHeader}>
-                <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
-                <Text style={styles.completionPercent}>{completionPercent}%</Text>
+                <Text style={styles.completionTitle}>
+                  {t("profile.profileCompletion", "Profile Completion")}
+                </Text>
+                <Text style={styles.completionPercent}>
+                  {completionPercent}%
+                </Text>
               </View>
 
               {/* Clean Progress bar track */}
               <View style={styles.progressContainer}>
                 <View style={styles.progressBarTrack}>
-                  <View style={[styles.progressBarFill, { width: `${completionPercent}%` }]} />
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      { width: `${completionPercent}%` },
+                    ]}
+                  />
                 </View>
               </View>
 
               {/* Dynamic Missing Field / Add Action */}
               <Pressable
                 style={styles.addSkillsBar}
-                onPress={() => navigation.navigate("ChefCompleteProfile", { step: getMissingFieldStep() })}
+                onPress={() =>
+                  navigation.navigate("ChefCompleteProfile", {
+                    step: getMissingFieldStep(),
+                  })
+                }
               >
-                <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
-                <Ionicons 
-                  name={completionPercent >= 100 ? "create-outline" : "add-circle"} 
-                  size={18} 
-                  color="#153e69" 
+                <Text style={styles.addSkillsText}>
+                  {getMissingFieldText()}
+                </Text>
+                <Ionicons
+                  name={
+                    completionPercent >= 100 ? "create-outline" : "add-circle"
+                  }
+                  size={18}
+                  color="#153e69"
                 />
               </Pressable>
             </View>
@@ -708,14 +976,25 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("Applications")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="mail-open-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.myApplications")}</Text>
+              <Ionicons
+                name="mail-open-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.myApplications")}
+              </Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{applicationsCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="rgba(10, 5, 4, 0.6)"
+              />
             </View>
           </TouchableOpacity>
 
@@ -728,14 +1007,25 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("SavedJobs")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="star-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.mySavedJobs")}</Text>
+              <Ionicons
+                name="star-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.mySavedJobs")}
+              </Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{savedJobsCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="rgba(10, 5, 4, 0.6)"
+              />
             </View>
           </TouchableOpacity>
 
@@ -748,14 +1038,25 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("MyJobs")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="share-social-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.myPostedJobs")}</Text>
+              <Ionicons
+                name="share-social-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.myPostedJobs")}
+              </Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{postedJobsCount}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="rgba(10, 5, 4, 0.6)"
+              />
             </View>
           </TouchableOpacity>
 
@@ -768,27 +1069,55 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("ProfileViews")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="eye-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.profileViews", "Profile Views")}</Text>
+              <Ionicons
+                name="eye-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.profileViews", "Profile Views")}
+              </Text>
             </View>
             <View style={styles.menuItemRight}>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{stats.profile_views}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="rgba(10, 5, 4, 0.6)"
+              />
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Professional Tools */}
-        <Text style={styles.sectionTitle}>{t("chefDashboard.professionalTools")}</Text>
+        <Text style={styles.sectionTitle}>
+          {t("chefDashboard.professionalTools")}
+        </Text>
         <View style={styles.menuGroup}>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate("CalendlyIntegration")}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("CalendlyIntegration")}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.calendlyIntegration")}</Text>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.calendlyIntegration")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
@@ -799,18 +1128,36 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("SocialMediaLinks")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="globe-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.socialMediaLinks")}</Text>
+              <Ionicons
+                name="globe-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.socialMediaLinks")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="time-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.availability")}</Text>
+              <Ionicons
+                name="time-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.availability")}
+              </Text>
             </View>
             <Switch
               value={isAvailable}
@@ -822,17 +1169,34 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleShareProfile}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={handleShareProfile}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="share-outline" size={20} color="#153e69" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("chefDashboard.shareProfile")}</Text>
+              <Ionicons
+                name="share-outline"
+                size={20}
+                color="#153e69"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("chefDashboard.shareProfile")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
         </View>
 
         {/* Settings & Support */}
-        <Text style={styles.sectionTitle}>{t("chefDashboard.settingsSupport")}</Text>
+        <Text style={styles.sectionTitle}>
+          {t("chefDashboard.settingsSupport")}
+        </Text>
         <View style={styles.menuGroup}>
           <TouchableOpacity
             style={styles.menuItem}
@@ -840,12 +1204,21 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("Language")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="language-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
+              <Ionicons
+                name="language-outline"
+                size={20}
+                color="rgba(10, 5, 4, 0.6)"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemLabel}>{t("language")}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <Text style={styles.langValueText}>{currentLanguageName}</Text>
-              <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="rgba(10, 5, 4, 0.6)"
+              />
             </View>
           </TouchableOpacity>
 
@@ -857,10 +1230,21 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("TalentSettings")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="settings-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
-              <Text style={styles.menuItemLabel}>{t("settingsTitle", "Settings")}</Text>
+              <Ionicons
+                name="settings-outline"
+                size={20}
+                color="rgba(10, 5, 4, 0.6)"
+                style={styles.menuIcon}
+              />
+              <Text style={styles.menuItemLabel}>
+                {t("settingsTitle", "Settings")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
@@ -871,20 +1255,44 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             onPress={() => navigation.navigate("HelpSupport")}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="headset-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.menuIcon} />
+              <Ionicons
+                name="headset-outline"
+                size={20}
+                color="rgba(10, 5, 4, 0.6)"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemLabel}>{t("customerSupport")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={handleLogout}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={handleLogout}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="log-out-outline" size={20} color="#f57f20" style={styles.menuIcon} />
-              <Text style={[styles.menuItemLabel, { color: "#f57f20" }]}>{t("logOut")}</Text>
+              <Ionicons
+                name="log-out-outline"
+                size={20}
+                color="#f57f20"
+                style={styles.menuIcon}
+              />
+              <Text style={[styles.menuItemLabel, { color: "#f57f20" }]}>
+                {t("logOut")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color="rgba(10, 5, 4, 0.6)"
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -909,21 +1317,33 @@ http://jobrito.com/chefs/${profile?.id || "profile"}
             <View style={styles.modalIcon}>
               <Ionicons name="log-out-outline" size={22} color="#f57f20" />
             </View>
-            <Text style={styles.modalTitle}>{t("profile.logoutConfirmTitle", "Logout")}</Text>
-            <Text style={styles.modalText}>{t("profile.logoutConfirm", "Are you sure you want to logout?")}</Text>
+            <Text style={styles.modalTitle}>
+              {t("profile.logoutConfirmTitle", "Logout")}
+            </Text>
+            <Text style={styles.modalText}>
+              {t("profile.logoutConfirm", "Are you sure you want to logout?")}
+            </Text>
 
             <View style={styles.modalActions}>
               <Pressable
                 onPress={() => setShowLogoutModal(false)}
                 style={[styles.modalButton, styles.modalCancelButton]}
               >
-                <Text style={styles.modalCancelText}>{t("cancel", "Cancel")}</Text>
+                <Text style={styles.modalCancelText}>
+                  {t("cancel", "Cancel")}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={executeLogout}
-                style={[styles.modalButton, styles.modalConfirmButton, { backgroundColor: "#f57f20" }]}
+                style={[
+                  styles.modalButton,
+                  styles.modalConfirmButton,
+                  { backgroundColor: "#f57f20" },
+                ]}
               >
-                <Text style={styles.modalConfirmText}>{t("logout", "Logout")}</Text>
+                <Text style={styles.modalConfirmText}>
+                  {t("logout", "Logout")}
+                </Text>
               </Pressable>
             </View>
           </View>

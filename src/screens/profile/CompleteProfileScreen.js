@@ -171,7 +171,12 @@ export default function CompleteProfileScreen({ navigation, route }) {
       );
       setCurrentEmployer(employerValue);
 
-      const skillsValue = normalizeSkillsValue(profile.skills || profile.operations);
+      const skillsValue = normalizeSkillsValue(
+        profile.skills || 
+        profile.operations || 
+        profile.chef_profile?.operational_experties || 
+        profile.chef_profile?.operational_expertise
+      );
       setSkills(skillsValue);
 
       setGender(profile.gender ? toTrimmedString(profile.gender).toLowerCase() : "");

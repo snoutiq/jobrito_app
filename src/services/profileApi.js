@@ -117,13 +117,14 @@ export const normalizeProfile = (u) => {
     availability: userObj.availability_status || userObj.availability || "",
     availability_status: userObj.availability_status || userObj.availability || "",
     languages: availability.languages || [],
-    operations: userObj.skills || [],
+    operations: chef.operational_experties || chef.operational_expertise || userObj.skills || [],
     linkedin: (userObj.socials || root.socials || {}).linkedin || chef.linkedin_link || chef.linkedin || "",
     instagram: (userObj.socials || root.socials || {}).instagram || chef.instagram_link || chef.instagram || "",
     facebook: (userObj.socials || root.socials || {}).facebook || chef.facebook_link || chef.facebook || "",
     twitter: (userObj.socials || root.socials || {}).twitter || chef.twitter_link || chef.twitter || "",
     youtube: (userObj.socials || root.socials || {}).youtube || "",
     website: (userObj.socials || root.socials || {}).website || "",
+    chef_profile: chef,
   };
 };
 

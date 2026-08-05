@@ -173,7 +173,8 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || "";
 
   const getSkillsList = () => {
-    const list = chef.skills || chef.user?.skills || chef.chef_profile?.skills || chef.chef_profile_details?.skills || chef.operations || [];
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    const list = chef.skills || chef.user?.skills || chefProfileObj.skills || chefProfileObj.operational_experties || chefProfileObj.operational_expertise || chef.operations || [];
     if (Array.isArray(list)) return list;
     if (typeof list === "string") return list.split(",").map(x => x.trim());
     return [];

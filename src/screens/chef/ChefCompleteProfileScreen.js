@@ -241,18 +241,25 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
       // Operations (Skills) loading
       let loadedOps = [];
-      if (Array.isArray(profile.operations)) {
+      console.log("ChefCompleteProfileScreen - loaded profile:", JSON.stringify(profile));
+      if (Array.isArray(profile.operations) && profile.operations.length > 0) {
         loadedOps = profile.operations;
-      } else if (Array.isArray(profile.skills)) {
+      } else if (Array.isArray(profile.skills) && profile.skills.length > 0) {
         loadedOps = profile.skills;
-      } else if (typeof profile.operations === "string") {
+      } else if (typeof profile.operations === "string" && profile.operations.trim().length > 0) {
         loadedOps = profile.operations.split(",").map(x => x.trim()).filter(Boolean);
-      } else if (typeof profile.skills === "string") {
+      } else if (typeof profile.skills === "string" && profile.skills.trim().length > 0) {
         loadedOps = profile.skills.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (profile.chef_profile?.operational_experties) {
+        loadedOps = profile.chef_profile.operational_experties.split(",").map(x => x.trim()).filter(Boolean);
+      } else if (profile.chef_profile?.operational_expertise) {
+        loadedOps = profile.chef_profile.operational_expertise.split(",").map(x => x.trim()).filter(Boolean);
       }
+      console.log("ChefCompleteProfileScreen - loadedOps:", loadedOps);
 
       const matchedOps = [];
       let otherOps = [];
+      console.log("ChefCompleteProfileScreen - processing loadedOps:", loadedOps);
       loadedOps.forEach(o => {
         let mapped = o;
         if (o === "SOP Writer") mapped = "SOP Writing";
@@ -265,6 +272,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
           otherOps.push(o);
         }
       });
+      console.log("ChefCompleteProfileScreen - matchedOps:", matchedOps, "otherOps:", otherOps);
       if (otherOps.length > 0) {
         matchedOps.push("Other");
         setCustomOperation(otherOps.join(", "));
