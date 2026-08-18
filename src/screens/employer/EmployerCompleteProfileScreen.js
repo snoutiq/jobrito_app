@@ -12,6 +12,7 @@ import {
   Image,
   ActivityIndicator,
   BackHandler,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -28,6 +29,9 @@ import * as Location from "expo-location";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 
 const PRIMARY_GREEN = "#153e69";
+
+// Total steps after merging old Step 3 (logo + operational locations) into Step 1
+const TOTAL_STEPS = 4;
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -51,20 +55,27 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     return `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`;
   };
 
+  // Splits "address, city postcode" into { address, cityPostcode } — used both for
+  // initial hydration and for keeping the first location in sync with Business Location.
+  const splitLocationString = (locStr) => {
+    if (!locStr) return { address: "", cityPostcode: "" };
+    const lastCommaIndex = locStr.lastIndexOf(",");
+    if (lastCommaIndex !== -1) {
+      return {
+        address: locStr.substring(0, lastCommaIndex).trim(),
+        cityPostcode: locStr.substring(lastCommaIndex + 1).trim(),
+      };
+    }
+    return { address: locStr, cityPostcode: "" };
+  };
+
   const getInitialLocations = () => {
     const profileLocations = profile?.operational_locations || profile?.locations;
     if (Array.isArray(profileLocations) && profileLocations.length > 0) {
       return profileLocations.map((locStr, idx) => {
         if (typeof locStr === "string") {
-          const lastCommaIndex = locStr.lastIndexOf(",");
-          if (lastCommaIndex !== -1) {
-            return {
-              id: idx + 1,
-              address: locStr.substring(0, lastCommaIndex).trim(),
-              cityPostcode: locStr.substring(lastCommaIndex + 1).trim()
-            };
-          }
-          return { id: idx + 1, address: locStr, cityPostcode: "" };
+          const split = splitLocationString(locStr);
+          return { id: idx + 1, address: split.address, cityPostcode: split.cityPostcode };
         }
         return { id: idx + 1, address: locStr?.address || "", cityPostcode: locStr?.cityPostcode || "" };
       });
@@ -93,6 +104,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   // Operational Locations state
   const [locations, setLocations] = useState(getInitialLocations());
 
+  // Same as Business Location toggle (keeps location #1 auto-filled from businessLocation)
+  const [sameAsBusinessLocation, setSameAsBusinessLocation] = useState(true);
+
   // Talent Manager Details state
   const [managerName, setManagerName] = useState(profile?.nominee_name || profile?.managerName || "");
   const [managerRelationship, setManagerRelationship] = useState(profile?.nominee_relationship || profile?.managerRelationship || "");
@@ -120,18 +134,45 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const languages = ["English (UK)", "English (US)", "Hindi", "Arabic"];
   const relationships = ["Owner", "Manager", "HR Recruiter", "Operations Partner", "Other"];
 
+  // Keep location #1 synced with Business Location whenever the toggle is ON
+  useEffect(() => {
+    if (!sameAsBusinessLocation) return;
+    const split = splitLocationString(businessLocation);
+    setLocations((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[0] = { ...updated[0], address: split.address, cityPostcode: split.cityPostcode };
+      return updated;
+    });
+  }, [businessLocation, sameAsBusinessLocation]);
+
+  const handleToggleSameLocation = (val) => {
+    setSameAsBusinessLocation(val);
+  };
+
   const next = () => {
-    if (step === 1 && !businessName.trim()) {
-      Alert.alert(t("error"), t("employerOnboarding.businessNameRequired"));
-      return;
-    }
-    if (step === 1 && !industrySegment) {
-      Alert.alert(t("error"), t("employerOnboarding.industrySegmentRequired"));
-      return;
-    }
-    if (step === 1 && !businessLocation.trim()) {
-      Alert.alert(t("error"), t("employerOnboarding.businessLocationRequired"));
-      return;
+    // STEP 1: Business Info + Logo + Operational Locations (merged)
+    if (step === 1) {
+      if (!businessName.trim()) {
+        Alert.alert(t("error"), t("employerOnboarding.businessNameRequired"));
+        return;
+      }
+      if (!industrySegment) {
+        Alert.alert(t("error"), t("employerOnboarding.industrySegmentRequired"));
+        return;
+      }
+      if (!businessLocation.trim()) {
+        Alert.alert(t("error"), t("employerOnboarding.businessLocationRequired"));
+        return;
+      }
+      // Only validate locations manually when NOT auto-filled from business location
+      if (!sameAsBusinessLocation) {
+        const emptyLocation = locations.some(loc => !loc.address.trim() || !loc.cityPostcode.trim());
+        if (emptyLocation) {
+          Alert.alert(t("error"), t("employerOnboarding.locationsRequired"));
+          return;
+        }
+      }
     }
 
     if (step === 2) {
@@ -153,15 +194,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
     }
 
+    // STEP 3: Talent Manager (was step 4)
     if (step === 3) {
-      const emptyLocation = locations.some(loc => !loc.address.trim() || !loc.cityPostcode.trim());
-      if (emptyLocation) {
-        Alert.alert(t("error"), t("employerOnboarding.locationsRequired"));
-        return;
-      }
-    }
-
-    if (step === 4) {
       if (!managerName.trim()) {
         Alert.alert(t("error"), t("employerOnboarding.managerNameRequired"));
         return;
@@ -180,7 +214,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
     }
 
-    if (step < 5) {
+    if (step < TOTAL_STEPS) {
       setStep(step + 1);
     }
   };
@@ -486,7 +520,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   };
 
 
-  const progress = step === 5 ? 100 : step * 20;
+  const progress = step === TOTAL_STEPS ? 100 : step * (100 / TOTAL_STEPS);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -497,12 +531,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={prev} style={styles.backButton}>
-            <Ionicons name={step === 5 ? "close" : "arrow-back"} size={24} color="#0a0504" />
+            <Ionicons name={step === TOTAL_STEPS ? "close" : "arrow-back"} size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{isEditMode ? t("editProfile", "Edit Profile") : t("completeProfileTitle", "Complete Profile")}</Text>
           <View style={styles.stepBadge}>
             <Text style={styles.stepBadgeText}>
-              {step === 5 ? "100%" : t("step", { current: step, total: 5 }).replace("{{current}}", step).replace("{{total}}", 5)}
+              {step === TOTAL_STEPS ? "100%" : t("step", { current: step, total: TOTAL_STEPS }).replace("{{current}}", step).replace("{{total}}", TOTAL_STEPS)}
             </Text>
           </View>
         </View>
@@ -511,7 +545,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         <View style={styles.progressSection}>
           <View style={styles.progressRow}>
             <Text style={styles.progressLabel}>{t("onboardingProgress", "Onboarding Progress")}</Text>
-            <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{progress}%</Text>
+            <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{Math.round(progress)}%</Text>
           </View>
           <View style={styles.progressBarBg}>
             <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: PRIMARY_GREEN }]} />
@@ -523,13 +557,35 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* STEP 1: BUSINESS INFORMATION */}
+          {/* STEP 1: BUSINESS INFORMATION (Logo + Name + Segment + Primary Location + Operational Locations) */}
           {step === 1 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t("businessInformation", "Business Information")}</Text>
               <Text style={styles.stepSubtitle}>
                 {t("employerCompleteProfile.step1Subtitle", "Tell us about your establishment to help us find the right talent for your team.")}
               </Text>
+
+              {/* Company Logo Upload - top of the step */}
+              <Text style={styles.sectionHeaderTitle}>{t("companyLogo", "Company Logo")}</Text>
+              <TouchableOpacity
+                style={styles.logoUploadBox}
+                activeOpacity={0.7}
+                onPress={handleLogoUpload}
+              >
+                <View style={styles.logoUploadInner}>
+                  {logoUri ? (
+                    <Image
+                      source={{ uri: logoUri }}
+                      style={{ width: 80, height: 80, borderRadius: 8, marginBottom: 8 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
+                  )}
+                  <Text style={styles.logoUploadText}>{logoUploaded ? t("changeLogo", "Change Logo") : t("upload", "Upload")}</Text>
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.logoSubtext}>{t("logoRecommendedFormat", "PNG, JPG up to 5MB. Recommended square format.")}</Text>
 
               {/* Business Name */}
               <View style={styles.inputGroup}>
@@ -571,9 +627,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 />
               </View>
 
-              {/* Business Location */}
+              {/* Primary Business Location */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("businessLocation", "Business Location")} <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("businessLocation", "Primary Business Location")} <Text style={styles.required}>*</Text></Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "businessLocation" && styles.inputWrapperActive
@@ -609,11 +665,86 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </TouchableOpacity>
               </View>
 
+              {/* Operational Locations Section */}
+              <View style={styles.rowSpaceBetween}>
+                <Text style={styles.sectionHeaderTitle}>{t("operationalLocations", "Operational Locations")}</Text>
+                <View style={styles.mandatoryBadge}>
+                  <Text style={styles.mandatoryBadgeText}>{t("mandatory", "MANDATORY")}</Text>
+                </View>
+              </View>
+
+              {/* Same as Business Location Toggle */}
+              <View style={styles.toggleRow}>
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={styles.toggleLabel}>{t("sameAsBusinessLocation", "Same as Business Location")}</Text>
+                  <Text style={styles.toggleSubtext}>{t("sameAsBusinessLocationHint", "Auto-fill Location #1, or switch off to enter manually")}</Text>
+                </View>
+                <Switch
+                  value={sameAsBusinessLocation}
+                  onValueChange={handleToggleSameLocation}
+                  trackColor={{ false: "rgba(10, 5, 4, 0.15)", true: PRIMARY_GREEN }}
+                  thumbColor="#ffffff"
+                />
+              </View>
+
+              {locations.map((loc, idx) => {
+                const isAutoFilled = idx === 0 && sameAsBusinessLocation;
+                return (
+                  <View key={loc.id} style={styles.locationCard}>
+                    <View style={styles.locationCardHeader}>
+                      <Text style={styles.locationCardTitle}>{t("location", "Location")} #{idx + 1}</Text>
+                      {locations.length > 1 && (
+                        <TouchableOpacity onPress={() => removeLocation(loc.id)}>
+                          <Ionicons name="trash-outline" size={18} color="#f57f20" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <View style={[styles.inputWrapper, isAutoFilled && styles.inputWrapperDisabled]}>
+                        <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                        <TextInput
+                          value={loc.address}
+                          onChangeText={(val) => handleLocationChange(loc.id, "address", val)}
+                          placeholder={t("employerCompleteProfile.enterLocationAddress", "Enter building, street or venue name")}
+                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                          style={styles.textInput}
+                          editable={!isAutoFilled}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                      <View style={[styles.inputWrapper, isAutoFilled && styles.inputWrapperDisabled]}>
+                        <TextInput
+                          value={loc.cityPostcode}
+                          onChangeText={(val) => handleLocationChange(loc.id, "cityPostcode", val)}
+                          placeholder={t("employerCompleteProfile.enterCityPostcode", "City, Postcode")}
+                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                          style={[styles.textInput, { paddingLeft: 12 }]}
+                          editable={!isAutoFilled}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+
+              {/* Add Another Location Button */}
+              <TouchableOpacity
+                style={styles.addLocationButton}
+                activeOpacity={0.8}
+                onPress={addLocation}
+              >
+                <Ionicons name="add" size={20} color={PRIMARY_GREEN} />
+                <Text style={styles.addLocationButtonText}>{t("addAnotherLocation", "Add Another Location")}</Text>
+              </TouchableOpacity>
+
               {/* Info Card */}
               <View style={styles.infoCard}>
                 <Ionicons name="information-circle-outline" size={22} color="#153e69" style={styles.infoCardIcon} />
                 <Text style={styles.infoCardText}>
-                  {t("employerCompleteProfile.infoCardText1", "This information will be visible to potential candidates to help them understand your brand and location proximity.")}
+                  {t("employerCompleteProfile.infoCardText2", "Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.")}
                 </Text>
               </View>
 
@@ -757,114 +888,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* STEP 3: BUSINESS PROFILE */}
+          {/* STEP 3: TALENT MANAGER DETAILS (was step 4) */}
           {step === 3 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t("businessProfile", "Business Profile")}</Text>
-              <Text style={styles.stepSubtitle}>
-                {t("employerCompleteProfile.step3Subtitle", "Upload your logo and add the physical locations where your hospitality team will be working.")}
-              </Text>
-
-              {/* Company Logo Upload */}
-              <Text style={styles.sectionHeaderTitle}>{t("companyLogo", "Company Logo")}</Text>
-              <TouchableOpacity
-                style={styles.logoUploadBox}
-                activeOpacity={0.7}
-                onPress={handleLogoUpload}
-              >
-                <View style={styles.logoUploadInner}>
-                  {logoUri ? (
-                    <Image
-                      source={{ uri: logoUri }}
-                      style={{ width: 80, height: 80, borderRadius: 8, marginBottom: 8 }}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
-                  )}
-                  <Text style={styles.logoUploadText}>{logoUploaded ? t("changeLogo", "Change Logo") : t("upload", "Upload")}</Text>
-                </View>
-              </TouchableOpacity>
-              <Text style={styles.logoSubtext}>{t("logoRecommendedFormat", "PNG, JPG up to 5MB. Recommended square format.")}</Text>
-
-              {/* Operational Locations Section */}
-              <View style={styles.rowSpaceBetween}>
-                <Text style={styles.sectionHeaderTitle}>{t("operationalLocations", "Operational Locations")}</Text>
-                <View style={styles.mandatoryBadge}>
-                  <Text style={styles.mandatoryBadgeText}>{t("mandatory", "MANDATORY")}</Text>
-                </View>
-              </View>
-
-              {locations.map((loc, idx) => (
-                <View key={loc.id} style={styles.locationCard}>
-                  <View style={styles.locationCardHeader}>
-                    <Text style={styles.locationCardTitle}>{t("location", "Location")} #{idx + 1}</Text>
-                    {locations.length > 1 && (
-                      <TouchableOpacity onPress={() => removeLocation(loc.id)}>
-                        <Ionicons name="trash-outline" size={18} color="#f57f20" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <View style={styles.inputWrapper}>
-                      <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                      <TextInput
-                        value={loc.address}
-                        onChangeText={(val) => handleLocationChange(loc.id, "address", val)}
-                        placeholder={t("employerCompleteProfile.enterLocationAddress", "Enter building, street or venue name")}
-                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                        style={styles.textInput}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                    <View style={styles.inputWrapper}>
-                      <TextInput
-                        value={loc.cityPostcode}
-                        onChangeText={(val) => handleLocationChange(loc.id, "cityPostcode", val)}
-                        placeholder={t("employerCompleteProfile.enterCityPostcode", "City, Postcode")}
-                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                        style={[styles.textInput, { paddingLeft: 12 }]}
-                      />
-                    </View>
-                  </View>
-                </View>
-              ))}
-
-              {/* Add Another Location Button */}
-              <TouchableOpacity
-                style={styles.addLocationButton}
-                activeOpacity={0.8}
-                onPress={addLocation}
-              >
-                <Ionicons name="add" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.addLocationButtonText}>{t("addAnotherLocation", "Add Another Location")}</Text>
-              </TouchableOpacity>
-
-              {/* Info Card */}
-              <View style={styles.infoCard}>
-                <Ionicons name="information-circle-outline" size={22} color="#153e69" style={styles.infoCardIcon} />
-                <Text style={styles.infoCardText}>
-                  {t("employerCompleteProfile.infoCardText2", "Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.")}
-                </Text>
-              </View>
-
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={next}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* STEP 4: TALENT MANAGER DETAILS */}
-          {step === 4 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t("talentManagerDetails", "Talent Manager Details")}</Text>
               <Text style={styles.stepSubtitle}>
@@ -960,9 +985,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* STEP 5: ALL SET! */}
-          {/* STEP 5: ALL SET! */}
-          {step === 5 && (
+          {/* STEP 4: ALL SET! (was step 5) */}
+          {step === 4 && (
             <View style={styles.stepContainer}>
               {/* Checkmark animation mock */}
               <View style={styles.successIconWrapper}>
@@ -1034,7 +1058,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               <View style={styles.summaryCard}>
                 <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
                   <Text style={styles.summarySectionHeader}>{t("operationalLocations", "Operational Locations")}</Text>
-                  <TouchableOpacity onPress={() => setStep(2)} style={styles.editButton}>
+                  <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
                     <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
                     <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
                   </TouchableOpacity>
@@ -1063,7 +1087,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               <View style={styles.summaryCard}>
                 <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
                   <Text style={styles.summarySectionHeader}>{t("contactRepresentative", "Contact Representative")}</Text>
-                  <TouchableOpacity onPress={() => setStep(3)} style={styles.editButton}>
+                  <TouchableOpacity onPress={() => setStep(2)} style={styles.editButton}>
                     <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
                     <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
                   </TouchableOpacity>
@@ -1086,7 +1110,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 <View style={styles.summaryCard}>
                   <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
                     <Text style={styles.summarySectionHeader}>{t("managerDetails", "Manager Details")}</Text>
-                    <TouchableOpacity onPress={() => setStep(4)} style={styles.editButton}>
+                    <TouchableOpacity onPress={() => setStep(3)} style={styles.editButton}>
                       <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
                       <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
                     </TouchableOpacity>
@@ -1240,6 +1264,10 @@ const styles = StyleSheet.create({
   inputWrapperActive: {
     borderColor: PRIMARY_GREEN,
     borderWidth: 1.5,
+  },
+  inputWrapperDisabled: {
+    backgroundColor: "#f2f2f3",
+    opacity: 0.7,
   },
   textInput: {
     flex: 1,
@@ -1432,6 +1460,28 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "700",
     color: PRIMARY_GREEN,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 14,
+  },
+  toggleLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0a0504",
+  },
+  toggleSubtext: {
+    fontSize: 11,
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
   },
   locationCard: {
     backgroundColor: "#ffffff",
@@ -1817,6 +1867,3 @@ const styles = StyleSheet.create({
     color: "#0a0504",
   },
 });
-
-
-
