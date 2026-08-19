@@ -78,12 +78,12 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
-        options={{ title: t("jobDetails"), headerBackTitle: "" }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="MyJobDetails"
         component={MyJobDetailsScreen}
-        options={{ title: t("jobDetails"), headerBackTitle: "" }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ApplicantList"
@@ -312,12 +312,12 @@ export default function MainTabs() {
       <Stack.Screen
         name="JobDetails"
         component={JobDetailsScreen}
-        options={{ title: t("jobDetails") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="MyJobDetails"
         component={MyJobDetailsScreen}
-        options={{ title: t("jobDetails") }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ApplicantList"

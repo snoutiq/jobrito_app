@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Alert, Share, StyleSheet, Text, View, Linking } from "react-native";
+import { Alert, Share, StyleSheet, Text, View, Linking, TouchableOpacity, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
@@ -27,8 +29,9 @@ const getStatusBadgeColors = (statusStr) => {
   return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
 };
 
-export default function MyJobDetailsScreen({ route }) {
+export default function MyJobDetailsScreen({ navigation: navProp, route }) {
   const { t } = useTranslation();
+  const navigation = navProp || useNavigation();
   const job = route?.params?.job;
 
   const handleShare = async () => {
@@ -79,7 +82,15 @@ export default function MyJobDetailsScreen({ route }) {
   const statusColors = getStatusBadgeColors(status);
 
   return (
-    <ScreenWrapper edges={["left", "right", "bottom"]} contentStyle={styles.page}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+      </View>
+
+      <ScreenWrapper edges={["left", "right", "bottom"]} contentStyle={styles.page}>
 
       {/* ── Hero Card ── */}
       <View style={styles.heroCard}>
@@ -273,15 +284,34 @@ export default function MyJobDetailsScreen({ route }) {
           style={styles.applyButton}
         />
       </View>
-    </ScreenWrapper>
+      </ScreenWrapper>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
-    paddingTop: 16,
-    paddingBottom: 100,
-    gap: 16,
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  headerBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "ios" ? 6 : 10,
+    paddingBottom: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(10, 5, 4, 0.1)",
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0a0504",
   },
   loading: {
     color: colors.mutedText,

@@ -7,7 +7,10 @@ import {
   Text,
   View,
   Linking,
+  TouchableOpacity,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -222,10 +225,19 @@ export default function JobDetailsScreen({ route }) {
   };
 
   return (
-    <ScreenWrapper
-      edges={["left", "right", "bottom"]}
-      contentStyle={styles.page}
-    >
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+      </View>
+
+      <ScreenWrapper
+        edges={["left", "right", "bottom"]}
+        contentStyle={styles.page}
+      >
+
       <View style={styles.heroCard}>
         <View style={styles.heroTop}>
           <View style={styles.brandAvatar}>
@@ -494,15 +506,34 @@ export default function JobDetailsScreen({ route }) {
           }
         }}
       />
-    </ScreenWrapper>
+      </ScreenWrapper>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
-    paddingTop: 16,
-    paddingBottom: 100,
-    gap: 16,
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  headerBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "ios" ? 6 : 10,
+    paddingBottom: 12,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(10, 5, 4, 0.1)",
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0a0504",
   },
   loading: {
     color: colors.mutedText,
@@ -538,9 +569,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   companyTitle: {
-    color: colors.text,
+    color: "#0a0504",
     fontSize: 18,
-    fontWeight: "900",
+    fontWeight: "800",
   },
   positionTitle: {
     color: colors.text,
