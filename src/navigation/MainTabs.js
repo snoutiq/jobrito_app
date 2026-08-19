@@ -44,6 +44,7 @@ import ProjectRequestsScreen from "../screens/chef/ProjectRequestsScreen";
 import { setProfileData } from "../redux/slices/userSlice";
 import MyJobDetailsScreen from "../screens/employer/MyJobDetailsScreen";
 import NotificationDetailsScreen from "../screens/employer/NotificationDetailsScreen";
+import DeepLinkGuideScreen from "../screens/common/DeepLinkGuideScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -55,7 +56,7 @@ function HomeOnlyStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: "800" },
+        headerTitleStyle: { fontSize: 17, fontWeight: "700" },
         contentStyle: { backgroundColor: colors.background },
         headerBackButtonDisplayMode: "minimal",
         animation: "slide_from_right",
@@ -88,6 +89,11 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="ApplicantList"
         component={ApplicantListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DeepLinkGuide"
+        component={DeepLinkGuideScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -291,7 +297,7 @@ export default function MainTabs() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: "800" },
+        headerTitleStyle: { fontSize: 17, fontWeight: "700" },
         contentStyle: { backgroundColor: colors.background },
         animation: "slide_from_right",
         headerBackButtonDisplayMode: "minimal",
@@ -322,6 +328,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="ApplicantList"
         component={ApplicantListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DeepLinkGuide"
+        component={DeepLinkGuideScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

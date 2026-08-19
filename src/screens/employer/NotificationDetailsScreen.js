@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "800",
+    fontWeight: "700",
     color: "#0f172a",
   },
   scrollContent: {

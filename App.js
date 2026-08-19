@@ -11,6 +11,7 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { linkingConfig, handleNotificationResponse } from "./src/services/deepLinking";
 import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -203,13 +204,7 @@ export default function App() {
         const response = await Notifications.getLastNotificationResponseAsync();
         if (response) {
           console.log("🔔 [App opened from killed state by notification]:", JSON.stringify(response, null, 2));
-          const checkReady = setInterval(() => {
-            if (navigationRef.isReady()) {
-              clearInterval(checkReady);
-              navigationRef.navigate("EmployerNotifications");
-            }
-          }, 250);
-          setTimeout(() => clearInterval(checkReady), 10000);
+          handleNotificationResponse(response);
         }
       } catch (err) {
         console.warn("Failed to check last notification response:", err);
@@ -227,22 +222,7 @@ export default function App() {
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
       console.log("🔔 [Notification Interacted/Tapped]:", JSON.stringify(response, null, 2));
       console.log("🔔 [Interacted Notification Data]:", JSON.stringify(response.notification.request.content.data, null, 2));
-      
-      try {
-        if (navigationRef.isReady()) {
-          navigationRef.navigate("EmployerNotifications");
-        } else {
-          const checkReady = setInterval(() => {
-            if (navigationRef.isReady()) {
-              clearInterval(checkReady);
-              navigationRef.navigate("EmployerNotifications");
-            }
-          }, 250);
-          setTimeout(() => clearInterval(checkReady), 10000);
-        }
-      } catch (err) {
-        console.warn("Failed to navigate on notification tap:", err);
-      }
+      handleNotificationResponse(response);
     });
 
     return () => {
@@ -301,7 +281,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <Provider store={store}>
-          <NavigationContainer ref={navigationRef}>
+          <NavigationContainer ref={navigationRef} linking={linkingConfig}>
             <StatusBar style="dark" />
             <RootNavigator />
 

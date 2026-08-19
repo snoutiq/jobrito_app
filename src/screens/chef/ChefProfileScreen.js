@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -671,40 +672,65 @@ export default function ChefProfileScreen({ navigation }) {
 
   const handleShareProfile = async () => {
     try {
-      const cuisines =
-        profile?.cuisines?.join(", ") ||
-        profile?.cuisine_specializations?.join(", ") ||
-        "Multi Cuisine";
+      const chefId = profile?.id || user?.id || "profile";
+      const safeList = (val, fallback = "N/A") => {
+        if (Array.isArray(val))
+          return val.filter(Boolean).join(", ") || fallback;
+        if (typeof val === "string" && val.trim()) return val.trim();
+        return fallback;
+      };
+
+      const cuisines = safeList(
+        profile?.cuisines || profile?.cuisine_specializations,
+        "Multi Cuisine",
+      );
       const experience =
-        profile?.experience ||
-        profile?.years_of_experience ||
-        profile?.experienceYears ||
-        "N/A";
-      const operations =
-        profile?.operations?.join(", ") ||
-        profile?.operational_expertises?.join(", ") ||
-        "Kitchen Operations";
+        typeof profile?.experience === "string" && profile.experience.trim()
+          ? profile.experience.trim()
+          : profile?.years_of_experience || profile?.experienceYears || "N/A";
+      const operations = safeList(
+        profile?.operations || profile?.operational_expertises,
+        "Kitchen Operations",
+      );
+
+      const shareUrl = `https://jobrito.com/chef/${chefId}`;
+      const deepUrl = `jobrito://chef/${chefId}`;
 
       const shareText = `
 🍳 *CHEF PROFESSIONAL PROFILE* 🍳
 ----------------------------------
-👤 *Name:* Chef ${displayName}
-💼 *Title:* ${displayTitle}
-📍 *Location:* ${displayCity}
+👤 *Name:* Chef ${displayName || "Profile"}
+💼 *Title:* ${displayTitle || "Chef"}
+📍 *Location:* ${displayCity || "N/A"}
 ⏱️ *Experience:* ${experience}
 🍽️ *Cuisines:* ${cuisines}
 ⚙️ *Operational Expertise:* ${operations}
-🟢 *Status:* ${displayAvailability}
+🟢 *Status:* ${displayAvailability || "Available"}
 ----------------------------------
-🔗 View full profile & book consultation on Jobrito app:
-http://jobrito.com/chefs/${profile?.id || "profile"}
-`;
+🔗 View full profile on Jobrito app:
+${shareUrl}
+(App Deep Link: ${deepUrl})
+`.trim();
 
-      await Share.share({
-        message: shareText.trim(),
+      const shareOptions = Platform.select({
+        ios: {
+          message: shareText,
+          url: shareUrl,
+          title: `Chef ${displayName || "Profile"}`,
+        },
+        android: {
+          message: shareText,
+          title: `Chef ${displayName || "Profile"}`,
+        },
+        default: {
+          message: shareText,
+        },
       });
+
+      await Share.share(shareOptions);
     } catch (error) {
-      CustomAlert.show("Error", "Unable to share profile.");
+      console.warn("Share profile error:", error);
+      CustomAlert.show("Error", error?.message || "Unable to share profile.");
     }
   };
 

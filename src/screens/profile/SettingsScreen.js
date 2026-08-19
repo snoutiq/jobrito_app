@@ -351,10 +351,10 @@ export default function SettingsScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("TalentSettings")}>
+          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("DeepLinkGuide")}>
             <View style={styles.menuLeft}>
-              <Ionicons name="settings-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>{t("settingsTitle", "Settings")}</Text>
+              <Ionicons name="link-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>Notification Deep Links</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
@@ -433,8 +433,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#0a0504",
   },
   scrollContent: {

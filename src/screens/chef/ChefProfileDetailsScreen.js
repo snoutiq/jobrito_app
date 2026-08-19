@@ -12,13 +12,14 @@ import {
   Alert,
   Linking,
   Share,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
-import { bookChefAppointment, recordChefProfileView } from "../../services/chefApi";
+import { bookChefAppointment, recordChefProfileView, getChefProfileDetails } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#153e69";
@@ -26,11 +27,38 @@ const PRIMARY_GREEN = "#153e69";
 export default function ChefProfileDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const chefParam = route?.params?.chef;
+  const targetChefId = route?.params?.chefId || route?.params?.id || chefParam?.id;
+
   const { profile: loggedInProfile } = useSelector((state) => state.user);
+  const { chefs: employerChefs } = useSelector((state) => state.employer || {});
+
+  const [fetchedChef, setFetchedChef] = useState(null);
+  const [loadingChef, setLoadingChef] = useState(false);
+
+  React.useEffect(() => {
+    if (!chefParam && targetChefId) {
+      const foundInStore = (employerChefs || []).find((c) => String(c.id) === String(targetChefId));
+      if (foundInStore) {
+        setFetchedChef(foundInStore);
+      } else {
+        setLoadingChef(true);
+        getChefProfileDetails(targetChefId)
+          .then((res) => {
+            const fetched = res?.data || res?.profile || res;
+            if (fetched && fetched.id) {
+              setFetchedChef(fetched);
+            }
+          })
+          .catch((err) => console.warn("Failed to fetch chef profile:", err))
+          .finally(() => setLoadingChef(false));
+      }
+    }
+  }, [targetChefId, chefParam, employerChefs]);
+
   const isOwnProfile = route?.params?.isOwnProfile || 
-                       (loggedInProfile && String(loggedInProfile.id) === String(chefParam?.id)) || 
+                       (loggedInProfile && String(loggedInProfile.id) === String(targetChefId)) || 
                        false;
-  const chef = isOwnProfile && loggedInProfile ? loggedInProfile : chefParam;
+  const chef = isOwnProfile && loggedInProfile ? loggedInProfile : (chefParam || fetchedChef);
 
   // Booking Modal States
   const [bookingVisible, setBookingVisible] = useState(false);
@@ -39,14 +67,51 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
   const [purpose, setPurpose] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Tabs");
+    }
+  };
+
   const handleShare = async () => {
     try {
-      const id = chef?.id;
-      await Share.share({
-        message: `Check out Chef ${displayName} on Jobrito!\n\nLink: https://jobrito.com/chef/${id}`,
+      const id = chef?.id || targetChefId;
+      const shareUrl = `https://jobrito.com/chef/${id}`;
+      const deepUrl = `jobrito://chef/${id}`;
+
+      const shareMessage = `
+🍳 *CHEF PROFESSIONAL PROFILE* 🍳
+----------------------------------
+👤 *Name:* Chef ${displayName || "Profile"}
+💼 *Title:* ${displayTitle || "Chef"}
+📍 *Location:* ${displayCity || "N/A"}
+----------------------------------
+🔗 View full profile & book consultation on Jobrito app:
+${shareUrl}
+(App Deep Link: ${deepUrl})
+`.trim();
+
+      const shareOptions = Platform.select({
+        ios: {
+          message: shareMessage,
+          url: shareUrl,
+          title: `Chef ${displayName || "Profile"}`,
+        },
+        android: {
+          message: shareMessage,
+          title: `Chef ${displayName || "Profile"}`,
+        },
+        default: {
+          message: shareMessage,
+        },
       });
+
+      await Share.share(shareOptions);
     } catch (error) {
-      Alert.alert("Unable to share", "Please try again.");
+      console.warn("Share profile error:", error);
+      Alert.alert("Unable to share", error?.message || "Please try again.");
     }
   };
 
@@ -56,12 +121,21 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
     }
   }, [chef?.id, isOwnProfile]);
 
+  if (loadingChef) {
+    return (
+      <SafeAreaView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        <Text style={{ marginTop: 12, color: colors.mutedText }}>{t("profileDetails.loading", "Loading chef profile...")}</Text>
+      </SafeAreaView>
+    );
+  }
+
   if (!chef) {
     return (
       <SafeAreaView style={styles.centerContainer}>
         <Text>{t("profileDetails.notFound", "Chef profile not found.")}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ color: PRIMARY_GREEN, marginTop: 10, fontWeight: "700" }}>{t("profileDetails.goBack", "Go Back")}</Text>
+        <TouchableOpacity onPress={handleBack}>
+          <Text style={{ color: PRIMARY_GREEN, marginTop: 10, fontWeight: "700" }}>{t("profileDetails.goBack", "Go Back to Home")}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -357,7 +431,7 @@ export default function ChefProfileDetailsScreen({ navigation, route }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t("chefProfile")}</Text>
@@ -676,8 +750,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#0a0504",
   },
   menuIcon: {

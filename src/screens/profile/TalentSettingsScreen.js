@@ -128,8 +128,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#0a0504",
   },
   content: {
