@@ -37,8 +37,8 @@ const allCitiesList = Array.from(
 
 const PRIMARY_GREEN = "#153e69";
 
-// Total steps after merging old Step 3 (logo + operational locations) into Step 1 and removing Talent Manager step
-const TOTAL_STEPS = 2;
+// Total steps: Step 1 (Business Info), Step 2 (Contact Person), Step 3 (Review & Save)
+const TOTAL_STEPS = 3;
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
