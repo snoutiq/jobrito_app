@@ -269,6 +269,15 @@ export default function MyJobsScreen({ navigation, route }) {
       : job.date_posted || job.date || "";
     const isReferral = job.is_referral || job.isReferral;
     const stats = getJobStats(job);
+    const savedCount =
+      job.total_saved_count ??
+      job.saves_count ??
+      job.saved_count ??
+      job.saved_by_users_count ??
+      (Array.isArray(job.saved_by_users) ? job.saved_by_users.length : null) ??
+      (Array.isArray(job.saved_users) ? job.saved_users.length : null) ??
+      (Array.isArray(job.saved_by) ? job.saved_by.length : null) ??
+      0;
 
     return (
       <TouchableOpacity
@@ -319,6 +328,10 @@ export default function MyJobsScreen({ navigation, route }) {
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={styles.savedCountBadge}>
+              <Ionicons name="bookmark" size={11} color="#1b8755" style={{ marginRight: 3 }} />
+              <Text style={styles.savedCountBadgeText}>{savedCount} Saved</Text>
+            </View>
             {isReferral && (
               <View style={styles.referralBadge}>
                 <Text style={styles.referralBadgeText}>
@@ -371,7 +384,7 @@ export default function MyJobsScreen({ navigation, route }) {
           </View>
         ) : null}
 
-        {isActive && !isReferral && (
+        {isActive && isEmployer && !isReferral && (
           <>
             <View style={styles.divider} />
             <View style={styles.progressSection}>
@@ -740,10 +753,25 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
   },
   referralBadge: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    backgroundColor: "rgba(245, 127, 32, 0.12)",
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 12,
+  },
+  savedCountBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(27, 135, 85, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(27, 135, 85, 0.3)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  savedCountBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#1b8755",
   },
   referralBadgeText: {
     fontSize: 10,
