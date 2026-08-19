@@ -73,7 +73,7 @@ export const storeJob = async (jobData) => {
 };
 
 export const createJob = async (jobData) => {
-  const response = await apiClient.post(API_ENDPOINTS.JOBS, jobData);
+  const response = await apiClient.post(API_ENDPOINTS.JOBS_STORE, jobData);
   return response.data;
 };
 
