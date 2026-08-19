@@ -211,9 +211,7 @@ const jobSlice = createSlice({
               ? payload
               : Array.isArray(payload.jobs)
                 ? payload.jobs
-                : Array.isArray(payload.data)
-                  ? payload.data
-                  : []
+                : []
             : [];
 
         // Merge created + pending jobs; force status "pending" if backend ever omits it

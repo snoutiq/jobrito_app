@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Share, StyleSheet, Text, View, Linking, TouchableOpacity, Platform } from "react-native";
+import { Alert, Share, StyleSheet, Text, View, Linking, TouchableOpacity, Platform, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -34,6 +34,23 @@ export default function MyJobDetailsScreen({ navigation: navProp, route }) {
   const navigation = navProp || useNavigation();
   const job = route?.params?.job;
 
+  const handleBackPress = React.useCallback(() => {
+    if (navigation && navigation.canGoBack && navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Tabs");
+    }
+  }, [navigation]);
+
+  React.useEffect(() => {
+    const onBackPress = () => {
+      handleBackPress();
+      return true;
+    };
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => subscription.remove();
+  }, [handleBackPress]);
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -46,9 +63,17 @@ export default function MyJobDetailsScreen({ navigation: navProp, route }) {
 
   if (!job) {
     return (
-      <ScreenWrapper edges={["left", "right", "bottom"]}>
-        <Text style={styles.loading}>{t("jobDetails.loading", "Loading job details...")}</Text>
-      </ScreenWrapper>
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+        </View>
+        <ScreenWrapper edges={["left", "right", "bottom"]}>
+          <Text style={styles.loading}>{t("jobDetails.loading", "Loading job details...")}</Text>
+        </ScreenWrapper>
+      </SafeAreaView>
     );
   }
 
@@ -84,7 +109,7 @@ export default function MyJobDetailsScreen({ navigation: navProp, route }) {
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>

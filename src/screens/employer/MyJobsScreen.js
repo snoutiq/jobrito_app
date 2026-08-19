@@ -332,13 +332,6 @@ export default function MyJobsScreen({ navigation, route }) {
               <Ionicons name="bookmark" size={11} color="#1b8755" style={{ marginRight: 3 }} />
               <Text style={styles.savedCountBadgeText}>{savedCount} Saved</Text>
             </View>
-            {isReferral && (
-              <View style={styles.referralBadge}>
-                <Text style={styles.referralBadgeText}>
-                  {t("referral", "Referral")}
-                </Text>
-              </View>
-            )}
             <View
               style={[
                 styles.statusBadge,
