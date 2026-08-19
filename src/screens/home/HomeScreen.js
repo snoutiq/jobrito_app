@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -138,6 +138,8 @@ export default function HomeScreen({ navigation }) {
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+  const scrollViewRef = useRef(null);
+  const jobPositions = useRef({});
 
   // Profile Wizard States
   const [hasModalBeenDismissedThisSession, setHasModalBeenDismissedThisSession] = useState(false);
@@ -633,11 +635,17 @@ export default function HomeScreen({ navigation }) {
                     styles.filterPill,
                     isSelected && styles.filterPillSelected,
                   ]}
-                  onPress={() =>
+                  onPress={() => {
                     setHighlightedJobId((prev) =>
                       prev === job.id ? null : job.id,
-                    )
-                  }
+                    );
+                    if (scrollViewRef.current && jobPositions.current[job.id] !== undefined) {
+                      scrollViewRef.current.scrollTo({
+                        y: jobPositions.current[job.id],
+                        animated: true,
+                      });
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text
@@ -656,6 +664,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* JobList feed */}
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.feedScroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -714,7 +723,10 @@ export default function HomeScreen({ navigation }) {
                 isHighlighted && styles.highlightedCard,
               ]}
             >
-              {/* Pinned label indicator */}
+              <View onLayout={(e) => {
+                jobPositions.current[job.id] = e.nativeEvent.layout.y;
+              }}>
+                {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
                   <Ionicons
@@ -871,6 +883,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
               ) : null}
               {/* --- END OF UPDATED LABEL LOGIC --- */}
+              </View>
             </View>
           );
         })}
@@ -1375,30 +1388,32 @@ export default function HomeScreen({ navigation }) {
               />
             </View>
 
-            <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled">
-              {((categoryJobTitles[selectedCategory] || []).filter((item) =>
-                item.toLowerCase().includes(jobTitleSearch.toLowerCase())
-              )).map((item, idx) => (
-                <TouchableOpacity
-                  key={`${item}-${idx}`}
-                  style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
-                  onPress={() => {
-                    setPreferredRole(item);
-                    setJobTitleModalVisible(false);
-                  }}
-                >
-                  <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
-                    {item}
-                  </Text>
-                  {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
-                </TouchableOpacity>
-              ))}
-              {((categoryJobTitles[selectedCategory] || []).filter((item) =>
-                item.toLowerCase().includes(jobTitleSearch.toLowerCase())
-              )).length === 0 && (
-                <Text style={styles.noResultsText}>{t("noMatchingJobTitles", "No matching job titles found.")}</Text>
-              )}
-            </ScrollView>
+            <View style={{ maxHeight: 220, flexShrink: 1 }}>
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 10 }}>
+                {((categoryJobTitles[selectedCategory] || []).filter((item) =>
+                  item.toLowerCase().includes(jobTitleSearch.toLowerCase())
+                )).map((item, idx) => (
+                  <TouchableOpacity
+                    key={`${item}-${idx}`}
+                    style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
+                    onPress={() => {
+                      setPreferredRole(item);
+                      setJobTitleModalVisible(false);
+                    }}
+                  >
+                    <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
+                      {item}
+                    </Text>
+                    {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
+                  </TouchableOpacity>
+                ))}
+                {((categoryJobTitles[selectedCategory] || []).filter((item) =>
+                  item.toLowerCase().includes(jobTitleSearch.toLowerCase())
+                )).length === 0 && (
+                  <Text style={styles.noResultsText}>{t("noMatchingJobTitles", "No matching job titles found.")}</Text>
+                )}
+              </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>

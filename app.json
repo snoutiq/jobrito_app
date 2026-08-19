@@ -19,13 +19,17 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jobrito.app",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
       },
-      "icon": "./src/assets/Jobrito full logo.png"
+      "icon": "./src/assets/Jobrito full logo.png",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "package": "com.jobrito.app",
@@ -33,7 +37,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/Jobrito full logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "runtimeVersion": "1.0.0"
     },
     "web": {},
     "extra": {
@@ -55,6 +60,9 @@
       ],
       "expo-secure-store",
       "expo-video"
-    ]
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/23b73f60-8028-44a1-b6e6-9699b62c2190"
+    }
   }
 }

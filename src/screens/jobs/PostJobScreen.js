@@ -36,9 +36,18 @@ export default function PostJobScreen({ navigation, route }) {
   );
 
   // When on PostJobScreen, the user is assumed to be an employer.
-  // Always navigate to EmployerHome.
   const goToDashboard = () => {
-    navigation.navigate("EmployerHome");
+    const rootHome = activeRole === "employer" ? "EmployerHome" : "Tabs";
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: rootHome },
+        {
+          name: "MyJobs",
+          params: { activeTab: "pending" },
+        },
+      ],
+    });
   };
 
   const savedBusinessName = profile?.business_name || profile?.businessName || profile?.company || "";
@@ -170,10 +179,6 @@ export default function PostJobScreen({ navigation, route }) {
     }
     if (!location.trim()) {
       Alert.alert(t("error"), t("postJob.locationRequired", "Please enter a Job Location."));
-      return;
-    }
-    if (!salaryMin.trim()) {
-      Alert.alert(t("error"), t("postJob.salaryRequired", "Please enter a Minimum Salary."));
       return;
     }
     if (!openPositions.trim() || isNaN(openPositions)) {

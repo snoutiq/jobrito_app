@@ -467,7 +467,13 @@ export default function MyJobsScreen({ navigation, route }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate(isEmployer ? "EmployerHome" : "Tabs");
+              }
+            }}
             style={styles.backBtn}
           >
             <Ionicons name="arrow-back" size={24} color="#0a0504" />

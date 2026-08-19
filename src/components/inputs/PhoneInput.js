@@ -27,7 +27,7 @@ export default function PhoneInput({
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder="Enter mobile number"
+        placeholder="Enter WhatsApp Mobile Number"
         placeholderTextColor="rgba(10, 5, 4, 0.4)"
         keyboardType="phone-pad"
         textContentType="telephoneNumber"

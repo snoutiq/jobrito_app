@@ -591,7 +591,7 @@
     "businessType": "نوع العمل"
   },
   "industrySegment": "قطاع الصناعة",
-  "businessLocation": "موقع العمل",
+  "businessLocation": "الموقع الرئيسي للعمل",
   "fetchingLocation": "جاري جلب الموقع...",
   "useCurrentLocation": "استخدام الموقع الحالي",
   "editDetailsLaterMsg": "يمكنك تعديل هذه التفاصيل لاحقًا من لوحة التحكم الخاصة بك.",

@@ -28,6 +28,7 @@ export default function EmployerHomeScreen({ navigation }) {
 
   const [toastMessage, setToastMessage] = useState("");
   const [checkingLimit, setCheckingLimit] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const checkPostLimitAndNavigate = async (targetScreen) => {
     if (checkingLimit) return;
@@ -69,8 +70,17 @@ export default function EmployerHomeScreen({ navigation }) {
     }, [dispatch])
   );
 
-  const onRefresh = useCallback(() => {
-    dispatch(fetchEmployerDashboard());
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const res = dispatch(fetchEmployerDashboard());
+      if (res.unwrap) await res.unwrap();
+      else if (res.then) await res;
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setRefreshing(false);
+    }
   }, [dispatch]);
 
   const contactName =
@@ -141,14 +151,14 @@ export default function EmployerHomeScreen({ navigation }) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />}
       >
         <View
           style={styles.mainStatsCard}
         >
           <View style={styles.statsCardHeader}>
             <View>
-              <Text style={styles.statsCardLabel}>{t("allTalentApplicantsReceived")}</Text>
+              <Text style={styles.statsCardLabel}>{t("allTalentApplied", "All Talent Applied")}</Text>
               <Text style={styles.statsCardValue}>{totalApplicants}</Text>
             </View>
             <View style={[styles.statsIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
@@ -246,7 +256,7 @@ export default function EmployerHomeScreen({ navigation }) {
           <TouchableOpacity
             style={styles.actionItem}
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("ChefConnectFilters")}
+            onPress={() => navigation.navigate("ChefConnectDiscovery")}
           >
             <View style={[styles.actionIconBox, { backgroundColor: "#FFF7ED" }]}>
               <Ionicons name="people-outline" size={22} color="#F97316" />

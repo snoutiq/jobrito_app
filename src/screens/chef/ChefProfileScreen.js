@@ -534,27 +534,6 @@ export default function ChefProfileScreen({ navigation }) {
   const completionPercent = getProfileCompletionPercentage();
   const missedFields = getMissedOutFields();
 
-  useEffect(() => {
-    if (profile) {
-      const pct = getProfileCompletionPercentage();
-      const missed = getMissedOutFields();
-      if (pct < 100 && missed.length > 0) {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: t("completeProfileAlertTitle", "Complete Your Profile!"),
-            body:
-              t("completeProfileAlertBody", "Increase employer trust! Add: ") +
-              missed.slice(0, 3).join(", "),
-            sound: true,
-          },
-          trigger: null,
-        }).catch((err) =>
-          console.log("Failed to send profile completion notification:", err),
-        );
-      }
-    }
-  }, [profile]);
-
   // Refresh dashboard data on focus
   useFocusEffect(
     React.useCallback(() => {

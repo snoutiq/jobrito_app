@@ -591,7 +591,7 @@
     "businessType": "व्यवसाय प्रकार"
   },
   "industrySegment": "उद्योग विभाग",
-  "businessLocation": "व्यवसायाचे ठिकाण",
+  "businessLocation": "प्राथमिक व्यवसायाचे ठिकाण",
   "fetchingLocation": "ठिकाण मिळवत आहे...",
   "useCurrentLocation": "सध्याचे ठिकाण वापरा",
   "editDetailsLaterMsg": "तुम्ही हे तपशील नंतर तुमच्या डॅशबोर्डवर संपादित करू शकता.",

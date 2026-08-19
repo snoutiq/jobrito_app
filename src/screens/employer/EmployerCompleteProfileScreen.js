@@ -27,11 +27,18 @@ import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
 import * as Location from "expo-location";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
+import indianStatesCities from "../../data/indianStatesCities.json";
+
+const stateOptions = Object.keys(indianStatesCities);
+const allCitiesList = Array.from(
+  new Set(Object.values(indianStatesCities).flat())
+).sort();
 
 const PRIMARY_GREEN = "#153e69";
 
 // Total steps after merging old Step 3 (logo + operational locations) into Step 1
-const TOTAL_STEPS = 4;
+// Total steps after merging old Step 3 (logo + operational locations) into Step 1 and removing Talent Manager step
+const TOTAL_STEPS = 3;
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -55,32 +62,89 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     return `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`;
   };
 
-  // Splits "address, city postcode" into { address, cityPostcode } — used both for
+  // Splits "address, city, state" into { address, cityPostcode, state } — used both for
   // initial hydration and for keeping the first location in sync with Business Location.
   const splitLocationString = (locStr) => {
-    if (!locStr) return { address: "", cityPostcode: "" };
-    const lastCommaIndex = locStr.lastIndexOf(",");
-    if (lastCommaIndex !== -1) {
+    if (!locStr) return { address: "", cityPostcode: "", state: "" };
+    const parts = String(locStr).split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 3) {
       return {
-        address: locStr.substring(0, lastCommaIndex).trim(),
-        cityPostcode: locStr.substring(lastCommaIndex + 1).trim(),
+        address: parts.slice(0, parts.length - 2).join(", "),
+        cityPostcode: parts[parts.length - 2],
+        state: parts[parts.length - 1],
+      };
+    } else if (parts.length === 2) {
+      // 2 parts means: "City, State" (e.g., "Karnal, Haryana" -> City: "Karnal", State: "Haryana")
+      return {
+        address: "",
+        cityPostcode: parts[0],
+        state: parts[1],
       };
     }
-    return { address: locStr, cityPostcode: "" };
+    return { address: "", cityPostcode: locStr, state: "" };
   };
 
   const getInitialLocations = () => {
-    const profileLocations = profile?.operational_locations || profile?.locations;
+    let profileLocations =
+      profile?.employer_profile?.operational_locations ||
+      profile?.employer_profile?.locations ||
+      profile?.operational_locations ||
+      profile?.locations;
+
+    if (typeof profileLocations === "string") {
+      try {
+        profileLocations = JSON.parse(profileLocations);
+      } catch (e) {
+        profileLocations = [profileLocations];
+      }
+    }
+
     if (Array.isArray(profileLocations) && profileLocations.length > 0) {
       return profileLocations.map((locStr, idx) => {
         if (typeof locStr === "string") {
           const split = splitLocationString(locStr);
-          return { id: idx + 1, address: split.address, cityPostcode: split.cityPostcode };
+          return { id: idx + 1, address: split.address, cityPostcode: split.cityPostcode, state: split.state };
         }
-        return { id: idx + 1, address: locStr?.address || "", cityPostcode: locStr?.cityPostcode || "" };
+        return {
+          id: idx + 1,
+          address: locStr?.address || locStr?.building || "",
+          cityPostcode: locStr?.cityPostcode || locStr?.city || "",
+          state: locStr?.state || "",
+        };
       });
     }
-    return [{ id: 1, address: "", cityPostcode: "" }];
+    return [{ id: 1, address: "", cityPostcode: "", state: "" }];
+  };
+
+  const getInitialSameAsBusinessLocation = () => {
+    let profileLocations =
+      profile?.employer_profile?.operational_locations ||
+      profile?.employer_profile?.locations ||
+      profile?.operational_locations ||
+      profile?.locations;
+
+    if (typeof profileLocations === "string") {
+      try {
+        profileLocations = JSON.parse(profileLocations);
+      } catch (e) {
+        profileLocations = [profileLocations];
+      }
+    }
+
+    if (Array.isArray(profileLocations) && profileLocations.length > 0) {
+      const firstLoc = profileLocations[0];
+      if (typeof firstLoc === "string" && firstLoc.trim()) {
+        const split = splitLocationString(firstLoc);
+        if (split.state || split.cityPostcode) {
+          return false;
+        }
+      } else if (typeof firstLoc === "object" && firstLoc) {
+        if (firstLoc.state || firstLoc.cityPostcode || firstLoc.city) {
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
   // Form State
@@ -105,7 +169,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const [locations, setLocations] = useState(getInitialLocations());
 
   // Same as Business Location toggle (keeps location #1 auto-filled from businessLocation)
-  const [sameAsBusinessLocation, setSameAsBusinessLocation] = useState(true);
+  const [sameAsBusinessLocation, setSameAsBusinessLocation] = useState(getInitialSameAsBusinessLocation());
 
   // Talent Manager Details state
   const [managerName, setManagerName] = useState(profile?.nominee_name || profile?.managerName || "");
@@ -117,6 +181,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const [showSegmentDropdown, setShowSegmentDropdown] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showRelationDropdown, setShowRelationDropdown] = useState(false);
+  const [openStateModalId, setOpenStateModalId] = useState(null);
+  const [openCityModalId, setOpenCityModalId] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -137,17 +203,24 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   // Keep location #1 synced with Business Location whenever the toggle is ON
   useEffect(() => {
     if (!sameAsBusinessLocation) return;
-    const split = splitLocationString(businessLocation);
     setLocations((prev) => {
       if (prev.length === 0) return prev;
       const updated = [...prev];
-      updated[0] = { ...updated[0], address: split.address, cityPostcode: split.cityPostcode };
+      updated[0] = { ...updated[0], address: businessLocation, cityPostcode: "", state: "" };
       return updated;
     });
   }, [businessLocation, sameAsBusinessLocation]);
 
   const handleToggleSameLocation = (val) => {
     setSameAsBusinessLocation(val);
+    if (!val) {
+      setLocations((prev) => {
+        if (prev.length === 0) return prev;
+        const updated = [...prev];
+        updated[0] = { ...updated[0], address: "", cityPostcode: "", state: "" };
+        return updated;
+      });
+    }
   };
 
   const next = () => {
@@ -167,9 +240,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
       // Only validate locations manually when NOT auto-filled from business location
       if (!sameAsBusinessLocation) {
-        const emptyLocation = locations.some(loc => !loc.address.trim() || !loc.cityPostcode.trim());
+        const emptyLocation = locations.some(loc => !loc.cityPostcode.trim());
         if (emptyLocation) {
-          Alert.alert(t("error"), t("employerOnboarding.locationsRequired"));
+          Alert.alert(t("error"), t("employerOnboarding.locationsRequired", "Please select State and City for operational locations."));
           return;
         }
       }
@@ -188,31 +261,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         Alert.alert(t("error"), t("employerOnboarding.mobileNumberInvalid"));
         return;
       }
-      if (!contactEmail.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
-        return;
-      }
     }
 
-    // STEP 3: Talent Manager (was step 4)
-    if (step === 3) {
-      if (!managerName.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.managerNameRequired"));
-        return;
-      }
-      if (!managerRelationship) {
-        Alert.alert(t("error"), t("employerOnboarding.managerRelationshipRequired"));
-        return;
-      }
-      if (!managerPhone.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.managerPhoneRequired"));
-        return;
-      }
-      if (managerPhone.trim().length !== 10) {
-        Alert.alert(t("error"), t("employerOnboarding.mobileNumberInvalid"));
-        return;
-      }
-    }
 
     if (step < TOTAL_STEPS) {
       setStep(step + 1);
@@ -277,7 +327,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const addLocation = () => {
     setLocations([
       ...locations,
-      { id: Date.now(), address: "", cityPostcode: "" }
+      { id: Date.now(), address: "", cityPostcode: "", state: "" }
     ]);
   };
 
@@ -422,6 +472,13 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     if (isSaving) return;
     setIsSaving(true);
     try {
+      const formattedOperationalLocations = locations.map((l, idx) => {
+        if (idx === 0 && sameAsBusinessLocation) {
+          return businessLocation;
+        }
+        return [l.address, l.cityPostcode, l.state].filter(Boolean).join(", ");
+      }).filter(Boolean);
+
       const payload = {
         business_name: businessName,
         industry_segment: industrySegment,
@@ -430,7 +487,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         business_mobile: contactPhone,
         business_email: contactEmail,
         preferred_language: preferredLanguage,
-        operational_locations: locations.map(l => `${l.address}, ${l.cityPostcode}`),
+        operational_locations: formattedOperationalLocations,
         nominee_name: managerName,
         nominee_relationship: managerRelationship,
         nominee_mobile: managerPhone,
@@ -509,7 +566,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       if (isEditMode) {
         navigation.goBack();
       } else {
-        navigation.navigate("Post Job", { isOnboarding: true });
+        navigation.reset({ index: 0, routes: [{ name: "EmployerHome" }] });
       }
     } catch (error) {
       console.error("Failed to save employer onboarding:", error);
@@ -556,6 +613,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           {/* STEP 1: BUSINESS INFORMATION (Logo + Name + Segment + Primary Location + Operational Locations) */}
           {step === 1 && (
@@ -589,7 +647,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Business Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.businessName", "Business Name")} <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("postJob.primaryBusinessName", "Primary Business / Agency Name")} <Text style={styles.required}>*</Text></Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "businessName" && styles.inputWrapperActive
@@ -700,32 +758,82 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                       )}
                     </View>
 
-                    <View style={styles.inputGroup}>
-                      <View style={[styles.inputWrapper, isAutoFilled && styles.inputWrapperDisabled]}>
-                        <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                        <TextInput
-                          value={loc.address}
-                          onChangeText={(val) => handleLocationChange(loc.id, "address", val)}
-                          placeholder={t("employerCompleteProfile.enterLocationAddress", "Enter building, street or venue name")}
-                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                          style={styles.textInput}
-                          editable={!isAutoFilled}
-                        />
+                    {/* When Toggle is ON for Location #1 */}
+                    {isAutoFilled ? (
+                      <View style={styles.inputGroup}>
+                        <View style={[styles.inputWrapper, styles.inputWrapperDisabled]}>
+                          <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                          <TextInput
+                            value={businessLocation}
+                            placeholder={t("employerCompleteProfile.autofilledLocation", "Same as Primary Business Location")}
+                            placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                            style={styles.textInput}
+                            editable={false}
+                          />
+                        </View>
                       </View>
-                    </View>
+                    ) : (
+                      <>
+                        {/* State Dropdown (Searchable) */}
+                        <View style={styles.inputGroup}>
+                          <ModalPickerTrigger
+                            onPress={() => setOpenStateModalId(loc.id)}
+                            label={loc.state}
+                            placeholder={t("selectState", "Select State")}
+                            isOpen={openStateModalId === loc.id}
+                            leftIcon="map-outline"
+                            style={styles.inputWrapper}
+                          />
+                          <ModalPicker
+                            visible={openStateModalId === loc.id}
+                            onClose={() => setOpenStateModalId(null)}
+                            title={t("selectState", "Select State")}
+                            options={stateOptions}
+                            selectedValue={loc.state}
+                            onSelect={(val) => {
+                              handleLocationChange(loc.id, "state", val);
+                              if (loc.cityPostcode && indianStatesCities[val] && !indianStatesCities[val].includes(loc.cityPostcode)) {
+                                handleLocationChange(loc.id, "cityPostcode", "");
+                              }
+                            }}
+                            searchable={true}
+                            searchPlaceholder={t("searchState", "Search State...")}
+                          />
+                        </View>
 
-                    <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                      <View style={[styles.inputWrapper, isAutoFilled && styles.inputWrapperDisabled]}>
-                        <TextInput
-                          value={loc.cityPostcode}
-                          onChangeText={(val) => handleLocationChange(loc.id, "cityPostcode", val)}
-                          placeholder={t("employerCompleteProfile.enterCityPostcode", "City, Postcode")}
-                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                          style={[styles.textInput, { paddingLeft: 12 }]}
-                          editable={!isAutoFilled}
-                        />
-                      </View>
-                    </View>
+                        {/* City Dropdown (Searchable) */}
+                        <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                          <ModalPickerTrigger
+                            onPress={() => setOpenCityModalId(loc.id)}
+                            label={loc.cityPostcode}
+                            placeholder={t("selectCity", "Select City")}
+                            isOpen={openCityModalId === loc.id}
+                            leftIcon="business-outline"
+                            style={styles.inputWrapper}
+                          />
+                          <ModalPicker
+                            visible={openCityModalId === loc.id}
+                            onClose={() => setOpenCityModalId(null)}
+                            title={t("selectCity", "Select City")}
+                            options={loc.state ? (indianStatesCities[loc.state] || []) : allCitiesList}
+                            selectedValue={loc.cityPostcode}
+                            onSelect={(val) => {
+                              handleLocationChange(loc.id, "cityPostcode", val);
+                              if (!loc.state) {
+                                const foundState = Object.keys(indianStatesCities).find((st) =>
+                                  indianStatesCities[st].includes(val)
+                                );
+                                if (foundState) {
+                                  handleLocationChange(loc.id, "state", foundState);
+                                }
+                              }
+                            }}
+                            searchable={true}
+                            searchPlaceholder={t("searchCity", "Search City...")}
+                          />
+                        </View>
+                      </>
+                    )}
                   </View>
                 );
               })}
@@ -877,7 +985,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               <TouchableOpacity
                 style={[
                   styles.continueButton,
-                  (!contactName.trim() || !contactPhone.trim() || !contactEmail.trim() || !privacyChecked) && styles.continueButtonDisabled
+                  (!contactName.trim() || !contactPhone.trim() || !privacyChecked) && styles.continueButtonDisabled
                 ]}
                 onPress={next}
                 activeOpacity={0.8}
@@ -888,105 +996,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* STEP 3: TALENT MANAGER DETAILS (was step 4) */}
+          {/* STEP 3: ALL SET! (was step 5) */}
           {step === 3 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t("talentManagerDetails", "Talent Manager Details")}</Text>
-              <Text style={styles.stepSubtitle}>
-                {t("employerCompleteProfile.step4Subtitle", "Please provide the contact details for your business manager or secondary contact person.")}
-              </Text>
-
-              {/* Full Name */}
-              <View style={styles.inputGroup}>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "managerName" && styles.inputWrapperActive
-                ]}>
-                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={managerName}
-                    onChangeText={setManagerName}
-                    placeholder={t("enterFullName", "Enter full name")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={() => setActiveInput("managerName")}
-                    onBlur={() => setActiveInput(null)}
-                  />
-                </View>
-                <Text style={styles.inputSubtext}>{t("legalNameAsPerIdentity", "Legal name as per identity documents.")}</Text>
-              </View>
-
-              {/* Select Relationship Dropdown */}
-              <View style={styles.inputGroup}>
-                <ModalPickerTrigger
-                  onPress={() => setShowRelationDropdown(true)}
-                  label={managerRelationship}
-                  placeholder={t("employerCompleteProfile.selectRelationship", "Select Relationship")}
-                  isOpen={showRelationDropdown}
-                  leftIcon="people-outline"
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showRelationDropdown}
-                  onClose={() => setShowRelationDropdown(false)}
-                  title={t("employerCompleteProfile.relationship", "Relationship")}
-                  options={relationships}
-                  selectedValue={managerRelationship}
-                  onSelect={(val) => setManagerRelationship(val)}
-                />
-              </View>
-
-              {/* Mobile Number */}
-              <View style={styles.inputGroup}>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "managerPhone" && styles.inputWrapperActive
-                ]}>
-                  <Text style={styles.countryCode}>+91</Text>
-                  <TextInput
-                    value={managerPhone}
-                    onChangeText={setManagerPhone}
-                    placeholder={t("employerCompleteProfile.enterMobileNumber", "Enter mobile number")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    style={[styles.textInput, { paddingLeft: 10 }]}
-                    onFocus={() => setActiveInput("managerPhone")}
-                    onBlur={() => setActiveInput(null)}
-                  />
-                </View>
-                <Text style={styles.inputSubtext}>{t("employerCompleteProfile.verificationMobileNote", "Used for emergency and business verification.")}</Text>
-              </View>
-
-              {/* Secure Verification Box */}
-              <View style={styles.secureCard}>
-                <Ionicons name="shield-checkmark" size={28} color={PRIMARY_GREEN} style={styles.secureCardIcon} />
-                <View style={styles.secureCardContent}>
-                  <Text style={styles.secureCardTitle}>{t("employerCompleteProfile.secureVerificationTitle", "Secure Verification")}</Text>
-                  <Text style={styles.secureCardText}>
-                    {t("employerCompleteProfile.secureVerificationText", "We prioritize data privacy. Manager details are only used for legal compliance and essential platform updates.")}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={[
-                  styles.continueButton,
-                  (!managerName.trim() || !managerRelationship || !managerPhone.trim()) && styles.continueButtonDisabled
-                ]}
-                onPress={next}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.footerNoteText}>{t("employerCompleteProfile.allFieldsMandatory", "All fields are mandatory to proceed")}</Text>
-            </View>
-          )}
-
-          {/* STEP 4: ALL SET! (was step 5) */}
-          {step === 4 && (
             <View style={styles.stepContainer}>
               {/* Checkmark animation mock */}
               <View style={styles.successIconWrapper}>
@@ -1066,17 +1077,22 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
                 {locations.length > 0 ? (
                   <View style={styles.operationalList}>
-                    {locations.map((loc, idx) => (
-                      <View key={loc.id} style={styles.operationalItem}>
-                        <View style={styles.operationalBadge}>
-                          <Text style={styles.operationalBadgeText}>{idx + 1}</Text>
+                    {locations.map((loc, idx) => {
+                      const isAutoFilled = idx === 0 && sameAsBusinessLocation;
+                      const displayAddress = isAutoFilled ? businessLocation : loc.address;
+                      const displayCityState = isAutoFilled ? "" : [loc.cityPostcode, loc.state].filter(Boolean).join(", ");
+                      return (
+                        <View key={loc.id} style={styles.operationalItem}>
+                          <View style={styles.operationalBadge}>
+                            <Text style={styles.operationalBadgeText}>{idx + 1}</Text>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.operationalAddressText} numberOfLines={1}>{displayAddress || "Location #" + (idx + 1)}</Text>
+                            {displayCityState ? <Text style={styles.operationalCityText}>{displayCityState}</Text> : null}
+                          </View>
                         </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.operationalAddressText} numberOfLines={1}>{loc.address}</Text>
-                          <Text style={styles.operationalCityText}>{loc.cityPostcode}</Text>
-                        </View>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
                 ) : (
                   <Text style={styles.emptyText}>No branches added</Text>
@@ -1105,30 +1121,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Card 4: Nominee Manager Details */}
-              {managerName ? (
-                <View style={styles.summaryCard}>
-                  <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
-                    <Text style={styles.summarySectionHeader}>{t("managerDetails", "Manager Details")}</Text>
-                    <TouchableOpacity onPress={() => setStep(3)} style={styles.editButton}>
-                      <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
-                      <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
-                    </TouchableOpacity>
-                  </View>
 
-                  <View style={styles.twoColumnRow}>
-                    <View style={{ flex: 1, marginRight: 8 }}>
-                      <Text style={styles.columnLabelText}>Manager Name</Text>
-                      <Text style={styles.columnValueText}>{managerName}</Text>
-                      <Text style={styles.columnSubtitleText}>{managerRelationship || "Supervisor"}</Text>
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={styles.columnLabelText}>Mobile Number</Text>
-                      <Text style={styles.columnValueText}>{managerPhone || "N/A"}</Text>
-                    </View>
-                  </View>
-                </View>
-              ) : null}
 
               {/* Start Posting Jobs Button */}
               <TouchableOpacity
@@ -1140,7 +1133,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 <Text style={styles.continueButtonText}>
                   {isSaving 
                     ? t("saving", "Saving...") 
-                    : (isEditMode ? t("saveProfile", "Save Profile") : t("postJob.postNew", "Start Posting Jobs"))}
+                    : (isEditMode ? t("saveProfile", "Save Profile") : t("submit", "Submit"))}
                 </Text>
                 {!isSaving && <Ionicons name="arrow-forward" size={18} color="#fff" />}
               </TouchableOpacity>

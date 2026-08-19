@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Modal,
   Clipboard,
   Linking,
+  findNodeHandle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -99,6 +100,28 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const profile = useSelector((state) => state.user.profile);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const scrollViewRef = useRef(null);
+
+  const handleInputFocus = (e, key) => {
+    if (key) setActiveInput(key);
+    const targetNode = e?.nativeEvent?.target;
+    if (targetNode && scrollViewRef.current) {
+      setTimeout(() => {
+        try {
+          const scrollResponder = scrollViewRef.current?.getScrollResponder?.();
+          if (scrollResponder && scrollResponder.scrollResponderScrollNativeHandleToKeyboard) {
+            scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
+              findNodeHandle(targetNode),
+              120,
+              true
+            );
+          }
+        } catch (err) {
+          // ignore
+        }
+      }, 100);
+    }
+  };
 
   // --- Step 1 State ---
   const [photoUploaded, setPhotoUploaded] = useState(false);
@@ -953,7 +976,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -985,9 +1008,11 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         )}
 
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           {/* STEP 1: PERSONAL PROFILE */}
           {step === 1 && (
@@ -1037,7 +1062,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     placeholder={t("enterFullName", "Enter your full name")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("fullName")}
+                    onFocus={(e) => handleInputFocus(e, "fullName")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -1054,7 +1079,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     placeholder="e.g. Executive Chef, Sous Chef"
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("professionalTitle")}
+                    onFocus={(e) => handleInputFocus(e, "professionalTitle")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -1106,7 +1131,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       placeholder="Enter country name"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveInput("customCountry")}
+                      onFocus={(e) => handleInputFocus(e, "customCountry")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
@@ -1125,7 +1150,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       placeholder="Enter city name"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveInput("city")}
+                      onFocus={(e) => handleInputFocus(e, "city")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
@@ -1169,7 +1194,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           placeholder="Type your city name"
                           placeholderTextColor="rgba(10, 5, 4, 0.4)"
                           style={styles.textInput}
-                          onFocus={() => setActiveInput("customCity")}
+                          onFocus={(e) => handleInputFocus(e, "customCity")}
                           onBlur={() => setActiveInput(null)}
                         />
                       </View>
@@ -1297,48 +1322,22 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               </Text>
               
               <View style={styles.inputGroup}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    setShowCuisineDropdown(!showCuisineDropdown);
-                    setShowOperationsDropdown(false);
-                  }}
-                  style={[styles.inputWrapper, showCuisineDropdown && styles.inputWrapperActive]}
-                >
-                  <Text style={[styles.textInput, selectedCuisines.length === 0 && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
-                    {selectedCuisines.length > 0 
-                      ? selectedCuisines.map(c => c === "Other" && customCuisine ? `${c} (${customCuisine})` : c).join(", ")
-                      : "Select Cuisines"}
-                  </Text>
-                  <Ionicons name={showCuisineDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
-                </TouchableOpacity>
-
-                {showCuisineDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
-                      {cuisinesList.map((cuisine) => {
-                        const isSelected = selectedCuisines.includes(cuisine);
-                        return (
-                          <TouchableOpacity
-                            key={cuisine}
-                            style={styles.dropdownItemRow}
-                            onPress={() => toggleCuisine(cuisine)}
-                          >
-                            <Ionicons 
-                              name={isSelected ? "checkbox" : "square-outline"} 
-                              size={18} 
-                              color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"} 
-                              style={{ marginRight: 10 }}
-                            />
-                            <Text style={[styles.dropdownItemText, isSelected && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                              {cuisine}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowCuisineDropdown(true)}
+                  label={selectedCuisines.length > 0 ? selectedCuisines.map(c => c === "Other" && customCuisine ? `${c} (${customCuisine})` : c).join(", ") : ""}
+                  placeholder="Select Cuisines"
+                  isOpen={showCuisineDropdown}
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showCuisineDropdown}
+                  onClose={() => setShowCuisineDropdown(false)}
+                  title="Cuisine Specialization"
+                  options={cuisinesList}
+                  selectedValue={selectedCuisines}
+                  onSelect={toggleCuisine}
+                  multiSelect={true}
+                />
               </View>
 
               {/* Custom Cuisine Input if Other is selected */}
@@ -1353,7 +1352,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       placeholder="e.g. French, Japanese"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveInput("customCuisine")}
+                      onFocus={(e) => handleInputFocus(e, "customCuisine")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
@@ -1370,48 +1369,22 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
               </Text>
               
               <View style={styles.inputGroup}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    setShowOperationsDropdown(!showOperationsDropdown);
-                    setShowCuisineDropdown(false);
-                  }}
-                  style={[styles.inputWrapper, showOperationsDropdown && styles.inputWrapperActive]}
-                >
-                  <Text style={[styles.textInput, selectedOperations.length === 0 && { color: "rgba(10, 5, 4, 0.4)" }]} numberOfLines={1}>
-                    {selectedOperations.length > 0 
-                      ? selectedOperations.map(o => o === "Other" && customOperation ? `${o} (${customOperation})` : o).join(", ")
-                      : "Select Operational Expertise"}
-                  </Text>
-                  <Ionicons name={showOperationsDropdown ? "chevron-up" : "chevron-down"} size={20} color="rgba(10, 5, 4, 0.6)" />
-                </TouchableOpacity>
-
-                {showOperationsDropdown && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
-                      {operationsList.map((op) => {
-                        const isSelected = selectedOperations.includes(op);
-                        return (
-                          <TouchableOpacity
-                            key={op}
-                            style={styles.dropdownItemRow}
-                            onPress={() => toggleOperation(op)}
-                          >
-                            <Ionicons 
-                              name={isSelected ? "checkbox" : "square-outline"} 
-                              size={18} 
-                              color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"} 
-                              style={{ marginRight: 10 }}
-                            />
-                            <Text style={[styles.dropdownItemText, isSelected && { color: PRIMARY_GREEN, fontWeight: "700" }]}>
-                              {op}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-                  </View>
-                )}
+                <ModalPickerTrigger
+                  onPress={() => setShowOperationsDropdown(true)}
+                  label={selectedOperations.length > 0 ? selectedOperations.map(o => o === "Other" && customOperation ? `${o} (${customOperation})` : o).join(", ") : ""}
+                  placeholder="Select Operational Expertise"
+                  isOpen={showOperationsDropdown}
+                  style={styles.inputWrapper}
+                />
+                <ModalPicker
+                  visible={showOperationsDropdown}
+                  onClose={() => setShowOperationsDropdown(false)}
+                  title="Operational Expertise"
+                  options={operationsList}
+                  selectedValue={selectedOperations}
+                  onSelect={toggleOperation}
+                  multiSelect={true}
+                />
               </View>
 
               {/* Custom Operation Input if Other is selected */}
@@ -1426,7 +1399,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       placeholder="e.g. Menu Development, Staffing"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveInput("customOperation")}
+                      onFocus={(e) => handleInputFocus(e, "customOperation")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
@@ -1594,7 +1567,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   numberOfLines={5}
                   style={[styles.textInput, styles.multilineInput]}
                   maxLength={500}
-                  onFocus={() => setActiveInput("bio")}
+                  onFocus={(e) => handleInputFocus(e, "bio")}
                   onBlur={() => setActiveInput(null)}
                 />
               </View>
@@ -1678,7 +1651,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       autoCapitalize="none"
                       style={styles.textInput}
-                      onFocus={() => setActiveInput("calendly")}
+                      onFocus={(e) => handleInputFocus(e, "calendly")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
@@ -2349,7 +2322,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === "ios" ? 80 : 40,
     flexGrow: 1,
   },
   stepContainer: {

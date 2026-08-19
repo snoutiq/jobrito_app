@@ -594,7 +594,7 @@
     "businessType": "வணிக வகை"
   },
   "industrySegment": "தொழில் பிரிவு",
-  "businessLocation": "வணிக இருப்பிடம்",
+  "businessLocation": "முதன்மை வணிக இருப்பிடம்",
   "fetchingLocation": "இருப்பிடத்தைப் பெறுகிறது...",
   "useCurrentLocation": "தற்போதைய இருப்பிடத்தைப் பயன்படுத்துக",
   "editDetailsLaterMsg": "இந்த விவரங்களை பின்னர் உங்கள் டாஷ்போர்டில் திருத்தலாம்.",

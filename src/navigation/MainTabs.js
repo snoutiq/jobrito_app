@@ -294,6 +294,7 @@ export default function MainTabs() {
         headerTitleStyle: { fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
         animation: "slide_from_right",
+        headerBackButtonDisplayMode: "minimal",
         headerBackTitleVisible: false,
         headerBackTitle: "",
       }}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -70,6 +70,8 @@ export default function ChefHomeScreen({ navigation }) {
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+  const scrollViewRef = useRef(null);
+  const jobPositions = useRef({});
 
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
@@ -301,11 +303,17 @@ export default function ChefHomeScreen({ navigation }) {
                     styles.filterPill,
                     isSelected && styles.filterPillSelected,
                   ]}
-                  onPress={() =>
+                  onPress={() => {
                     setHighlightedJobId((prev) =>
                       prev === job.id ? null : job.id,
-                    )
-                  }
+                    );
+                    if (scrollViewRef.current && jobPositions.current[job.id] !== undefined) {
+                      scrollViewRef.current.scrollTo({
+                        y: jobPositions.current[job.id],
+                        animated: true,
+                      });
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text
@@ -324,6 +332,7 @@ export default function ChefHomeScreen({ navigation }) {
 
       {/* JobList feed */}
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.feedScroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -382,7 +391,10 @@ export default function ChefHomeScreen({ navigation }) {
                 isHighlighted && styles.highlightedCard,
               ]}
             >
-              {/* Pinned label indicator */}
+              <View onLayout={(e) => {
+                jobPositions.current[job.id] = e.nativeEvent.layout.y;
+              }}>
+                {/* Pinned label indicator */}
               {isPinned && (
                 <View style={styles.pinnedIndicator}>
                   <Ionicons
@@ -539,6 +551,7 @@ export default function ChefHomeScreen({ navigation }) {
                 </View>
               ) : null}
               {/* --- END OF UPDATED LABEL LOGIC --- */}
+              </View>
             </View>
           );
         })}

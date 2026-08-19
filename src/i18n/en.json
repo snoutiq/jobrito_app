@@ -594,7 +594,7 @@
     "businessType": "Business Type"
   },
   "industrySegment": "Industry Segment",
-  "businessLocation": "Business Location",
+  "businessLocation": "Primary Business Location",
   "fetchingLocation": "Fetching location...",
   "useCurrentLocation": "Use current location",
   "editDetailsLaterMsg": "You can edit these details later in your dashboard.",

@@ -110,7 +110,7 @@ export default function OtpScreen({ navigation, route }) {
     }
 
     const result = await dispatch(verifyOtp({ phone, otp: otpToVerify.trim(), role, language: i18n.language, fcmToken }));
-    console.log("Verify OTP API Full Response:", result);
+    console.log("Verify OTP API Full Response:", JSON.stringify(result, null, 2));
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
       const user = result.payload?.user;

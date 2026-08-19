@@ -17,10 +17,20 @@ export const fetchApplicationHistory = createAsyncThunk(
 // Async thunk for applying to a job
 export const applyJob = createAsyncThunk(
   "application/applyJob",
-  async (arg, { rejectWithValue }) => {
+  async (arg, { dispatch, rejectWithValue }) => {
     try {
       const { jobId, ...payload } = arg;
       const response = await applyJobApi(jobId, payload);
+      
+      // Immediately reload GET APIs (Application History & Saved Jobs)
+      try {
+        const { fetchSavedJobs } = require("./jobSlice");
+        dispatch(getApplicationHistory());
+        dispatch(fetchSavedJobs());
+      } catch (e) {
+        console.warn("Failed to auto-reload saved jobs / history after apply:", e);
+      }
+
       return { ...response, jobId };
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to apply for job");

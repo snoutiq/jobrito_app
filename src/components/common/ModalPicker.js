@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Modal,
   View,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -15,19 +17,6 @@ const PRIMARY_GREEN = "#153e69";
 
 /**
  * ModalPicker — iOS-safe dropdown picker using a Modal overlay.
- *
- * Props:
- *   visible        {bool}     — whether picker modal is open
- *   onClose        {func}     — called when modal is dismissed
- *   options        {string[]} — list of option strings
- *   selectedValue  {string}   — currently selected value
- *   onSelect       {func}     — called with chosen option string
- *   title          {string}   — optional header title
- *   label          {string}   — trigger button label (current selection)
- *   placeholder    {string}   — placeholder text when nothing selected
- *   triggerStyle   {object}   — extra style for trigger button
- *   isOpen         {bool}     — controls chevron direction (same as visible)
- *   renderOption   {func}     — optional: (opt) => string for display
  */
 export default function ModalPicker({
   visible,
@@ -38,8 +27,61 @@ export default function ModalPicker({
   title = "Select an option",
   placeholder = "Select...",
   renderOption,
+  multiSelect = false,
+  searchable = false,
+  searchPlaceholder = "Search...",
 }) {
-  const getLabel = (opt) => (renderOption ? renderOption(opt) : opt);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (!visible) {
+      setSearchQuery("");
+    }
+  }, [visible]);
+
+  const getLabel = useCallback((opt) => (renderOption ? renderOption(opt) : opt), [renderOption]);
+
+  const filteredOptions = useMemo(() => {
+    if (searchable && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return options.filter((opt) => {
+        const labelStr = String(getLabel(opt)).toLowerCase();
+        return labelStr.includes(q);
+      });
+    }
+    return options;
+  }, [options, searchQuery, searchable, getLabel]);
+
+  const renderItem = useCallback(
+    ({ item }) => {
+      const isSelected = multiSelect
+        ? Array.isArray(selectedValue) && selectedValue.includes(item)
+        : item === selectedValue;
+      return (
+        <TouchableOpacity
+          style={[styles.optionRow, isSelected && styles.optionRowSelected]}
+          activeOpacity={0.7}
+          onPress={() => {
+            if (!multiSelect) {
+              onClose();
+            }
+            onSelect(item);
+          }}
+        >
+          <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+            {getLabel(item)}
+          </Text>
+          {isSelected && (
+            <Ionicons name={multiSelect ? "checkbox" : "checkmark"} size={18} color={PRIMARY_GREEN} />
+          )}
+          {!isSelected && multiSelect && (
+            <Ionicons name="square-outline" size={18} color="rgba(10,5,4,0.4)" />
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [multiSelect, selectedValue, onSelect, onClose, getLabel]
+  );
 
   return (
     <Modal
@@ -48,53 +90,72 @@ export default function ModalPicker({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={onClose}
-      />
-      <View style={styles.sheet}>
-        <SafeAreaView edges={["bottom"]}>
-          {/* Handle bar */}
-          <View style={styles.handleBar} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1, justifyContent: "flex-end" }}
+      >
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        <View style={[styles.sheet, searchable && { maxHeight: "80%" }]}>
+          <SafeAreaView edges={["bottom"]}>
+            {/* Handle bar */}
+            <View style={styles.handleBar} />
 
-          {/* Header */}
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
-            </TouchableOpacity>
-          </View>
+            {/* Header */}
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{title}</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
+              </TouchableOpacity>
+            </View>
 
-          {/* Options list */}
-          <FlatList
-            data={options}
-            keyExtractor={(item, idx) => `${item}-${idx}`}
-            renderItem={({ item }) => {
-              const isSelected = item === selectedValue;
-              return (
-                <TouchableOpacity
-                  style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    onSelect(item);
-                    onClose();
-                  }}
-                >
-                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                    {getLabel(item)}
-                  </Text>
-                  {isSelected && (
-                    <Ionicons name="checkmark" size={18} color={PRIMARY_GREEN} />
-                  )}
-                </TouchableOpacity>
-              );
-            }}
-            style={styles.list}
-            showsVerticalScrollIndicator={false}
-          />
-        </SafeAreaView>
-      </View>
+            {/* Search Input */}
+            {searchable && (
+              <View style={styles.searchContainer}>
+                <Ionicons name="search-outline" size={18} color="rgba(10,5,4,0.5)" style={styles.searchIcon} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder={searchPlaceholder}
+                  placeholderTextColor="rgba(10,5,4,0.4)"
+                  style={styles.searchInput}
+                  autoCapitalize="none"
+                  clearButtonMode="while-editing"
+                />
+                {searchQuery.length > 0 && Platform.OS !== "ios" && (
+                  <TouchableOpacity onPress={() => setSearchQuery("")}>
+                    <Ionicons name="close-circle" size={18} color="rgba(10,5,4,0.4)" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* Options list */}
+            <FlatList
+              data={filteredOptions}
+              keyExtractor={(item, idx) => `${item}-${idx}`}
+              renderItem={renderItem}
+              initialNumToRender={15}
+              maxToRenderPerBatch={20}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === "android"}
+              ListEmptyComponent={
+                searchable ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No results found</Text>
+                  </View>
+                ) : null
+              }
+              style={styles.list}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            />
+          </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -152,7 +213,7 @@ export function ModalPickerTrigger({
 
 const styles = StyleSheet.create({
   backdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
   sheet: {
@@ -160,7 +221,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 0,
-    maxHeight: "60%",
+    marginTop: "auto",
+    width: "100%",
+    maxHeight: "75%",
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
@@ -184,6 +247,38 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(10,5,4,0.08)",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f2f2f3",
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+    height: 42,
+    borderWidth: 1,
+    borderColor: "rgba(10,5,4,0.1)",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: "#0a0504",
+    height: "100%",
+    paddingVertical: 0,
+  },
+  emptyContainer: {
+    paddingVertical: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "rgba(10,5,4,0.4)",
   },
   sheetTitle: {
     fontSize: 16,

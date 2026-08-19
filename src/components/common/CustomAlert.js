@@ -53,6 +53,16 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     const lowercaseTitle = title.toLowerCase();
     const lowercaseMessage = message.toLowerCase();
 
+    // Check if account / role conflict / already registered
+    if (
+      lowercaseTitle.includes("account") ||
+      lowercaseTitle.includes("registered") ||
+      lowercaseTitle.includes("conflict") ||
+      lowercaseMessage.includes("already registered")
+    ) {
+      return <Ionicons name="person-circle-outline" size={44} color={colors.primary} />;
+    }
+
     // Check if error/delete/close/remove related
     if (
       lowercaseTitle.includes("error") ||
@@ -100,7 +110,21 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     >
       <View style={styles.overlay}>
         <View style={styles.alertCard}>
-          <View style={styles.iconContainer}>
+          <View
+            style={[
+              styles.iconContainer,
+              (title.toLowerCase().includes("error") ||
+                title.toLowerCase().includes("failed") ||
+                message.toLowerCase().includes("error")) && {
+                backgroundColor: "rgba(220, 53, 69, 0.1)",
+              },
+              (title.toLowerCase().includes("account") ||
+                title.toLowerCase().includes("registered") ||
+                message.toLowerCase().includes("already registered")) && {
+                backgroundColor: "rgba(21, 62, 105, 0.1)",
+              },
+            ]}
+          >
             {getAlertIcon()}
           </View>
           <Text style={styles.titleText}>{title}</Text>
@@ -162,7 +186,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   iconContainer: {
-    marginBottom: 14,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    marginBottom: 16,
   },
   titleText: {
     fontSize: 18,

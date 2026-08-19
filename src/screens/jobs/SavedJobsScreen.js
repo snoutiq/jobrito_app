@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Alert,
   FlatList,
@@ -93,10 +94,12 @@ export default function SavedJobsScreen({ navigation }) {
   const [showCallModal, setShowCallModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
-  useEffect(() => {
-    dispatch(fetchSavedJobs());
-    dispatch(fetchApplicationHistory());
-  }, [dispatch]);
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchSavedJobs());
+      dispatch(fetchApplicationHistory());
+    }, [dispatch])
+  );
 
   const handleCall = (job) => {
     const phoneNumber =
@@ -334,6 +337,8 @@ export default function SavedJobsScreen({ navigation }) {
           if (selectedJob) {
             try {
               await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              await dispatch(fetchSavedJobs());
+              await dispatch(fetchApplicationHistory());
               return true;
             } catch (err) {
               Alert.alert(t("jobDetails.applyError", "Application Error"), err || t("jobDetails.failedToApply", "Failed to apply to job"));

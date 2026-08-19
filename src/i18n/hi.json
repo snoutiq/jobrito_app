@@ -605,7 +605,7 @@
     "businessType": "व्यवसाय का प्रकार"
   },
   "industrySegment": "उद्योग खंड",
-  "businessLocation": "व्यवसाय का स्थान",
+  "businessLocation": "प्राथमिक व्यवसाय का स्थान",
   "fetchingLocation": "स्थान प्राप्त किया जा रहा है...",
   "useCurrentLocation": "वर्तमान स्थान का उपयोग करें",
   "editDetailsLaterMsg": "आप बाद में अपने डैशबोर्ड में इन विवरणों को संपादित कर सकते हैं।",

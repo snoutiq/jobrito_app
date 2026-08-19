@@ -1637,6 +1637,7 @@ const styles = StyleSheet.create({
   },
   modalList: {
     marginBottom: 10,
+    flexShrink: 1,
   },
   modalItem: {
     flexDirection: "row",

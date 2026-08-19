@@ -20,6 +20,7 @@ import PhoneInput from "../../components/inputs/PhoneInput";
 import colors from "../../constants/colors";
 import { requestOtp } from "../../redux/slices/authSlice";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
+import { CustomAlert } from "../../components/common/CustomAlert";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -47,7 +48,10 @@ export default function LoginScreen({ navigation }) {
 
   const handleRequestOtp = async () => {
     if (!phone.trim()) {
-      Alert.alert(t("login.phoneRequiredTitle", "Phone Required"), t("login.phoneRequiredMessage", "Please enter your mobile number."));
+      CustomAlert.show(
+        t("login.phoneRequiredTitle", "Phone Required"),
+        t("login.phoneRequiredMessage", "Please enter your mobile number.")
+      );
       return;
     }
 
@@ -98,10 +102,27 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    Alert.alert(
-      t("error"),
-      result?.payload || t("login.otpSendFailed", "Failed to send OTP. Please try again."),
-    );
+    let cleanErrorMsg =
+      typeof result?.payload === "string"
+        ? result.payload
+        : result?.payload?.message ||
+          result?.error?.message ||
+          t("login.otpSendFailed", "Failed to send OTP. Please try again.");
+
+    const isRoleConflict =
+      cleanErrorMsg.toLowerCase().includes("role conflict") ||
+      cleanErrorMsg.toLowerCase().includes("already registered");
+
+    // Clean up technical prefix "Role conflict error: "
+    cleanErrorMsg = cleanErrorMsg.replace(/^Role conflict error:\s*/i, "");
+
+    const alertTitle = isRoleConflict
+      ? t("login.roleConflictTitle", "Account Already Registered")
+      : t("error", "Error");
+
+    CustomAlert.show(alertTitle, cleanErrorMsg, [
+      { text: t("common.ok", "OK"), style: "default" },
+    ]);
   };
 
   const filteredCountries = countries.filter(item => 

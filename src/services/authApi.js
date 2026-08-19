@@ -19,6 +19,10 @@ export const requestOtp = async (phone, role) => {
     },
   );
 
+  console.log("=================== LOGIN / REQUEST OTP FULL RESPONSE ===================");
+  console.log(JSON.stringify(response.data, null, 2));
+  console.log("========================================================================");
+
   return {
     success: true,
     data: response.data,
@@ -44,6 +48,10 @@ export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
       cancelDuplicate: true,
     },
   );
+
+  console.log("=================== VERIFY OTP / LOGIN FULL RESPONSE ===================");
+  console.log(JSON.stringify(response.data, null, 2));
+  console.log("========================================================================");
 
   return {
     success: true,

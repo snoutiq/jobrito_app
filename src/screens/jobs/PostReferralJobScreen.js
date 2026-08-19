@@ -41,7 +41,17 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const handleDismissSuccessModal = () => {
     setShowSuccessModal(false);
     handleReset();
-    navigation.navigate("MyJobs", { activeTab: "pending" });
+    const rootHome = submittedByRole === "employer" ? "EmployerHome" : "Tabs";
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: rootHome },
+        {
+          name: "MyJobs",
+          params: { activeTab: "pending" },
+        },
+      ],
+    });
   };
 
   // Form Fields
@@ -1113,7 +1123,20 @@ export default function PostReferralJobScreen({ navigation, route }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.step3BackBtn}
-                onPress={() => navigation.navigate("Home")}
+                onPress={() => {
+                  handleReset();
+                  const rootHome = submittedByRole === "employer" ? "EmployerHome" : "Tabs";
+                  navigation.reset({
+                    index: 1,
+                    routes: [
+                      { name: rootHome },
+                      {
+                        name: "MyJobs",
+                        params: { activeTab: "pending" },
+                      },
+                    ],
+                  });
+                }}
                 activeOpacity={0.7}
               >
                 <Text style={styles.step3BackBtnText}>
