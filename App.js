@@ -11,6 +11,7 @@ import * as Notifications from "expo-notifications";
 import "./src/i18n";
 import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { navigationRef } from "./src/navigation/navigationRef";
 import { linkingConfig, handleNotificationResponse } from "./src/services/deepLinking";
 import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -76,8 +77,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
-
-export const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   const [fontsLoaded] = useFonts({

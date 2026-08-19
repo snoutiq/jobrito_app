@@ -17,7 +17,8 @@ import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 import { setUnreadNotificationsCount } from "../../redux/slices/userSlice";
-import { getDailyPostLimit, getEmployerNotifications } from "../../services/jobApi";
+import { getDailyPostLimit } from "../../services/jobApi";
+import { getEmployerNotifications } from "../../services/notificationApi";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -26,7 +27,13 @@ export default function EmployerHomeScreen({ navigation }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const unreadNotificationsCount = useSelector((state) => state.user.unreadNotificationsCount);
-  const { metrics, loading } = useSelector((state) => state.employer);
+  const { metrics, submittedJobs, loading } = useSelector((state) => state.employer || {});
+  const { myJobs } = useSelector((state) => state.job || {});
+  const safeJobsArray = Array.isArray(submittedJobs)
+    ? submittedJobs
+    : Array.isArray(myJobs)
+    ? myJobs
+    : [];
 
   const [toastMessage, setToastMessage] = useState("");
   const [checkingLimit, setCheckingLimit] = useState(false);
@@ -130,6 +137,21 @@ export default function EmployerHomeScreen({ navigation }) {
   const contactedCount = metrics?.contacted ?? 0;
   const activeJobsCount = metrics?.active_jobs_count ?? 0;
   const pendingJobsCount = metrics?.pending_jobs_count ?? 0;
+  const totalSavedCount =
+    metrics?.total_saved_count ??
+    metrics?.saved_count ??
+    safeJobsArray.reduce((acc, job) => {
+      const cnt =
+        job?.total_saved_count ??
+        job?.saves_count ??
+        job?.saved_count ??
+        job?.saved_by_users_count ??
+        (Array.isArray(job?.saved_by_users) ? job.saved_by_users.length : null) ??
+        (Array.isArray(job?.saved_users) ? job.saved_users.length : null) ??
+        (Array.isArray(job?.saved_by) ? job.saved_by.length : null) ??
+        0;
+      return acc + (Number(cnt) || 0);
+    }, 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -198,6 +220,11 @@ export default function EmployerHomeScreen({ navigation }) {
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#0a0504" }]}>{contactedCount}</Text>
               <Text style={styles.subStatLabel}>{t("contacted")}</Text>
+            </View>
+            <View style={styles.verticalDivider} />
+            <View style={styles.subStatItem}>
+              <Text style={[styles.subStatValue, { color: "#1b8755" }]}>{totalSavedCount}</Text>
+              <Text style={styles.subStatLabel}>{t("saved", "Saved")}</Text>
             </View>
           </View>
         </View>

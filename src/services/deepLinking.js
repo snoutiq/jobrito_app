@@ -1,5 +1,5 @@
 import { Linking } from "react-native";
-import { navigationRef } from "../../App";
+import { navigationRef } from "../navigation/navigationRef";
 
 /**
  * Pure React Native Linking Prefix Configuration
