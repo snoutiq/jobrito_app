@@ -150,6 +150,7 @@ export default function ModalPicker({
                 ) : null
               }
               style={styles.list}
+              contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 28 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             />
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 0,
+    paddingBottom: Platform.OS === "android" ? 20 : 10,
     marginTop: "auto",
     width: "100%",
     maxHeight: "75%",

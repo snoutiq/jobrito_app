@@ -112,7 +112,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
           if (scrollResponder && scrollResponder.scrollResponderScrollNativeHandleToKeyboard) {
             scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
               findNodeHandle(targetNode),
-              120,
+              25,
               true
             );
           }
@@ -975,8 +975,8 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
         style={{ flex: 1 }}
       >
         {/* Header */}
