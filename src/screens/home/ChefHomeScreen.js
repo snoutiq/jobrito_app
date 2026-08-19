@@ -356,13 +356,8 @@ export default function ChefHomeScreen({ navigation }) {
           const isReferral = job.category === "referral";
           const hasMultipleActions = job.category === "overseas";
 
-          // --- UPDATED ROLE LOGIC (fallback across submitted_by_role / posted_by_role / active_role / user_role, normalized) ---
-          const effectiveRoleSource =
-            job.submitted_by_role ||
-            job.posted_by_role ||
-            job.active_role ||
-            job.user_role ||
-            "";
+          // --- UPDATED ROLE LOGIC (uses creator.active_role) ---
+          const effectiveRoleSource = job.creator?.active_role || "";
           const effectiveRole = effectiveRoleSource.toLowerCase();
           const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
           const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
