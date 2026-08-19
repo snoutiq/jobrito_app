@@ -105,12 +105,21 @@ export default function ModalPicker({
             <View style={styles.handleBar} />
 
             {/* Header */}
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>{title}</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
-              </TouchableOpacity>
-            </View>
+            {(() => {
+              const hasSelected = multiSelect && Array.isArray(selectedValue) && selectedValue.length > 0;
+              return (
+                <View style={styles.sheetHeader}>
+                  <Text style={styles.sheetTitle}>{title}</Text>
+                  <TouchableOpacity onPress={onClose} style={[styles.closeBtn, hasSelected && styles.doneBtn]}>
+                    {hasSelected ? (
+                      <Text style={styles.doneBtnText}>Done</Text>
+                    ) : (
+                      <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
 
             {/* Search Input */}
             {searchable && (
@@ -249,6 +258,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(10,5,4,0.08)",
+  },
+  doneBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  doneBtnText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
   searchContainer: {
     flexDirection: "row",
