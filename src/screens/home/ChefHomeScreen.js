@@ -27,7 +27,7 @@ import {
   fetchSavedJobs,
 } from "../../redux/slices/jobSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
-import { fetchProfile, updateProfile } from "../../redux/slices/userSlice";
+import { fetchProfile, updateProfile, setUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppLoader from "../../components/common/AppLoader";
 import * as ImagePicker from "expo-image-picker";
@@ -73,7 +73,7 @@ export default function ChefHomeScreen({ navigation }) {
   const scrollViewRef = useRef(null);
   const jobPositions = useRef({});
 
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const unreadNotificationsCount = useSelector((state) => state.user.unreadNotificationsCount);
 
   useEffect(() => {
     let active = true;
@@ -90,7 +90,7 @@ export default function ChefHomeScreen({ navigation }) {
         const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
         const unread = list.filter((n) => !n.is_read).length;
         if (active) {
-          setUnreadNotificationsCount(unread);
+          dispatch(setUnreadNotificationsCount(unread));
         }
       } catch (err) {
         console.warn("Failed to fetch notifications on focus:", err);

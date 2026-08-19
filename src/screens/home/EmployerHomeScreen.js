@@ -16,7 +16,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
-import { getDailyPostLimit } from "../../services/jobApi";
+import { setUnreadNotificationsCount } from "../../redux/slices/userSlice";
+import { getDailyPostLimit, getEmployerNotifications } from "../../services/jobApi";
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -24,6 +25,7 @@ export default function EmployerHomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
+  const unreadNotificationsCount = useSelector((state) => state.user.unreadNotificationsCount);
   const { metrics, loading } = useSelector((state) => state.employer);
 
   const [toastMessage, setToastMessage] = useState("");
@@ -54,6 +56,13 @@ export default function EmployerHomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchEmployerDashboard());
+      getEmployerNotifications("employer")
+        .then((res) => {
+          const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
+          const unread = list.filter((n) => !n.is_read).length;
+          dispatch(setUnreadNotificationsCount(unread));
+        })
+        .catch(() => null);
 
       const onBackPress = () => {
         // Exit the app directly when back is pressed on the Employer Home Screen
@@ -144,6 +153,9 @@ export default function EmployerHomeScreen({ navigation }) {
             onPress={() => navigation.navigate("EmployerNotifications")}
           >
             <Ionicons name="notifications-outline" size={22} color="#0a0504" />
+            {unreadNotificationsCount > 0 && (
+              <View style={styles.notificationDot} />
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
@@ -519,5 +531,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#e53935",
   },
 });

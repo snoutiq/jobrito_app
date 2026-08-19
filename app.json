@@ -27,6 +27,9 @@
         }
       },
       "icon": "./src/assets/Jobrito full logo.png",
+      "entitlements": {
+        "aps-environment": "development"
+      },
       "runtimeVersion": {
         "policy": "appVersion"
       }
@@ -57,6 +60,14 @@
           "android": {
             "usesCleartextTraffic": true
           }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/Jobrito full logo.png",
+          "color": "#153e69",
+          "sounds": []
         }
       ],
       "expo-secure-store",

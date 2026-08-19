@@ -61,6 +61,7 @@ const initialState = {
     employerOnboardingCompleted: false,
   },
   activeRole: ROLES.JOB_SEEKER,
+  unreadNotificationsCount: 0,
   loading: false,
   error: null,
   success: false,
@@ -78,9 +79,16 @@ const userSlice = createSlice({
       state.activeRole = action.payload;
       state.profile.role = action.payload;
     },
+    setUnreadNotificationsCount: (state, action) => {
+      state.unreadNotificationsCount = action.payload ?? 0;
+    },
+    clearUnreadNotificationsCount: (state) => {
+      state.unreadNotificationsCount = 0;
+    },
     resetUser: (state) => {
       state.profile = initialState.profile;
       state.activeRole = initialState.activeRole;
+      state.unreadNotificationsCount = 0;
       state.loading = false;
       state.error = null;
       state.success = false;
@@ -193,5 +201,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setProfileData, setActiveRole, resetUser } = userSlice.actions;
+export const { setProfileData, setActiveRole, resetUser, setUnreadNotificationsCount, clearUnreadNotificationsCount } = userSlice.actions;
 export default userSlice.reducer;

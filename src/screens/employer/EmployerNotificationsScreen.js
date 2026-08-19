@@ -12,7 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUnreadNotificationsCount, clearUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import colors from "../../constants/colors";
 import {
   getEmployerNotifications,
@@ -24,6 +25,7 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function EmployerNotificationsScreen({ navigation }) {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
@@ -42,6 +44,8 @@ export default function EmployerNotificationsScreen({ navigation }) {
       const res = await getEmployerNotifications(activeRole);
       const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
       setNotifications(list);
+      const unread = list.filter((n) => !n.is_read).length;
+      dispatch(setUnreadNotificationsCount(unread));
     } catch (err) {
       console.warn("Failed to fetch employer notifications:", err.message || err);
     } finally {
@@ -78,6 +82,7 @@ export default function EmployerNotificationsScreen({ navigation }) {
   const handleMarkAllAsRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    dispatch(clearUnreadNotificationsCount());
     try {
       await markAllNotificationsAsRead(activeRole, unreadIds);
     } catch (e) {
