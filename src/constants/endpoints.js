@@ -28,9 +28,9 @@ export const API_ENDPOINTS = {
  
   // Feed & Jobs
   FEED: "/feed",
-  JOBS: "/jobs",
+  JOBS: "/admin/jobs/save",
   MY_JOBS: "/my-jobs",
-  JOBS_STORE: "/jobs/store",
+  JOBS_STORE: "admin/jobs/save",
   JOBS_COMMUNITY: "/jobs/community",
   PROFILE_SAVED: "/jobs/saved",
   PROFILE_APPLICATIONS: "/applications/history",

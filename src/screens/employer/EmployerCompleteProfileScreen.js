@@ -28,6 +28,7 @@ import { saveEmployerOnboarding } from "../../services/employerApi";
 import * as Location from "expo-location";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 import indianStatesCities from "../../data/indianStatesCities.json";
+import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
 
 const stateOptions = Object.keys(indianStatesCities);
 const allCitiesList = Array.from(
@@ -36,14 +37,20 @@ const allCitiesList = Array.from(
 
 const PRIMARY_GREEN = "#153e69";
 
-// Total steps after merging old Step 3 (logo + operational locations) into Step 1
 // Total steps after merging old Step 3 (logo + operational locations) into Step 1 and removing Talent Manager step
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 2;
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.user);
+
+  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+
+  const handleInputFocus = (e, key) => {
+    if (key) setActiveInput(key);
+    scrollInputFocus(e);
+  };
 
   const isEditMode = route?.params?.isEditMode ?? false;
   const [step, setStep] = useState(1);
@@ -582,7 +589,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -610,10 +617,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
         >
           {/* STEP 1: BUSINESS INFORMATION (Logo + Name + Segment + Primary Location + Operational Locations) */}
           {step === 1 && (
@@ -658,7 +665,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     placeholder={t("employerCompleteProfile.enterBusinessName", "Enter business name")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("businessName")}
+                    onFocus={(e) => handleInputFocus(e, "businessName")}
                     onBlur={() => setActiveInput(null)}
                   />
                   <Ionicons name="business-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
@@ -699,7 +706,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     placeholder={t("employerCompleteProfile.enterBusinessLocation", "Enter business location")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("businessLocation")}
+                    onFocus={(e) => handleInputFocus(e, "businessLocation")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -894,7 +901,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     placeholder={t("enterFullName", "Enter full name")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("contactName")}
+                    onFocus={(e) => handleInputFocus(e, "contactName")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -916,7 +923,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     keyboardType="phone-pad"
                     maxLength={10}
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("contactPhone")}
+                    onFocus={(e) => handleInputFocus(e, "contactPhone")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -938,7 +945,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={styles.textInput}
-                    onFocus={() => setActiveInput("contactEmail")}
+                    onFocus={(e) => handleInputFocus(e, "contactEmail")}
                     onBlur={() => setActiveInput(null)}
                   />
                 </View>
@@ -1213,7 +1220,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingTop: 20,
+    paddingBottom: 100,
     flexGrow: 1,
   },
   stepContainer: {

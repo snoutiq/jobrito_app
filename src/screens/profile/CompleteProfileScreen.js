@@ -371,7 +371,7 @@ export default function CompleteProfileScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         style={{ flex: 1 }}
       >

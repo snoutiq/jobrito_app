@@ -94,33 +94,21 @@ const operationsList = [
   "Other"
 ];
 
+import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+
 export default function ChefCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const scrollViewRef = useRef(null);
+  const [activeInput, setActiveInput] = useState(null);
+
+  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
 
   const handleInputFocus = (e, key) => {
     if (key) setActiveInput(key);
-    const targetNode = e?.nativeEvent?.target;
-    if (targetNode && scrollViewRef.current) {
-      setTimeout(() => {
-        try {
-          const scrollResponder = scrollViewRef.current?.getScrollResponder?.();
-          if (scrollResponder && scrollResponder.scrollResponderScrollNativeHandleToKeyboard) {
-            scrollResponder.scrollResponderScrollNativeHandleToKeyboard(
-              findNodeHandle(targetNode),
-              25,
-              true
-            );
-          }
-        } catch (err) {
-          // ignore
-        }
-      }, 100);
-    }
+    scrollInputFocus(e);
   };
 
   // --- Step 1 State ---
@@ -133,7 +121,6 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const [languages, setLanguages] = useState([]);
   const [newLanguage, setNewLanguage] = useState("");
   const [showLangInput, setShowLangInput] = useState(false);
-  const [activeInput, setActiveInput] = useState(null);
 
   // Country & City Dropdown States
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -2323,7 +2310,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: Platform.OS === "ios" ? 80 : 40,
+    paddingBottom: 100,
     flexGrow: 1,
   },
   stepContainer: {

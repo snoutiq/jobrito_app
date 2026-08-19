@@ -90,6 +90,12 @@ export default function EmployerHomeScreen({ navigation }) {
     profile?.full_name ||
     profile?.name ||
     "";
+  const businessName =
+    profile?.business_name ||
+    profile?.businessName ||
+    profile?.company ||
+    profile?.employer_profile?.business_name ||
+    "";
   const mobileNumber =
     profile?.mobile_number || profile?.phone || profile?.contact_number || "";
 
@@ -129,7 +135,7 @@ export default function EmployerHomeScreen({ navigation }) {
           )}
           <View style={styles.headerInfo}>
             <Text style={styles.businessName}>{contactName || "Employer"}</Text>
-            <Text style={styles.contactText}>{mobileNumber || "N/A"}</Text>
+            <Text style={styles.contactText}>{businessName || mobileNumber || "N/A"}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>

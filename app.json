@@ -34,6 +34,7 @@
     "android": {
       "package": "com.jobrito.app",
       "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/Jobrito full logo.png",
         "backgroundColor": "#ffffff"

@@ -22,6 +22,12 @@ import colors from "../../constants/colors";
 import ModalPicker, {
   ModalPickerTrigger,
 } from "../../components/common/ModalPicker";
+import indianStatesCities from "../../data/indianStatesCities.json";
+
+const stateOptions = Object.keys(indianStatesCities);
+const allCitiesList = Array.from(new Set(Object.values(indianStatesCities).flat()));
+
+import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
 
 const PRIMARY_GREEN = "#153e69";
 const { width } = Dimensions.get("window");
@@ -33,6 +39,13 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
+
+  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+
+  const handleInputFocus = (e, fieldName) => {
+    if (fieldName) setActiveField(fieldName);
+    scrollInputFocus(e);
+  };
 
   const [step, setStep] = useState(1); // 1: Business Basics, 2: Job Details, 3: Contact & Extras, 4: Success
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -70,6 +83,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [salaryCurrency, setSalaryCurrency] = useState("INR");
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [location, setLocation] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [showStateModal, setShowStateModal] = useState(false);
+  const [showCityModal, setShowCityModal] = useState(false);
   const [jobType, setJobType] = useState("Full-time");
   const [experienceRange, setExperienceRange] = useState(
     "Mid-Level (3-5 years)",
@@ -224,6 +241,20 @@ export default function PostReferralJobScreen({ navigation, route }) {
       );
       return;
     }
+    if (!selectedState) {
+      Alert.alert(
+        t("error"),
+        t("selectStateRequired", "Please select a State."),
+      );
+      return;
+    }
+    if (!selectedCity) {
+      Alert.alert(
+        t("error"),
+        t("selectCityRequired", "Please select a City."),
+      );
+      return;
+    }
     if (!description.trim()) {
       Alert.alert(
         t("error"),
@@ -278,6 +309,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
           ? `${salaryCurrency} ${salaryMin}+`
           : "";
 
+    const finalLocation = selectedCity && selectedState
+      ? `${selectedCity}, ${selectedState}`
+      : selectedState || selectedCity || location.trim() || "";
+
     const jobData = {
       title,
       category: category.toLowerCase(),
@@ -288,7 +323,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
       salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
       salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
       salary_currency: salaryCurrency,
-      location: location.trim() || null,
+      location: finalLocation,
+      state: selectedState || null,
+      city: selectedCity || null,
       job_type: jobType,
       experience_range: experienceRange,
       requirements: requirementsArray,
@@ -429,7 +466,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
       edges={["top", "left", "right", "bottom"]}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         style={{ flex: 1 }}
       >
@@ -466,6 +503,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
         {step < 4 && renderProgress()}
 
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -515,7 +553,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     )}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("company")}
+                    onFocus={(e) => handleInputFocus(e, "company")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -542,7 +580,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     )}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("contactPerson")}
+                    onFocus={(e) => handleInputFocus(e, "contactPerson")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -624,40 +662,70 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       )}
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveField("title")}
+                      onFocus={(e) => handleInputFocus(e, "title")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
                 </View>
 
-                {/* Location */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
-                    {t("postJob.location", "Location")}
-                  </Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "location" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name="location-outline"
-                      size={18}
-                      color="rgba(10, 5, 4, 0.6)"
-                      style={{ marginRight: 8 }}
+                {/* State & City in a Single Row */}
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 12, marginBottom: 16 }}>
+                  {/* State Dropdown */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inputLabel}>{t("selectState", "State")}</Text>
+                    <ModalPickerTrigger
+                      onPress={() => setShowStateModal(true)}
+                      label={selectedState}
+                      placeholder={t("selectState", "Select State")}
+                      isOpen={showStateModal}
+                      leftIcon="map-outline"
+                      style={styles.inputWrapper}
                     />
-                    <TextInput
-                      value={location}
-                      onChangeText={setLocation}
-                      placeholder={t(
-                        "postJob.locationPlaceholder",
-                        "e.g., Mayfair, London",
-                      )}
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("location")}
-                      onBlur={() => setActiveField(null)}
+                    <ModalPicker
+                      visible={showStateModal}
+                      onClose={() => setShowStateModal(false)}
+                      title={t("selectState", "Select State")}
+                      options={stateOptions}
+                      selectedValue={selectedState}
+                      onSelect={(val) => {
+                        setSelectedState(val);
+                        if (selectedCity && indianStatesCities[val] && !indianStatesCities[val].includes(selectedCity)) {
+                          setSelectedCity("");
+                        }
+                      }}
+                      searchable={true}
+                      searchPlaceholder={t("searchState", "Search State...")}
+                    />
+                  </View>
+
+                  {/* City Dropdown */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inputLabel}>{t("selectCity", "City")}</Text>
+                    <ModalPickerTrigger
+                      onPress={() => setShowCityModal(true)}
+                      label={selectedCity}
+                      placeholder={t("selectCity", "Select City")}
+                      isOpen={showCityModal}
+                      leftIcon="business-outline"
+                      style={styles.inputWrapper}
+                    />
+                    <ModalPicker
+                      visible={showCityModal}
+                      onClose={() => setShowCityModal(false)}
+                      title={t("selectCity", "Select City")}
+                      options={selectedState ? (indianStatesCities[selectedState] || []) : allCitiesList}
+                      selectedValue={selectedCity}
+                      onSelect={(val) => {
+                        setSelectedCity(val);
+                        if (!selectedState) {
+                          const foundState = Object.keys(indianStatesCities).find((st) =>
+                            indianStatesCities[st].includes(val)
+                          );
+                          if (foundState) setSelectedState(foundState);
+                        }
+                      }}
+                      searchable={true}
+                      searchPlaceholder={t("searchCity", "Search City...")}
                     />
                   </View>
                 </View>
@@ -721,7 +789,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
-                        onFocus={() => setActiveField("salaryMin")}
+                        onFocus={(e) => handleInputFocus(e, "salaryMin")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
@@ -743,7 +811,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
-                        onFocus={() => setActiveField("salaryMax")}
+                        onFocus={(e) => handleInputFocus(e, "salaryMax")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
@@ -769,7 +837,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       keyboardType="numeric"
-                      onFocus={() => setActiveField("openPositions")}
+                      onFocus={(e) => handleInputFocus(e, "openPositions")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
@@ -856,7 +924,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       multiline
                       numberOfLines={5}
                       style={[styles.textInput, styles.multilineInput]}
-                      onFocus={() => setActiveField("description")}
+                      onFocus={(e) => handleInputFocus(e, "description")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
@@ -943,7 +1011,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     style={styles.step3TextInputField}
                     keyboardType="phone-pad"
                     maxLength={10}
-                    onFocus={() => setActiveField("phone")}
+                    onFocus={(e) => handleInputFocus(e, "phone")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -982,7 +1050,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.step3TextInputField}
                     keyboardType="email-address"
-                    onFocus={() => setActiveField("email")}
+                    onFocus={(e) => handleInputFocus(e, "email")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -1022,7 +1090,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       style={{ marginRight: 2 }}
                     />
                     <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {location.trim() || "Location"}
+                      {selectedCity && selectedState ? `${selectedCity}, ${selectedState}` : selectedState || selectedCity || location.trim() || "Location"}
                     </Text>
                   </View>
                   <View style={styles.reviewMetaChip}>
@@ -1273,7 +1341,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
     flexGrow: 1,
   },
   stepContainer: {
@@ -1314,7 +1383,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
+    height: 50,
     minHeight: 50,
+    width: "100%",
     paddingHorizontal: 14,
   },
   inputWrapperActive: {

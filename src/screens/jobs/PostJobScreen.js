@@ -23,6 +23,12 @@ import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services
 import { getDailyPostLimit } from "../../services/jobApi";
 import colors from "../../constants/colors";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
+import indianStatesCities from "../../data/indianStatesCities.json";
+
+const stateOptions = Object.keys(indianStatesCities);
+const allCitiesList = Array.from(new Set(Object.values(indianStatesCities).flat()));
+
+import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
 
 const PRIMARY_GREEN = "#153e69";
 const { width } = Dimensions.get("window");
@@ -34,6 +40,13 @@ export default function PostJobScreen({ navigation, route }) {
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole
   );
+
+  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+
+  const handleInputFocus = (e, fieldName) => {
+    if (fieldName) setActiveField(fieldName);
+    scrollInputFocus(e);
+  };
 
   // When on PostJobScreen, the user is assumed to be an employer.
   const goToDashboard = () => {
@@ -69,6 +82,10 @@ export default function PostJobScreen({ navigation, route }) {
   const [region, setRegion] = useState("India");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [showStateModal, setShowStateModal] = useState(false);
+  const [showCityModal, setShowCityModal] = useState(false);
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
   const [salaryCurrency, setSalaryCurrency] = useState("INR");
@@ -177,8 +194,12 @@ export default function PostJobScreen({ navigation, route }) {
       Alert.alert(t("error"), t("postJob.jobTitleRequired", "Please enter a Job Title."));
       return;
     }
-    if (!location.trim()) {
-      Alert.alert(t("error"), t("postJob.locationRequired", "Please enter a Job Location."));
+    if (!selectedState) {
+      Alert.alert(t("error"), t("selectStateRequired", "Please select a State."));
+      return;
+    }
+    if (!selectedCity) {
+      Alert.alert(t("error"), t("selectCityRequired", "Please select a City."));
       return;
     }
     if (!openPositions.trim() || isNaN(openPositions)) {
@@ -224,10 +245,6 @@ const handleSubmitJob = async () => {
     Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
     return;
   }
-  if (!contactEmail.trim()) {
-    Alert.alert(t("error"), t("employerOnboarding.contactEmailRequired"));
-    return;
-  }
 
   setIsSubmitting(true);
 
@@ -237,16 +254,22 @@ const handleSubmitJob = async () => {
       ? `${salaryCurrency} ${salaryMin}+`
       : "";
 
+  const finalLocation = selectedCity && selectedState
+    ? `${selectedCity}, ${selectedState}`
+    : selectedState || selectedCity || location.trim() || "";
+
   const jobData = {
     title: jobTitle,
     category: region.toLowerCase(),
     company: businessName,
-    location: location,
+    location: finalLocation,
+    state: selectedState || "",
+    city: selectedCity || "",
     salary: combinedSalary,
     salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
     salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
     salary_currency: salaryCurrency,
-    contact_info: contactEmail,
+    contact_info: contactEmail || contactPhone || "",
     description: jobDescription,
     job_type: jobType,
     experience_range: experience,
@@ -338,7 +361,7 @@ const handleSubmitJob = async () => {
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         {/* Custom Header */}
@@ -394,6 +417,7 @@ const handleSubmitJob = async () => {
         {visibleStep < 4 && renderProgress()}
 
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -432,7 +456,7 @@ const handleSubmitJob = async () => {
                     placeholder={t("postJob.businessNamePlaceholder")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("businessName")}
+                    onFocus={(e) => handleInputFocus(e, "businessName")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -453,7 +477,7 @@ const handleSubmitJob = async () => {
                     placeholder={t("postJob.contactPersonPlaceholder")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("contactPerson")}
+                    onFocus={(e) => handleInputFocus(e, "contactPerson")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -542,35 +566,70 @@ const handleSubmitJob = async () => {
                       placeholder={t("postJob.jobTitlePlaceholder")}
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
-                      onFocus={() => setActiveField("jobTitle")}
+                      onFocus={(e) => handleInputFocus(e, "jobTitle")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
                 </View>
 
-                {/* Location */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>{t("postJob.location")}</Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "location" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name="location-outline"
-                      size={18}
-                      color="rgba(10, 5, 4, 0.6)"
-                      style={{ marginRight: 8 }}
+                {/* State & City in a Single Row */}
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 12, marginBottom: 16 }}>
+                  {/* State Dropdown */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inputLabel}>{t("selectState", "State")}</Text>
+                    <ModalPickerTrigger
+                      onPress={() => setShowStateModal(true)}
+                      label={selectedState}
+                      placeholder={t("selectState", "Select State")}
+                      isOpen={showStateModal}
+                      leftIcon="map-outline"
+                      style={styles.inputWrapper}
                     />
-                    <TextInput
-                      value={location}
-                      onChangeText={setLocation}
-                      placeholder={t("postJob.locationPlaceholder")}
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={() => setActiveField("location")}
-                      onBlur={() => setActiveField(null)}
+                    <ModalPicker
+                      visible={showStateModal}
+                      onClose={() => setShowStateModal(false)}
+                      title={t("selectState", "Select State")}
+                      options={stateOptions}
+                      selectedValue={selectedState}
+                      onSelect={(val) => {
+                        setSelectedState(val);
+                        if (selectedCity && indianStatesCities[val] && !indianStatesCities[val].includes(selectedCity)) {
+                          setSelectedCity("");
+                        }
+                      }}
+                      searchable={true}
+                      searchPlaceholder={t("searchState", "Search State...")}
+                    />
+                  </View>
+
+                  {/* City Dropdown */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inputLabel}>{t("selectCity", "City")}</Text>
+                    <ModalPickerTrigger
+                      onPress={() => setShowCityModal(true)}
+                      label={selectedCity}
+                      placeholder={t("selectCity", "Select City")}
+                      isOpen={showCityModal}
+                      leftIcon="business-outline"
+                      style={styles.inputWrapper}
+                    />
+                    <ModalPicker
+                      visible={showCityModal}
+                      onClose={() => setShowCityModal(false)}
+                      title={t("selectCity", "Select City")}
+                      options={selectedState ? (indianStatesCities[selectedState] || []) : allCitiesList}
+                      selectedValue={selectedCity}
+                      onSelect={(val) => {
+                        setSelectedCity(val);
+                        if (!selectedState) {
+                          const foundState = Object.keys(indianStatesCities).find((st) =>
+                            indianStatesCities[st].includes(val)
+                          );
+                          if (foundState) setSelectedState(foundState);
+                        }
+                      }}
+                      searchable={true}
+                      searchPlaceholder={t("searchCity", "Search City...")}
                     />
                   </View>
                 </View>
@@ -609,7 +668,7 @@ const handleSubmitJob = async () => {
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
-                        onFocus={() => setActiveField("salaryMin")}
+                        onFocus={(e) => handleInputFocus(e, "salaryMin")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
@@ -625,7 +684,7 @@ const handleSubmitJob = async () => {
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
-                        onFocus={() => setActiveField("salaryMax")}
+                        onFocus={(e) => handleInputFocus(e, "salaryMax")}
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
@@ -643,7 +702,7 @@ const handleSubmitJob = async () => {
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       keyboardType="numeric"
-                      onFocus={() => setActiveField("openPositions")}
+                      onFocus={(e) => handleInputFocus(e, "openPositions")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
@@ -707,7 +766,7 @@ const handleSubmitJob = async () => {
                       style={[styles.textInput, styles.multilineInput]}
                       multiline
                       numberOfLines={4}
-                      onFocus={() => setActiveField("jobDescription")}
+                      onFocus={(e) => handleInputFocus(e, "jobDescription")}
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
@@ -767,7 +826,7 @@ const handleSubmitJob = async () => {
                     keyboardType="phone-pad"
                     maxLength={10}
                     style={styles.textInput}
-                    onFocus={() => setActiveField("contactPhone")}
+                    onFocus={(e) => handleInputFocus(e, "contactPhone")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -799,7 +858,7 @@ const handleSubmitJob = async () => {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={styles.textInput}
-                    onFocus={() => setActiveField("contactEmail")}
+                    onFocus={(e) => handleInputFocus(e, "contactEmail")}
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
@@ -823,7 +882,7 @@ const handleSubmitJob = async () => {
                 <View style={styles.reviewMetaRow}>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="location-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{location.trim() || "Location"}</Text>
+                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>{selectedCity && selectedState ? `${selectedCity}, ${selectedState}` : selectedState || selectedCity || location.trim() || "Location"}</Text>
                   </View>
                   <View style={styles.reviewMetaChip}>
                     <Ionicons name="cash-outline" size={13} color={PRIMARY_GREEN} style={{ marginRight: 2 }} />
@@ -1094,7 +1153,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
     flexGrow: 1,
   },
   stepContainer: {
@@ -1141,7 +1201,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     borderRadius: 12,
+    height: 50,
     minHeight: 50,
+    width: "100%",
     paddingHorizontal: 14,
   },
   inputWrapperActive: {
