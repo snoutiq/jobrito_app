@@ -922,7 +922,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       )}
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       multiline
-                      numberOfLines={5}
+                      numberOfLines={4}
                       style={[styles.textInput, styles.multilineInput]}
                       onFocus={(e) => handleInputFocus(e, "description")}
                       onBlur={() => setActiveField(null)}
@@ -1532,10 +1532,12 @@ const styles = StyleSheet.create({
   multilineWrapper: {
     alignItems: "flex-start",
     paddingVertical: 10,
+    height: 110,
   },
   multilineInput: {
     textAlignVertical: "top",
-    minHeight: 80,
+    height: "100%",
+    width: "100%",
   },
   tipBox: {
     flexDirection: "row",
