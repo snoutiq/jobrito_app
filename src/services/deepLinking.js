@@ -6,46 +6,13 @@ import { navigationRef } from "../navigation/navigationRef";
  * Scheme: jobrito://
  * Web Domain: https://jobrito.com & http://jobrito.com
  */
+/**
+ * Pure React Native Linking Prefix Configuration
+ * Scheme: jobrito://
+ * Web Domain: https://jobrito.com & http://jobrito.com
+ */
 export const linkingConfig = {
   prefixes: ["jobrito://", "https://jobrito.com", "http://jobrito.com"],
-  config: {
-    screens: {
-      // 1. Job Details (Active / Feed Job)
-      JobDetails: "job/:jobId",
-
-      // 2. Employer Job Details
-      MyJobDetails: "my-job/:jobId",
-
-      // 3. My Jobs List (Active / Pending / Closed)
-      MyJobs: "my-jobs",
-
-      // 4. Post New Job (Employer / Jobseeker)
-      PostJob: "post-job",
-      PostReferralJob: "post-referral-job",
-
-      // 5. Complete Profile
-      ChefCompleteProfile: "complete-profile/chef",
-      EmployerCompleteProfile: "complete-profile/employer",
-
-      // 6. Calendly Integration
-      CalendlyIntegration: "calendly",
-
-      // 7. Social Media Links
-      SocialMediaLinks: "social-links",
-
-      // 8. Chef Profile View / Share
-      ChefProfileDetails: "chef/:chefId",
-
-      // 9. Applicant List for a Job
-      ApplicantList: "job/:jobId/applicants",
-
-      // 10. Notifications List Page
-      EmployerNotifications: "notifications",
-
-      // 11. Deep Link Guide Screen
-      DeepLinkGuide: "deep-links",
-    },
-  },
 };
 
 /**
@@ -75,7 +42,7 @@ export const parseDeepLinkUrl = (url = "") => {
 
 /**
  * Handle incoming Deep Link URL programmatically
- * @param {string} url - e.g. "jobrito://job/84" or "jobrito://my-jobs?tab=pending"
+ * @param {string} url - e.g. "jobrito://jobs/84" or "jobrito://my-jobs?tab=pending"
  */
 export const handleDeepLinkUrl = (url) => {
   if (!url) return;
@@ -108,30 +75,37 @@ const executeNavigation = (path, params = {}) => {
 
   const normalizedPath = path.toLowerCase().replace(/^\/+|\/+$/g, "");
 
-  // 1. Job Details: job/:jobId or job/84
-  if (normalizedPath.startsWith("job/") && !normalizedPath.endsWith("/applicants")) {
+  // 1. Job Details: jobs/:jobId, job/:jobId or job/84
+  if (
+    (normalizedPath.startsWith("job/") || normalizedPath.startsWith("jobs/")) &&
+    !normalizedPath.endsWith("/applicants")
+  ) {
     const parts = normalizedPath.split("/");
-    const jobId = parts[1] || params.jobId;
+    const jobId = parts[1] || params.jobId || params.target_id || params.id;
     if (jobId) {
       navigationRef.navigate("JobDetails", { jobId });
       return;
     }
   }
 
-  // 2. Applicant List: job/:jobId/applicants
-  if (normalizedPath.startsWith("job/") && normalizedPath.endsWith("/applicants")) {
+  // 2. Applicant List / Applications: applications/:applicationId or job/:jobId/applicants
+  if (
+    normalizedPath.startsWith("application/") ||
+    normalizedPath.startsWith("applications/") ||
+    (normalizedPath.startsWith("job/") && normalizedPath.endsWith("/applicants"))
+  ) {
     const parts = normalizedPath.split("/");
-    const jobId = parts[1] || params.jobId;
-    if (jobId) {
-      navigationRef.navigate("ApplicantList", { jobId });
+    const targetId = parts[1] || params.applicationId || params.jobId || params.target_id;
+    if (targetId) {
+      navigationRef.navigate("ApplicantList", { jobId: targetId });
       return;
     }
   }
 
-  // 3. Employer Job Details: my-job/:jobId
-  if (normalizedPath.startsWith("my-job/")) {
+  // 3. Employer Job Details: my-job/:jobId or my-jobs/:jobId
+  if (normalizedPath.startsWith("my-job/") || normalizedPath.startsWith("my-jobs/")) {
     const parts = normalizedPath.split("/");
-    const jobId = parts[1] || params.jobId;
+    const jobId = parts[1] || params.jobId || params.target_id;
     if (jobId) {
       navigationRef.navigate("MyJobDetails", { jobId });
       return;
@@ -155,9 +129,9 @@ const executeNavigation = (path, params = {}) => {
     return;
   }
 
-  // 6. Complete Profile (Chef / Employer)
-  if (normalizedPath.startsWith("complete-profile")) {
-    if (normalizedPath.includes("employer")) {
+  // 6. Complete Profile (Chef / Employer / Jobseeker)
+  if (normalizedPath.startsWith("complete-profile") || normalizedPath === "profile_completion") {
+    if (normalizedPath.includes("employer") || params.role === "employer") {
       navigationRef.navigate("EmployerCompleteProfile");
     } else {
       navigationRef.navigate("ChefCompleteProfile");
@@ -180,7 +154,7 @@ const executeNavigation = (path, params = {}) => {
   // 9. Chef Profile: chef/:chefId or chefs/:chefId
   if (normalizedPath.startsWith("chef/") || normalizedPath.startsWith("chefs/")) {
     const parts = normalizedPath.split("/");
-    const chefId = parts[1] || params.chefId || params.id;
+    const chefId = parts[1] || params.chefId || params.target_id || params.id;
     if (chefId) {
       navigationRef.navigate("ChefProfileDetails", { chefId });
       return;
@@ -210,36 +184,59 @@ const executeNavigation = (path, params = {}) => {
 export const handleNotificationResponse = (response) => {
   if (!response) return;
 
-  const data = response.notification?.request?.content?.data || {};
+  const data = response.notification?.request?.content?.data || response.data || {};
   console.log("🔔 [Notification Response Handler Data]:", data);
 
-  // 1. Direct deep link URL (e.g. data.deep_link = "jobrito://job/84" or data.url = "jobrito://calendly")
+  const event = String(data.event || data.type || data.screen || "").toLowerCase();
+  const targetId = data.target_id || data.job_id || data.application_id || data.chef_id || data.user_id;
+
+  const navigateTarget = (screen, navParams = {}) => {
+    if (!navigationRef.isReady()) {
+      const checkReady = setInterval(() => {
+        if (navigationRef.isReady()) {
+          clearInterval(checkReady);
+          navigationRef.navigate(screen, navParams);
+        }
+      }, 250);
+      setTimeout(() => clearInterval(checkReady), 8000);
+    } else {
+      navigationRef.navigate(screen, navParams);
+    }
+  };
+
+  // 1. Events that carry extra payload data that a bare URL can't express (e.g. role, completeness, targetId)
+  if (event === "profile_completion" || event === "complete-profile") {
+    const roleLower = String(data.role || "").toLowerCase();
+    const screen = roleLower === "employer" ? "EmployerCompleteProfile" : "ChefCompleteProfile";
+    navigateTarget(screen, { completeness: data.completeness, userId: targetId });
+    return;
+  }
+
+  // 2. Generic deep link URL (covers jobs/{id}, applications/{id}, chefs/{id}, etc.)
   const deepLink = data.deep_link || data.url || data.link;
   if (deepLink) {
     handleDeepLinkUrl(deepLink);
     return;
   }
 
-  // 2. Direct screen + params payload (e.g. { screen: "JobDetails", params: { jobId: 84 } })
-  if (data.screen) {
-    if (!navigationRef.isReady()) {
-      const checkReady = setInterval(() => {
-        if (navigationRef.isReady()) {
-          clearInterval(checkReady);
-          navigationRef.navigate(data.screen, data.params || {});
-        }
-      }, 250);
-      setTimeout(() => clearInterval(checkReady), 8000);
-    } else {
-      navigationRef.navigate(data.screen, data.params || {});
-    }
+  // 3. Fallback event mapping if no deep_link string was sent
+  if (["job_created", "job_approved", "job_alert", "job_rejected", "job_detail"].includes(event) && targetId) {
+    navigateTarget("JobDetails", { jobId: targetId });
     return;
   }
 
-  // 3. Fallback: navigate to Notifications Screen
-  if (navigationRef.isReady()) {
-    navigationRef.navigate("EmployerNotifications");
+  if (["candidate_shortlisted", "employer_shortlisted_candidate", "application_detail"].includes(event) && targetId) {
+    navigateTarget("ApplicantList", { jobId: targetId });
+    return;
   }
+
+  if (["chef_approved", "chef_detail"].includes(event) && targetId) {
+    navigateTarget("ChefProfileDetails", { chefId: targetId });
+    return;
+  }
+
+  // 4. Default Fallback: navigate to Notifications Screen
+  navigateTarget("EmployerNotifications");
 };
 
 /**
