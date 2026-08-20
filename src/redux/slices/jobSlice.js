@@ -179,7 +179,15 @@ const jobSlice = createSlice({
       })
       .addCase(fetchJobDetails.fulfilled, (state, action) => {
         state.loading = false;
-        state.jobDetails = action.payload?.job || null;
+        const payload = action.payload || {};
+        state.jobDetails =
+          payload.job ||
+          payload.data ||
+          payload.job_details ||
+          payload.job_post ||
+          payload.post ||
+          payload.details ||
+          (payload.id ? payload : null);
         state.success = true;
       })
       .addCase(fetchJobDetails.rejected, (state, action) => {
@@ -205,23 +213,14 @@ const jobSlice = createSlice({
         const pendingJobs = Array.isArray(payload.pending_created_jobs)
           ? payload.pending_created_jobs
           : [];
-        const fallback =
-          !createdJobs.length && !pendingJobs.length
-            ? Array.isArray(payload)
-              ? payload
-              : Array.isArray(payload.jobs)
-                ? payload.jobs
-                : []
-            : [];
 
-        // Merge created + pending jobs; force status "pending" if backend ever omits it
+        // Strictly merge ONLY created + pending jobs (no jobs / data / applied_jobs fallback)
         const merged = [
           ...createdJobs,
           ...pendingJobs.map((job) => ({
             ...job,
             status: job.status || "pending",
           })),
-          ...fallback,
         ];
 
         // De-dupe by id

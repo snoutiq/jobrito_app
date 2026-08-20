@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Alert, Share, StyleSheet, Text, View, Linking, TouchableOpacity, Platform, BackHandler } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Alert, Share, StyleSheet, Text, View, Linking, TouchableOpacity, Platform, BackHandler, ActivityIndicator } from "react-native";
+import { getJobDetails } from "../../services/jobApi";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -32,7 +33,29 @@ const getStatusBadgeColors = (statusStr) => {
 export default function MyJobDetailsScreen({ navigation: navProp, route }) {
   const { t } = useTranslation();
   const navigation = navProp || useNavigation();
-  const job = route?.params?.job;
+  
+  console.log("📱 [MyJobDetailsScreen] Received Route Params:", JSON.stringify(route?.params, null, 2));
+
+  const jobId = route?.params?.jobId || route?.params?.job?.id;
+  const passedJob = route?.params?.job;
+
+  const [fetchedJob, setFetchedJob] = useState(null);
+  const [loadingJob, setLoadingJob] = useState(false);
+
+  useEffect(() => {
+    if (jobId && (!passedJob || !passedJob.description || !passedJob.location)) {
+      setLoadingJob(true);
+      getJobDetails(jobId)
+        .then((res) => {
+          const detail = res?.job || res?.data || (res?.id ? res : null);
+          if (detail) setFetchedJob(detail);
+        })
+        .catch((err) => console.warn("Failed to load job details:", err))
+        .finally(() => setLoadingJob(false));
+    }
+  }, [jobId, passedJob]);
+
+  const job = fetchedJob || passedJob;
 
   const handleBackPress = React.useCallback(() => {
     if (navigation && navigation.canGoBack && navigation.canGoBack()) {
@@ -61,7 +84,7 @@ export default function MyJobDetailsScreen({ navigation: navProp, route }) {
     }
   };
 
-  if (!job) {
+  if (loadingJob || !job) {
     return (
       <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         <View style={styles.headerBar}>
@@ -71,7 +94,10 @@ export default function MyJobDetailsScreen({ navigation: navProp, route }) {
           <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
         </View>
         <ScreenWrapper edges={["left", "right", "bottom"]}>
-          <Text style={styles.loading}>{t("jobDetails.loading", "Loading job details...")}</Text>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 40 }}>
+            <ActivityIndicator size="large" color="#153e69" />
+            <Text style={[styles.loading, { marginTop: 12 }]}>{t("jobDetails.loading", "Loading job details...")}</Text>
+          </View>
         </ScreenWrapper>
       </SafeAreaView>
     );

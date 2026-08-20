@@ -17,6 +17,9 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function NotificationDetailsScreen({ route, navigation }) {
   const { t } = useTranslation();
+  
+  console.log("📱 [NotificationDetailsScreen] Received Route Params:", JSON.stringify(route?.params, null, 2));
+
   const { notification, onMarkAsRead } = route.params || {};
 
   const activeRole = useSelector(
@@ -81,16 +84,27 @@ export default function NotificationDetailsScreen({ route, navigation }) {
   const hasApplicationId = !!(metadata.application_id || notification.application_id);
 
   const handleActionPress = () => {
-    const jobId = metadata.job_id || notification.job_id;
+    const jobId = metadata.job_id || notification.job_id || notification.target_id;
     const isEmp = String(activeRole || "").toLowerCase() === "employer";
+
+    const jobObj = {
+      id: jobId,
+      title: notification.title || "Job Opportunity",
+      description: notification.body || notification.message || notification.text || "",
+      company: metadata.company || notification.company || "",
+      location: metadata.location || notification.location || "",
+    };
 
     if (isEmp) {
       navigation.navigate("MyJobDetails", { 
         jobId: jobId, 
-        job: { id: jobId, title: notification.title || "Job Opportunity" } 
+        job: jobObj 
       });
     } else {
-      navigation.navigate("JobDetails", { jobId: jobId });
+      navigation.navigate("JobDetails", { 
+        jobId: jobId,
+        job: jobObj
+      });
     }
   };
 
@@ -220,8 +234,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#f8fafc", // matches background
-    borderBottomWidth: 0, // removed line divider
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(10, 5, 4, 0.08)",
   },
   backButton: {
     width: 36,

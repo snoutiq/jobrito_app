@@ -50,17 +50,7 @@ export default function PostJobScreen({ navigation, route }) {
 
   // When on PostJobScreen, the user is assumed to be an employer.
   const goToDashboard = () => {
-    const rootHome = activeRole === "employer" ? "EmployerHome" : "Tabs";
-    navigation.reset({
-      index: 1,
-      routes: [
-        { name: rootHome },
-        {
-          name: "MyJobs",
-          params: { activeTab: "pending" },
-        },
-      ],
-    });
+    navigation.navigate("MyJobs", { activeTab: "pending" });
   };
 
   const savedBusinessName = profile?.business_name || profile?.businessName || profile?.company || "";

@@ -19,7 +19,9 @@ import AppButton from "../../components/buttons/AppButton";
 import colors from "../../constants/colors";
 import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
+import { getJobDetails } from "../../services/jobApi";
 import CallbackModal from "../../components/common/CallbackModal";
+import { ActivityIndicator } from "react-native";
 
 const formatPostedTime = (postedDate, t) => {
   if (!postedDate) return t("jobDetails.recently", "Recently");
@@ -100,31 +102,67 @@ const getStatusBadgeColors = (statusStr) => {
 export default function JobDetailsScreen({ route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { jobDetails, loading, applyingJobId } = useSelector(
+
+  console.log("📱 [JobDetailsScreen] Received Route Params:", JSON.stringify(route?.params, null, 2));
+
+  const { feedJobs, myJobs, savedJobs, jobDetails, loading, applyingJobId } = useSelector(
     (state) => state.job,
+  );
+  const { submittedJobs } = useSelector(
+    (state) => state.employer,
   );
   const { history: applicationHistory, loading: applyLoading } = useSelector(
     (state) => state.application,
   );
-  const jobId = route?.params?.jobId;
+  const jobId = route?.params?.jobId || route?.params?.job?.id;
   const passedJob = route?.params?.job;
   const [showCallModal, setShowCallModal] = useState(false);
-
-  const job = useMemo(() => {
-    if (passedJob && String(passedJob.id) === String(jobId)) {
-      return passedJob;
-    }
-    if (!jobDetails || String(jobDetails.id) !== String(jobId)) {
-      return null;
-    }
-    return jobDetails;
-  }, [passedJob, jobDetails, jobId]);
+  const [directJob, setDirectJob] = useState(null);
+  const [directLoading, setDirectLoading] = useState(false);
 
   useEffect(() => {
-    if (jobId && !passedJob) {
+    if (jobId) {
       dispatch(fetchJobDetails(jobId));
+      if (!passedJob || !passedJob.description) {
+        setDirectLoading(true);
+        getJobDetails(jobId)
+          .then((res) => {
+            const detail =
+              res?.job ||
+              res?.data ||
+              res?.job_details ||
+              res?.job_post ||
+              res?.post ||
+              res?.details ||
+              (res?.id ? res : null);
+            if (detail) setDirectJob(detail);
+          })
+          .catch(() => null)
+          .finally(() => setDirectLoading(false));
+      }
     }
   }, [dispatch, jobId, passedJob]);
+
+  const job = useMemo(() => {
+    const targetId = String(jobId || passedJob?.id || "");
+    if (directJob && String(directJob.id) === targetId) return directJob;
+    if (jobDetails && String(jobDetails.id) === targetId) return jobDetails;
+
+    // Search in loaded Redux feed & myJobs
+    const foundFeed = (feedJobs || []).find((j) => String(j.id) === targetId);
+    if (foundFeed) return foundFeed;
+
+    const foundMy = (myJobs || []).find((j) => String(j.id) === targetId);
+    if (foundMy) return foundMy;
+
+    const foundSub = (submittedJobs || []).find((j) => String(j.id) === targetId);
+    if (foundSub) return foundSub;
+
+    const foundSaved = (savedJobs || []).find((j) => String(j.id) === targetId);
+    if (foundSaved) return foundSaved;
+
+    return passedJob || directJob || jobDetails || null;
+  }, [passedJob, jobDetails, directJob, feedJobs, myJobs, submittedJobs, savedJobs, jobId]);
 
   const handleShare = async () => {
     try {
@@ -165,11 +203,22 @@ export default function JobDetailsScreen({ route }) {
 
   if (!job) {
     return (
-      <ScreenWrapper edges={["left", "right", "bottom"]}>
-        <Text style={styles.loading}>
-          {t("jobDetails.loading", "Loading job details...")}
-        </Text>
-      </ScreenWrapper>
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#0a0504" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+        </View>
+        <ScreenWrapper edges={["left", "right", "bottom"]}>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 40 }}>
+            <ActivityIndicator size="large" color="#153e69" />
+            <Text style={[styles.loading, { marginTop: 12 }]}>
+              {t("jobDetails.loading", "Loading job details...")}
+            </Text>
+          </View>
+        </ScreenWrapper>
+      </SafeAreaView>
     );
   }
 
