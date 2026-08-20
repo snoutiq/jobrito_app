@@ -336,7 +336,9 @@ const isIdempotentMethod = (config) => {
  * @returns {boolean}
  */
 const isRetryableError = (error) => {
-  if (!error) return false;
+  if (!error || axios.isCancel(error) || error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+    return false;
+  }
 
   const config = error.config;
   if (!config || !isIdempotentMethod(config)) {

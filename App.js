@@ -13,7 +13,7 @@ import store from "./src/redux/store";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { navigationRef } from "./src/navigation/navigationRef";
 import { linkingConfig, handleNotificationResponse, handleDeepLinkUrl } from "./src/services/deepLinking";
-import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image, Linking } from "react-native";
+import { Text, TextInput, Modal, View, TouchableOpacity, StyleSheet, Image, Linking, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -133,7 +133,8 @@ export default function App() {
         console.warn("Error checking notification permissions:", err);
       }
     }
-    const timer = setTimeout(checkPermission, 1500);
+    // Wait 4.5s so SplashScreen (video duration ~3.5s) completes before prompting modal
+    const timer = setTimeout(checkPermission, 4500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -205,6 +206,25 @@ export default function App() {
     }
   }, []);
 
+  const modalAnim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (showModal) {
+      Animated.spring(modalAnim, {
+        toValue: 1,
+        tension: 65,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(modalAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showModal, modalAnim]);
+
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, backgroundColor: "#ffffff", alignItems: "center", justifyContent: "center" }}>
@@ -228,11 +248,38 @@ export default function App() {
             <Modal
               visible={showModal}
               transparent={true}
-              animationType="fade"
+              animationType="none"
               onRequestClose={() => setShowModal(false)}
             >
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContainer}>
+              <Animated.View
+                style={[
+                  styles.modalOverlay,
+                  {
+                    opacity: modalAnim,
+                  },
+                ]}
+              >
+                <Animated.View
+                  style={[
+                    styles.modalContainer,
+                    {
+                      transform: [
+                        {
+                          scale: modalAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.85, 1],
+                          }),
+                        },
+                        {
+                          translateY: modalAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [24, 0],
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                >
                   <View style={styles.bellIconCircle}>
                     <Ionicons name="notifications-outline" size={32} color="#153e69" />
                   </View>
@@ -274,8 +321,8 @@ export default function App() {
                   >
                     <Text style={styles.skipButtonText}>Maybe Later</Text>
                   </TouchableOpacity>
-                </View>
-              </View>
+                </Animated.View>
+              </Animated.View>
             </Modal>
           </NavigationContainer>
         </Provider>
