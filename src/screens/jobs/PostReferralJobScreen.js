@@ -455,43 +455,43 @@ export default function PostReferralJobScreen({ navigation, route }) {
       style={styles.container}
       edges={["top", "left", "right", "bottom"]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-        style={{ flex: 1 }}
-      >
-        {/* Custom Header */}
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
+      {/* Custom Header — Fixed outside KeyboardAvoidingView */}
+      <View style={styles.header}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => {
+              if (step > 1 && step < 4) {
+                setStep(step - 1);
+              } else {
+                navigation.goBack();
+              }
+            }}
+            style={styles.backBtn}
+          >
+            <Ionicons name="arrow-back" size={24} color="#153e69" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {t("postJob.title", "Post a Referral Job")}
+          </Text>
+          <View style={styles.headerRight}>
             <TouchableOpacity
-              onPress={() => {
-                if (step > 1 && step < 4) {
-                  setStep(step - 1);
-                } else {
-                  navigation.goBack();
-                }
-              }}
-              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              style={{ padding: 4 }}
+              activeOpacity={0.8}
             >
-              <Ionicons name="arrow-back" size={24} color="#153e69" />
+              <Ionicons name="close" size={28} color="#f57f20" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
-              {t("postJob.title", "Post a Referral Job")}
-            </Text>
-            <View style={styles.headerRight}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={{ padding: 4 }}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="close" size={28} color="#f57f20" />
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
+      </View>
 
-        {step < 4 && renderProgress()}
+      {step < 4 && renderProgress()}
 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        style={{ flex: 1 }}
+      >
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}

@@ -295,18 +295,21 @@ export default function MyJobsScreen({ navigation, route }) {
               {job.company ? (
                 <Text style={styles.jobCompanyText}>{job.company}</Text>
               ) : null}
-              <Text style={styles.jobMetaText}>
-                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
-                {job.location || "N/A"} • {jobDate}
-              </Text>
+              <View style={styles.jobLocationDateRow}>
+                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 2 }} />
+                <Text numberOfLines={1} style={styles.jobMetaLocationText}>
+                  {job.location || "N/A"}
+                </Text>
+                {Boolean(jobDate) && (
+                  <Text numberOfLines={1} style={styles.jobMetaDateText}>
+                    {" · "}{jobDate}
+                  </Text>
+                )}
+              </View>
             </View>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View style={styles.savedCountBadge}>
-              <Ionicons name="bookmark" size={11} color="#1b8755" style={{ marginRight: 3 }} />
-              <Text style={styles.savedCountBadgeText}>{savedCount} Saved</Text>
-            </View>
             <View
               style={[
                 styles.statusBadge,
@@ -332,6 +335,9 @@ export default function MyJobsScreen({ navigation, route }) {
             {t("openings_count", { count: jobOpenings })}
             {jobType ? ` · ${jobType}` : ""}
             {job.salary ? ` · ${job.salary}` : ""}
+            {savedCount > 0
+              ? ` · ${t("jobSavedByCount", "Job saved by {{count}} applicants", { count: savedCount })}`
+              : ""}
           </Text>
         </View>
 
@@ -374,25 +380,7 @@ export default function MyJobsScreen({ navigation, route }) {
         )}
         */}
 
-        {activeTab === "pending" && (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.pendingInfoCard}>
-              <Ionicons
-                name="information-circle-outline"
-                size={18}
-                color="#f2c879"
-                style={{ marginRight: 8 }}
-              />
-              <Text style={styles.pendingInfoText}>
-                {t(
-                  "pendingReviewMessage",
-                  "This job is currently under review by our admin team.",
-                )}
-              </Text>
-            </View>
-          </>
-        )}
+
 
         <View style={styles.actionsRow}>
           {isActive && !isReferral && (
@@ -542,6 +530,20 @@ export default function MyJobsScreen({ navigation, route }) {
 
           {activeTab === "pending" && (
             <>
+              <View style={styles.tabSubheadingBanner}>
+                <Ionicons
+                  name="information-circle"
+                  size={18}
+                  color="#f57f20"
+                  style={{ marginRight: 8, marginTop: 1 }}
+                />
+                <Text style={styles.tabSubheadingText}>
+                  {t(
+                    "pendingReviewSubheading",
+                    "These job postings are currently being reviewed by admin and will be published in feed shortly."
+                  )}
+                </Text>
+              </View>
               {pendingJobs.length === 0 ? (
                 <EmptyState
                   message={t("noPendingJobs", "No pending jobs found")}
@@ -728,21 +730,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 12,
   },
-  savedCountBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(27, 135, 85, 0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(27, 135, 85, 0.3)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  savedCountBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#1b8755",
-  },
   referralBadgeText: {
     fontSize: 10,
     fontWeight: "700",
@@ -821,44 +808,65 @@ const styles = StyleSheet.create({
   viewTalentBtn: {
     flex: 1.5,
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 10,
-    height: 44,
+    borderRadius: 8,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
   viewTalentBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#ffffff",
   },
   closeJobBtn: {
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 10,
-    height: 44,
+    borderRadius: 8,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#ffffff",
   },
   closeJobBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "rgba(10, 5, 4, 0.6)",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
-  pendingInfoCard: {
+  tabSubheadingBanner: {
     flexDirection: "row",
-    backgroundColor: "rgba(242, 200, 121, 0.12)",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 16,
+    backgroundColor: "rgba(245, 127, 32, 0.08)",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "flex-start",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(245, 127, 32, 0.2)",
   },
-  pendingInfoText: {
+  tabSubheadingText: {
     flex: 1,
-    fontSize: 11,
-    color: "#060401",
-    lineHeight: 16,
+    fontSize: 12,
+    color: "#0a0504",
+    lineHeight: 17,
+    fontWeight: "500",
+  },
+  jobLocationDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+    maxWidth: "100%",
+  },
+  jobMetaLocationText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "500",
+    flexShrink: 1,
+  },
+  jobMetaDateText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "500",
   },
   emptyContainer: {
     alignItems: "center",

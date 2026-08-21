@@ -566,22 +566,22 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       <View style={styles.stickyFooter}>
         {/* Shortlist (Accept) Button */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnAccept, isShortlisted && styles.btnDisabled]}
+          style={[styles.btn, styles.btnAccept, (isShortlisted || isRejected) && styles.btnDisabled]}
           onPress={handleHire}
           activeOpacity={0.8}
-          disabled={isShortlisted}
+          disabled={isShortlisted || isRejected}
         >
-          <Ionicons name="heart" size={28} color={isShortlisted ? "#a0a0a0" : "#4CAF50"} />
+          <Ionicons name="heart" size={28} color={(isShortlisted || isRejected) ? "#a0a0a0" : "#4CAF50"} />
         </TouchableOpacity>
 
         {/* Call (Contacted) Button */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnCall, isContacted && styles.btnDisabled]}
+          style={[styles.btn, styles.btnCall, (isContacted || isRejected) && styles.btnDisabled]}
           onPress={handleCall}
           activeOpacity={0.7}
-          disabled={isContacted}
+          disabled={isContacted || isRejected}
         >
-          <Ionicons name="call" size={28} color={isContacted ? "#a0a0a0" : "#153e69"} />
+          <Ionicons name="call" size={28} color={(isContacted || isRejected) ? "#a0a0a0" : "#153e69"} />
         </TouchableOpacity>
 
         {/* Reject Button */}

@@ -574,6 +574,8 @@
   "viewTalent": "View Talent",
   "hiringProgressCount": "HIRING PROGRESS ({{count}} TALENT APPLICATIONS RECEIVED)",
   "pendingReviewMessage": "This job posting is currently being reviewed by admin and will be published in feed shortly.",
+  "pendingReviewSubheading": "These job postings are currently being reviewed by admin and will be published in feed shortly.",
+  "jobSavedByCount": "Job saved by {{count}} applicants",
   "deletePosting": "Delete Posting",
   "reopen": "Reopen",
   "applicantProfile": "Applicant Profile",

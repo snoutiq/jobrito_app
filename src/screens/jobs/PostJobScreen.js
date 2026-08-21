@@ -462,29 +462,30 @@ export default function PostJobScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
+      {/* Top Header — Fixed outside KeyboardAvoidingView */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            if (step > 1 && step < 4) {
+              setStep(step - 1);
+            } else {
+              navigation.goBack();
+            }
+          }}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        </TouchableOpacity>
+
+        {step < 4 && renderStepPills()}
+        <View style={{ width: 32 }} />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         style={{ flex: 1 }}
       >
-        {/* Top Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => {
-              if (step > 1 && step < 4) {
-                setStep(step - 1);
-              } else {
-                navigation.goBack();
-              }
-            }}
-            style={styles.backBtn}
-          >
-            <Ionicons name="arrow-back" size={24} color="#0f172a" />
-          </TouchableOpacity>
-
-          {step < 4 && renderStepPills()}
-          <View style={{ width: 32 }} />
-        </View>
-
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
