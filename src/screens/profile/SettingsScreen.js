@@ -168,27 +168,37 @@ export default function SettingsScreen({ navigation }) {
   const countryName = rawLocation.includes(",")
     ? rawLocation.split(",").pop().trim()
     : rawLocation;
-  const opLocations =
+  const primaryBizLoc = profile?.business_location || profile?.employer_profile?.business_location || profile?.location || "";
+  const primaryCityName = primaryBizLoc.includes(",") ? primaryBizLoc.split(",")[0].trim() : primaryBizLoc.trim();
+
+  let allCities = [];
+  if (primaryCityName) {
+    allCities.push(primaryCityName);
+  }
+
+  let opLocations =
     profile?.employer_profile?.operational_locations ||
     profile?.operational_locations ||
     [];
 
-  let cityOnly = "";
-  if (Array.isArray(opLocations) && opLocations.length > 0) {
-    cityOnly = opLocations
-      .map((loc) => (typeof loc === "string" ? loc.split(",")[0].trim() : ""))
-      .filter(Boolean)
-      .join(" | ");
+  if (typeof opLocations === "string") {
+    try {
+      opLocations = JSON.parse(opLocations);
+    } catch (e) {
+      opLocations = [opLocations];
+    }
   }
-  if (!cityOnly) {
-    const rawCity =
-      profile?.employer_profile?.city ||
-      profile?.city ||
-      profile?.business_location ||
-      profile?.location ||
-      "";
-    cityOnly = rawCity.includes(",") ? rawCity.split(",")[0].trim() : rawCity;
+
+  if (Array.isArray(opLocations)) {
+    opLocations.forEach((loc) => {
+      const cityItem = typeof loc === "string" ? loc.split(",")[0].trim() : (loc?.city || "");
+      if (cityItem && !allCities.includes(cityItem)) {
+        allCities.push(cityItem);
+      }
+    });
   }
+
+  const cityOnly = allCities.join(" | ");
 
   const getLogoSource = () => {
     const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;

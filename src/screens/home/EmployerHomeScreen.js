@@ -158,6 +158,13 @@ export default function EmployerHomeScreen({ navigation }) {
   const contactedCount = metrics?.contacted ?? 0;
   const activeJobsCount = metrics?.active_jobs_count ?? 0;
   const pendingJobsCount = metrics?.pending_jobs_count ?? 0;
+  const closedJobsCount =
+    metrics?.total_closed_jobs ??
+    metrics?.closed_jobs_count ??
+    metrics?.closed_jobs ??
+    metrics?.closed_count ??
+    metrics?.closed ??
+    0;
   const totalSavedCount =
     metrics?.total_saved_count ??
     metrics?.saved_count ??
@@ -274,7 +281,7 @@ export default function EmployerHomeScreen({ navigation }) {
 
             <View style={styles.statusColumnItem}>
               <Text style={[styles.statusColumnValue, { color: "#64748b" }]}>
-                {metrics?.closed_jobs_count ?? metrics?.closed_count ?? metrics?.closed ?? 0}
+                {closedJobsCount}
               </Text>
               <Text style={styles.statusColumnLabel}>{t("closed", "Closed")}</Text>
               <Text style={styles.statusColumnSubLabel}>{t("completed", "Completed")}</Text>

@@ -646,8 +646,6 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                           setPrimaryState("");
                           setPrimaryCity("");
                         }}
-                        searchable
-                        searchPlaceholder={t("searchCountry", "Search Country...")}
                       />
                     </>
                   )}
