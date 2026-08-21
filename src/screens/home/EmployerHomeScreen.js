@@ -106,12 +106,33 @@ export default function EmployerHomeScreen({ navigation }) {
     profile?.full_name ||
     profile?.name ||
     "";
-  const businessName =
+  const rawBusiness =
     profile?.business_name ||
     profile?.businessName ||
     profile?.company ||
     profile?.employer_profile?.business_name ||
     "";
+  const cleanBusiness = rawBusiness.includes(",")
+    ? rawBusiness.split(",")[0].trim()
+    : rawBusiness;
+  const businessName =
+    cleanBusiness.length > 18 ? `${cleanBusiness.slice(0, 18).trim()}...` : cleanBusiness;
+
+  const rawLocation =
+    profile?.country ||
+    profile?.employer_profile?.country ||
+    profile?.primary_location ||
+    profile?.location ||
+    profile?.address ||
+    profile?.city ||
+    (rawBusiness.includes(",") ? rawBusiness.split(",").pop().trim() : "") ||
+    safeJobsArray?.[0]?.location ||
+    safeJobsArray?.[0]?.country ||
+    "";
+  const countryName = rawLocation.includes(",")
+    ? rawLocation.split(",").pop().trim()
+    : rawLocation;
+
   const mobileNumber =
     profile?.mobile_number || profile?.phone || profile?.contact_number || "";
 
@@ -165,8 +186,12 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
           )}
           <View style={styles.headerInfo}>
-            <Text style={styles.businessName}>{contactName || "Employer"}</Text>
-            <Text style={styles.contactText}>{businessName || mobileNumber || "N/A"}</Text>
+            <Text style={styles.businessName} numberOfLines={1}>
+              {[businessName, countryName].filter(Boolean).join(", ") || businessName || contactName || "Employer"}
+            </Text>
+            <Text style={styles.contactText} numberOfLines={1}>
+              {contactName ? `${contactName} • ${t("employer", "Employer")}` : t("employer", "Employer")}
+            </Text>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -193,38 +218,36 @@ export default function EmployerHomeScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />}
       >
-        <View
-          style={styles.mainStatsCard}
-        >
+        <Text style={styles.dashboardTitle}>{t("hiringDashboard", "HIRING DASHBOARD")}</Text>
+
+        <View style={styles.mainStatsCard}>
           <View style={styles.statsCardHeader}>
-            <View>
-              <Text style={styles.statsCardLabel}>{t("allTalentApplied", "All Talent Applied")}</Text>
-              <Text style={styles.statsCardValue}>{totalApplicants}</Text>
-            </View>
-            <View style={[styles.statsIconWrapper, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-              <Ionicons name="people" size={24} color={PRIMARY_GREEN} />
-            </View>
+            <Text style={styles.statsCardLabel}>{t("talentApplications", "TALENT APPLICATIONS")}</Text>
           </View>
 
           <View style={styles.statsSubRow}>
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>{shortlistedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("shortlisted")}</Text>
+              <Text style={styles.subStatLabel}>{t("shortlisted", "Shortlisted")}</Text>
+              <Text style={styles.subStatSubLabel}>{t("selected", "Selected")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#f57f20" }]}>{rejectedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("rejected")}</Text>
+              <Text style={styles.subStatLabel}>{t("rejected", "Rejected")}</Text>
+              <Text style={styles.subStatSubLabel}>{t("declined", "Declined")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#0a0504" }]}>{contactedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("contacted")}</Text>
+              <Text style={styles.subStatLabel}>{t("contacted", "Contacted")}</Text>
+              <Text style={styles.subStatSubLabel}>{t("connected", "Connected")}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#1b8755" }]}>{totalSavedCount}</Text>
               <Text style={styles.subStatLabel}>{t("saved", "Saved")}</Text>
+              <Text style={styles.subStatSubLabel}>{t("bookmarked", "Bookmarked")}</Text>
             </View>
           </View>
         </View>
@@ -233,39 +256,35 @@ export default function EmployerHomeScreen({ navigation }) {
           <Text style={styles.statusCardTitle}>{t("jobStatus", "JOB STATUS")}</Text>
           
           <View style={styles.statusRow}>
-            <TouchableOpacity 
-              style={styles.statusItem} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("MyJobs", { initialTab: "pending" })}
-            >
-              <View style={[styles.smallStatIconBox, { backgroundColor: "rgba(242, 200, 121, 0.12)" }]}>
-                <Ionicons name="hourglass-outline" size={20} color="#f2c879" />
-              </View>
-              <View style={styles.statusTextContainer}>
-                <Text style={styles.statusLabel}>{t("pendingJobs", "Pending Jobs")}</Text>
-                <Text style={styles.statusValue}>{pendingJobsCount}</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.statusColumnItem}>
+              <Text style={[styles.statusColumnValue, { color: "#e65100" }]}>{pendingJobsCount}</Text>
+              <Text style={styles.statusColumnLabel}>{t("submitted", "Submitted")}</Text>
+              <Text style={styles.statusColumnSubLabel}>{t("forApproval", "For Approval")}</Text>
+            </View>
 
             <View style={styles.verticalStatusDivider} />
 
-            <TouchableOpacity 
-              style={styles.statusItem} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("MyJobs", { initialTab: "active" })}
-            >
-              <View style={[styles.smallStatIconBox, { backgroundColor: "#EEF4FF" }]}>
-                <Ionicons name="briefcase-outline" size={20} color="#153e69" />
-              </View>
-              <View style={styles.statusTextContainer}>
-                <Text style={styles.statusLabel}>{t("activeJobs", "Active Jobs")}</Text>
-                <Text style={styles.statusValue}>{activeJobsCount}</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.statusColumnItem}>
+              <Text style={[styles.statusColumnValue, { color: PRIMARY_GREEN }]}>{activeJobsCount}</Text>
+              <Text style={styles.statusColumnLabel}>{t("active", "Active")}</Text>
+              <Text style={styles.statusColumnSubLabel}>{t("published", "Published")}</Text>
+            </View>
+
+            <View style={styles.verticalStatusDivider} />
+
+            <View style={styles.statusColumnItem}>
+              <Text style={[styles.statusColumnValue, { color: "#64748b" }]}>
+                {metrics?.closed_jobs_count ?? metrics?.closed_count ?? metrics?.closed ?? 0}
+              </Text>
+              <Text style={styles.statusColumnLabel}>{t("closed", "Closed")}</Text>
+              <Text style={styles.statusColumnSubLabel}>{t("completed", "Completed")}</Text>
+            </View>
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>{t("actions")}</Text>
+        <Text style={[styles.dashboardTitle, { marginTop: 20, marginBottom: 12 }]}>
+          {t("quickActions", "QUICK ACTIONS")}
+        </Text>
 
         <View style={styles.actionsContainer}>
           <TouchableOpacity
@@ -277,8 +296,8 @@ export default function EmployerHomeScreen({ navigation }) {
               <Ionicons name="add-circle" size={26} color={PRIMARY_GREEN} />
             </View>
             <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{t("postJobAction")}</Text>
-              <Text style={styles.actionSubtitle}>{t("postJobActionSubtitle")}</Text>
+              <Text style={styles.actionTitle}>{t("postAJob", "Post a Job")}</Text>
+              <Text style={styles.actionSubtitle}>{t("createOpeningSubtitle", "Create a new opening for your team")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
@@ -292,8 +311,8 @@ export default function EmployerHomeScreen({ navigation }) {
               <Ionicons name="briefcase" size={22} color="rgba(10, 5, 4, 0.6)" />
             </View>
             <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{t("myJobs")}</Text>
-              <Text style={styles.actionSubtitle}>{t("myJobsSubtitle")}</Text>
+              <Text style={styles.actionTitle}>{t("myJobs", "My Jobs")}</Text>
+              <Text style={styles.actionSubtitle}>{t("manageJobPostingsSubtitle", "Manage your job postings")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
@@ -308,7 +327,7 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
             <View style={styles.actionDetails}>
               <Text style={styles.actionTitle}>{t("chefConnect", "Chef Connect")}</Text>
-              <Text style={styles.actionSubtitle}>{t("chefConnectSubtitle", "Discover and connect with talented chefs")}</Text>
+              <Text style={styles.actionSubtitle}>{t("findChefsSubtitle", "Find and connect with chefs & consultants")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
@@ -421,7 +440,7 @@ const styles = StyleSheet.create({
   statsSubRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 18,
+    marginTop: 12,
   },
   subStatItem: {
     flex: 1,
@@ -431,10 +450,44 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
   },
-  subStatLabel: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
+  dashboardTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0a0504",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 12,
     marginTop: 4,
+  },
+  subStatSubLabel: {
+    fontSize: 11,
+    fontWeight: "500",
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
+    textAlign: "center",
+  },
+  statusColumnItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statusColumnValue: {
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  statusColumnLabel: {
+    fontSize: 12,
+    color: "#0a0504",
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  statusColumnSubLabel: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
+    textAlign: "center",
   },
   verticalDivider: {
     width: 1,
