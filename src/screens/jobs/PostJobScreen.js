@@ -35,7 +35,7 @@ export default function PostJobScreen({ navigation, route }) {
 
   const handleInputFocus = (e, fieldName) => {
     if (fieldName) setActiveField(fieldName);
-    if (fieldName === "jobDescription" || fieldName === "salaryMin" || fieldName === "salaryMax" || fieldName === "openPositions") {
+    if (fieldName === "customRole" || fieldName === "jobDescription" || fieldName === "salaryMin" || fieldName === "salaryMax" || fieldName === "openPositions") {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 120);
@@ -45,7 +45,11 @@ export default function PostJobScreen({ navigation, route }) {
   };
 
   const goToDashboard = () => {
-    navigation.navigate("MyJobs", { activeTab: "pending" });
+    if (typeof navigation.replace === "function") {
+      navigation.replace("MyJobs", { activeTab: "pending" });
+    } else {
+      navigation.navigate("MyJobs", { activeTab: "pending" });
+    }
   };
 
   // Helper to extract saved registration locations
@@ -103,11 +107,8 @@ export default function PostJobScreen({ navigation, route }) {
     profile?.employer_profile?.industry_segment ||
     "Café";
 
-  // Job Category & Role (Optional for now)
-  const [jobCategory, setJobCategory] = useState("Kitchen, Service, Bar & Beverage, Café");
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-
-  const [jobRole, setJobRole] = useState("Sous Chef");
+  const [jobRole, setJobRole] = useState("");
+  const [customRole, setCustomRole] = useState("");
   const [showRoleModal, setShowRoleModal] = useState(false);
 
   // Step 2: Salary & Experience & Description
@@ -126,6 +127,9 @@ export default function PostJobScreen({ navigation, route }) {
   const [jobDescription, setJobDescription] = useState("");
   const [activeField, setActiveField] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Computed effective job role
+  const effectiveJobRole = jobRole === "Other" ? (customRole.trim() || "Other") : jobRole;
 
   // Initialize selectedLocation on profile load
   useEffect(() => {
@@ -185,14 +189,84 @@ export default function PostJobScreen({ navigation, route }) {
   ];
 
   const roleOptions = [
-    "Sous Chef",
+    "Executive Chef",
     "Head Chef",
-    "Line Cook",
-    "Barista",
-    "Waiter / Server",
-    "Restaurant Manager",
+    "Sous Chef",
+    "Chef de Partie",
+    "Commis Chef",
     "Pastry Chef",
+    "Bakery Chef",
+    "Pizza Chef",
+    "Grill Chef",
+    "Indian Chef",
+    "Arabic Chef",
+    "Chinese Chef",
+    "Tandoor Chef",
     "Kitchen Helper",
+    "Kitchen Steward",
+    "Dishwasher",
+    "Butcher",
+    "Sandwich Maker",
+    "Juice Maker",
+    "Restaurant Manager",
+    "Assistant Restaurant Manager",
+    "Café Manager",
+    "Outlet Manager",
+    "Floor Supervisor",
+    "Captain",
+    "Steward",
+    "Senior Steward",
+    "Host",
+    "Hostess",
+    "Cashier",
+    "Food Runner",
+    "Busser",
+    "Order Taker",
+    "Drive-Thru Staff",
+    "Barista",
+    "Bartender",
+    "Mixologist",
+    "Bar Supervisor",
+    "Bar Manager",
+    "Beverage Manager",
+    "Hotel Manager",
+    "Front Office Manager",
+    "Receptionist",
+    "Guest Relations Executive",
+    "Bell Boy",
+    "Concierge",
+    "Reservation Agent",
+    "Night Auditor",
+    "Housekeeping Supervisor",
+    "Housekeeping Staff",
+    "Laundry Attendant",
+    "Room Attendant",
+    "Operations Manager",
+    "Area Manager",
+    "General Manager",
+    "HR Executive",
+    "Recruitment Coordinator",
+    "Accountant",
+    "Purchase Manager",
+    "Store Keeper",
+    "Inventory Controller",
+    "Admin Executive",
+    "Delivery Driver",
+    "Bike Rider",
+    "Dispatch Executive",
+    "Warehouse Assistant",
+    "Logistics Coordinator",
+    "Catering Manager",
+    "Banquet Supervisor",
+    "Event Coordinator",
+    "Banquet Staff",
+    "Cleaner",
+    "Maintenance Technician",
+    "Electrician",
+    "Plumber",
+    "AC Technician",
+    "Security Guard",
+    "Other",
   ];
 
   const currencyOptions = ["SAR", "INR", "USD", "AED"];
@@ -242,6 +316,14 @@ export default function PostJobScreen({ navigation, route }) {
       Alert.alert(t("error", "Error"), t("pleaseSelectLocation", "Please select job location."));
       return;
     }
+    if (!jobRole) {
+      Alert.alert(t("error", "Error"), t("pleaseSelectJobRole", "Please select a job role."));
+      return;
+    }
+    if (jobRole === "Other" && !customRole.trim()) {
+      Alert.alert(t("error", "Error"), t("pleaseEnterCustomRole", "Please specify custom job role."));
+      return;
+    }
     setStep(2);
   };
 
@@ -280,10 +362,11 @@ export default function PostJobScreen({ navigation, route }) {
       ? `${salaryCurrency} ${salaryMin}+`
       : "";
 
+    const finalRole = jobRole === "Other" ? (customRole.trim() || "Other") : jobRole;
+
     const jobData = {
-      title: jobRole || jobCategory || "Hospitality Staff",
-      job_role: jobRole,
-      job_category: jobCategory,
+      title: finalRole || "Hospitality Staff",
+      job_role: finalRole,
       industry_segment: businessType,
       company: profile?.business_name || profile?.businessName || profile?.company || "My Company",
       location: cleanLoc,
@@ -459,35 +542,15 @@ export default function PostJobScreen({ navigation, route }) {
                 </Text>
               </View>
 
-              {/* JOB CATEGORY */}
-              <Text style={styles.sectionHeaderUpper}>{t("jobCategoryUpper", "JOB CATEGORY")}</Text>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("selectJobCategory", "Select the job category")}</Text>
-                <ModalPickerTrigger
-                  onPress={() => setShowCategoryModal(true)}
-                  label={jobCategory}
-                  placeholder={t("selectCategoryPlaceholder", "Choose Job Category")}
-                  isOpen={showCategoryModal}
-                  style={styles.inputWrapper}
-                />
-                <Text style={styles.exampleHint}>e.g. Kitchen, Service, Bar & Beverage, Café</Text>
-                <ModalPicker
-                  visible={showCategoryModal}
-                  onClose={() => setShowCategoryModal(false)}
-                  title={t("selectJobCategory", "Select the job category")}
-                  options={categoryOptions}
-                  selectedValue={jobCategory}
-                  onSelect={(val) => setJobCategory(val)}
-                />
-              </View>
-
               {/* JOB ROLE */}
               <Text style={styles.sectionHeaderUpper}>{t("jobRoleUpper", "JOB ROLE")}</Text>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("selectJobRole", "Select or search for the job role")}</Text>
+                <Text style={styles.inputLabel}>
+                  {t("selectJobRole", "Select or search for the job role")}<Text style={styles.required}>*</Text>
+                </Text>
                 <ModalPickerTrigger
                   onPress={() => setShowRoleModal(true)}
-                  label={jobRole}
+                  label={jobRole === "Other" && customRole ? `Other: ${customRole}` : jobRole}
                   placeholder={t("selectRolePlaceholder", "Choose Job Role")}
                   isOpen={showRoleModal}
                   style={styles.inputWrapper}
@@ -499,10 +562,45 @@ export default function PostJobScreen({ navigation, route }) {
                   title={t("selectJobRole", "Select or search for the job role")}
                   options={roleOptions}
                   selectedValue={jobRole}
-                  onSelect={(val) => setJobRole(val)}
+                  onSelect={(val) => {
+                    setJobRole(val);
+                    if (val !== "Other") {
+                      setCustomRole("");
+                    } else {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 250);
+                    }
+                  }}
                   searchable
                 />
               </View>
+
+              {/* Custom Job Role Input if "Other" is selected */}
+              {jobRole === "Other" && (
+                <View style={[styles.inputGroup, { marginTop: 4 }]}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text style={styles.inputLabel}>
+                      {t("specifyJobRole", "Specify Job Role")}<Text style={styles.required}>*</Text>
+                    </Text>
+                    <Text style={{ fontSize: 12, color: customRole.length >= 20 ? "#ef4444" : "#64748b" }}>
+                      {customRole.length}/20
+                    </Text>
+                  </View>
+                  <View style={[styles.inputWrapper, activeField === "customRole" && styles.inputWrapperActive]}>
+                    <TextInput
+                      value={customRole}
+                      onChangeText={setCustomRole}
+                      placeholder={t("enterCustomRolePlaceholder", "e.g. Executive Barista")}
+                      placeholderTextColor="#94a3b8"
+                      maxLength={20}
+                      style={styles.textInput}
+                      onFocus={(e) => handleInputFocus(e, "customRole")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
+                </View>
+              )}
 
               {/* Next Button */}
               <TouchableOpacity
@@ -512,6 +610,9 @@ export default function PostJobScreen({ navigation, route }) {
               >
                 <Text style={styles.primaryButtonText}>{t("next", "Next")} →</Text>
               </TouchableOpacity>
+
+              {/* Bottom Spacer for smooth keyboard scroll */}
+              <View style={{ height: 220 }} />
             </View>
           )}
 
@@ -648,9 +749,14 @@ export default function PostJobScreen({ navigation, route }) {
 
               {/* Job Description */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  {t("jobDescription", "Job Description")}<Text style={styles.required}>*</Text>
-                </Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text style={styles.inputLabel}>
+                    {t("jobDescription", "Job Description")}<Text style={styles.required}>*</Text>
+                  </Text>
+                  <Text style={{ fontSize: 12, color: jobDescription.length >= 150 ? "#ef4444" : "#64748b" }}>
+                    {jobDescription.length}/150
+                  </Text>
+                </View>
                 <View style={[styles.textAreaWrapper, activeField === "jobDescription" && styles.inputWrapperActive]}>
                   <TextInput
                     value={jobDescription}
@@ -658,6 +764,7 @@ export default function PostJobScreen({ navigation, route }) {
                     placeholder="We are looking for an experienced Sous Chef to join our team and manage kitchen operations..."
                     placeholderTextColor="#94a3b8"
                     multiline
+                    maxLength={150}
                     numberOfLines={4}
                     style={styles.textAreaInput}
                     onFocus={(e) => handleInputFocus(e, "jobDescription")}
@@ -727,8 +834,7 @@ export default function PostJobScreen({ navigation, route }) {
                     <Ionicons name="briefcase-outline" size={24} color="#16a34a" />
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.reviewRoleTitle}>{jobRole || "Sous Chef"}</Text>
-                    <Text style={styles.reviewRoleCategory}>{jobCategory || "Kitchen, Service, Bar & Beverage, Café"}</Text>
+                    <Text style={styles.reviewRoleTitle}>{effectiveJobRole || t("jobRole", "Job Role")}</Text>
                   </View>
                 </View>
 

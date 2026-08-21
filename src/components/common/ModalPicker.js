@@ -7,11 +7,11 @@ import {
   Pressable,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   Platform,
   TextInput,
   KeyboardAvoidingView,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 const PRIMARY_GREEN = "#153e69";
@@ -33,6 +33,7 @@ export default function ModalPicker({
   searchPlaceholder = "Search...",
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!visible) {
@@ -84,6 +85,10 @@ export default function ModalPicker({
     [multiSelect, selectedValue, onSelect, onClose, getLabel]
   );
 
+  // Dynamic bottom inset to clear Android software navigation buttons (Back, Home, Recents)
+  const androidBottomGap = Math.max(insets.bottom, 48) + 24;
+  const bottomSheetPadding = Platform.OS === "android" ? androidBottomGap : Math.max(insets.bottom, 16);
+
   return (
     <Modal
       visible={visible}
@@ -97,71 +102,75 @@ export default function ModalPicker({
           style={{ flex: 1, justifyContent: "flex-end", width: "100%" }}
           pointerEvents="box-none"
         >
-          <Pressable style={[styles.sheet, searchable && { maxHeight: "80%" }]} onPress={(e) => e.stopPropagation()}>
-            <SafeAreaView edges={["bottom"]}>
-              {/* Handle bar */}
-              <View style={styles.handleBar} />
+          <Pressable
+            style={[
+              styles.sheet,
+              { maxHeight: searchable ? "75%" : "70%", paddingBottom: bottomSheetPadding },
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <View style={styles.handleBar} />
 
-              {/* Header */}
-              {(() => {
-                const hasSelected = multiSelect && Array.isArray(selectedValue) && selectedValue.length > 0;
-                return (
-                  <View style={styles.sheetHeader}>
-                    <Text style={styles.sheetTitle}>{title}</Text>
-                    <TouchableOpacity onPress={onClose} style={[styles.closeBtn, hasSelected && styles.doneBtn]}>
-                      {hasSelected ? (
-                        <Text style={styles.doneBtnText}>Done</Text>
-                      ) : (
-                        <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                );
-              })()}
-
-              {/* Search Input */}
-              {searchable && (
-                <View style={styles.searchContainer}>
-                  <Ionicons name="search-outline" size={18} color="rgba(10,5,4,0.5)" style={styles.searchIcon} />
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder={searchPlaceholder}
-                    placeholderTextColor="rgba(10,5,4,0.4)"
-                    style={styles.searchInput}
-                    autoCapitalize="none"
-                    clearButtonMode="while-editing"
-                  />
-                  {searchQuery.length > 0 && Platform.OS !== "ios" && (
-                    <TouchableOpacity onPress={() => setSearchQuery("")}>
-                      <Ionicons name="close-circle" size={18} color="rgba(10,5,4,0.4)" />
-                    </TouchableOpacity>
-                  )}
+            {/* Header */}
+            {(() => {
+              const hasSelected = multiSelect && Array.isArray(selectedValue) && selectedValue.length > 0;
+              return (
+                <View style={styles.sheetHeader}>
+                  <Text style={styles.sheetTitle}>{title}</Text>
+                  <TouchableOpacity onPress={onClose} style={[styles.closeBtn, hasSelected && styles.doneBtn]}>
+                    {hasSelected ? (
+                      <Text style={styles.doneBtnText}>Done</Text>
+                    ) : (
+                      <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
+                    )}
+                  </TouchableOpacity>
                 </View>
-              )}
+              );
+            })()}
 
-              {/* Options list */}
-              <FlatList
-                data={filteredOptions}
-                keyExtractor={(item, idx) => `${item}-${idx}`}
-                renderItem={renderItem}
-                initialNumToRender={15}
-                maxToRenderPerBatch={20}
-                windowSize={5}
-                removeClippedSubviews={Platform.OS === "android"}
-                ListEmptyComponent={
-                  searchable ? (
-                    <View style={styles.emptyContainer}>
-                      <Text style={styles.emptyText}>No results found</Text>
-                    </View>
-                  ) : null
-                }
-                style={styles.list}
-                contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 28 }}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-              />
-            </SafeAreaView>
+            {/* Search Input */}
+            {searchable && (
+              <View style={styles.searchContainer}>
+                <Ionicons name="search-outline" size={18} color="rgba(10,5,4,0.5)" style={styles.searchIcon} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder={searchPlaceholder}
+                  placeholderTextColor="rgba(10,5,4,0.4)"
+                  style={styles.searchInput}
+                  autoCapitalize="none"
+                  clearButtonMode="while-editing"
+                />
+                {searchQuery.length > 0 && Platform.OS !== "ios" && (
+                  <TouchableOpacity onPress={() => setSearchQuery("")}>
+                    <Ionicons name="close-circle" size={18} color="rgba(10,5,4,0.4)" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* Options list */}
+            <FlatList
+              data={filteredOptions}
+              keyExtractor={(item, idx) => `${item}-${idx}`}
+              renderItem={renderItem}
+              initialNumToRender={15}
+              maxToRenderPerBatch={20}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === "android"}
+              ListEmptyComponent={
+                searchable ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No results found</Text>
+                  </View>
+                ) : null
+              }
+              style={styles.list}
+              contentContainerStyle={{ paddingBottom: 60 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            />
           </Pressable>
         </KeyboardAvoidingView>
       </Pressable>
@@ -230,9 +239,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 0,
-    paddingBottom: Platform.OS === "android" ? 20 : 10,
     width: "100%",
-    maxHeight: "75%",
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
