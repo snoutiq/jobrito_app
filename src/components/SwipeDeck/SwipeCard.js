@@ -186,11 +186,15 @@ export default function SwipeCard({
   const appliedTimeText = getAppliedTimeText();
 
   // Load API profile_photo_path, else use fallback
-  const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
-  const avatarSource = avatarUri ? { uri: getAbsoluteProfilePhotoUrl(avatarUri) } : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
+  const avatarUri = applicant?.profile_photo_path || applicant?.profile_photo || applicant?.photo_url || applicant?.avatar || applicant?.avatar_url || applicant?.user?.profile_photo_path || applicant?.user?.profile_photo;
 
-  // Match score rating (no random generation, hide completely if missing)
-  const matchScore = applicant.match_score || applicant.match?.score;
+  // Match score rating (from API or prop)
+  const matchScore =
+    applicant?.matchScore ??
+    applicant?.match_percentage ??
+    applicant?.match_score ??
+    applicant?.score ??
+    applicant?.match?.score;
 
   // Pan gesture setup: swiping from right to left returns old card (if starting near right edge), swiping left to accept card, right swipe disabled.
   const panGesture = Gesture.Pan()
@@ -318,9 +322,10 @@ export default function SwipeCard({
     swipeProgress.value = withSpring(1);
   };
 
-  const displayStatus = applicant.status ? applicant.status.toUpperCase() : "";
-  const displayRole = applicant.preferred_role || "Server";
-  const localStatus = applicant.status?.toLowerCase();
+  const displayStatus = applicant?.status ? applicant.status.toUpperCase() : "";
+  const displayRole = applicant?.preference || applicant?.preferred_role || applicant?.user?.preference || applicant?.user?.preferred_role || "";
+  const localStatus = applicant?.status?.toLowerCase();
+  const displayEmployer = applicant?.current_employer || applicant?.user?.current_employer || "";
 
   return (
     <GestureDetector gesture={panGesture}>
@@ -351,8 +356,7 @@ export default function SwipeCard({
           <MatchBadge score={matchScore} style={styles.matchBadge} />
         )}
 
-        {/* Scrollable Card Body showing full details */}
-        {/* Card Body showing essential details up to Core Skills */}
+        {/* Scrollable Card Body showing essential details */}
         <View style={styles.cardScrollContent}>
           <View style={styles.cardHeaderSpacer} />
 
@@ -360,8 +364,16 @@ export default function SwipeCard({
           <View style={styles.profileHeaderCard}>
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarContainer}>
-                <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
+                {avatarUri ? (
+                  <Image source={{ uri: getAbsoluteProfilePhotoUrl(avatarUri) }} style={styles.avatarImage} resizeMode="cover" />
+                ) : (
+                  <View style={styles.noImageContainer}>
+                    <Ionicons name="person-outline" size={24} color="rgba(10, 5, 4, 0.4)" />
+                    <Text style={styles.noImageText}>{t("noImage", "No Image")}</Text>
+                  </View>
+                )}
               </View>
+
               <View style={styles.profileInfo}>
                 <Text style={styles.chefName}>{displayName}</Text>
                 {displayRole ? (
@@ -369,6 +381,12 @@ export default function SwipeCard({
                 ) : null}
                 
                 <View style={styles.profileDetailsList}>
+                  {displayEmployer ? (
+                    <Text numberOfLines={1} style={styles.detailRowText}>
+                      <Text style={styles.profileInfoLabel}>Employer: </Text>
+                      <Text style={styles.profileInfoValue}>{displayEmployer}</Text>
+                    </Text>
+                  ) : null}
                   {displayCity && displayCity !== "N/A" ? (
                     <Text numberOfLines={1} style={styles.detailRowText}>
                       <Text style={styles.profileInfoLabel}>Location: </Text>
@@ -391,10 +409,10 @@ export default function SwipeCard({
                       <Text style={styles.profileInfoValue}>{displayExperience}</Text>
                     </Text>
                   ) : null}
-                  {getRegionalList().length > 0 && getRegionalList().join(", ") !== "N/A" ? (
+                  {preferredCallTime && preferredCallTime !== "N/A" ? (
                     <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Regional: </Text>
-                      <Text style={styles.profileInfoValue}>{getRegionalList().join(", ")}</Text>
+                      <Text style={styles.profileInfoLabel}>Call Time: </Text>
+                      <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
                     </Text>
                   ) : null}
                   {getAvailabilityStatus() && getAvailabilityStatus() !== "N/A" ? (
@@ -403,12 +421,6 @@ export default function SwipeCard({
                       <Text style={styles.profileInfoValue}>{displayAvailability}</Text>
                     </Text>
                   ) : null}
-                  {/* {Boolean(preferredCallTime) && preferredCallTime !== "N/A" && (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Callback Time: </Text>
-                      <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
-                    </Text>
-                  )} */}
                 </View>
               </View>
             </View>
@@ -584,6 +596,21 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: "100%",
     height: "100%",
+  },
+  noImageContainer: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 4,
+  },
+  noImageText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
+    textAlign: "center",
   },
   profileInfo: {
     flex: 1,

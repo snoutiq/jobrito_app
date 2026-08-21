@@ -220,7 +220,7 @@ ${shareUrl}
     return chef.bio || chefProfileObj.bio || chef.user?.bio || "";
   };
 
-  const displayName = chef.full_name || chef.name || chef.user?.full_name || chef.user?.name || "Chef User";
+  const displayName = chef?.full_name || chef?.name || chef?.user?.full_name || chef?.user?.name || "Chef User";
   const displayTitle = getDisplayTitle();
   const displayCity = getDisplayCurrentLocation();
   const displayPrefLocation = getDisplayPreferredLocation();

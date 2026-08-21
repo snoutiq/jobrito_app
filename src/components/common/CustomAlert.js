@@ -53,6 +53,36 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     const lowercaseTitle = title.toLowerCase();
     const lowercaseMessage = message.toLowerCase();
 
+    // Check if Call / Phone / Dialer related
+    if (
+      lowercaseTitle.includes("call") ||
+      lowercaseTitle.includes("phone") ||
+      lowercaseTitle.includes("dialer") ||
+      lowercaseMessage.includes("call")
+    ) {
+      return <Ionicons name="call" size={44} color="#153e69" />;
+    }
+
+    // Check if Close Job related
+    if (
+      lowercaseTitle.includes("close job") ||
+      lowercaseTitle.includes("close listing") ||
+      lowercaseMessage.includes("close job") ||
+      lowercaseMessage.includes("close this job") ||
+      lowercaseMessage.includes("closing this job") ||
+      lowercaseMessage.includes("stop new talent")
+    ) {
+      return <Ionicons name="lock-closed" size={44} color="#f57f20" />;
+    }
+
+    // Check if Reject related
+    if (
+      lowercaseTitle.includes("reject") ||
+      lowercaseMessage.includes("reject")
+    ) {
+      return <Ionicons name="close-circle" size={44} color="#f57f20" />;
+    }
+
     // Check if account / role conflict / already registered
     if (
       lowercaseTitle.includes("account") ||
@@ -63,19 +93,6 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
       return <Ionicons name="person-circle-outline" size={44} color={colors.primary} />;
     }
 
-    // Check if error/delete/close/remove related
-    if (
-      lowercaseTitle.includes("error") ||
-      lowercaseTitle.includes("failed") ||
-      lowercaseTitle.includes("delete") ||
-      lowercaseTitle.includes("close") ||
-      lowercaseTitle.includes("remove") ||
-      lowercaseTitle.includes("cancel") ||
-      lowercaseMessage.includes("error") ||
-      lowercaseMessage.includes("failed")
-    ) {
-      return <Ionicons name="alert-circle" size={44} color={colors.danger} />;
-    }
     // Check if logout/exit related
     if (
       lowercaseTitle.includes("log out") ||
@@ -86,6 +103,19 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     ) {
       return <Ionicons name="log-out" size={44} color={colors.danger} />;
     }
+
+    // Check if error/delete/remove related
+    if (
+      lowercaseTitle.includes("error") ||
+      lowercaseTitle.includes("failed") ||
+      lowercaseTitle.includes("delete") ||
+      lowercaseTitle.includes("remove") ||
+      lowercaseMessage.includes("error") ||
+      lowercaseMessage.includes("failed")
+    ) {
+      return <Ionicons name="alert-circle" size={44} color={colors.danger} />;
+    }
+
     // Check if success/complete related
     if (
       lowercaseTitle.includes("success") ||
@@ -97,6 +127,7 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
     ) {
       return <Ionicons name="checkmark-circle" size={44} color={colors.success} />;
     }
+
     // Default info icon
     return <Ionicons name="information-circle" size={44} color={colors.primary} />;
   };
@@ -113,6 +144,14 @@ export const CustomAlertComponent = forwardRef((props, ref) => {
           <View
             style={[
               styles.iconContainer,
+              (title.toLowerCase().includes("call") ||
+                title.toLowerCase().includes("phone")) && {
+                backgroundColor: "rgba(21, 62, 105, 0.1)",
+              },
+              (title.toLowerCase().includes("close") ||
+                title.toLowerCase().includes("reject")) && {
+                backgroundColor: "rgba(245, 127, 32, 0.1)",
+              },
               (title.toLowerCase().includes("error") ||
                 title.toLowerCase().includes("failed") ||
                 message.toLowerCase().includes("error")) && {

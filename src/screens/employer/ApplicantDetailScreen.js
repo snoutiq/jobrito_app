@@ -287,6 +287,11 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     handleStatusUpdate("shortlisted");
   };
 
+  // Status booleans for button disabling
+  const isShortlisted = localStatus?.toLowerCase() === "shortlisted";
+  const isContacted = localStatus?.toLowerCase() === "contacted";
+  const isRejected = localStatus?.toLowerCase() === "rejected";
+
   const detailFields = [
     {
       label: "Applied",
@@ -315,6 +320,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.reviewCard}>
+          {/* Status Badge — top-right corner */}
           {localStatus && (
             <View 
               style={[
@@ -334,17 +340,26 @@ export default function ApplicantDetailScreen({ route, navigation }) {
               </Text>
             </View>
           )}
-          <View style={styles.profileHeaderRow}>
+
+          {/* Match Score Badge — top-left corner */}
+          {matchScore != null && (
+            <MatchBadge score={matchScore} style={styles.leftMatchBadge} />
+          )}
+
+          <View style={[styles.profileHeaderRow, (localStatus || matchScore != null) && { marginTop: 14 }]}>
             <View style={styles.avatarContainer}>
-              <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
-            </View>
-            <View style={styles.profileInfo}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={styles.chefName}>{displayName}</Text>
+              {avatarUri ? (
+                <Image source={{ uri: getAbsoluteProfilePhotoUrl(avatarUri) }} style={styles.avatarImage} resizeMode="cover" />
+              ) : (
+                <View style={styles.noImageContainer}>
+                  <Ionicons name="person-outline" size={24} color="rgba(10, 5, 4, 0.4)" />
+                  <Text style={styles.noImageText}>{t("noImage", "No Image")}</Text>
                 </View>
-                {matchScore != null && <MatchBadge score={matchScore} />}
-              </View>
+              )}
+            </View>
+
+            <View style={styles.profileInfo}>
+              <Text style={styles.chefName}>{displayName}</Text>
               {displayRole ? (
                 <Text style={styles.chefTitle}>Current Role: {displayRole}</Text>
               ) : null}
@@ -550,18 +565,33 @@ export default function ApplicantDetailScreen({ route, navigation }) {
       {/* Sticky Bottom Actions Bar */}
       <View style={styles.stickyFooter}>
         {/* Shortlist (Accept) Button */}
-        <TouchableOpacity style={[styles.btn, styles.btnAccept]} onPress={handleHire} activeOpacity={0.8}>
-          <Ionicons name="heart" size={28} color="#4CAF50" />
+        <TouchableOpacity
+          style={[styles.btn, styles.btnAccept, isShortlisted && styles.btnDisabled]}
+          onPress={handleHire}
+          activeOpacity={0.8}
+          disabled={isShortlisted}
+        >
+          <Ionicons name="heart" size={28} color={isShortlisted ? "#a0a0a0" : "#4CAF50"} />
         </TouchableOpacity>
 
-        {/* Call Button (now large) */}
-        <TouchableOpacity style={[styles.btn, styles.btnCall]} onPress={handleCall} activeOpacity={0.7}>
-          <Ionicons name="call" size={28} color="#153e69" />
+        {/* Call (Contacted) Button */}
+        <TouchableOpacity
+          style={[styles.btn, styles.btnCall, isContacted && styles.btnDisabled]}
+          onPress={handleCall}
+          activeOpacity={0.7}
+          disabled={isContacted}
+        >
+          <Ionicons name="call" size={28} color={isContacted ? "#a0a0a0" : "#153e69"} />
         </TouchableOpacity>
 
         {/* Reject Button */}
-        <TouchableOpacity style={[styles.btn, styles.btnReject]} onPress={handleReject} activeOpacity={0.7}>
-          <Ionicons name="close" size={28} color="#f57f20" />
+        <TouchableOpacity
+          style={[styles.btn, styles.btnReject, isRejected && styles.btnDisabled]}
+          onPress={handleReject}
+          activeOpacity={0.7}
+          disabled={isRejected}
+        >
+          <Ionicons name="close" size={28} color={isRejected ? "#a0a0a0" : "#f57f20"} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -679,6 +709,16 @@ const styles = StyleSheet.create({
     gap: 5,
     zIndex: 1,
   },
+  leftMatchBadge: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    zIndex: 1,
+    borderTopLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
   statusBadgeShortlisted: {
     backgroundColor: '#4CAF50', // Green for shortlisted
   },
@@ -692,6 +732,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 11,
     fontWeight: '800',
+  },
+  noImageContainer: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 4,
+  },
+  noImageText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
+    textAlign: "center",
   },
   profileHeaderRow: {
     flexDirection: "row",
@@ -914,7 +969,9 @@ const styles = StyleSheet.create({
     borderColor: "#4CAF50",
   },
   btnDisabled: {
-    opacity: 0.5,
+    opacity: 0.35,
+    backgroundColor: "#eaeaea",
+    borderColor: "#cccccc",
   },
   centered: {
     flex: 1,

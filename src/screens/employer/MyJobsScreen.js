@@ -212,7 +212,7 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const closeJob = (jobId) => {
     CustomAlert.show(
-      t("areYouSure", "Are you sure?"),
+      t("closeJobPrompt", "Close Job?"),
       t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
       [
         { text: t("cancel"), style: "cancel" },
