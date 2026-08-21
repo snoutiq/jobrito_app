@@ -234,6 +234,12 @@ export default function EmployerHomeScreen({ navigation }) {
 
           <View style={styles.statsSubRow}>
             <View style={styles.subStatItem}>
+              <Text style={[styles.subStatValue, { color: "#2563eb" }]}>{totalApplicants}</Text>
+              <Text style={styles.subStatLabel}>{t("new", "New")}</Text>
+              <Text style={styles.subStatSubLabel}>{t("applicants", "Applicant")}</Text>
+            </View>
+            <View style={styles.verticalDivider} />
+            <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>{shortlistedCount}</Text>
               <Text style={styles.subStatLabel}>{t("shortlisted", "Shortlisted")}</Text>
               <Text style={styles.subStatSubLabel}>{t("selected", "Selected")}</Text>

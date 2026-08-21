@@ -35,13 +35,7 @@ export default function PostJobScreen({ navigation, route }) {
 
   const handleInputFocus = (e, fieldName) => {
     if (fieldName) setActiveField(fieldName);
-    if (fieldName === "customRole" || fieldName === "jobDescription" || fieldName === "salaryMin" || fieldName === "salaryMax" || fieldName === "openPositions") {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 120);
-    } else {
-      scrollInputFocus(e);
-    }
+    scrollInputFocus(e);
   };
 
   const goToDashboard = () => {
@@ -566,10 +560,6 @@ export default function PostJobScreen({ navigation, route }) {
                     setJobRole(val);
                     if (val !== "Other") {
                       setCustomRole("");
-                    } else {
-                      setTimeout(() => {
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
-                      }, 250);
                     }
                   }}
                   searchable

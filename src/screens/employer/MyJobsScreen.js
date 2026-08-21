@@ -212,8 +212,8 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const closeJob = (jobId) => {
     CustomAlert.show(
-      t("closeJobConfirmTitle", "Close Job"),
-      t("closeJobConfirm", "Are you sure you want to close this job posting?"),
+      t("areYouSure", "Are you sure?"),
+      t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
       [
         { text: t("cancel"), style: "cancel" },
         {
@@ -290,31 +290,6 @@ export default function MyJobsScreen({ navigation, route }) {
       >
         <View style={styles.jobHeader}>
           <View style={styles.jobTitleWrapper}>
-            <View
-              style={[
-                styles.iconContainer,
-                activeTab === "pending" && { backgroundColor: "rgba(242, 200, 121, 0.12)" },
-                activeTab === "closed" && { backgroundColor: "#f2f2f3" },
-              ]}
-            >
-              <Ionicons
-                name={
-                  activeTab === "pending"
-                    ? "hourglass-outline"
-                    : activeTab === "closed"
-                      ? "archive-outline"
-                      : "restaurant-outline"
-                }
-                size={22}
-                color={
-                  activeTab === "pending"
-                    ? "#f2c879"
-                    : activeTab === "closed"
-                      ? "rgba(10, 5, 4, 0.6)"
-                      : PRIMARY_GREEN
-                }
-              />
-            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.jobTitleText}>{job.title}</Text>
               {job.company ? (
@@ -353,30 +328,14 @@ export default function MyJobsScreen({ navigation, route }) {
         </View>
 
         <View style={styles.detailsRow}>
-          <Text style={styles.detailsText}>
-            <Ionicons name="people-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
+          <Text style={styles.jobDetailsMetaText}>
             {t("openings_count", { count: jobOpenings })}
+            {jobType ? ` · ${jobType}` : ""}
+            {job.salary ? ` · ${job.salary}` : ""}
           </Text>
-          <Text style={styles.detailsText}>
-            <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
-            {jobType}
-          </Text>
-          {job.salary ? (
-            <Text style={styles.detailsText}>
-              <Ionicons name="card-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
-              {job.salary}
-            </Text>
-          ) : null}
         </View>
 
-        {job.description ? (
-          <View style={styles.descriptionContainer}>
-            <Text style={styles.jobDescriptionText} numberOfLines={2}>
-              {job.description}
-            </Text>
-          </View>
-        ) : null}
-
+        {/* Commented out Hiring Progress & candidate counts for future use
         {isActive && isEmployer && !isReferral && (
           <>
             <View style={styles.divider} />
@@ -413,6 +372,7 @@ export default function MyJobsScreen({ navigation, route }) {
             </View>
           </>
         )}
+        */}
 
         {activeTab === "pending" && (
           <>
@@ -485,62 +445,67 @@ export default function MyJobsScreen({ navigation, route }) {
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {t("allJobs", "My Posted Jobs")}
+            {t("myJobs", "My Jobs")}
           </Text>
         </View>
       </View>
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "active" && styles.tabButtonActive,
-          ]}
-          onPress={() => setActiveTab("active")}
-        >
-          <Text
+      <View style={styles.tabCardContainer}>
+        <Text style={styles.tabCardHeaderTitle}>
+          {t("allJobStatus", "ALL JOB STATUS")}
+        </Text>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
             style={[
-              styles.tabText,
-              activeTab === "active" && styles.tabTextActive,
+              styles.tabButton,
+              activeTab === "active" && styles.tabButtonActive,
             ]}
+            onPress={() => setActiveTab("active")}
           >
-            {t("active")} ({activeJobs.length})
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "active" && styles.tabTextActive,
+              ]}
+            >
+              {t("active")} ({activeJobs.length})
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "pending" && styles.tabButtonActive,
-          ]}
-          onPress={() => setActiveTab("pending")}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.tabText,
-              activeTab === "pending" && styles.tabTextActive,
+              styles.tabButton,
+              activeTab === "pending" && styles.tabButtonActive,
             ]}
+            onPress={() => setActiveTab("pending")}
           >
-            {t("pending")} ({pendingJobs.length})
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "pending" && styles.tabTextActive,
+              ]}
+            >
+              {t("submitted", "Submitted")} ({pendingJobs.length})
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "closed" && styles.tabButtonActive,
-          ]}
-          onPress={() => setActiveTab("closed")}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.tabText,
-              activeTab === "closed" && styles.tabTextActive,
+              styles.tabButton,
+              activeTab === "closed" && styles.tabButtonActive,
             ]}
+            onPress={() => setActiveTab("closed")}
           >
-            {t("closed")} ({closedJobs.length})
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "closed" && styles.tabTextActive,
+              ]}
+            >
+              {t("closed")} ({closedJobs.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isLoading && localJobs.length === 0 ? (
@@ -651,13 +616,25 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0a0504",
   },
+  tabCardContainer: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+  },
+  tabCardHeaderTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(10, 5, 4, 0.6)",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
   tabContainer: {
     flexDirection: "row",
     backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   tabButton: {
     flex: 1,
@@ -773,10 +750,16 @@ const styles = StyleSheet.create({
   },
   detailsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 10,
-    paddingLeft: 52,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginBottom: 6,
+    paddingLeft: 0,
+  },
+  jobDetailsMetaText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "left",
   },
   detailsText: {
     fontSize: 12,
