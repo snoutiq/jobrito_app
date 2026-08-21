@@ -142,14 +142,9 @@ export default function SettingsScreen({ navigation }) {
     return () => backHandler.remove();
   }, [dispatch, navigation]);
 
-  const rawBusiness = isEmployer
+  const businessName = isEmployer
     ? (profile?.business_name || profile?.businessName || profile?.company || "")
     : (profile?.current_employer || "");
-  const cleanBusiness = rawBusiness.includes(",")
-    ? rawBusiness.split(",")[0].trim()
-    : rawBusiness;
-  const businessName =
-    cleanBusiness.length > 18 ? `${cleanBusiness.slice(0, 18).trim()}...` : cleanBusiness;
 
   const contactName =
     profile?.contact_person_name ||
@@ -260,9 +255,15 @@ export default function SettingsScreen({ navigation }) {
     },
   ];
 
+  const cleanBusiness = businessName.includes(",")
+    ? businessName.split(",")[0].trim()
+    : businessName;
+  const headerBusinessName =
+    cleanBusiness.length > 18 ? `${cleanBusiness.slice(0, 18).trim()}...` : cleanBusiness;
+
   const cardTitleText =
-    [businessName, countryName].filter(Boolean).join(", ") ||
-    businessName ||
+    [headerBusinessName, countryName].filter(Boolean).join(", ") ||
+    headerBusinessName ||
     contactName ||
     "Business Profile";
   const cardSubText = contactName
@@ -564,12 +565,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 16,
     color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 2,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#0a0504",
     fontWeight: "500",
   },

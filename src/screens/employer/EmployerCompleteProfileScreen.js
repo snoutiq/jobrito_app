@@ -12,7 +12,6 @@ import {
   Image,
   ActivityIndicator,
   BackHandler,
-  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -21,24 +20,28 @@ import { useDispatch, useSelector } from "react-redux";
 import { setProfileData, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { setEmployerOnboardingCompleted, setStoredProfile, clearAuthStorage } from "../../services/storage";
-import { CustomAlert } from "../../components/common/CustomAlert";
 import colors from "../../constants/colors";
 import * as ImagePicker from "expo-image-picker";
 import { saveEmployerOnboarding } from "../../services/employerApi";
-import * as Location from "expo-location";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
-import indianStatesCities from "../../data/indianStatesCities.json";
+import countryStateCityData from "../../data/countryStateCityData.json";
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
 
-const stateOptions = Object.keys(indianStatesCities);
-const allCitiesList = Array.from(
-  new Set(Object.values(indianStatesCities).flat())
-).sort();
+const PRIMARY_BLUE = "#1860f0";
+const DARK_NAVY = "#0f172a";
+const TOTAL_STEPS = 4;
 
-const PRIMARY_GREEN = "#153e69";
+const countryOptions = ["India", "Saudi Arabia"];
 
-// Total steps: Step 1 (Business Info), Step 2 (Contact Person), Step 3 (Review & Save)
-const TOTAL_STEPS = 3;
+const businessTypeOptions = [
+  "QSR",
+  "Restaurant",
+  "Cafe",
+  "Cloud Kitchen",
+  "Hotel / Resort",
+  "Catering",
+  "Others",
+];
 
 export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -55,6 +58,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const isEditMode = route?.params?.isEditMode ?? false;
   const [step, setStep] = useState(1);
 
+  // Initial logo URI
   const getInitialLogoUri = () => {
     const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
     if (!uri) return null;
@@ -69,29 +73,28 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     return `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`;
   };
 
-  // Splits "address, city, state" into { address, cityPostcode, state } — used both for
-  // initial hydration and for keeping the first location in sync with Business Location.
-  const splitLocationString = (locStr) => {
-    if (!locStr) return { address: "", cityPostcode: "", state: "" };
+  // Helper to split location string into { city, state, country }
+  const parseLocationStr = (locStr) => {
+    if (!locStr) return { city: "", state: "", country: "" };
     const parts = String(locStr).split(",").map((p) => p.trim()).filter(Boolean);
     if (parts.length >= 3) {
       return {
-        address: parts.slice(0, parts.length - 2).join(", "),
-        cityPostcode: parts[parts.length - 2],
-        state: parts[parts.length - 1],
+        city: parts[0],
+        state: parts[1],
+        country: parts[parts.length - 1],
       };
     } else if (parts.length === 2) {
-      // 2 parts means: "City, State" (e.g., "Karnal, Haryana" -> City: "Karnal", State: "Haryana")
       return {
-        address: "",
-        cityPostcode: parts[0],
+        city: parts[0],
         state: parts[1],
+        country: "",
       };
     }
-    return { address: "", cityPostcode: locStr, state: "" };
+    return { city: locStr, state: "", country: "" };
   };
 
-  const getInitialLocations = () => {
+  // Extract initial operational locations (including primary business_location and all operational_locations)
+  const getInitialOpLocations = () => {
     let profileLocations =
       profile?.employer_profile?.operational_locations ||
       profile?.employer_profile?.locations ||
@@ -106,250 +109,110 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
     }
 
-    if (Array.isArray(profileLocations) && profileLocations.length > 0) {
-      return profileLocations.map((locStr, idx) => {
-        if (typeof locStr === "string") {
-          const split = splitLocationString(locStr);
-          return { id: idx + 1, address: split.address, cityPostcode: split.cityPostcode, state: split.state };
-        }
+    let list = Array.isArray(profileLocations) ? [...profileLocations] : [];
+
+    // Also check primary business_location if available
+    const bizLoc = profile?.business_location || profile?.employer_profile?.business_location;
+    if (bizLoc && typeof bizLoc === "string" && !list.includes(bizLoc)) {
+      list.unshift(bizLoc);
+    }
+
+    if (list.length > 0) {
+      return list.map((locStr, idx) => {
+        const parsed = typeof locStr === "string" ? parseLocationStr(locStr) : locStr;
         return {
-          id: idx + 1,
-          address: locStr?.address || locStr?.building || "",
-          cityPostcode: locStr?.cityPostcode || locStr?.city || "",
-          state: locStr?.state || "",
+          id: `saved_loc_${idx}_${Date.now()}`,
+          city: parsed?.city || "",
+          state: parsed?.state || "",
+          country: parsed?.country || "",
         };
-      });
+      }).filter((l) => l.city || l.state || l.country);
     }
-    return [{ id: 1, address: "", cityPostcode: "", state: "" }];
+    return [];
   };
 
-  const getInitialSameAsBusinessLocation = () => {
-    let profileLocations =
-      profile?.employer_profile?.operational_locations ||
-      profile?.employer_profile?.locations ||
-      profile?.operational_locations ||
-      profile?.locations;
+  const initialOpLocs = getInitialOpLocations();
+  // Primary/master country: locked in edit mode, and locked after the first save in create mode.
+  const initialCountry = initialOpLocs.length > 0 ? initialOpLocs[0].country : "";
 
-    if (typeof profileLocations === "string") {
-      try {
-        profileLocations = JSON.parse(profileLocations);
-      } catch (e) {
-        profileLocations = [profileLocations];
-      }
-    }
+  // Form States
+  // STEP 1: Business Information
+  const [businessName, setBusinessName] = useState(
+    profile?.business_name || profile?.businessName || profile?.company || ""
+  );
+  const [businessType, setBusinessType] = useState(
+    profile?.industry_segment || profile?.segment || ""
+  );
+  const [logoUri, setLogoUri] = useState(getInitialLogoUri());
+  const [logoUploaded, setLogoUploaded] = useState(
+    !!(profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path)
+  );
 
-    if (Array.isArray(profileLocations) && profileLocations.length > 0) {
-      const firstLoc = profileLocations[0];
-      if (typeof firstLoc === "string" && firstLoc.trim()) {
-        const split = splitLocationString(firstLoc);
-        if (split.state || split.cityPostcode) {
-          return false;
-        }
-      } else if (typeof firstLoc === "object" && firstLoc) {
-        if (firstLoc.state || firstLoc.cityPostcode || firstLoc.city) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
+  // STEP 2: Business Locations
+  const [primaryCountry, setPrimaryCountry] = useState(initialCountry);
+  const [primaryState, setPrimaryState] = useState("");
+  const [primaryCity, setPrimaryCity] = useState("");
+  const [additionalLocations, setAdditionalLocations] = useState(initialOpLocs);
+  // When set, the top "location card" is editing an existing saved location (state/city only)
+  // instead of adding a brand new one.
+  const [editingLocId, setEditingLocId] = useState(null);
 
-  // Form State
-  const [businessName, setBusinessName] = useState(profile?.business_name || profile?.businessName || profile?.company || "");
-  const [industrySegment, setIndustrySegment] = useState(profile?.industry_segment || profile?.segment || "");
-  const [businessLocation, setBusinessLocation] = useState(profile?.business_location || profile?.location || "");
+  // STEP 3: Contact Information
   const getInitialContactName = () => {
     const nameVal = profile?.contact_person_name || profile?.contactName || profile?.name || profile?.full_name || "";
     const isPhoneLike = /^\+?\d[\d\s-]{6,}$/.test(nameVal);
     return isPhoneLike ? "" : nameVal;
   };
-
   const [contactName, setContactName] = useState(getInitialContactName());
-  const [contactPhone, setContactPhone] = useState(profile?.business_mobile || profile?.contactPhone || profile?.phone || profile?.mobile_number || "");
-  const [contactEmail, setContactEmail] = useState(profile?.business_email || profile?.contactEmail || profile?.email || "");
-  const [preferredLanguage, setPreferredLanguage] = useState(profile?.preferred_language || profile?.preferredLanguage || "English (UK)");
-  const [privacyChecked, setPrivacyChecked] = useState(true);
-  const [logoUploaded, setLogoUploaded] = useState(!!(profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path));
-  const [logoUri, setLogoUri] = useState(getInitialLogoUri());
+  const [contactPhone, setContactPhone] = useState(
+    profile?.business_mobile || profile?.contactPhone || profile?.phone || profile?.mobile_number || ""
+  );
+  const [contactEmail, setContactEmail] = useState(
+    profile?.business_email || profile?.contactEmail || profile?.email || ""
+  );
+  const [preferredLanguage, setPreferredLanguage] = useState(
+    profile?.preferred_language || profile?.preferredLanguage || "English (UK)"
+  );
 
-  // Operational Locations state
-  const [locations, setLocations] = useState(getInitialLocations());
-
-  // Same as Business Location toggle (keeps location #1 auto-filled from businessLocation)
-  const [sameAsBusinessLocation, setSameAsBusinessLocation] = useState(getInitialSameAsBusinessLocation());
-
-  // Talent Manager Details state
-  const [managerName, setManagerName] = useState(profile?.nominee_name || profile?.managerName || "");
-  const [managerRelationship, setManagerRelationship] = useState(profile?.nominee_relationship || profile?.managerRelationship || "");
-  const [managerPhone, setManagerPhone] = useState(profile?.nominee_mobile || profile?.managerPhone || "");
-
-  // UI state
+  // UI States
   const [activeInput, setActiveInput] = useState(null);
-  const [showSegmentDropdown, setShowSegmentDropdown] = useState(false);
-  const [showLangDropdown, setShowLangDropdown] = useState(false);
-  const [showRelationDropdown, setShowRelationDropdown] = useState(false);
-  const [openStateModalId, setOpenStateModalId] = useState(null);
-  const [openCityModalId, setOpenCityModalId] = useState(null);
-  const [isLocating, setIsLocating] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showPrimaryCountryModal, setShowPrimaryCountryModal] = useState(false);
+  const [showPrimaryStateModal, setShowPrimaryStateModal] = useState(false);
+  const [showPrimaryCityModal, setShowPrimaryCityModal] = useState(false);
+  const [showAddonForm, setShowAddonForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const segments = [
-    "Restaurant",
-    "Cafe",
-    "QSR",
-    "Cloud Kitchen",
-    "Catering",
-    "Bakery",
-    "Hotel",
-    "Food Production",
-    "Hospitality Consultancy",
-  ];
-  const languages = ["English (UK)", "English (US)", "Hindi", "Arabic"];
-  const relationships = ["Owner", "Manager", "HR Recruiter", "Operations Partner", "Other"];
+  // Country is locked (read-only) once:
+  // - we're editing an existing saved location (country can never change for it), OR
+  // - the profile is in edit mode (country locked for the whole flow), OR
+  // - at least one location has already been saved in this session (create flow) -
+  //   every location shares the same master/primary country.
+  const isCountryLocked = !!editingLocId || isEditMode || additionalLocations.length > 0;
 
-  // Keep location #1 synced with Business Location whenever the toggle is ON
-  useEffect(() => {
-    if (!sameAsBusinessLocation) return;
-    setLocations((prev) => {
-      if (prev.length === 0) return prev;
-      const updated = [...prev];
-      updated[0] = { ...updated[0], address: businessLocation, cityPostcode: "", state: "" };
-      return updated;
-    });
-  }, [businessLocation, sameAsBusinessLocation]);
-
-  const handleToggleSameLocation = (val) => {
-    setSameAsBusinessLocation(val);
-    if (!val) {
-      setLocations((prev) => {
-        if (prev.length === 0) return prev;
-        const updated = [...prev];
-        updated[0] = { ...updated[0], address: "", cityPostcode: "", state: "" };
-        return updated;
-      });
-    }
-  };
-
-  const next = () => {
-    // STEP 1: Business Info + Logo + Operational Locations (merged)
-    if (step === 1) {
-      if (!businessName.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.businessNameRequired"));
-        return;
-      }
-      if (!industrySegment) {
-        Alert.alert(t("error"), t("employerOnboarding.industrySegmentRequired"));
-        return;
-      }
-      if (!businessLocation.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.businessLocationRequired"));
-        return;
-      }
-      // Only validate locations manually when NOT auto-filled from business location
-      if (!sameAsBusinessLocation) {
-        const emptyLocation = locations.some(loc => !loc.cityPostcode.trim());
-        if (emptyLocation) {
-          Alert.alert(t("error"), t("employerOnboarding.locationsRequired", "Please select State and City for operational locations."));
-          return;
-        }
-      }
-    }
-
-    if (step === 2) {
-      if (!contactName.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.contactNameRequired"));
-        return;
-      }
-      if (!contactPhone.trim()) {
-        Alert.alert(t("error"), t("employerOnboarding.contactPhoneRequired"));
-        return;
-      }
-      if (contactPhone.trim().length !== 10) {
-        Alert.alert(t("error"), t("employerOnboarding.mobileNumberInvalid"));
-        return;
-      }
-    }
-
-
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1);
-    }
-  };
-
-  const handleExitAndLogout = async () => {
+  // Handle Image Pickers
+  const handleTakePhoto = async () => {
     try {
-      const { logout: logoutApi } = require("../../services/authApi");
-      await logoutApi();
-    } catch (e) {
-      // ignore
-    }
-    await clearAuthStorage();
-    try {
-      const { clearClientState } = require("../../services/apiClient");
-      clearClientState();
-    } catch (e) {
-      console.warn("Failed to clear API client state:", e);
-    }
-    dispatch(logout());
-    dispatch(resetUser());
-  };
-
-  const prev = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    } else {
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      } else {
-        CustomAlert.show(
-          t("exitOnboarding", "Exit Onboarding?"),
-          t("exitOnboardingMessage", "Do you want to log out and exit profile setup?"),
-          [
-            { text: t("cancel"), style: "cancel" },
-            {
-              text: t("logOut"),
-              style: "destructive",
-              onPress: handleExitAndLogout,
-            },
-          ]
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("permissionDenied", "Permission Denied"),
+          t("cameraPermissionMsg", "Sorry, we need camera permissions to take a photo.")
         );
+        return;
       }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setLogoUri(result.assets[0].uri);
+        setLogoUploaded(true);
+      }
+    } catch (error) {
+      Alert.alert(t("error", "Error"), t("failedToOpenCamera", "Failed to open camera."));
     }
-  };
-
-  useEffect(() => {
-    const backAction = () => {
-      prev();
-      return true; // Prevent default app closing behavior
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, [step]); // Re-subscribe when step changes so prev() has the correct step value
-
-  const addLocation = () => {
-    setLocations([
-      ...locations,
-      { id: Date.now(), address: "", cityPostcode: "", state: "" }
-    ]);
-  };
-
-  const removeLocation = (id) => {
-    if (locations.length === 1) return;
-    setLocations(locations.filter(loc => loc.id !== id));
-  };
-
-  const handleLocationChange = (id, field, val) => {
-    setLocations(locations.map(loc => {
-      if (loc.id === id) {
-        return { ...loc, [field]: val };
-      }
-      return loc;
-    }));
   };
 
   const handleUploadPhoto = async () => {
@@ -362,46 +225,18 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         );
         return;
       }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setLogoUri(result.assets[0].uri);
         setLogoUploaded(true);
       }
     } catch (error) {
       Alert.alert(t("error", "Error"), t("failedToSelectPhoto", "Failed to select photo."));
-    }
-  };
-
-  const handleTakePhoto = async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          t("permissionDenied", "Permission Denied"),
-          t("cameraPermissionMsg", "Sorry, we need camera permissions to take a photo.")
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setLogoUri(result.assets[0].uri);
-        setLogoUploaded(true);
-      }
-    } catch (error) {
-      Alert.alert(t("error", "Error"), t("failedToOpenCamera", "Failed to open camera."));
     }
   };
 
@@ -417,158 +252,187 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     );
   };
 
-  const handleGPSLocation = async () => {
-    setIsLocating(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          t("permissionDenied", "Permission Denied"),
-          t("locationPermissionDeniedMsg", "Permission to access location was denied. Please enable location permissions in your settings.")
+  // Location Handlers
+  // Saves the current top-card entry: either updates the location currently being
+  // edited (editingLocId set) or appends a brand new one. Country is never mutated
+  // for an existing location — it is fixed the moment a location is first created.
+  const handleSaveLocationFromTop = () => {
+    if (!primaryCity) {
+      Alert.alert(t("error", "Error"), t("selectCityFirst", "Please select a city first."));
+      return;
+    }
+
+    if (editingLocId) {
+      setAdditionalLocations((prev) =>
+        prev.map((l) =>
+          l.id === editingLocId ? { ...l, state: primaryState, city: primaryCity } : l
+        )
+      );
+      setEditingLocId(null);
+    } else {
+      const newLoc = {
+        id: `addon_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        country: primaryCountry,
+        state: primaryState,
+        city: primaryCity,
+      };
+      setAdditionalLocations((prev) => [...prev, newLoc]);
+    }
+
+    // Country stays as-is (now locked for any further entries); only clear state/city.
+    setPrimaryState("");
+    setPrimaryCity("");
+  };
+
+  const startEditLocation = (loc) => {
+    setEditingLocId(loc.id);
+    setPrimaryCountry(loc.country);
+    setPrimaryState(loc.state);
+    setPrimaryCity(loc.city);
+  };
+
+  const cancelEditLocation = () => {
+    setEditingLocId(null);
+    setPrimaryState("");
+    setPrimaryCity("");
+  };
+
+  const removeAddonLocation = (id) => {
+    if (isEditMode) return; // deleting is disabled once editing an existing profile
+    if (editingLocId === id) {
+      setEditingLocId(null);
+      setPrimaryState("");
+      setPrimaryCity("");
+    }
+    setAdditionalLocations((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  // Builds the final list of locations for review/submission, folding in any
+  // location currently being typed in the top card (new or in-progress edit)
+  // without mutating state. All locations always carry the shared primary country.
+  const buildFinalLocations = () => {
+    let list = [...additionalLocations];
+    if (primaryCity) {
+      if (editingLocId) {
+        list = list.map((l) =>
+          l.id === editingLocId ? { ...l, state: primaryState, city: primaryCity } : l
         );
-        setIsLocating(false);
+      } else {
+        list = [
+          ...list,
+          { id: "pending_new", country: primaryCountry, state: primaryState, city: primaryCity },
+        ];
+      }
+    }
+    return list;
+  };
+
+  // Step Navigation
+  const nextStep = () => {
+    if (step === 1 && (!businessName.trim() || !businessType)) {
+      Alert.alert(t("error", "Error"), t("pleaseFillRequiredFields", "Please fill in all required fields."));
+      return;
+    }
+    if (step === 2) {
+      if (primaryCity) {
+        // Commit whatever is currently in the top card (new add or in-progress edit).
+        handleSaveLocationFromTop();
+      } else if (additionalLocations.length === 0) {
+        Alert.alert(t("error", "Error"), t("primaryCityRequired", "Please select primary city location."));
         return;
       }
-
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const geocode = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-
-      if (geocode && geocode.length > 0) {
-        const addressObj = geocode[0];
-        const parts = [];
-        if (addressObj.name && addressObj.name !== addressObj.street) {
-          parts.push(addressObj.name);
-        }
-        if (addressObj.street) {
-          parts.push(addressObj.street);
-        }
-        if (addressObj.district || addressObj.subregion) {
-          parts.push(addressObj.district || addressObj.subregion);
-        }
-        if (addressObj.city) {
-          parts.push(addressObj.city);
-        }
-        if (addressObj.region) {
-          parts.push(addressObj.region);
-        }
-        if (addressObj.country) {
-          parts.push(addressObj.country);
-        }
-
-        const fullAddress = parts.join(", ");
-        setBusinessLocation(fullAddress);
-      } else {
-        const coordsString = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-        setBusinessLocation(coordsString);
+    }
+    if (step === 3) {
+      if (!contactName.trim() || !contactPhone.trim()) {
+        Alert.alert(t("error", "Error"), t("contactInfoRequired", "Please fill in all contact details."));
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching GPS location:", error);
-      Alert.alert(t("error", "Error"), t("failedToFetchLocationMsg", "Failed to fetch current location. Please make sure location services are enabled on your device."));
-    } finally {
-      setIsLocating(false);
+      if (contactEmail.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contactEmail.trim())) {
+          Alert.alert(t("error", "Error"), t("validEmailRequired", "Please enter a valid email address."));
+          return;
+        }
+      }
+    }
+    if (step < TOTAL_STEPS) {
+      setStep(step + 1);
     }
   };
 
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    } else {
+      if (isEditMode) navigation.goBack();
+    }
+  };
+
+  // Final Submission
   const finishOnboarding = async () => {
     if (isSaving) return;
     setIsSaving(true);
-    try {
-      const formattedOperationalLocations = locations.map((l, idx) => {
-        if (idx === 0 && sameAsBusinessLocation) {
-          return businessLocation;
-        }
-        return [l.address, l.cityPostcode, l.state].filter(Boolean).join(", ");
-      }).filter(Boolean);
 
-      const payload = {
-        business_name: businessName,
-        industry_segment: industrySegment,
-        business_location: businessLocation,
-        contact_person_name: contactName,
-        business_mobile: contactPhone,
-        business_email: contactEmail,
-        preferred_language: preferredLanguage,
-        operational_locations: formattedOperationalLocations,
-        nominee_name: managerName,
-        nominee_relationship: managerRelationship,
-        nominee_mobile: managerPhone,
-        company_logo: logoUri,
-      };
+    try {
+      const compiledLocObjs = buildFinalLocations();
+      const formattedOpLocations = compiledLocObjs.map((l) =>
+        [l.city, l.state, l.country].filter(Boolean).join(", ")
+      ).filter(Boolean);
+
+      const primaryLocStr = formattedOpLocations[0] || "";
+      const additionalLocStrs = formattedOpLocations.slice(1);
 
       const formData = new FormData();
-      formData.append("business_name", payload.business_name);
-      formData.append("industry_segment", payload.industry_segment);
-      formData.append("business_location", payload.business_location);
-      formData.append("contact_person_name", payload.contact_person_name);
-      formData.append("business_mobile", payload.business_mobile);
-      formData.append("business_email", payload.business_email);
-      formData.append("preferred_language", payload.preferred_language);
-      
-      if (Array.isArray(payload.operational_locations)) {
-        payload.operational_locations.forEach((loc) => {
+      formData.append("business_name", businessName);
+      formData.append("industry_segment", businessType);
+      formData.append("business_location", primaryLocStr); // Primary location sent ONLY here!
+      formData.append("contact_person_name", contactName);
+      formData.append("business_mobile", contactPhone);
+      formData.append("business_email", contactEmail);
+      formData.append("preferred_language", preferredLanguage);
+
+      // Send ONLY additional locations in operational_locations[]
+      if (Array.isArray(additionalLocStrs)) {
+        additionalLocStrs.forEach((loc) => {
           formData.append("operational_locations[]", loc);
         });
       }
-      
-      formData.append("nominee_name", payload.nominee_name || "");
-      formData.append("nominee_relationship", payload.nominee_relationship || "");
-      formData.append("nominee_mobile", payload.nominee_mobile || "");
 
-      if (payload.company_logo) {
-        const uri = payload.company_logo;
-        const uriParts = uri.split("/");
+      if (logoUri) {
+        const uriParts = logoUri.split("/");
         const fileName = uriParts[uriParts.length - 1];
         const fileType = fileName.split(".").pop();
-        
         formData.append("company_logo", {
-          uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+          uri: Platform.OS === "android" ? logoUri : logoUri.replace("file://", ""),
           name: fileName,
           type: `image/${fileType === "jpg" ? "jpeg" : fileType || "png"}`,
         });
       }
 
-      // Log onboarding API call details
-      console.log("[API INFO] Saving profile completion. URL: /employer/onboarding/save");
-      if (formData && formData._parts) {
-        formData._parts.forEach(([key, value]) => {
-          console.log(`[API PAYLOAD] ${key}:`, typeof value === "object" && value !== null ? JSON.stringify(value) : value);
-        });
-      }
-
-      // Call API
       const apiResponse = await saveEmployerOnboarding(formData);
-      
+
       const profileReduxData = {
-        name: managerName || contactName || "Employer User",
+        name: contactName || "Employer User",
         businessName: businessName,
         company: businessName,
-        segment: industrySegment,
-        location: businessLocation,
-        locations: payload.operational_locations,
+        segment: businessType,
+        industry_segment: businessType,
+        location: formattedOpLocations[0] || "",
+        locations: formattedOpLocations,
+        operational_locations: formattedOpLocations,
         contactName,
         contactPhone,
         contactEmail,
         preferredLanguage,
-        nominee_name: managerName,
-        nominee_relationship: managerRelationship,
-        nominee_mobile: managerPhone,
         company_logo: logoUri,
         role: "employer",
         employerOnboardingCompleted: true,
         ...(apiResponse?.data || apiResponse || {}),
       };
 
-      // Update Redux state
       dispatch(setProfileData(profileReduxData));
-      
-      // Save locally
       await setStoredProfile(profileReduxData);
+      await setEmployerOnboardingCompleted(true);
 
       if (isEditMode) {
         navigation.goBack();
@@ -576,44 +440,57 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         navigation.reset({ index: 0, routes: [{ name: "EmployerHome" }] });
       }
     } catch (error) {
-      console.error("Failed to save employer onboarding:", error);
+      console.error("Failed to save employer profile:", error);
       Alert.alert(t("error", "Error"), error.message || t("failedToSaveProfileMsg", "Failed to save profile. Please try again."));
     } finally {
       setIsSaving(false);
     }
   };
 
-
-  const progress = step === TOTAL_STEPS ? 100 : step * (100 / TOTAL_STEPS);
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        {/* Header */}
+        {/* Top Bar Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={prev} style={styles.backButton}>
-            <Ionicons name={step === TOTAL_STEPS ? "close" : "arrow-back"} size={24} color="#0a0504" />
+          <TouchableOpacity onPress={prevStep} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{isEditMode ? t("editProfile", "Edit Profile") : t("completeProfileTitle", "Complete Profile")}</Text>
-          <View style={styles.stepBadge}>
-            <Text style={styles.stepBadgeText}>
-              {step === TOTAL_STEPS ? "100%" : t("step", { current: step, total: TOTAL_STEPS }).replace("{{current}}", step).replace("{{total}}", TOTAL_STEPS)}
-            </Text>
-          </View>
-        </View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>{t("onboardingProgress", "Onboarding Progress")}</Text>
-            <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{Math.round(progress)}%</Text>
+          {/* Connected Step Pills Progress Bar */}
+          <View style={styles.stepPillContainer}>
+            {[1, 2, 3, 4].map((stepNum) => {
+              const isActive = step === stepNum;
+              const isCompleted = step > stepNum;
+              return (
+                <React.Fragment key={`step_pill_${stepNum}`}>
+                  <View style={[
+                    styles.stepPill,
+                    isActive && styles.stepPillActive,
+                    isCompleted && styles.stepPillCompleted
+                  ]}>
+                    <Text style={[
+                      styles.stepPillText,
+                      isActive && styles.stepPillTextActive,
+                      isCompleted && styles.stepPillTextCompleted
+                    ]}>
+                      {stepNum}
+                    </Text>
+                  </View>
+                  {stepNum < TOTAL_STEPS && (
+                    <View style={[
+                      styles.stepConnector,
+                      isCompleted && styles.stepConnectorCompleted
+                    ]} />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: PRIMARY_GREEN }]} />
-          </View>
+
+          <View style={{ width: 32 }} />
         </View>
 
         <ScrollView
@@ -622,279 +499,324 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* STEP 1: BUSINESS INFORMATION (Logo + Name + Segment + Primary Location + Operational Locations) */}
+          {/* STEP 1: BUSINESS INFORMATION */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t("businessInformation", "Business Information")}</Text>
-              <Text style={styles.stepSubtitle}>
-                {t("employerCompleteProfile.step1Subtitle", "Tell us about your establishment to help us find the right talent for your team.")}
+              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+              <Text style={styles.stepMainSubtitle}>
+                {t("completeBusinessProfileStep1Subtitle", "Let's start with the basics. Tell us about your business and add your logo.")}
               </Text>
 
-              {/* Company Logo Upload - top of the step */}
-              <Text style={styles.sectionHeaderTitle}>{t("companyLogo", "Company Logo")}</Text>
-              <TouchableOpacity
-                style={styles.logoUploadBox}
-                activeOpacity={0.7}
-                onPress={handleLogoUpload}
-              >
-                <View style={styles.logoUploadInner}>
-                  {logoUri ? (
-                    <Image
-                      source={{ uri: logoUri }}
-                      style={{ width: 80, height: 80, borderRadius: 8, marginBottom: 8 }}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Ionicons name="camera-outline" size={32} color={PRIMARY_GREEN} />
-                  )}
-                  <Text style={styles.logoUploadText}>{logoUploaded ? t("changeLogo", "Change Logo") : t("upload", "Upload")}</Text>
-                </View>
-              </TouchableOpacity>
-              <Text style={styles.logoSubtext}>{t("logoRecommendedFormat", "PNG, JPG up to 5MB. Recommended square format.")}</Text>
+              <Text style={styles.sectionHeaderUpper}>{t("businessInformationUpper", "BUSINESS INFORMATION")}</Text>
 
               {/* Business Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("primaryBusinessAgencyName", "Primary Business / Agency Name")} <Text style={styles.required}>*</Text></Text>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "businessName" && styles.inputWrapperActive
-                ]}>
+                <Text style={styles.inputLabel}>{t("businessName", "Business Name")}<Text style={styles.required}>*</Text></Text>
+                <View style={[styles.inputWrapper, activeInput === "businessName" && styles.inputWrapperActive]}>
                   <TextInput
                     value={businessName}
                     onChangeText={setBusinessName}
-                    placeholder={t("employerCompleteProfile.enterBusinessName", "Enter business name")}
+                    placeholder={t("enterBusinessName", "Enter business name")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                     onFocus={(e) => handleInputFocus(e, "businessName")}
                     onBlur={() => setActiveInput(null)}
                   />
-                  <Ionicons name="business-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconRight} />
                 </View>
               </View>
 
-              {/* Industry Segment Dropdown */}
+              {/* Business Type Dropdown */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("industrySegment", "Industry Segment")} <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("businessType", "Business Type")}<Text style={styles.required}>*</Text></Text>
                 <ModalPickerTrigger
-                  onPress={() => setShowSegmentDropdown(true)}
-                  label={industrySegment}
-                  placeholder={t("employerCompleteProfile.selectIndustrySegment", "Select an industry segment")}
-                  isOpen={showSegmentDropdown}
+                  onPress={() => setShowTypeDropdown(true)}
+                  label={businessType}
+                  placeholder={t("selectBusinessType", "Select Business Type")}
+                  isOpen={showTypeDropdown}
                   style={styles.inputWrapper}
                 />
                 <ModalPicker
-                  visible={showSegmentDropdown}
-                  onClose={() => setShowSegmentDropdown(false)}
-                  title={t("industrySegment", "Industry Segment")}
-                  options={segments}
-                  selectedValue={industrySegment}
-                  onSelect={(val) => setIndustrySegment(val)}
+                  visible={showTypeDropdown}
+                  onClose={() => setShowTypeDropdown(false)}
+                  title={t("businessType", "Business Type")}
+                  options={businessTypeOptions}
+                  selectedValue={businessType}
+                  onSelect={(val) => setBusinessType(val)}
                 />
+                <Text style={styles.fieldHint}>{t("selectTypeBusinessOperate", "Select the type of business you operate.")}</Text>
               </View>
 
-              {/* Primary Business Location */}
+              {/* Business Logo Upload Card */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("businessLocation", "Primary Business Location")} <Text style={styles.required}>*</Text></Text>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "businessLocation" && styles.inputWrapperActive
-                ]}>
-                  <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={businessLocation}
-                    onChangeText={setBusinessLocation}
-                    placeholder={t("employerCompleteProfile.enterBusinessLocation", "Enter business location")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "businessLocation")}
-                    onBlur={() => setActiveInput(null)}
-                  />
-                </View>
-                {/* Professional Use Current Location Button */}
+                <Text style={styles.inputLabel}>{t("businessLogo", "Business Logo")}<Text style={styles.required}>*</Text></Text>
                 <TouchableOpacity
-                  style={styles.useCurrentLocationBtn}
+                  style={styles.logoCardBox}
                   activeOpacity={0.8}
-                  onPress={handleGPSLocation}
-                  disabled={isLocating}
+                  onPress={handleLogoUpload}
                 >
-                  <View style={styles.locateBtnContent}>
-                    {isLocating ? (
-                      <ActivityIndicator size="small" color="#153e69" style={{ marginRight: 6 }} />
-                    ) : (
-                      <Ionicons name="locate" size={16} color="#153e69" style={{ marginRight: 6 }} />
-                    )}
-                    <Text style={styles.useCurrentLocationText}>
-                      {isLocating ? t("fetchingLocation", "Fetching location...") : t("useCurrentLocation", "Use current location")}
-                    </Text>
-                  </View>
+                  {logoUri ? (
+                    <Image source={{ uri: logoUri }} style={styles.logoPreviewImage} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.logoIconCircle}>
+                      <Ionicons name="person-outline" size={28} color={PRIMARY_BLUE} />
+                    </View>
+                  )}
+                  <Text style={styles.logoUploadTitle}>{logoUploaded ? t("changeLogo", "Change Logo") : t("uploadBusinessLogo", "Upload your business logo")}</Text>
+                  <Text style={styles.logoUploadSubtext}>{t("logoRecommendedFormat", "PNG or JPG · Max 5 MB · Square format recommended")}</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Operational Locations Section */}
-              <View style={styles.rowSpaceBetween}>
-                <Text style={styles.sectionHeaderTitle}>{t("operationalLocations", "Operational Locations")}</Text>
-                <View style={styles.mandatoryBadge}>
-                  <Text style={styles.mandatoryBadgeText}>{t("mandatory", "MANDATORY")}</Text>
-                </View>
-              </View>
+              {/* Bottom Action Button */}
+              <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={nextStep}>
+                <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
+              </TouchableOpacity>
+            </View>
+          )}
 
-              {/* Same as Business Location Toggle */}
-              <View style={styles.toggleRow}>
-                <View style={{ flex: 1, marginRight: 10 }}>
-                  <Text style={styles.toggleLabel}>{t("sameAsBusinessLocation", "Same as Business Location")}</Text>
-                  <Text style={styles.toggleSubtext}>{t("sameAsBusinessLocationHint", "Auto-fill Location #1, or switch off to enter manually")}</Text>
-                </View>
-                <Switch
-                  value={sameAsBusinessLocation}
-                  onValueChange={handleToggleSameLocation}
-                  trackColor={{ false: "rgba(10, 5, 4, 0.15)", true: PRIMARY_GREEN }}
-                  thumbColor="#ffffff"
-                />
-              </View>
+          {/* STEP 2: BUSINESS LOCATIONS */}
+          {step === 2 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+              <Text style={styles.stepMainSubtitle}>
+                {t("completeBusinessProfileStep2Subtitle", "Add your locations to connect with the right Talent.")}
+              </Text>
 
-              {locations.map((loc, idx) => {
-                const isAutoFilled = idx === 0 && sameAsBusinessLocation;
-                return (
-                  <View key={loc.id} style={styles.locationCard}>
-                    <View style={styles.locationCardHeader}>
-                      <Text style={styles.locationCardTitle}>{t("location", "Location")} #{idx + 1}</Text>
-                      {locations.length > 1 && (
-                        <TouchableOpacity onPress={() => removeLocation(loc.id)}>
-                          <Ionicons name="trash-outline" size={18} color="#f57f20" />
-                        </TouchableOpacity>
-                      )}
+              <Text style={styles.sectionHeaderUpper}>{t("businessLocationsUpper", "BUSINESS LOCATIONS")}</Text>
+
+              {/* Business Location Card — doubles as "Add new" and "Edit existing" depending on editingLocId */}
+              <View style={[styles.primaryLocationCard, editingLocId && styles.primaryLocationCardEditing]}>
+                <View style={styles.cardTitleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.primaryLocTitle}>
+                      {editingLocId
+                        ? t("editLocation", "Edit Location")
+                        : additionalLocations.length === 0
+                        ? t("primaryBusinessLocation", "Primary Business Location")
+                        : additionalLocations.length === 1
+                        ? t("secondaryBusinessLocation", "Secondary Location (Location #2)")
+                        : additionalLocations.length === 2
+                        ? t("tertiaryBusinessLocation", "Tertiary Location (Location #3)")
+                        : t("additionalLocationTitle", `Location #${additionalLocations.length + 1}`, { num: additionalLocations.length + 1 })}
+                      {!editingLocId && <Text style={styles.required}>*</Text>}
+                    </Text>
+                    <Text style={styles.primaryLocSubtitle}>
+                      {editingLocId
+                        ? t("editLocationHint", "Update the state and city for this location.")
+                        : additionalLocations.length === 0
+                        ? t("primaryLocationDefaultHint", "This location will be used by default when posting a job.")
+                        : additionalLocations.length === 1
+                        ? t("secondaryLocationHint", "Add your secondary location for hiring Talent.")
+                        : t("additionalLocationHint", "Add additional location for hiring Talent.")}
+                    </Text>
+                  </View>
+                  {editingLocId && (
+                    <TouchableOpacity onPress={cancelEditLocation} style={styles.cancelEditChip} activeOpacity={0.7}>
+                      <Ionicons name="close" size={14} color="#64748b" />
+                      <Text style={styles.cancelEditChipText}>{t("cancel", "Cancel")}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Country */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.smallInputLabel}>{t("country", "Country")}</Text>
+                  {isCountryLocked ? (
+                    <View style={styles.lockedFieldBox}>
+                      <Text style={styles.lockedFieldText}>{primaryCountry || "-"}</Text>
+                      <Ionicons name="lock-closed" size={14} color="#94a3b8" />
                     </View>
+                  ) : (
+                    <>
+                      <ModalPickerTrigger
+                        onPress={() => setShowPrimaryCountryModal(true)}
+                        label={primaryCountry}
+                        placeholder={t("selectCountry", "Select Country")}
+                        isOpen={showPrimaryCountryModal}
+                        style={styles.inputWrapper}
+                      />
+                      <ModalPicker
+                        visible={showPrimaryCountryModal}
+                        onClose={() => setShowPrimaryCountryModal(false)}
+                        title={t("country", "Country")}
+                        options={countryOptions}
+                        selectedValue={primaryCountry}
+                        onSelect={(val) => {
+                          setPrimaryCountry(val);
+                          setPrimaryState("");
+                          setPrimaryCity("");
+                        }}
+                        searchable
+                        searchPlaceholder={t("searchCountry", "Search Country...")}
+                      />
+                    </>
+                  )}
+                  {isCountryLocked && (
+                    <Text style={styles.fieldHint}>
+                      {t("countryLockedHint", "All locations share the same country and can't be changed here.")}
+                    </Text>
+                  )}
+                </View>
 
-                    {/* When Toggle is ON for Location #1 */}
-                    {isAutoFilled ? (
-                      <View style={styles.inputGroup}>
-                        <View style={[styles.inputWrapper, styles.inputWrapperDisabled]}>
-                          <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                          <TextInput
-                            value={businessLocation}
-                            placeholder={t("employerCompleteProfile.autofilledLocation", "Same as Primary Business Location")}
-                            placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                            style={styles.textInput}
-                            editable={false}
-                          />
-                        </View>
+                {/* State / Region */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.smallInputLabel}>{t("stateRegion", "State / Region")}</Text>
+                  <ModalPickerTrigger
+                    onPress={() => setShowPrimaryStateModal(true)}
+                    label={primaryState}
+                    placeholder={t("selectStateRegion", "Select State / Region")}
+                    isOpen={showPrimaryStateModal}
+                    style={styles.inputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showPrimaryStateModal}
+                    onClose={() => setShowPrimaryStateModal(false)}
+                    title={t("stateRegion", "State / Region")}
+                    options={countryStateCityData[primaryCountry] ? Object.keys(countryStateCityData[primaryCountry]) : []}
+                    selectedValue={primaryState}
+                    onSelect={(val) => {
+                      setPrimaryState(val);
+                      if (primaryCity && countryStateCityData[primaryCountry]?.[val] && !countryStateCityData[primaryCountry][val].includes(primaryCity)) {
+                        setPrimaryCity("");
+                      }
+                    }}
+                    searchable
+                    searchPlaceholder={t("searchState", "Search State...")}
+                  />
+                </View>
+
+                {/* City */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.smallInputLabel}>{t("city", "City")}</Text>
+                  <ModalPickerTrigger
+                    onPress={() => setShowPrimaryCityModal(true)}
+                    label={primaryCity}
+                    placeholder={t("selectCity", "Select City")}
+                    isOpen={showPrimaryCityModal}
+                    style={styles.inputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showPrimaryCityModal}
+                    onClose={() => setShowPrimaryCityModal(false)}
+                    title={t("city", "City")}
+                    options={primaryState
+                      ? (countryStateCityData[primaryCountry]?.[primaryState] || [])
+                      : Array.from(new Set(Object.values(countryStateCityData[primaryCountry] || {}).flat())).sort()}
+                    selectedValue={primaryCity}
+                    onSelect={(val) => {
+                      setPrimaryCity(val);
+                      if (!primaryState && countryStateCityData[primaryCountry]) {
+                        const foundState = Object.keys(countryStateCityData[primaryCountry]).find((st) =>
+                          countryStateCityData[primaryCountry][st].includes(val)
+                        );
+                        if (foundState) setPrimaryState(foundState);
+                      }
+                    }}
+                    searchable
+                    searchPlaceholder={t("searchCity", "Search City...")}
+                  />
+                </View>
+
+                {/* Save & Add / Update Location Button inside card */}
+                <TouchableOpacity
+                  style={[styles.saveLocationInsideBtn, editingLocId && styles.updateLocationInsideBtn]}
+                  activeOpacity={0.8}
+                  onPress={handleSaveLocationFromTop}
+                >
+                  <Ionicons
+                    name={editingLocId ? "checkmark-circle-outline" : "add-circle-outline"}
+                    size={20}
+                    color={editingLocId ? "#ffffff" : "#153e69"}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={[styles.saveLocationInsideBtnText, editingLocId && styles.updateLocationInsideBtnText]}>
+                    {editingLocId ? t("updateLocation", "Update Location") : t("saveAddLocation", "+ Save & Add Location")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Added Locations List Below */}
+              {additionalLocations.map((loc, idx) => {
+                const isBeingEdited = editingLocId === loc.id;
+                return (
+                  <View
+                    key={`added_loc_item_${loc.id}_${idx}`}
+                    style={[styles.locationListItem, isBeingEdited && styles.locationListItemActive]}
+                  >
+                    <View style={styles.locationPinIcon}>
+                      <Ionicons name="location" size={16} color={PRIMARY_BLUE} />
+                    </View>
+                    <View style={styles.locationListTextWrap}>
+                      <View style={styles.locationListTitleRow}>
+                        <Text style={styles.locationListTitle}>{t("location", "Location")} #{idx + 1}</Text>
+                        {idx === 0 && (
+                          <View style={styles.primaryBadge}>
+                            <Text style={styles.primaryBadgeText}>{t("primaryTag", "Primary")}</Text>
+                          </View>
+                        )}
                       </View>
-                    ) : (
-                      <>
-                        {/* State Dropdown (Searchable) */}
-                        <View style={styles.inputGroup}>
-                          <ModalPickerTrigger
-                            onPress={() => setOpenStateModalId(loc.id)}
-                            label={loc.state}
-                            placeholder={t("selectState", "Select State")}
-                            isOpen={openStateModalId === loc.id}
-                            leftIcon="map-outline"
-                            style={styles.inputWrapper}
-                          />
-                          <ModalPicker
-                            visible={openStateModalId === loc.id}
-                            onClose={() => setOpenStateModalId(null)}
-                            title={t("selectState", "Select State")}
-                            options={stateOptions}
-                            selectedValue={loc.state}
-                            onSelect={(val) => {
-                              handleLocationChange(loc.id, "state", val);
-                              if (loc.cityPostcode && indianStatesCities[val] && !indianStatesCities[val].includes(loc.cityPostcode)) {
-                                handleLocationChange(loc.id, "cityPostcode", "");
-                              }
-                            }}
-                            searchable={true}
-                            searchPlaceholder={t("searchState", "Search State...")}
-                          />
-                        </View>
-
-                        {/* City Dropdown (Searchable) */}
-                        <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                          <ModalPickerTrigger
-                            onPress={() => setOpenCityModalId(loc.id)}
-                            label={loc.cityPostcode}
-                            placeholder={t("selectCity", "Select City")}
-                            isOpen={openCityModalId === loc.id}
-                            leftIcon="business-outline"
-                            style={styles.inputWrapper}
-                          />
-                          <ModalPicker
-                            visible={openCityModalId === loc.id}
-                            onClose={() => setOpenCityModalId(null)}
-                            title={t("selectCity", "Select City")}
-                            options={loc.state ? (indianStatesCities[loc.state] || []) : allCitiesList}
-                            selectedValue={loc.cityPostcode}
-                            onSelect={(val) => {
-                              handleLocationChange(loc.id, "cityPostcode", val);
-                              if (!loc.state) {
-                                const foundState = Object.keys(indianStatesCities).find((st) =>
-                                  indianStatesCities[st].includes(val)
-                                );
-                                if (foundState) {
-                                  handleLocationChange(loc.id, "state", foundState);
-                                }
-                              }
-                            }}
-                            searchable={true}
-                            searchPlaceholder={t("searchCity", "Search City...")}
-                          />
-                        </View>
-                      </>
+                      <Text style={styles.locationListSub}>{[loc.city, loc.state, loc.country].filter(Boolean).join(", ")}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => startEditLocation(loc)}
+                      style={styles.iconActionBtn}
+                      disabled={isBeingEdited}
+                    >
+                      <Ionicons name="pencil-outline" size={18} color={isBeingEdited ? "#cbd5e1" : PRIMARY_BLUE} />
+                    </TouchableOpacity>
+                    {!isEditMode && (
+                      <TouchableOpacity onPress={() => removeAddonLocation(loc.id)} style={styles.iconActionBtn}>
+                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                      </TouchableOpacity>
                     )}
                   </View>
                 );
               })}
 
-              {/* Add Another Location Button */}
-              <TouchableOpacity
-                style={styles.addLocationButton}
-                activeOpacity={0.8}
-                onPress={addLocation}
-              >
-                <Ionicons name="add" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.addLocationButtonText}>{t("addAnotherLocation", "Add Another Location")}</Text>
-              </TouchableOpacity>
-
-              {/* Info Card */}
-              <View style={styles.infoCard}>
-                <Ionicons name="information-circle-outline" size={22} color="#153e69" style={styles.infoCardIcon} />
-                <Text style={styles.infoCardText}>
-                  {t("employerCompleteProfile.infoCardText2", "Having multiple locations allows you to post jobs specifically for each venue while managing them from one central account.")}
-                </Text>
+              {/* Location Tips Info Card */}
+              <View style={styles.locationTipsCard}>
+                <Ionicons name="information-circle" size={22} color={PRIMARY_BLUE} style={{ marginRight: 10 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.tipsTitle}>{t("locationTipsTitle", "Location Tips:")}</Text>
+                  <Text style={styles.tipsMsg}>
+                    {isEditMode
+                      ? t("locationTipsEditMsg", "You can update the state and city of any location, but not its country.")
+                      : t("locationTipsMsg", "Multiple locations let you post jobs for specific venues while managing everything from one account.")}
+                  </Text>
+                </View>
               </View>
 
-              {/* Action Button */}
-              <TouchableOpacity
-                style={[
-                  styles.continueButton,
-                  (!businessName.trim() || !industrySegment || !businessLocation.trim()) && styles.continueButtonDisabled
-                ]}
-                onPress={next}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.footerText}>{t("editDetailsLaterMsg", "You can edit these details later in your dashboard.")}</Text>
+              {/* Bottom Buttons */}
+              <View style={styles.bottomNavRow}>
+                <TouchableOpacity style={styles.backOutlineBtn} onPress={prevStep}>
+                  <Ionicons name="arrow-back" size={16} color="#0f172a" style={{ marginRight: 6 }} />
+                  <Text style={styles.backOutlineText}>{t("back", "Back")}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={nextStep}>
+                  <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
-          {/* STEP 2: BUSINESS INFORMATION (CONTACT) */}
-          {step === 2 && (
+          {/* STEP 3: CONTACT INFORMATION */}
+          {step === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t("businessInformation", "Business Information")}</Text>
-              <Text style={styles.stepSubtitle}>
-                {t("employerCompleteProfile.step2Subtitle", "Provide details so we can reach out regarding high-quality candidates and updates.")}
+              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+              <Text style={styles.stepMainSubtitle}>
+                {t("completeBusinessProfileStep3Subtitle", "Let Jobrito reach you for important updates.")}
+              </Text>
+
+              <Text style={styles.sectionHeaderUpper}>{t("contactInformationUpper", "CONTACT INFORMATION")}</Text>
+              <Text style={styles.stepMainSubtitle}>
+                {t("contactInformationHint", "Your contact details help Jobrito reach you about job postings, your account, and important updates.")}
               </Text>
 
               {/* Contact Person Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.contactPerson", "Contact Person Name")}</Text>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "contactName" && styles.inputWrapperActive
-                ]}>
-                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                <Text style={styles.inputLabel}>{t("contactPerson", "Contact Person")}<Text style={styles.required}>*</Text></Text>
+                <View style={[styles.inputWrapper, activeInput === "contactName" && styles.inputWrapperActive]}>
                   <TextInput
                     value={contactName}
                     onChangeText={setContactName}
@@ -907,40 +829,41 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Mobile Number */}
+              {/* Mobile Number with Verified Badge */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.phoneNumber", "Business Mobile Number")}</Text>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "contactPhone" && styles.inputWrapperActive
-                ]}>
-                  <Ionicons name="call-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={contactPhone}
-                    onChangeText={setContactPhone}
-                    placeholder={t("employerCompleteProfile.enterBusinessMobile", "Enter business mobile number")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "contactPhone")}
-                    onBlur={() => setActiveInput(null)}
-                  />
+                <Text style={styles.inputLabel}>{t("mobileNumber", "Mobile Number")}<Text style={styles.required}>*</Text></Text>
+                <View style={styles.mobileInputRow}>
+                  <View style={styles.countryCodeBox}>
+                    <Text style={styles.countryCodeText}>+91</Text>
+                  </View>
+                  <View style={[styles.inputWrapper, { flex: 1 }, activeInput === "contactPhone" && styles.inputWrapperActive]}>
+                    <TextInput
+                      value={contactPhone}
+                      onChangeText={setContactPhone}
+                      placeholder="XXXXX XXXXX"
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      style={styles.textInput}
+                      onFocus={(e) => handleInputFocus(e, "contactPhone")}
+                      onBlur={() => setActiveInput(null)}
+                    />
+                  </View>
+                </View>
+                <View style={styles.verifiedRow}>
+                  <Ionicons name="checkmark-sharp" size={16} color="#16a34a" />
+                  <Text style={styles.verifiedText}>{t("verified", "Verified")}</Text>
                 </View>
               </View>
 
               {/* Email Address */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.emailAddress", "Business Email Address")}</Text>
-                <View style={[
-                  styles.inputWrapper,
-                  activeInput === "contactEmail" && styles.inputWrapperActive
-                ]}>
-                  <Ionicons name="mail-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                <Text style={styles.inputLabel}>{t("emailAddress", "Email Address")}</Text>
+                <View style={[styles.inputWrapper, activeInput === "contactEmail" && styles.inputWrapperActive]}>
                   <TextInput
                     value={contactEmail}
                     onChangeText={setContactEmail}
-                    placeholder={t("employerCompleteProfile.enterBusinessEmail", "Enter business email address")}
+                    placeholder="email@example.com"
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -951,198 +874,110 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Preferred Language */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("preferredLanguage", "Preferred Language")}</Text>
-                <ModalPickerTrigger
-                  onPress={() => setShowLangDropdown(true)}
-                  label={preferredLanguage}
-                  isOpen={showLangDropdown}
-                  leftIcon="globe-outline"
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showLangDropdown}
-                  onClose={() => setShowLangDropdown(false)}
-                  title={t("preferredLanguage", "Preferred Language")}
-                  options={languages}
-                  selectedValue={preferredLanguage}
-                  onSelect={(val) => setPreferredLanguage(val)}
-                />
+              {/* Bottom Buttons */}
+              <View style={styles.bottomNavRow}>
+                <TouchableOpacity style={styles.backOutlineBtn} onPress={prevStep}>
+                  <Ionicons name="arrow-back" size={16} color="#0f172a" style={{ marginRight: 6 }} />
+                  <Text style={styles.backOutlineText}>{t("back", "Back")}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={nextStep}>
+                  <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
+                </TouchableOpacity>
               </View>
-
-              {/* Disclaimer Checkbox */}
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                activeOpacity={0.8}
-                onPress={() => setPrivacyChecked(!privacyChecked)}
-              >
-                <View style={[
-                  styles.checkbox,
-                  privacyChecked && { backgroundColor: PRIMARY_GREEN, borderColor: PRIMARY_GREEN }
-                ]}>
-                  {privacyChecked && <Ionicons name="checkmark" size={14} color="#fff" />}
-                </View>
-                <Text style={styles.checkboxLabel}>
-                  {t("employerCompleteProfile.privacyText", "Your information is protected and will only be used for reachout and applicant notifications.")}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={[
-                  styles.continueButton,
-                  (!contactName.trim() || !contactPhone.trim() || !privacyChecked) && styles.continueButtonDisabled
-                ]}
-                onPress={next}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
             </View>
           )}
 
-          {/* STEP 3: ALL SET! (was step 5) */}
-          {step === 3 && (
+          {/* STEP 4: REVIEW & SUBMIT */}
+          {step === 4 && (
             <View style={styles.stepContainer}>
-              {/* Checkmark animation mock */}
-              <View style={styles.successIconWrapper}>
-                <View style={[styles.successIconCircle, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-                  <View style={[styles.successIconInnerCircle, { backgroundColor: PRIMARY_GREEN }]}>
-                    <Ionicons name="checkmark" size={48} color="#fff" />
+              {/* Illustration Clipboard Badge */}
+              <View style={styles.readyBadgeWrapper}>
+                <View style={styles.readyCircleOuter}>
+                  <View style={styles.readyCircleInner}>
+                    <Ionicons name="clipboard-outline" size={40} color={PRIMARY_BLUE} />
+                  </View>
+                  <View style={styles.readyCheckDot}>
+                    <Ionicons name="checkmark-sharp" size={16} color="#ffffff" />
                   </View>
                 </View>
               </View>
 
-              <Text style={[styles.stepTitle, { textAlign: "center" }]}>{t("allSet", "All Set!")}</Text>
-              <Text style={[styles.stepSubtitle, { textAlign: "center", marginBottom: 24 }]}>
-                {t("employerProfileSuccessMsg", "Your employer profile has been completed successfully. You can now start posting jobs and reviewing applicants.")}
+              <Text style={styles.readyMainTitle}>{t("yourProfileIsReady", "YOUR PROFILE IS READY")}</Text>
+              <Text style={styles.readySubtitle}>
+                {t("reviewProfileNotice", "Review your information and submit your profile for approval.")}
               </Text>
 
-              {/* Card 1: Business Card */}
-              <View style={styles.summaryCard}>
-                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
-                  <Text style={styles.summarySectionHeader}>{t("companyProfile", "Company Profile")}</Text>
-                  <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
-                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
-                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.businessHeader}>
-                  <View style={[styles.businessLogoContainer, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-                    {logoUri ? (
-                      <Image source={{ uri: logoUri }} style={{ width: "100%", height: "100%", borderRadius: 10 }} />
-                    ) : (
-                      <Ionicons name="business" size={24} color={PRIMARY_GREEN} />
-                    )}
-                  </View>
-                  <View style={styles.businessHeaderDetails}>
-                    <Text style={styles.businessNameText}>{businessName || "Verdant Stays & Resorts"}</Text>
-                    <View style={styles.badgeRow}>
-                      <Ionicons name="pricetag-outline" size={12} color={PRIMARY_GREEN} />
-                      <Text style={styles.badgeText}>{industrySegment || "Hospitality & Leisure"}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* HQ Location & Contact Details */}
-                <View style={styles.detailList}>
-                  {businessLocation ? (
-                    <View style={styles.detailItem}>
-                      <Ionicons name="location-sharp" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
-                      <Text style={styles.detailText}>{businessLocation}</Text>
-                    </View>
-                  ) : null}
-
-                  {contactEmail ? (
-                    <View style={styles.detailItem}>
-                      <Ionicons name="mail" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
-                      <Text style={styles.detailText}>{contactEmail}</Text>
-                    </View>
-                  ) : null}
-
-                  {contactPhone ? (
-                    <View style={styles.detailItem}>
-                      <Ionicons name="call" size={14} color="rgba(10, 5, 4, 0.5)" style={styles.detailIcon} />
-                      <Text style={styles.detailText}>{contactPhone}</Text>
-                    </View>
-                  ) : null}
-                </View>
-              </View>
-
-              {/* Card 2: Operational Locations */}
-              <View style={styles.summaryCard}>
-                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
-                  <Text style={styles.summarySectionHeader}>{t("operationalLocations", "Operational Locations")}</Text>
-                  <TouchableOpacity onPress={() => setStep(1)} style={styles.editButton}>
-                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
-                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
+              {/* Summary Card */}
+              <View style={styles.summaryCardBox}>
+                <View style={styles.summaryCardHeader}>
+                  <Text style={styles.summaryCardTitle}>{t("yourBusinessProfile", "Your Business Profile")}</Text>
+                  <TouchableOpacity onPress={() => setStep(1)} activeOpacity={0.7}>
+                    <Text style={styles.editBtnText}>{t("edit", "Edit")}</Text>
                   </TouchableOpacity>
                 </View>
 
-                {locations.length > 0 ? (
-                  <View style={styles.operationalList}>
-                    {locations.map((loc, idx) => {
-                      const isAutoFilled = idx === 0 && sameAsBusinessLocation;
-                      const displayAddress = isAutoFilled ? businessLocation : loc.address;
-                      const displayCityState = isAutoFilled ? "" : [loc.cityPostcode, loc.state].filter(Boolean).join(", ");
-                      return (
-                        <View key={loc.id} style={styles.operationalItem}>
-                          <View style={styles.operationalBadge}>
-                            <Text style={styles.operationalBadgeText}>{idx + 1}</Text>
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.operationalAddressText} numberOfLines={1}>{displayAddress || "Location #" + (idx + 1)}</Text>
-                            {displayCityState ? <Text style={styles.operationalCityText}>{displayCityState}</Text> : null}
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                ) : (
-                  <Text style={styles.emptyText}>No branches added</Text>
-                )}
-              </View>
+                {/* Logo + Name + Type */}
+                <View style={styles.summaryBizRow}>
+                  {logoUri ? (
+                    <Image source={{ uri: logoUri }} style={styles.summaryLogoImage} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.summaryLogoPlaceholder}>
+                      <Ionicons name="business" size={24} color="#ffffff" />
+                    </View>
+                  )}
+                  <View style={styles.summaryBizDetails}>
+                    <Text style={styles.summaryBizLabel}>{t("businessName", "Business Name")}</Text>
+                    <Text style={styles.summaryBizName}>{businessName || "-"}</Text>
 
-              {/* Card 3: Contact Representative */}
-              <View style={styles.summaryCard}>
-                <View style={[styles.rowSpaceBetween, { marginBottom: 12 }]}>
-                  <Text style={styles.summarySectionHeader}>{t("contactRepresentative", "Contact Representative")}</Text>
-                  <TouchableOpacity onPress={() => setStep(2)} style={styles.editButton}>
-                    <Text style={styles.editButtonText}>{t("edit", "Edit")}</Text>
-                    <Ionicons name="pencil" size={12} color={PRIMARY_GREEN} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.twoColumnRow}>
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text style={styles.columnLabelText}>{t("postJob.contactPerson", "Name")}</Text>
-                    <Text style={styles.columnValueText}>{contactName || "Aryan Jain"}</Text>
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={styles.columnLabelText}>{t("preferredLanguage", "Preferred Language")}</Text>
-                    <Text style={styles.columnValueText}>{preferredLanguage || "English (UK)"}</Text>
+                    <Text style={[styles.summaryBizLabel, { marginTop: 6 }]}>{t("businessType", "Business Type")}</Text>
+                    <Text style={styles.summaryBizValue}>{businessType || "-"}</Text>
                   </View>
                 </View>
+
+                <View style={styles.summaryDivider} />
+
+                {/* Locations List */}
+                <Text style={styles.summarySectionLabel}>{t("locations", "Locations")}</Text>
+                <View style={styles.summaryLocList}>
+                  {buildFinalLocations().map((l, idx) => (
+                    <Text key={`compiled_loc_summary_${idx}_${l.city}`} style={styles.summaryLocItem}>
+                      {idx + 1}. {[l.city, l.state, l.country].filter(Boolean).join(", ")}{idx === 0 ? ` (${t("primaryTag", "Primary")})` : ""}
+                    </Text>
+                  ))}
+                </View>
+
+                <View style={styles.summaryDivider} />
+
+                {/* Contact Info Table */}
+                <View style={styles.summaryInfoRow}>
+                  <Text style={styles.summaryInfoLabel}>{t("contactPerson", "Contact Person")}</Text>
+                  <Text style={styles.summaryInfoValue}>{contactName || "-"}</Text>
+                </View>
+
+                <View style={styles.summaryInfoRow}>
+                  <Text style={styles.summaryInfoLabel}>{t("mobileNumber", "Mobile Number")}</Text>
+                  <Text style={styles.summaryInfoValue}>+91 {contactPhone || "-"}</Text>
+                </View>
+
+                <View style={styles.summaryInfoRow}>
+                  <Text style={styles.summaryInfoLabel}>{t("emailAddress", "Email Address")}</Text>
+                  <Text style={styles.summaryInfoValue}>{contactEmail || "-"}</Text>
+                </View>
               </View>
 
-
-
-              {/* Start Posting Jobs Button */}
+              {/* Complete Registration / Save Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { marginTop: 24 }, isSaving && { opacity: 0.6 }]}
+                style={[styles.primaryButton, { marginTop: 24 }, isSaving && { opacity: 0.6 }]}
+                activeOpacity={0.8}
                 onPress={finishOnboarding}
                 disabled={isSaving}
-                activeOpacity={0.8}
               >
-                <Text style={styles.continueButtonText}>
-                  {isSaving 
-                    ? t("saving", "Saving...") 
-                    : (isEditMode ? t("saveProfile", "Save Profile") : t("submit", "Submit"))}
+                <Text style={styles.primaryButtonText}>
+                  {isSaving
+                    ? t("saving", "Saving...")
+                    : (isEditMode ? t("saveProfile", "Save Profile") : t("completeRegistration", "Complete Registration"))}
                 </Text>
-                {!isSaving && <Ionicons name="arrow-forward" size={18} color="#fff" />}
               </TouchableOpacity>
             </View>
           )}
@@ -1155,7 +990,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -1165,706 +1000,559 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "rgba(10, 5, 4, 0.08)",
   },
   backButton: {
     padding: 4,
   },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  stepBadge: {
-    backgroundColor: "#f2f2f3",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 99,
-  },
-  stepBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  progressSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-  },
-  progressRow: {
+  stepPillContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    gap: 6,
   },
-  progressLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.6)",
+  stepPill: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  progressPct: {
+  stepPillActive: {
+    backgroundColor: PRIMARY_BLUE,
+  },
+  stepPillCompleted: {
+    backgroundColor: PRIMARY_BLUE,
+  },
+  stepPillText: {
     fontSize: 12,
     fontWeight: "700",
+    color: "#64748b",
   },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 99,
-    overflow: "hidden",
+  stepPillTextActive: {
+    color: "#ffffff",
   },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 99,
+  stepPillTextCompleted: {
+    color: "#ffffff",
+  },
+  stepConnector: {
+    width: 20,
+    height: 2,
+    backgroundColor: "#e2e8f0",
+  },
+  stepConnectorCompleted: {
+    backgroundColor: PRIMARY_BLUE,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 100,
+    paddingBottom: 60,
     flexGrow: 1,
   },
   stepContainer: {
     flex: 1,
   },
-  stepTitle: {
-    fontSize: 24,
+  stepMainTitle: {
+    fontSize: 22,
     fontWeight: "900",
-    color: "#0a0504",
-    marginBottom: 8,
+    color: DARK_NAVY,
+    marginBottom: 6,
   },
-  stepSubtitle: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 20,
-    marginBottom: 24,
+  stepMainSubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  sectionHeaderUpper: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: PRIMARY_BLUE,
+    letterSpacing: 0.8,
+    marginBottom: 16,
+    textTransform: "uppercase",
   },
   inputGroup: {
     marginBottom: 18,
   },
   inputLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#0a0504",
+    color: DARK_NAVY,
     marginBottom: 8,
   },
+  smallInputLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 6,
+  },
   required: {
-    color: "#f57f20",
+    color: "#ef4444",
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#cbd5e1",
     borderRadius: 12,
-    minHeight: 52,
     paddingHorizontal: 14,
-    position: "relative",
+    minHeight: 48,
   },
   inputWrapperActive: {
-    borderColor: PRIMARY_GREEN,
-    borderWidth: 1.5,
-  },
-  inputWrapperDisabled: {
-    backgroundColor: "#f2f2f3",
-    opacity: 0.7,
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: "#ffffff",
   },
   textInput: {
     flex: 1,
-    color: "#0a0504",
     fontSize: 15,
-    paddingVertical: 8,
+    color: DARK_NAVY,
+    paddingVertical: 10,
   },
-  inputIconRight: {
-    marginLeft: 8,
-  },
-  inputIconLeft: {
-    marginRight: 10,
-  },
-  countryCode: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0a0504",
-    marginRight: 4,
-    borderRightWidth: 1,
-    borderRightColor: "rgba(10, 5, 4, 0.15)",
-    paddingRight: 10,
-  },
-  inputSubtext: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 6,
-    paddingLeft: 4,
-  },
-  dropdownContainer: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 12,
-    marginTop: 4,
-    paddingVertical: 4,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f3",
-  },
-  dropdownItemText: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  useCurrentLocationBtn: {
-    marginTop: 8,
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(21, 62, 105, 0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.15)",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  locateBtnContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  useCurrentLocationText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#153e69",
-  },
-  infoCard: {
-    flexDirection: "row",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.18)",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 24,
-  },
-  infoCardIcon: {
-    marginRight: 10,
-    marginTop: 2,
-  },
-  infoCardText: {
-    flex: 1,
+  fieldHint: {
     fontSize: 12,
-    color: "#153e69",
-    lineHeight: 18,
+    color: "#94a3b8",
+    marginTop: 6,
   },
-  continueButton: {
+  logoCardBox: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderStyle: "dashed",
+    borderRadius: 16,
+    backgroundColor: "#f8fafc",
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoPreviewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    marginBottom: 12,
+  },
+  logoIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  logoUploadTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: DARK_NAVY,
+    marginBottom: 4,
+  },
+  logoUploadSubtext: {
+    fontSize: 12,
+    color: "#94a3b8",
+    textAlign: "center",
+  },
+  primaryButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: PRIMARY_GREEN,
-    minHeight: 52,
+    backgroundColor: PRIMARY_BLUE,
     borderRadius: 12,
-    gap: 8,
-    shadowColor: PRIMARY_GREEN,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    minHeight: 50,
+    paddingHorizontal: 20,
+    marginTop: 10,
   },
-  continueButtonDisabled: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  continueButtonText: {
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#ffffff",
   },
-  footerText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    textAlign: "center",
-    marginTop: 14,
+  primaryLocationCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: 16,
+    marginBottom: 16,
   },
-  checkboxContainer: {
+  primaryLocationCardEditing: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#93c5fd",
+    borderWidth: 1.5,
+  },
+  cardTitleRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginVertical: 18,
+    justifyContent: "space-between",
+    marginBottom: 4,
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+  cancelEditChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 10,
+  },
+  cancelEditChipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748b",
+    marginLeft: 3,
+  },
+  lockedFieldBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#eef2f7",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    minHeight: 48,
+  },
+  lockedFieldText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  saveLocationInsideBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    backgroundColor: "#eff6ff",
+    paddingVertical: 12,
+    marginTop: 10,
+  },
+  updateLocationInsideBtn: {
+    borderStyle: "solid",
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: PRIMARY_BLUE,
+  },
+  saveLocationInsideBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#153e69",
+  },
+  updateLocationInsideBtnText: {
+    color: "#ffffff",
+  },
+  primaryLocTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: DARK_NAVY,
+    marginBottom: 2,
+  },
+  primaryLocSubtitle: {
+    fontSize: 12,
+    color: "#64748b",
+    marginBottom: 14,
+  },
+  locationListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 10,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  locationListItemActive: {
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: "#f5f9ff",
+  },
+  locationPinIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
-    marginTop: 1,
   },
-  checkboxLabel: {
+  locationListTextWrap: {
     flex: 1,
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 18,
   },
-  sectionHeaderTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#0a0504",
-    marginBottom: 10,
-    marginTop: 8,
-  },
-  logoUploadBox: {
-    height: 90,
-    width: 90,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderStyle: "dashed",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-    backgroundColor: "#f2f2f3",
-  },
-  logoUploadInner: {
-    alignItems: "center",
-  },
-  logoUploadText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 4,
-  },
-  logoSubtext: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 24,
-  },
-  rowSpaceBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  mandatoryBadge: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderWidth: 1,
-    borderColor: "#BDECCB",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  mandatoryBadgeText: {
-    fontSize: 9,
-    fontWeight: "700",
-    color: PRIMARY_GREEN,
-  },
-  toggleRow: {
+  locationListTitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 14,
   },
-  toggleLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  toggleSubtext: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 2,
-  },
-  locationCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 14,
-  },
-  locationCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  locationCardTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  addLocationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    paddingVertical: 12,
-    marginBottom: 24,
-    borderStyle: "dashed",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-  },
-  addLocationButtonText: {
+  locationListTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: PRIMARY_GREEN,
+    color: DARK_NAVY,
+  },
+  primaryBadge: {
+    backgroundColor: "#dcfce7",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  primaryBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#15803d",
+    textTransform: "uppercase",
+  },
+  locationListSub: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  iconActionBtn: {
+    padding: 8,
+    marginLeft: 2,
+  },
+  addLocationDottedBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    backgroundColor: "#eff6ff",
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  addLocationDottedText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: PRIMARY_BLUE,
     marginLeft: 6,
   },
-  secureCard: {
+  locationTipsCard: {
     flexDirection: "row",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderWidth: 1,
-    borderColor: "#BDECCB",
-    borderRadius: 12,
+    backgroundColor: "#eff6ff",
+    borderRadius: 14,
     padding: 14,
-    marginBottom: 24,
-    alignItems: "center",
+    marginTop: 6,
+    marginBottom: 20,
   },
-  secureCardIcon: {
-    marginRight: 12,
-  },
-  secureCardContent: {
-    flex: 1,
-  },
-  secureCardTitle: {
+  tipsTitle: {
     fontSize: 13,
-    fontWeight: "700",
-    color: "#153e69",
+    fontWeight: "800",
+    color: PRIMARY_BLUE,
     marginBottom: 2,
   },
-  secureCardText: {
+  tipsMsg: {
     fontSize: 12,
-    color: "#166534",
-    lineHeight: 18,
+    color: "#3b82f6",
+    lineHeight: 16,
   },
-  footerNoteText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.4)",
-    textAlign: "center",
-    marginTop: 12,
-  },
-  successIconWrapper: {
+  bottomNavRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginVertical: 12,
+    gap: 12,
+    marginTop: 10,
   },
-  successIconCircle: {
+  backOutlineBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 12,
+    height: 50,
+    paddingHorizontal: 20,
+    backgroundColor: "#ffffff",
+  },
+  backOutlineText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: DARK_NAVY,
+  },
+  mobileInputRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  countryCodeBox: {
+    height: 48,
+    paddingHorizontal: 14,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countryCodeText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: DARK_NAVY,
+  },
+  verifiedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 6,
+  },
+  verifiedText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#16a34a",
+    marginLeft: 4,
+  },
+  readyBadgeWrapper: {
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  readyCircleOuter: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
   },
-  successIconInnerCircle: {
+  readyCircleInner: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  summaryCard: {
     backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
-  },
-  businessHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  businessLogoContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    shadowColor: "#1860f0",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  businessHeaderDetails: {
-    flex: 1,
-  },
-  businessNameText: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0a0504",
-    marginBottom: 4,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: PRIMARY_GREEN,
-  },
-  summarySectionTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  locationPillsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  locationPill: {
-    backgroundColor: "#f2f2f3",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  locationPillText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  twoColumnRow: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  columnNameText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0a0504",
-    marginBottom: 2,
-  },
-  columnSubtitleText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  businessTypeDetails: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  businessTypeIconWrapper: {
-    width: 38,
-    height: 38,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  businessTypeText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  editButtonText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: PRIMARY_GREEN,
-  },
-  summarySectionHeader: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  detailList: {
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(10, 5, 4, 0.08)",
-    paddingTop: 8,
-    gap: 6,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  detailIcon: {
-    marginRight: 4,
-  },
-  detailText: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.7)",
-    fontWeight: "500",
-  },
-  operationalList: {
-    gap: 8,
-  },
-  operationalItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#f2f2f3",
-    padding: 6,
-    borderRadius: 10,
-  },
-  operationalBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  operationalBadgeText: {
-    fontSize: 11,
-    color: "#ffffff",
-    fontWeight: "800",
-  },
-  operationalAddressText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  operationalCityText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.5)",
-  },
-  columnLabelText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.5)",
-    textTransform: "uppercase",
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  columnValueText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  emptyText: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.4)",
-    fontStyle: "italic",
-  },
-  stepContainerCompact: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  successHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  successTitleText: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: PRIMARY_GREEN,
-  },
-  successSubtitleText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  dashboardGrid: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  gridCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.12)",
-    padding: 10,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(10, 5, 4, 0.06)",
-    paddingBottom: 4,
-    marginBottom: 6,
-  },
-  gridCardTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  miniEditBtn: {
-    padding: 2,
-  },
-  miniBrandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 6,
-  },
-  miniLogoWrap: {
+  readyCheckDot: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
     width: 24,
     height: 24,
-    borderRadius: 6,
-    backgroundColor: "rgba(21, 62, 105, 0.1)",
+    borderRadius: 12,
+    backgroundColor: "#16a34a",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+  },
+  readyMainTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: DARK_NAVY,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  readySubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 18,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  summaryCardBox: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  summaryCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  summaryCardTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: DARK_NAVY,
+  },
+  editBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: PRIMARY_BLUE,
+  },
+  summaryBizRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  summaryLogoImage: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+  },
+  summaryLogoPlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: PRIMARY_BLUE,
     alignItems: "center",
     justifyContent: "center",
   },
-  miniBrandName: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#0a0504",
+  summaryBizDetails: {
+    flex: 1,
   },
-  miniBrandSegment: {
-    fontSize: 10,
-    color: PRIMARY_GREEN,
+  summaryBizLabel: {
+    fontSize: 11,
     fontWeight: "600",
+    color: "#94a3b8",
   },
-  miniText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 2,
+  summaryBizName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: DARK_NAVY,
   },
-  miniLocList: {
-    gap: 2,
-  },
-  miniLocItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  miniLocText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.7)",
-    fontWeight: "500",
-  },
-  miniLocMore: {
-    fontSize: 10,
-    color: PRIMARY_GREEN,
+  summaryBizValue: {
+    fontSize: 14,
     fontWeight: "700",
-    marginTop: 2,
+    color: DARK_NAVY,
   },
-  emptyMiniText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.4)",
-    fontStyle: "italic",
+  summaryDivider: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: 14,
   },
-  miniLabel: {
-    fontSize: 9,
-    color: "rgba(10, 5, 4, 0.5)",
-    textTransform: "uppercase",
-    fontWeight: "600",
-  },
-  miniValue: {
+  summarySectionLabel: {
     fontSize: 12,
-    fontWeight: "800",
-    color: "#0a0504",
+    fontWeight: "700",
+    color: "#64748b",
+    marginBottom: 8,
+  },
+  summaryLocList: {
+    gap: 4,
+  },
+  summaryLocItem: {
+    fontSize: 13,
+    color: DARK_NAVY,
+    lineHeight: 18,
+  },
+  summaryInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  summaryInfoLabel: {
+    fontSize: 13,
+    color: "#64748b",
+  },
+  summaryInfoValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: DARK_NAVY,
   },
 });

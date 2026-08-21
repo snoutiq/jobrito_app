@@ -243,12 +243,12 @@ export default function EmployerHomeScreen({ navigation }) {
               <Text style={styles.subStatLabel}>{t("contacted", "Contacted")}</Text>
               <Text style={styles.subStatSubLabel}>{t("connected", "Connected")}</Text>
             </View>
-            <View style={styles.verticalDivider} />
+            {/* <View style={styles.verticalDivider} />
             <View style={styles.subStatItem}>
               <Text style={[styles.subStatValue, { color: "#1b8755" }]}>{totalSavedCount}</Text>
               <Text style={styles.subStatLabel}>{t("saved", "Saved")}</Text>
               <Text style={styles.subStatSubLabel}>{t("bookmarked", "Bookmarked")}</Text>
-            </View>
+            </View> */}
           </View>
         </View>
 
