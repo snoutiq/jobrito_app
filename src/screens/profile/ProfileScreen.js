@@ -377,34 +377,36 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       {/* Profile Completion Card */}
-      <View style={styles.completionCardContainer}>
-        <View style={styles.completionCard}>
-          <View style={styles.completionHeader}>
-            <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
-            <Text style={styles.completionPercent}>{completion}%</Text>
-          </View>
- 
-          {/* Clean Progress bar track */}
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBarTrack}>
-              <View style={[styles.progressBarFill, { width: `${completion}%` }]} />
+      {!(activeRole === "employer" || profile?.role === "employer") && (
+        <View style={styles.completionCardContainer}>
+          <View style={styles.completionCard}>
+            <View style={styles.completionHeader}>
+              <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
+              <Text style={styles.completionPercent}>{completion}%</Text>
             </View>
+
+            {/* Clean Progress bar track */}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBarTrack}>
+                <View style={[styles.progressBarFill, { width: `${completion}%` }]} />
+              </View>
+            </View>
+
+            {/* Dynamic Missing Field / Add Skills Action */}
+            <Pressable
+              style={styles.addSkillsBar}
+              onPress={() => navigation.navigate("CompleteProfileScreen", { step: getMissingFieldStep() })}
+            >
+              <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
+              <Ionicons 
+                name={completion >= 100 ? "create-outline" : "add-circle"} 
+                size={18} 
+                color="#153e69" 
+              />
+            </Pressable>
           </View>
- 
-          {/* Dynamic Missing Field / Add Skills Action */}
-          <Pressable
-            style={styles.addSkillsBar}
-            onPress={() => navigation.navigate("CompleteProfileScreen", { step: getMissingFieldStep() })}
-          >
-            <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
-            <Ionicons 
-              name={completion >= 100 ? "create-outline" : "add-circle"} 
-              size={18} 
-              color="#153e69" 
-            />
-          </Pressable>
         </View>
-      </View>
+      )}
 
       {/* Main Actions Card */}
       <View style={styles.menuList}>

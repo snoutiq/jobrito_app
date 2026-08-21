@@ -255,36 +255,7 @@ export default function SettingsScreen({ navigation }) {
           )}
         </View>
 
-        {isEmployer && employerCompletion < 100 && (
-          <View style={styles.completionCardContainer}>
-            <View style={styles.completionCard}>
-              <View style={styles.completionHeader}>
-                <Text style={styles.completionTitle}>{t("profile.profileCompletion", "Profile Completion")}</Text>
-                <Text style={styles.completionPercent}>{employerCompletion}%</Text>
-              </View>
 
-              {/* Clean Progress bar track */}
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBarTrack}>
-                  <View style={[styles.progressBarFill, { width: `${employerCompletion}%` }]} />
-                </View>
-              </View>
-
-              {/* Dynamic Missing Field / Add Action */}
-              <Pressable
-                style={styles.addSkillsBar}
-                onPress={() => navigation.navigate("EmployerCompleteProfile", { isEditMode: true })}
-              >
-                <Text style={styles.addSkillsText}>{getMissingFieldText()}</Text>
-                <Ionicons 
-                  name={employerCompletion >= 100 ? "create-outline" : "add-circle"} 
-                  size={18} 
-                  color="#153e69" 
-                />
-              </Pressable>
-            </View>
-          </View>
-        )}
 
         <Text style={styles.sectionTitle}>
           {isEmployer ? t("postJob.businessBasics", "Business Information") : t("personalInformation", "Personal Information")}
