@@ -357,8 +357,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Permission Denied",
-          "Sorry, we need camera roll permissions to upload a photo."
+          t("permissionDenied", "Permission Denied"),
+          t("cameraRollPermissionMsg", "Sorry, we need camera roll permissions to upload a photo.")
         );
         return;
       }
@@ -375,7 +375,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         setLogoUploaded(true);
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to select photo.");
+      Alert.alert(t("error", "Error"), t("failedToSelectPhoto", "Failed to select photo."));
     }
   };
 
@@ -384,8 +384,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Permission Denied",
-          "Sorry, we need camera permissions to take a photo."
+          t("permissionDenied", "Permission Denied"),
+          t("cameraPermissionMsg", "Sorry, we need camera permissions to take a photo.")
         );
         return;
       }
@@ -401,18 +401,18 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         setLogoUploaded(true);
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to open camera.");
+      Alert.alert(t("error", "Error"), t("failedToOpenCamera", "Failed to open camera."));
     }
   };
 
   const handleLogoUpload = () => {
     Alert.alert(
-      "Upload Company Logo",
-      "Choose a source for your logo image",
+      t("uploadCompanyLogo", "Upload Company Logo"),
+      t("chooseSourceForLogo", "Choose a source for your logo image"),
       [
-        { text: "Camera", onPress: handleTakePhoto },
-        { text: "Gallery", onPress: handleUploadPhoto },
-        { text: "Cancel", style: "cancel" }
+        { text: t("camera", "Camera"), onPress: handleTakePhoto },
+        { text: t("gallery", "Gallery"), onPress: handleUploadPhoto },
+        { text: t("cancel", "Cancel"), style: "cancel" }
       ]
     );
   };
@@ -423,8 +423,8 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Permission Denied",
-          "Permission to access location was denied. Please enable location permissions in your settings."
+          t("permissionDenied", "Permission Denied"),
+          t("locationPermissionDeniedMsg", "Permission to access location was denied. Please enable location permissions in your settings.")
         );
         setIsLocating(false);
         return;
@@ -469,7 +469,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
     } catch (error) {
       console.error("Error fetching GPS location:", error);
-      Alert.alert("Error", "Failed to fetch current location. Please make sure location services are enabled on your device.");
+      Alert.alert(t("error", "Error"), t("failedToFetchLocationMsg", "Failed to fetch current location. Please make sure location services are enabled on your device."));
     } finally {
       setIsLocating(false);
     }
@@ -577,7 +577,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       }
     } catch (error) {
       console.error("Failed to save employer onboarding:", error);
-      Alert.alert("Error", error.message || "Failed to save profile. Please try again.");
+      Alert.alert(t("error", "Error"), error.message || t("failedToSaveProfileMsg", "Failed to save profile. Please try again."));
     } finally {
       setIsSaving(false);
     }
@@ -654,7 +654,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Business Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("postJob.primaryBusinessName", "Primary Business / Agency Name")} <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.inputLabel}>{t("primaryBusinessAgencyName", "Primary Business / Agency Name")} <Text style={styles.required}>*</Text></Text>
                 <View style={[
                   styles.inputWrapper,
                   activeInput === "businessName" && styles.inputWrapperActive

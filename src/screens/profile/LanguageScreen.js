@@ -50,60 +50,19 @@ export default function LanguageScreen({ navigation }) {
     {
       key: "en",
       label: "English",
-      subtitle: "Use the app in English",
+      subtitle: t("fullySupported", "Fully Supported"),
     },
     {
       key: "hi",
-      label: "हिन्दी",
-      subtitle: "हिंदी में ऐप का उपयोग करें",
-    },
-    {
-      key: "mr",
-      label: "मराठी",
-      subtitle: "मराठी मध्ये ॲप वापरा",
+      label: "हिन्दी (Hindi)",
+      subtitle: t("fullySupported", "Fully Supported"),
     },
     {
       key: "ar",
-      label: "العربية",
-      subtitle: "استخدم التطبيق بالعربية",
-    },
-    {
-      key: "ar_AE",
-      label: "العربية (UAE)",
-      subtitle: "استخدم التطبيق بالعربية (Dubai)",
-    },
-    {
-      key: "ar_SA",
-      label: "العربية (KSA)",
-      subtitle: "استخدم التطبيق بالعربية (KSA)",
-    },
-    {
-      key: "en_EU",
-      label: "English (Europe)",
-      subtitle: "Use the app in European English",
-    },
-    {
-      key: "ml",
-      label: "മലയാളം",
-      subtitle: "മലയാളത്തിൽ ആപ്പ് ഉപയോഗിക്കുക",
-    },
-    {
-      key: "kn",
-      label: "ಕನ್ನಡ",
-      subtitle: "ಕನ್ನಡದಲ್ಲಿ ಅಪ್ಲಿಕೇಶನ್ ಬಳಸಿ",
-    },
-    {
-      key: "te",
-      label: "తెలుగు",
-      subtitle: "తెలుగులో యాప్‌ని ఉపయోగించండి",
-    },
-    {
-      key: "ta",
-      label: "தமிழ்",
-      subtitle: "தமிழில் பயன்பாட்டைப் பயன்படுத்தவும்",
+      label: "العربية (Arabic)",
+      subtitle: t("inDevelopmentStayTuned", "In development — stay tuned for updates"),
     },
   ];
-
 
   return (
     <View style={styles.container}>
@@ -112,7 +71,7 @@ export default function LanguageScreen({ navigation }) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </Pressable>
-        <Text style={styles.headerTitle}>{t("languageScreen.title")}</Text>
+        <Text style={styles.headerTitle}>{t("preferredLanguage", "PREFERRED LANGUAGE")}</Text>
         <View style={{ width: 32 }} />
       </View>
 
@@ -121,9 +80,9 @@ export default function LanguageScreen({ navigation }) {
         style={{ backgroundColor: "#f2f2f3", flex: 1 }}
         contentStyle={{ backgroundColor: "#f2f2f3", padding: 16 }}
       >
-        <View style={styles.card}>
+        <View style={styles.cleanListContainer}>
           <Text style={styles.description}>
-            {t("languageScreen.description")}
+            {t("choosePreferredLanguageApp", "Choose your preferred language for the Jobrito app.")}
           </Text>
 
           <View style={styles.buttonList}>
@@ -179,12 +138,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0a0504",
   },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
+  cleanListContainer: {
     gap: 14,
   },
   description: {

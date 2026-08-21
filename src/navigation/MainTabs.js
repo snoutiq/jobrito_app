@@ -18,6 +18,7 @@ import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import TalentSettingsScreen from "../screens/profile/TalentSettingsScreen";
 import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
+import PrivacySecurityScreen from "../screens/profile/PrivacySecurityScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
@@ -481,6 +482,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="HelpSupport"
         component={HelpSupportScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PrivacySecurity"
+        component={PrivacySecurityScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

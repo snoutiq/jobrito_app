@@ -142,9 +142,15 @@ export default function SettingsScreen({ navigation }) {
     return () => backHandler.remove();
   }, [dispatch, navigation]);
 
-  const businessName = isEmployer
+  const rawBusiness = isEmployer
     ? (profile?.business_name || profile?.businessName || profile?.company || "")
     : (profile?.current_employer || "");
+  const cleanBusiness = rawBusiness.includes(",")
+    ? rawBusiness.split(",")[0].trim()
+    : rawBusiness;
+  const businessName =
+    cleanBusiness.length > 18 ? `${cleanBusiness.slice(0, 18).trim()}...` : cleanBusiness;
+
   const contactName =
     profile?.contact_person_name ||
     profile?.contactName ||
@@ -158,6 +164,36 @@ export default function SettingsScreen({ navigation }) {
     "";
   const email = profile?.email || profile?.contactEmail || "";
   const location = profile?.location || profile?.business_location || profile?.city || "";
+  const rawLocation =
+    profile?.country ||
+    profile?.employer_profile?.country ||
+    profile?.primary_location ||
+    profile?.location ||
+    "";
+  const countryName = rawLocation.includes(",")
+    ? rawLocation.split(",").pop().trim()
+    : rawLocation;
+  const opLocations =
+    profile?.employer_profile?.operational_locations ||
+    profile?.operational_locations ||
+    [];
+
+  let cityOnly = "";
+  if (Array.isArray(opLocations) && opLocations.length > 0) {
+    cityOnly = opLocations
+      .map((loc) => (typeof loc === "string" ? loc.split(",")[0].trim() : ""))
+      .filter(Boolean)
+      .join(" | ");
+  }
+  if (!cityOnly) {
+    const rawCity =
+      profile?.employer_profile?.city ||
+      profile?.city ||
+      profile?.business_location ||
+      profile?.location ||
+      "";
+    cityOnly = rawCity.includes(",") ? rawCity.split(",")[0].trim() : rawCity;
+  }
 
   const getLogoSource = () => {
     const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
@@ -196,31 +232,42 @@ export default function SettingsScreen({ navigation }) {
 
   const accountRows = [
     {
-      label: isEmployer ? t("postJob.businessName", "Business Name") : t("currentEmployer", "Current Employer"),
-      value: businessName || "-",
+      label: isEmployer ? t("businessName", "Business Name") : t("currentEmployer", "Current Employer"),
+      value: isEmployer
+        ? ([businessName, countryName].filter(Boolean).join(", ") || businessName || "-")
+        : (businessName || "-"),
       icon: "business-outline",
     },
     {
-      label: isEmployer ? t("postJob.contactPerson", "Contact Person") : t("fullName", "Full Name"),
+      label: isEmployer ? t("contactPerson", "Contact Person") : t("fullName", "Full Name"),
       value: contactName || "-",
       icon: "person-outline",
     },
     {
-      label: t("postJob.phoneNumber", "Mobile Number"),
+      label: t("phoneNumber", "Phone Number"),
       value: mobileNumber || "-",
       icon: "call-outline",
     },
     {
-      label: t("postJob.emailAddress", "Email"),
+      label: t("email", "Email"),
       value: email || "-",
       icon: "mail-outline",
     },
     {
-      label: t("postJob.location", "Location"),
-      value: location || "-",
+      label: t("location", "Location"),
+      value: cityOnly || "-",
       icon: "location-outline",
     },
   ];
+
+  const cardTitleText =
+    [businessName, countryName].filter(Boolean).join(", ") ||
+    businessName ||
+    contactName ||
+    "Business Profile";
+  const cardSubText = contactName
+    ? `${contactName} • ${t("employer", "Employer")}`
+    : t("employer", "Employer");
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -228,7 +275,9 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("profileTab", "Profile")}</Text>
+        <Text style={styles.headerTitle}>
+          {isEmployer ? t("businessProfileTitle", "Business Profile") : t("profileTab", "Profile")}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -242,8 +291,12 @@ export default function SettingsScreen({ navigation }) {
             </View>
           )}
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{contactName || businessName || t("guest", "Guest User")}</Text>
-            <Text style={styles.profileSub}>{isEmployer ? (businessName || t("businessProfile", "Business profile")) : t("chef", "Chef")}</Text>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {isEmployer ? cardTitleText : (contactName || businessName || t("guest", "Guest User"))}
+            </Text>
+            <Text style={styles.profileSub} numberOfLines={1}>
+              {isEmployer ? cardSubText : t("chef", "Chef")}
+            </Text>
           </View>
           {isEmployer && (
             <TouchableOpacity
@@ -255,10 +308,8 @@ export default function SettingsScreen({ navigation }) {
           )}
         </View>
 
-
-
         <Text style={styles.sectionTitle}>
-          {isEmployer ? t("postJob.businessBasics", "Business Information") : t("personalInformation", "Personal Information")}
+          {isEmployer ? t("businessBasics", "BUSINESS BASICS") : t("personalInformation", "Personal Information")}
         </Text>
         <View style={styles.sectionCard}>
           {accountRows.map((item, index) => (
@@ -277,63 +328,84 @@ export default function SettingsScreen({ navigation }) {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>{t("accountStatusActivity", "Account Status & Activity")}</Text>
+        <Text style={styles.sectionTitle}>
+          {isEmployer ? t("myJobrito", "MY JOBRITO") : t("accountStatusActivity", "Account Status & Activity")}
+        </Text>
         <View style={styles.sectionCard}>
-          <View style={styles.actionRow}>
-            <View style={styles.actionLeft}>
-              <View style={styles.actionIconWrap}>
-                <Ionicons name="speedometer-outline" size={18} color={PRIMARY_GREEN} />
+          <TouchableOpacity 
+            style={styles.menuRow} 
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("Tabs")}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="speedometer-outline" size={18} color={PRIMARY_GREEN} />
+              <View>
+                <Text style={styles.menuText}>{t("hiringDashboardTitle", "Hiring Dashboard")}</Text>
+                <Text style={styles.menuSubText}>{t("hiringDashboardSubtitle", "View your hiring activity")}</Text>
               </View>
-              <Text style={styles.actionLabel}>{t("dashboard", "Dashboard")}</Text>
             </View>
-            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("Tabs")}>
-              <Text style={styles.pillButtonText}>{t("postJob.goDashboard", "Go to Dashboard")}</Text>
-            </TouchableOpacity>
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+          </TouchableOpacity>
+
           <View style={styles.divider} />
-          <View style={styles.actionRow}>
-            <View style={styles.actionLeft}>
-              <View style={styles.actionIconWrap}>
-                <Ionicons name="people-outline" size={18} color={PRIMARY_GREEN} />
+
+          <TouchableOpacity 
+            style={styles.menuRow} 
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("ChefConnectDiscovery")}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="people-outline" size={18} color={PRIMARY_GREEN} />
+              <View>
+                <Text style={styles.menuText}>{t("chefConnect", "Chef Connect")}</Text>
+                <Text style={styles.menuSubText}>{t("findChefsConsultants", "Find Chefs & Consultants")}</Text>
               </View>
-              <Text style={styles.actionLabel}>{t("chefConnect", "Chef Connect")}</Text>
             </View>
-            <TouchableOpacity style={styles.pillButton} onPress={() => navigation.navigate("ChefConnectFilters")}>
-              <Text style={styles.pillButtonText}>{t("viewProfiles")}</Text>
-            </TouchableOpacity>
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>{t("chefDashboard.settingsSupport", "Settings & Support")}</Text>
+        <Text style={styles.sectionTitle}>
+          {t("settingsAndSupport", "SETTINGS & SUPPORT")}
+        </Text>
         <View style={styles.sectionCard}>
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Language")}>
             <View style={styles.menuLeft}>
               <Ionicons name="globe-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>{t("profile.menu.language", "Change Language")}</Text>
+              <Text style={styles.menuText}>{t("preferredLanguage", "Preferred Language")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
+          
           <View style={styles.divider} />
+          
+          <TouchableOpacity 
+            style={styles.menuRow} 
+            onPress={() => navigation.navigate("PrivacySecurity")}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="shield-checkmark-outline" size={18} color={colors.text} />
+              <Text style={styles.menuText}>{t("privacyAndSecurity", "Privacy & Security")}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+          </TouchableOpacity>
+          
+          <View style={styles.divider} />
+          
           <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("HelpSupport")}>
             <View style={styles.menuLeft}>
               <Ionicons name="help-circle-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>{t("helpSupport", "Help & Support")}</Text>
+              <Text style={styles.menuText}>{t("helpAndSupport", "Help & Support")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
+
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("DeepLinkGuide")}>
-            <View style={styles.menuLeft}>
-              <Ionicons name="link-outline" size={18} color={colors.text} />
-              <Text style={styles.menuText}>Notification Deep Links</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
-          </TouchableOpacity>
-          <View style={styles.divider} />
+
           <TouchableOpacity style={styles.logoutRow} onPress={() => setShowLogoutModal(true)}>
             <View style={styles.menuLeft}>
               <Ionicons name="log-out-outline" size={18} color="#f57f20" />
-              <Text style={styles.logoutText}>{t("logout", "Logout")}</Text>
+              <Text style={styles.logoutText}>{t("logoutUpper", "LOGOUT")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#f57f20" />
           </TouchableOpacity>
@@ -560,6 +632,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#0a0504",
     fontWeight: "600",
+  },
+  menuSubText: {
+    fontSize: 12,
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
   },
   logoutRow: {
     flexDirection: "row",

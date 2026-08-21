@@ -9,14 +9,7 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function HelpSupportScreen({ navigation }) {
   const { t } = useTranslation();
-  const supportPhone = "+91 99999 99999";
-  const supportEmail = "support@jobrito.com";
-
-  const handleCall = () => {
-    Linking.openURL(`tel:${supportPhone}`).catch(() => {
-      CustomAlert.show("Error", "Call dialer could not be opened.");
-    });
-  };
+  const supportEmail = "jobritoapp@gmail.com";
 
   const handleEmail = () => {
     Linking.openURL(`mailto:${supportEmail}`).catch(() => {
@@ -25,60 +18,55 @@ export default function HelpSupportScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("helpSupportTitle")}</Text>
-        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("helpAndSupport", "HELP & SUPPORT")}</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.subtitle}>
-          {t("helpSupportSubtitle")}
-        </Text>
+        {/* Intro Card */}
+        <View style={styles.introCard}>
+          <Text style={styles.introTitle}>{t("needHelpQuestion", "Need help or have a question?")}</Text>
+          <Text style={styles.introSub}>{t("supportAssistText", "Our support team is here to assist you.")}</Text>
+        </View>
 
-        {/* Contact Cards */}
-        <View style={styles.contactGroup}>
+        {/* Support Section Card */}
+        <View style={styles.sectionCard}>
+          {/* Email Support */}
           <TouchableOpacity
-            style={styles.contactCard}
+            style={styles.cardRow}
             activeOpacity={0.8}
-            onPress={handleCall}
+            onPress={handleEmail}
           >
-            <View style={[styles.iconBox, { backgroundColor: "#e7eff7" }]}>
-              <Ionicons name="call-outline" size={22} color={PRIMARY_GREEN} />
+            <View style={[styles.iconBox, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
+              <Ionicons name="mail-outline" size={22} color={PRIMARY_GREEN} />
             </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactLabel}>{t("callUs")}</Text>
-              <Text style={styles.contactValue}>{supportPhone}</Text>
+            <View style={styles.textWrap}>
+              <Text style={styles.label}>{t("emailSupport", "Email Support")}</Text>
+              <Text style={styles.emailValue}>{supportEmail}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
-          <TouchableOpacity
-            style={styles.contactCard}
-            activeOpacity={0.8}
-            onPress={handleEmail}
-          >
-            <View style={[styles.iconBox, { backgroundColor: "#EEF4FF" }]}>
-              <Ionicons name="mail-outline" size={22} color="#153e69" />
+          {/* Support Hours */}
+          <View style={styles.cardRow}>
+            <View style={[styles.iconBox, { backgroundColor: "#FFF7ED" }]}>
+              <Ionicons name="time-outline" size={22} color="#F97316" />
             </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactLabel}>{t("emailSupport")}</Text>
-              <Text style={styles.contactValue}>{supportEmail}</Text>
+            <View style={styles.textWrap}>
+              <Text style={styles.label}>{t("supportHoursTitle", "Support Hours")}</Text>
+              <Text style={styles.valueTitle}>{t("supportDays", "Monday – Saturday")}</Text>
+              <Text style={styles.valueSub}>{t("supportTimings", "10:00 AM – 6:00 PM IST")}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
-          </TouchableOpacity>
+          </View>
         </View>
-
-        <Text style={styles.footerNote}>
-          {t("supportHours")}
-        </Text>
       </View>
     </SafeAreaView>
   );
@@ -90,18 +78,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   header: {
-    backgroundColor: "#ffffff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 14,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   backButton: {
-    marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2f2f3",
   },
   headerTitle: {
     fontSize: 17,
@@ -109,62 +101,75 @@ const styles = StyleSheet.create({
     color: "#0a0504",
   },
   content: {
-    flex: 1,
-    padding: 20,
+    padding: 16,
+    gap: 16,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 20,
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  contactGroup: {
+  introCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 24,
+    padding: 18,
+  },
+  introTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0a0504",
+    marginBottom: 4,
+  },
+  introSub: {
+    fontSize: 13,
+    color: "rgba(10, 5, 4, 0.6)",
+    lineHeight: 18,
+  },
+  sectionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
     overflow: "hidden",
   },
-  contactCard: {
+  cardRow: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
+    gap: 12,
   },
   iconBox: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
   },
-  contactInfo: {
+  textWrap: {
     flex: 1,
   },
-  contactLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.4)",
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  contactValue: {
-    fontSize: 15,
+  label: {
+    fontSize: 14,
     fontWeight: "800",
     color: "#0a0504",
+    marginBottom: 2,
+  },
+  emailValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: PRIMARY_GREEN,
+    textDecorationLine: "underline",
+  },
+  valueTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(10, 5, 4, 0.8)",
+  },
+  valueSub: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "rgba(10, 5, 4, 0.5)",
+    marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    marginHorizontal: 16,
-  },
-  footerNote: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.4)",
-    textAlign: "center",
-    lineHeight: 18,
-    paddingHorizontal: 16,
+    backgroundColor: "rgba(10, 5, 4, 0.08)",
   },
 });
