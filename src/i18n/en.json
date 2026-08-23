@@ -504,6 +504,7 @@
   "emailAddress": "Email Address",
   "city": "City",
   "primaryTag": "Primary",
+  "optionalLocation": "Optional Location",
   "back": "Back",
   "postJobTitle": "Post a Job",
   "postJobStep1Subtitle": "Post your job in just 3 simple steps.",

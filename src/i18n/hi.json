@@ -516,6 +516,7 @@
   "emailAddress": "ईमेल पता",
   "city": "शहर",
   "primaryTag": "प्राथमिक",
+  "optionalLocation": "वैकल्पिक स्थान",
   "back": "वापस",
   "postJobTitle": "नौकरी पोस्ट करें",
   "postJobStep1Subtitle": "केवल 3 आसान चरणों में अपनी नौकरी पोस्ट करें।",

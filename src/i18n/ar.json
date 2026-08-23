@@ -538,6 +538,7 @@
   "emailAddress": "عنوان البريد الإلكتروني",
   "city": "المدينة",
   "primaryTag": "الرئيسي",
+  "optionalLocation": "الموقع الاختياري",
   "back": "رجوع",
   "postJobTitle": "نشر وظيفة",
   "postJobStep1Subtitle": "انشر وظيفتك في 3 خطوات بسيطة فقط.",

@@ -10,6 +10,8 @@ import {
   Modal,
   Pressable,
   BackHandler,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +21,10 @@ import colors from "../../constants/colors";
 import { fetchProfile, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -235,12 +241,13 @@ export default function SettingsScreen({ navigation }) {
     dispatch(resetUser());
   };
 
+  const primaryLocationValue = allCities.length > 0 ? allCities[0] : (location || "-");
+  const optionalLocationValue = allCities.length > 1 ? allCities.slice(1).join(" | ") : "";
+
   const accountRows = [
     {
       label: isEmployer ? t("businessName", "Business Name") : t("currentEmployer", "Current Employer"),
-      value: isEmployer
-        ? ([businessName, countryName].filter(Boolean).join(", ") || businessName || "-")
-        : (businessName || "-"),
+      value: businessName || "-",
       icon: "business-outline",
     },
     {
@@ -259,11 +266,19 @@ export default function SettingsScreen({ navigation }) {
       icon: "mail-outline",
     },
     {
-      label: t("location", "Location"),
-      value: cityOnly || "-",
+      label: isEmployer ? `${t("location", "Location")} (${t("primaryTag", "Primary")})` : t("location", "Location"),
+      value: primaryLocationValue,
       icon: "location-outline",
     },
   ];
+
+  if (isEmployer && optionalLocationValue) {
+    accountRows.push({
+      label: t("optionalLocation", "Optional Location"),
+      value: optionalLocationValue,
+      icon: "map-outline",
+    });
+  }
 
   const cleanBusiness = businessName.includes(",")
     ? businessName.split(",")[0].trim()
@@ -275,7 +290,7 @@ export default function SettingsScreen({ navigation }) {
     [headerBusinessName, countryName].filter(Boolean).join(", ") ||
     headerBusinessName ||
     contactName ||
-    "Business Profile";
+    t("businessProfileTitle", "Business Profile");
   const cardSubText = contactName
     ? `${contactName} • ${t("employer", "Employer")}`
     : t("employer", "Employer");
@@ -472,44 +487,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f2f2f3",
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: normalize(16),
     fontWeight: "700",
     color: "#0a0504",
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: normalize(14),
+    paddingBottom: normalize(34),
   },
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    padding: 16,
-    borderRadius: 18,
+    padding: normalize(14),
+    borderRadius: normalize(16),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 18,
+    marginBottom: normalize(14),
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    marginRight: 14,
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(16),
+    marginRight: normalize(12),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
@@ -522,51 +537,51 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    fontSize: 18,
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0a0504",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   profileSub: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.6)",
   },
   editProfileIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
     backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: PRIMARY_GREEN,
     textTransform: "uppercase",
-    marginBottom: 10,
+    marginBottom: normalize(8),
     marginLeft: 4,
-    marginTop: 6,
+    marginTop: normalize(4),
   },
   sectionCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 18,
+    borderRadius: normalize(16),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     overflow: "hidden",
-    marginBottom: 18,
+    marginBottom: normalize(14),
   },
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    gap: 12,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(12),
+    gap: normalize(10),
   },
   infoIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(10),
     backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
@@ -575,55 +590,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    fontSize: 16,
+    fontSize: normalize(14.5),
     color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 2,
   },
   infoValue: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "#0a0504",
     fontWeight: "500",
   },
   divider: {
     height: 1,
     backgroundColor: "rgba(10, 5, 4, 0.15)",
-    marginHorizontal: 14,
+    marginHorizontal: normalize(12),
   },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    gap: 12,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(12),
+    gap: normalize(10),
   },
   actionLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: normalize(8),
     flex: 1,
   },
   actionIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(10),
     backgroundColor: "rgba(21, 62, 105, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
   actionLabel: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     fontWeight: "600",
     color: "#0a0504",
   },
   pillButton: {
     backgroundColor: "#f2f2f3",
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
   },
   pillButtonText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "700",
   },
@@ -631,21 +646,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 15,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(13),
   },
   menuLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: normalize(8),
   },
   menuText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     color: "#0a0504",
     fontWeight: "600",
   },
   menuSubText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "rgba(10, 5, 4, 0.5)",
     marginTop: 2,
   },
@@ -653,11 +668,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 15,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(13),
   },
   logoutText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     color: "#f57f20",
     fontWeight: "700",
   },
@@ -666,26 +681,26 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15, 23, 42, 0.45)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: normalize(20),
   },
   modalCard: {
     width: "100%",
-    maxWidth: 340,
+    maxWidth: normalize(320),
     backgroundColor: "#ffffff",
-    borderRadius: 22,
-    padding: 20,
+    borderRadius: normalize(18),
+    padding: normalize(16),
     alignItems: "center",
-    gap: 10,
+    gap: normalize(8),
     shadowColor: "#000",
     shadowOpacity: 0.16,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   modalIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: normalize(46),
+    height: normalize(46),
+    borderRadius: normalize(14),
     backgroundColor: "rgba(245, 127, 32, 0.08)",
     alignItems: "center",
     justifyContent: "center",
@@ -694,26 +709,26 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     color: "#0a0504",
-    fontSize: 18,
+    fontSize: normalize(16),
     fontWeight: "900",
     textAlign: "center",
   },
   modalText: {
     color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: normalize(12),
+    lineHeight: normalize(16),
     textAlign: "center",
   },
   modalActions: {
     flexDirection: "row",
-    gap: 10,
+    gap: normalize(8),
     width: "100%",
-    marginTop: 6,
+    marginTop: normalize(4),
   },
   modalButton: {
     flex: 1,
-    minHeight: 46,
-    borderRadius: 14,
+    minHeight: normalize(42),
+    borderRadius: normalize(12),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -727,48 +742,48 @@ const styles = StyleSheet.create({
   },
   modalCancelText: {
     color: "#0a0504",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "800",
   },
   modalConfirmText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "800",
   },
   completionCardContainer: {
     paddingHorizontal: 0,
-    marginBottom: 20,
+    marginBottom: normalize(16),
   },
   completionCard: {
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: normalize(16),
+    padding: normalize(14),
   },
   completionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: normalize(10),
   },
   completionTitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#0a0504",
   },
   completionPercent: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#153e69",
   },
   progressContainer: {
-    height: 6,
-    marginBottom: 12,
+    height: normalize(6),
+    marginBottom: normalize(10),
     width: "100%",
   },
   progressBarTrack: {
-    height: 6,
+    height: normalize(6),
     borderRadius: 3,
     backgroundColor: "#f2f2f3",
     width: "100%",
@@ -783,13 +798,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#f2f2f3",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 4,
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    marginTop: normalize(4),
   },
   addSkillsText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
