@@ -500,7 +500,7 @@
   "primaryCityRequired": "Please select primary city location.",
   "contactInfoRequired": "Please fill in all contact details.",
   "validEmailRequired": "Please enter a valid email address.",
-  "saveAddLocation": "+ Save & Add Location",
+  "saveAddLocation": "Save & Add Location",
   "emailAddress": "Email Address",
   "city": "City",
   "primaryTag": "Primary",

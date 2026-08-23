@@ -512,7 +512,7 @@
   "primaryCityRequired": "कृपया प्राथमिक शहर का स्थान चुनें।",
   "contactInfoRequired": "कृपया सभी संपर्क विवरण भरें।",
   "validEmailRequired": "कृपया एक मान्य ईमेल पता दर्ज करें।",
-  "saveAddLocation": "+ स्थान सहेजें और जोड़ें",
+  "saveAddLocation": "स्थान सहेजें और जोड़ें",
   "emailAddress": "ईमेल पता",
   "city": "शहर",
   "primaryTag": "प्राथमिक",

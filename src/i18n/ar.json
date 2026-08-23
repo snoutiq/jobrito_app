@@ -534,7 +534,7 @@
   "selectCityFirst": "يرجى تحديد المدينة أولاً.",
   "primaryCityRequired": "يرجى تحديد موقع المدينة الرئيسية.",
   "contactInfoRequired": "يرجى ملء جميع تفاصيل الاتصال.",
-  "saveAddLocation": "+ حفظ وإضافة الموقع",
+  "saveAddLocation": "حفظ وإضافة الموقع",
   "emailAddress": "عنوان البريد الإلكتروني",
   "city": "المدينة",
   "primaryTag": "الرئيسي",

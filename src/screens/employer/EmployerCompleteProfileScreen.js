@@ -12,6 +12,8 @@ import {
   Image,
   ActivityIndicator,
   BackHandler,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -26,6 +28,10 @@ import { saveEmployerOnboarding } from "../../services/employerApi";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 import countryStateCityData from "../../data/countryStateCityData.json";
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_BLUE = "#1860f0";
 const DARK_NAVY = "#0f172a";
@@ -360,11 +366,27 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     }
   };
 
+  // Handle Android hardware back press to go back step-by-step
+  useEffect(() => {
+    const onBackPress = () => {
+      if (step > 1) {
+        setStep((prev) => prev - 1);
+        return true; // Intercept and handle back press
+      }
+      return false; // Fallback to default navigation behavior on step 1
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => subscription.remove();
+  }, [step]);
+
   const prevStep = () => {
     if (step > 1) {
-      setStep(step - 1);
+      setStep((prev) => prev - 1);
     } else {
-      if (isEditMode) navigation.goBack();
+      if (isEditMode && typeof navigation.goBack === "function") {
+        navigation.goBack();
+      }
     }
   };
 
@@ -435,7 +457,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       await setEmployerOnboardingCompleted(true);
 
       if (isEditMode) {
-        navigation.goBack();
+        navigation.navigate("EmployerHome");
       } else {
         navigation.reset({ index: 0, routes: [{ name: "EmployerHome" }] });
       }
@@ -447,6 +469,40 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     }
   };
 
+  const renderStepPills = () => {
+    return (
+      <View style={styles.stepPillContainer}>
+        {[1, 2, 3, 4].map((stepNum) => {
+          const isActive = step === stepNum;
+          const isCompleted = step > stepNum;
+          return (
+            <React.Fragment key={`step_pill_${stepNum}`}>
+              <View style={[
+                styles.stepPill,
+                isActive && styles.stepPillActive,
+                isCompleted && styles.stepPillCompleted
+              ]}>
+                <Text style={[
+                  styles.stepPillText,
+                  isActive && styles.stepPillTextActive,
+                  isCompleted && styles.stepPillTextCompleted
+                ]}>
+                  {stepNum}
+                </Text>
+              </View>
+              {stepNum < TOTAL_STEPS && (
+                <View style={[
+                  styles.stepConnector,
+                  isCompleted && styles.stepConnectorCompleted
+                ]} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
@@ -456,41 +512,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         {/* Top Bar Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={prevStep} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+            <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
           </TouchableOpacity>
 
-          {/* Connected Step Pills Progress Bar */}
-          <View style={styles.stepPillContainer}>
-            {[1, 2, 3, 4].map((stepNum) => {
-              const isActive = step === stepNum;
-              const isCompleted = step > stepNum;
-              return (
-                <React.Fragment key={`step_pill_${stepNum}`}>
-                  <View style={[
-                    styles.stepPill,
-                    isActive && styles.stepPillActive,
-                    isCompleted && styles.stepPillCompleted
-                  ]}>
-                    <Text style={[
-                      styles.stepPillText,
-                      isActive && styles.stepPillTextActive,
-                      isCompleted && styles.stepPillTextCompleted
-                    ]}>
-                      {stepNum}
-                    </Text>
-                  </View>
-                  {stepNum < TOTAL_STEPS && (
-                    <View style={[
-                      styles.stepConnector,
-                      isCompleted && styles.stepConnectorCompleted
-                    ]} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </View>
-
-          <View style={{ width: 32 }} />
+          <Text style={styles.headerTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+          <View style={{ width: normalize(32) }} />
         </View>
 
         <ScrollView
@@ -499,10 +525,15 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Step Pills rendered at top of form */}
+          {step <= TOTAL_STEPS && (
+            <View style={styles.topFormStepWrapper}>
+              {renderStepPills()}
+            </View>
+          )}
           {/* STEP 1: BUSINESS INFORMATION */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
               <Text style={styles.stepMainSubtitle}>
                 {t("completeBusinessProfileStep1Subtitle", "Let's start with the basics. Tell us about your business and add your logo.")}
               </Text>
@@ -558,7 +589,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Image source={{ uri: logoUri }} style={styles.logoPreviewImage} resizeMode="cover" />
                   ) : (
                     <View style={styles.logoIconCircle}>
-                      <Ionicons name="person-outline" size={28} color={PRIMARY_BLUE} />
+                      <Ionicons name="person-outline" size={normalize(26)} color={PRIMARY_BLUE} />
                     </View>
                   )}
                   <Text style={styles.logoUploadTitle}>{logoUploaded ? t("changeLogo", "Change Logo") : t("uploadBusinessLogo", "Upload your business logo")}</Text>
@@ -569,7 +600,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Bottom Action Button */}
               <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={nextStep}>
                 <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
             </View>
           )}
@@ -577,7 +608,6 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
           {/* STEP 2: BUSINESS LOCATIONS */}
           {step === 2 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
               <Text style={styles.stepMainSubtitle}>
                 {t("completeBusinessProfileStep2Subtitle", "Add your locations to connect with the right Talent.")}
               </Text>
@@ -612,49 +642,38 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   </View>
                   {editingLocId && (
                     <TouchableOpacity onPress={cancelEditLocation} style={styles.cancelEditChip} activeOpacity={0.7}>
-                      <Ionicons name="close" size={14} color="#64748b" />
+                      <Ionicons name="close" size={normalize(14)} color="#64748b" />
                       <Text style={styles.cancelEditChipText}>{t("cancel", "Cancel")}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
 
-                {/* Country */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.smallInputLabel}>{t("country", "Country")}</Text>
-                  {isCountryLocked ? (
-                    <View style={styles.lockedFieldBox}>
-                      <Text style={styles.lockedFieldText}>{primaryCountry || "-"}</Text>
-                      <Ionicons name="lock-closed" size={14} color="#94a3b8" />
-                    </View>
-                  ) : (
-                    <>
-                      <ModalPickerTrigger
-                        onPress={() => setShowPrimaryCountryModal(true)}
-                        label={primaryCountry}
-                        placeholder={t("selectCountry", "Select Country")}
-                        isOpen={showPrimaryCountryModal}
-                        style={styles.inputWrapper}
-                      />
-                      <ModalPicker
-                        visible={showPrimaryCountryModal}
-                        onClose={() => setShowPrimaryCountryModal(false)}
-                        title={t("country", "Country")}
-                        options={countryOptions}
-                        selectedValue={primaryCountry}
-                        onSelect={(val) => {
-                          setPrimaryCountry(val);
-                          setPrimaryState("");
-                          setPrimaryCity("");
-                        }}
-                      />
-                    </>
-                  )}
-                  {isCountryLocked && (
-                    <Text style={styles.fieldHint}>
-                      {t("countryLockedHint", "All locations share the same country and can't be changed here.")}
-                    </Text>
-                  )}
-                </View>
+                {/* Country (Hidden once selected/locked) */}
+                {!isCountryLocked && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.smallInputLabel}>{t("country", "Country")}</Text>
+                    <ModalPickerTrigger
+                      onPress={() => setShowPrimaryCountryModal(true)}
+                      label={primaryCountry}
+                      placeholder={t("selectCountry", "Select Country")}
+                      isOpen={showPrimaryCountryModal}
+                      style={styles.inputWrapper}
+                    />
+                    <ModalPicker
+                      visible={showPrimaryCountryModal}
+                      onClose={() => setShowPrimaryCountryModal(false)}
+                      title={t("country", "Country")}
+                      options={countryOptions}
+                      selectedValue={primaryCountry}
+                      onSelect={(val) => {
+                        setPrimaryCountry(val);
+                        setPrimaryState("");
+                        setPrimaryCity("");
+                      }}
+                      searchable={false}
+                    />
+                  </View>
+                )}
 
                 {/* State / Region */}
                 <View style={styles.inputGroup}>
@@ -723,12 +742,12 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 >
                   <Ionicons
                     name={editingLocId ? "checkmark-circle-outline" : "add-circle-outline"}
-                    size={20}
+                    size={normalize(18)}
                     color={editingLocId ? "#ffffff" : "#153e69"}
-                    style={{ marginRight: 6 }}
+                    style={{ marginRight: normalize(6) }}
                   />
                   <Text style={[styles.saveLocationInsideBtnText, editingLocId && styles.updateLocationInsideBtnText]}>
-                    {editingLocId ? t("updateLocation", "Update Location") : t("saveAddLocation", "+ Save & Add Location")}
+                    {editingLocId ? t("updateLocation", "Update Location") : t("saveAddLocation", "Save & Add Location")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -742,7 +761,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     style={[styles.locationListItem, isBeingEdited && styles.locationListItemActive]}
                   >
                     <View style={styles.locationPinIcon}>
-                      <Ionicons name="location" size={16} color={PRIMARY_BLUE} />
+                      <Ionicons name="location" size={normalize(15)} color={PRIMARY_BLUE} />
                     </View>
                     <View style={styles.locationListTextWrap}>
                       <View style={styles.locationListTitleRow}>
@@ -760,11 +779,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                       style={styles.iconActionBtn}
                       disabled={isBeingEdited}
                     >
-                      <Ionicons name="pencil-outline" size={18} color={isBeingEdited ? "#cbd5e1" : PRIMARY_BLUE} />
+                      <Ionicons name="pencil-outline" size={normalize(16)} color={isBeingEdited ? "#cbd5e1" : PRIMARY_BLUE} />
                     </TouchableOpacity>
                     {!isEditMode && (
                       <TouchableOpacity onPress={() => removeAddonLocation(loc.id)} style={styles.iconActionBtn}>
-                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                        <Ionicons name="trash-outline" size={normalize(16)} color="#ef4444" />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -773,7 +792,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               {/* Location Tips Info Card */}
               <View style={styles.locationTipsCard}>
-                <Ionicons name="information-circle" size={22} color={PRIMARY_BLUE} style={{ marginRight: 10 }} />
+                <Ionicons name="information-circle" size={normalize(20)} color={PRIMARY_BLUE} style={{ marginRight: normalize(8) }} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.tipsTitle}>{t("locationTipsTitle", "Location Tips:")}</Text>
                   <Text style={styles.tipsMsg}>
@@ -784,24 +803,17 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Bottom Buttons */}
-              <View style={styles.bottomNavRow}>
-                <TouchableOpacity style={styles.backOutlineBtn} onPress={prevStep}>
-                  <Ionicons name="arrow-back" size={16} color="#0f172a" style={{ marginRight: 6 }} />
-                  <Text style={styles.backOutlineText}>{t("back", "Back")}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={nextStep}>
-                  <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
-                </TouchableOpacity>
-              </View>
+              {/* Bottom Button */}
+              <TouchableOpacity style={styles.primaryButton} onPress={nextStep}>
+                <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
+              </TouchableOpacity>
             </View>
           )}
 
           {/* STEP 3: CONTACT INFORMATION */}
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepMainTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
               <Text style={styles.stepMainSubtitle}>
                 {t("completeBusinessProfileStep3Subtitle", "Let Jobrito reach you for important updates.")}
               </Text>
@@ -827,29 +839,26 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Mobile Number with Verified Badge */}
+              {/* Mobile Number (Disabled with Lock Icon) */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("mobileNumber", "Mobile Number")}<Text style={styles.required}>*</Text></Text>
                 <View style={styles.mobileInputRow}>
                   <View style={styles.countryCodeBox}>
                     <Text style={styles.countryCodeText}>+91</Text>
                   </View>
-                  <View style={[styles.inputWrapper, { flex: 1 }, activeInput === "contactPhone" && styles.inputWrapperActive]}>
+                  <View style={[styles.lockedMobileWrapper, { flex: 1 }]}>
                     <TextInput
                       value={contactPhone}
-                      onChangeText={setContactPhone}
+                      editable={false}
                       placeholder="XXXXX XXXXX"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "contactPhone")}
-                      onBlur={() => setActiveInput(null)}
+                      style={styles.disabledInputText}
                     />
+                    <Ionicons name="lock-closed" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </View>
                 <View style={styles.verifiedRow}>
-                  <Ionicons name="checkmark-sharp" size={16} color="#16a34a" />
+                  <Ionicons name="checkmark-sharp" size={normalize(16)} color="#16a34a" />
                   <Text style={styles.verifiedText}>{t("verified", "Verified")}</Text>
                 </View>
               </View>
@@ -872,17 +881,11 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 </View>
               </View>
 
-              {/* Bottom Buttons */}
-              <View style={styles.bottomNavRow}>
-                <TouchableOpacity style={styles.backOutlineBtn} onPress={prevStep}>
-                  <Ionicons name="arrow-back" size={16} color="#0f172a" style={{ marginRight: 6 }} />
-                  <Text style={styles.backOutlineText}>{t("back", "Back")}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={nextStep}>
-                  <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
-                </TouchableOpacity>
-              </View>
+              {/* Bottom Button */}
+              <TouchableOpacity style={styles.primaryButton} onPress={nextStep}>
+                <Text style={styles.primaryButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -893,10 +896,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               <View style={styles.readyBadgeWrapper}>
                 <View style={styles.readyCircleOuter}>
                   <View style={styles.readyCircleInner}>
-                    <Ionicons name="clipboard-outline" size={40} color={PRIMARY_BLUE} />
+                    <Ionicons name="clipboard-outline" size={normalize(36)} color={PRIMARY_BLUE} />
                   </View>
                   <View style={styles.readyCheckDot}>
-                    <Ionicons name="checkmark-sharp" size={16} color="#ffffff" />
+                    <Ionicons name="checkmark-sharp" size={normalize(14)} color="#ffffff" />
                   </View>
                 </View>
               </View>
@@ -921,14 +924,14 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Image source={{ uri: logoUri }} style={styles.summaryLogoImage} resizeMode="cover" />
                   ) : (
                     <View style={styles.summaryLogoPlaceholder}>
-                      <Ionicons name="business" size={24} color="#ffffff" />
+                      <Ionicons name="business" size={normalize(22)} color="#ffffff" />
                     </View>
                   )}
                   <View style={styles.summaryBizDetails}>
                     <Text style={styles.summaryBizLabel}>{t("businessName", "Business Name")}</Text>
                     <Text style={styles.summaryBizName}>{businessName || "-"}</Text>
 
-                    <Text style={[styles.summaryBizLabel, { marginTop: 6 }]}>{t("businessType", "Business Type")}</Text>
+                    <Text style={[styles.summaryBizLabel, { marginTop: normalize(6) }]}>{t("businessType", "Business Type")}</Text>
                     <Text style={styles.summaryBizValue}>{businessType || "-"}</Text>
                   </View>
                 </View>
@@ -958,15 +961,17 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   <Text style={styles.summaryInfoValue}>+91 {contactPhone || "-"}</Text>
                 </View>
 
-                <View style={styles.summaryInfoRow}>
-                  <Text style={styles.summaryInfoLabel}>{t("emailAddress", "Email Address")}</Text>
-                  <Text style={styles.summaryInfoValue}>{contactEmail || "-"}</Text>
-                </View>
+                {!!(contactEmail && contactEmail.trim()) && (
+                  <View style={styles.summaryInfoRow}>
+                    <Text style={styles.summaryInfoLabel}>{t("emailAddress", "Email Address")}</Text>
+                    <Text style={styles.summaryInfoValue}>{contactEmail.trim()}</Text>
+                  </View>
+                )}
               </View>
 
               {/* Complete Registration / Save Button */}
               <TouchableOpacity
-                style={[styles.primaryButton, { marginTop: 24 }, isSaving && { opacity: 0.6 }]}
+                style={[styles.primaryButton, { marginTop: normalize(20) }, isSaving && { opacity: 0.6 }]}
                 activeOpacity={0.8}
                 onPress={finishOnboarding}
                 disabled={isSaving}
@@ -994,24 +999,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.08)",
   },
+  headerTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+    textAlign: "center",
+  },
   backButton: {
-    padding: 4,
+    padding: normalize(4),
+  },
+  topFormStepWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: normalize(4),
+    marginBottom: normalize(12),
   },
   stepPillContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: normalize(6),
   },
   stepPill: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
     backgroundColor: "#e2e8f0",
     alignItems: "center",
     justifyContent: "center",
@@ -1023,7 +1040,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_BLUE,
   },
   stepPillText: {
-    fontSize: 12,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: "#64748b",
   },
@@ -1034,7 +1051,7 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   stepConnector: {
-    width: 20,
+    width: normalize(20),
     height: 2,
     backgroundColor: "#e2e8f0",
   },
@@ -1042,48 +1059,48 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_BLUE,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 60,
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(10),
+    paddingBottom: normalize(50),
     flexGrow: 1,
   },
   stepContainer: {
     flex: 1,
   },
   stepMainTitle: {
-    fontSize: 22,
+    fontSize: normalize(18),
     fontWeight: "900",
     color: DARK_NAVY,
-    marginBottom: 6,
+    marginBottom: normalize(4),
   },
   stepMainSubtitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "#64748b",
-    lineHeight: 18,
-    marginBottom: 20,
+    lineHeight: normalize(16),
+    marginBottom: normalize(14),
   },
   sectionHeaderUpper: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "800",
     color: PRIMARY_BLUE,
     letterSpacing: 0.8,
-    marginBottom: 16,
+    marginBottom: normalize(12),
     textTransform: "uppercase",
   },
   inputGroup: {
-    marginBottom: 18,
+    marginBottom: normalize(14),
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: DARK_NAVY,
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   smallInputLabel: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "600",
     color: "#64748b",
-    marginBottom: 6,
+    marginBottom: normalize(4),
   },
   required: {
     color: "#ef4444",
@@ -1094,9 +1111,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    minHeight: 48,
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(12),
+    minHeight: normalize(46),
   },
   inputWrapperActive: {
     borderColor: PRIMARY_BLUE,
@@ -1104,48 +1121,73 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: normalize(13.5),
     color: DARK_NAVY,
-    paddingVertical: 10,
+    paddingVertical: normalize(8),
+  },
+  disabledInputCard: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(12),
+    justifyContent: "center",
+  },
+  disabledInputText: {
+    fontSize: normalize(13.5),
+    fontWeight: "600",
+    color: "#475569",
+  },
+  lockedMobileWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(12),
+    height: normalize(46),
   },
   fieldHint: {
-    fontSize: 12,
+    fontSize: normalize(10.5),
     color: "#94a3b8",
-    marginTop: 6,
+    marginTop: normalize(4),
   },
   logoCardBox: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
     borderStyle: "dashed",
-    borderRadius: 16,
+    borderRadius: normalize(14),
     backgroundColor: "#f8fafc",
-    padding: 24,
+    padding: normalize(18),
     alignItems: "center",
     justifyContent: "center",
   },
   logoPreviewImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 14,
-    marginBottom: 12,
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(12),
+    marginBottom: normalize(10),
   },
   logoIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(24),
     backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: normalize(10),
   },
   logoUploadTitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: DARK_NAVY,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   logoUploadSubtext: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#94a3b8",
     textAlign: "center",
   },
@@ -1154,23 +1196,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: PRIMARY_BLUE,
-    borderRadius: 12,
-    minHeight: 50,
-    paddingHorizontal: 20,
-    marginTop: 10,
+    borderRadius: normalize(12),
+    minHeight: normalize(46),
+    paddingHorizontal: normalize(16),
+    marginTop: normalize(8),
   },
   primaryButtonText: {
-    fontSize: 16,
+    fontSize: normalize(14),
     fontWeight: "700",
     color: "#ffffff",
   },
   primaryLocationCard: {
     backgroundColor: "#f8fafc",
-    borderRadius: 16,
+    borderRadius: normalize(14),
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    padding: 16,
-    marginBottom: 16,
+    padding: normalize(14),
+    marginBottom: normalize(14),
   },
   primaryLocationCardEditing: {
     backgroundColor: "#eff6ff",
@@ -1181,7 +1223,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: normalize(4),
   },
   cancelEditChip: {
     flexDirection: "row",
@@ -1189,13 +1231,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginLeft: 10,
+    borderRadius: normalize(16),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(4),
+    marginLeft: normalize(8),
   },
   cancelEditChipText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "700",
     color: "#64748b",
     marginLeft: 3,
@@ -1207,12 +1249,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#eef2f7",
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    minHeight: 48,
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(12),
+    minHeight: normalize(46),
   },
   lockedFieldText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     fontWeight: "600",
     color: "#64748b",
   },
@@ -1223,10 +1265,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#bfdbfe",
     borderStyle: "dashed",
-    borderRadius: 12,
+    borderRadius: normalize(12),
     backgroundColor: "#eff6ff",
-    paddingVertical: 12,
-    marginTop: 10,
+    paddingVertical: normalize(10),
+    marginTop: normalize(8),
   },
   updateLocationInsideBtn: {
     borderStyle: "solid",
@@ -1234,7 +1276,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_BLUE,
   },
   saveLocationInsideBtnText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: "#153e69",
   },
@@ -1242,15 +1284,15 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   primaryLocTitle: {
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "800",
     color: DARK_NAVY,
     marginBottom: 2,
   },
   primaryLocSubtitle: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#64748b",
-    marginBottom: 14,
+    marginBottom: normalize(10),
   },
   locationListItem: {
     flexDirection: "row",
@@ -1258,14 +1300,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    marginBottom: 10,
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(10),
+    marginBottom: normalize(8),
     shadowColor: "#0f172a",
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
   locationListItemActive: {
@@ -1273,13 +1315,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f9ff",
   },
   locationPinIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
     backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: normalize(8),
   },
   locationListTextWrap: {
     flex: 1,
@@ -1289,30 +1331,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   locationListTitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: DARK_NAVY,
   },
   primaryBadge: {
     backgroundColor: "#dcfce7",
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    borderRadius: normalize(6),
+    paddingHorizontal: normalize(6),
     paddingVertical: 2,
-    marginLeft: 8,
+    marginLeft: normalize(6),
   },
   primaryBadgeText: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     fontWeight: "800",
     color: "#15803d",
     textTransform: "uppercase",
   },
   locationListSub: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#64748b",
-    marginTop: 2,
+    marginTop: 1,
   },
   iconActionBtn: {
-    padding: 8,
+    padding: normalize(6),
     marginLeft: 2,
   },
   addLocationDottedBtn: {
@@ -1322,13 +1364,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#bfdbfe",
     borderStyle: "dashed",
-    borderRadius: 12,
+    borderRadius: normalize(12),
     backgroundColor: "#eff6ff",
-    paddingVertical: 14,
-    marginBottom: 16,
+    paddingVertical: normalize(12),
+    marginBottom: normalize(14),
   },
   addLocationDottedText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: PRIMARY_BLUE,
     marginLeft: 6,
@@ -1336,27 +1378,27 @@ const styles = StyleSheet.create({
   locationTipsCard: {
     flexDirection: "row",
     backgroundColor: "#eff6ff",
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 6,
-    marginBottom: 20,
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginTop: normalize(4),
+    marginBottom: normalize(16),
   },
   tipsTitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: PRIMARY_BLUE,
     marginBottom: 2,
   },
   tipsMsg: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#3b82f6",
-    lineHeight: 16,
+    lineHeight: normalize(15),
   },
   bottomNavRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginTop: 10,
+    gap: normalize(10),
+    marginTop: normalize(8),
   },
   backOutlineBtn: {
     flexDirection: "row",
@@ -1364,78 +1406,78 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 50,
-    paddingHorizontal: 20,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(16),
     backgroundColor: "#ffffff",
   },
   backOutlineText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     fontWeight: "700",
     color: DARK_NAVY,
   },
   mobileInputRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: normalize(8),
   },
   countryCodeBox: {
-    height: 48,
-    paddingHorizontal: 14,
+    height: normalize(46),
+    paddingHorizontal: normalize(12),
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
+    borderRadius: normalize(12),
     alignItems: "center",
     justifyContent: "center",
   },
   countryCodeText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     fontWeight: "700",
     color: DARK_NAVY,
   },
   verifiedRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
+    marginTop: normalize(4),
   },
   verifiedText: {
-    fontSize: 13,
+    fontSize: normalize(11.5),
     fontWeight: "700",
     color: "#16a34a",
     marginLeft: 4,
   },
   readyBadgeWrapper: {
     alignItems: "center",
-    marginVertical: 16,
+    marginVertical: normalize(12),
   },
   readyCircleOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(35),
     backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
   readyCircleInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
     backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#1860f0",
     shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 3,
   },
   readyCheckDot: {
     position: "absolute",
-    bottom: 4,
-    right: 4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    bottom: 2,
+    right: 2,
+    width: normalize(22),
+    height: normalize(22),
+    borderRadius: normalize(11),
     backgroundColor: "#16a34a",
     alignItems: "center",
     justifyContent: "center",
@@ -1443,61 +1485,61 @@ const styles = StyleSheet.create({
     borderColor: "#ffffff",
   },
   readyMainTitle: {
-    fontSize: 20,
+    fontSize: normalize(18),
     fontWeight: "900",
     color: DARK_NAVY,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   readySubtitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "#64748b",
     textAlign: "center",
-    lineHeight: 18,
-    marginBottom: 20,
-    paddingHorizontal: 10,
+    lineHeight: normalize(16),
+    marginBottom: normalize(16),
+    paddingHorizontal: normalize(8),
   },
   summaryCardBox: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
+    borderRadius: normalize(14),
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    padding: 16,
+    padding: normalize(14),
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1.5,
   },
   summaryCardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: normalize(12),
   },
   summaryCardTitle: {
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "800",
     color: DARK_NAVY,
   },
   editBtnText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: PRIMARY_BLUE,
   },
   summaryBizRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: normalize(12),
   },
   summaryLogoImage: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(24),
   },
   summaryLogoPlaceholder: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(24),
     backgroundColor: PRIMARY_BLUE,
     alignItems: "center",
     justifyContent: "center",
@@ -1506,51 +1548,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryBizLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#94a3b8",
-  },
-  summaryBizName: {
-    fontSize: 16,
+    fontSize: normalize(14),
     fontWeight: "800",
     color: DARK_NAVY,
+    marginBottom: 1,
+  },
+  summaryBizName: {
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#64748b",
   },
   summaryBizValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: DARK_NAVY,
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#64748b",
   },
   summaryDivider: {
     height: 1,
     backgroundColor: "#f1f5f9",
-    marginVertical: 14,
+    marginVertical: normalize(12),
   },
   summarySectionLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#64748b",
-    marginBottom: 8,
+    fontSize: normalize(14),
+    fontWeight: "800",
+    color: DARK_NAVY,
+    marginBottom: normalize(4),
   },
   summaryLocList: {
     gap: 4,
   },
   summaryLocItem: {
-    fontSize: 13,
-    color: DARK_NAVY,
-    lineHeight: 18,
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#64748b",
+    lineHeight: normalize(16),
   },
   summaryInfoRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   summaryInfoLabel: {
-    fontSize: 13,
-    color: "#64748b",
+    fontSize: normalize(14),
+    fontWeight: "800",
+    color: DARK_NAVY,
   },
   summaryInfoValue: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: DARK_NAVY,
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#64748b",
   },
 });

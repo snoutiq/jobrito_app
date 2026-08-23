@@ -11,6 +11,8 @@ import {
   Platform,
   ActivityIndicator,
   BackHandler,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,6 +24,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_NAVY = "#153e69";
 const PRIMARY_BLUE = "#1860f0";
@@ -474,11 +480,11 @@ export default function PostJobScreen({ navigation, route }) {
           }}
           style={styles.backBtn}
         >
-          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
         </TouchableOpacity>
 
-        {step < 4 && renderStepPills()}
-        <View style={{ width: 32 }} />
+        <Text style={styles.headerTitle}>{t("postJobTitle", "Post a Job")}</Text>
+        <View style={{ width: normalize(32) }} />
       </View>
 
       <KeyboardAvoidingView
@@ -492,10 +498,15 @@ export default function PostJobScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Step Pills rendered at top of form */}
+          {step < 4 && (
+            <View style={styles.topFormStepWrapper}>
+              {renderStepPills()}
+            </View>
+          )}
           {/* STEP 1: JOB DETAILS */}
           {step === 1 && (
             <View style={{ flex: 1 }}>
-              <Text style={styles.mainTitle}>{t("postJobTitle", "Post a Job")}</Text>
               <Text style={styles.mainSubtitle}>
                 {t("postJobStep1Subtitle", "Post your job in just 3 simple steps.")}
               </Text>
@@ -550,7 +561,7 @@ export default function PostJobScreen({ navigation, route }) {
                   isOpen={showRoleModal}
                   style={styles.inputWrapper}
                 />
-                <Text style={styles.exampleHint}>e.g. Sous Chef, Barista, Waiter</Text>
+                <Text style={styles.exampleHint}>{t("jobRoleExampleHint", "e.g. Sous Chef, Barista, Waiter")}</Text>
                 <ModalPicker
                   visible={showRoleModal}
                   onClose={() => setShowRoleModal(false)}
@@ -615,7 +626,6 @@ export default function PostJobScreen({ navigation, route }) {
                 <Text style={styles.progressHintText}>{t("almostDone50", "You're almost done! 50% complete")}</Text>
               </View>
 
-              <Text style={styles.mainTitle}>{t("postJobTitle", "Post a Job")}</Text>
               <Text style={styles.mainSubtitle}>
                 {t("postJobStep2Subtitle", "Add the final details to complete your job posting.")}
               </Text>
@@ -637,7 +647,7 @@ export default function PostJobScreen({ navigation, route }) {
                     />
                   </View>
                   <View style={[styles.salaryInputBox, activeField === "salaryMin" && styles.inputWrapperActive]}>
-                    <Text style={styles.salaryInputSmallLabel}>Min</Text>
+                    <Text style={styles.salaryInputSmallLabel}>{t("min", "Min")}</Text>
                     <TextInput
                       value={salaryMin}
                       onChangeText={setSalaryMin}
@@ -651,7 +661,7 @@ export default function PostJobScreen({ navigation, route }) {
                   </View>
                   <Text style={styles.salaryDash}>-</Text>
                   <View style={[styles.salaryInputBox, activeField === "salaryMax" && styles.inputWrapperActive]}>
-                    <Text style={styles.salaryInputSmallLabel}>Max</Text>
+                    <Text style={styles.salaryInputSmallLabel}>{t("max", "Max")}</Text>
                     <TextInput
                       value={salaryMax}
                       onChangeText={setSalaryMax}
@@ -902,16 +912,6 @@ export default function PostJobScreen({ navigation, route }) {
                   <Text style={styles.reviewListValue}>{openPositions || "1"}</Text>
                 </View>
 
-                <View style={styles.reviewListRow}>
-                  <View style={styles.reviewListLeft}>
-                    <Ionicons name="clipboard-outline" size={18} color="#ef4444" style={{ marginRight: 10 }} />
-                    <Text style={styles.reviewListLabel}>{t("jobBenefits", "Job Benefits")}</Text>
-                  </View>
-                  <Text style={styles.reviewListValue}>
-                    {t("jobBenefitsDefault", "Food, Accommodation, Medical")}
-                  </Text>
-                </View>
-
                 <View style={styles.reviewDivider} />
 
                 {/* Description Block */}
@@ -982,14 +982,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
+  headerTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+    textAlign: "center",
+  },
   backBtn: {
-    padding: 6,
+    padding: normalize(4),
+  },
+  topFormStepWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: normalize(4),
+    marginBottom: normalize(12),
   },
   stepPillContainer: {
     flexDirection: "row",
@@ -997,9 +1009,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   stepPill: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
     backgroundColor: "#e2e8f0",
     alignItems: "center",
     justifyContent: "center",
@@ -1011,7 +1023,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#16a34a",
   },
   stepPillText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: "#64748b",
   },
@@ -1022,22 +1034,23 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   stepLine: {
-    width: 24,
+    width: normalize(24),
     height: 2,
     backgroundColor: "#e2e8f0",
-    marginHorizontal: 4,
+    marginHorizontal: normalize(4),
   },
   stepLineCompleted: {
     backgroundColor: "#16a34a",
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(10),
+    paddingBottom: normalize(40),
   },
   stepCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: normalize(16),
+    padding: normalize(16),
     shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -1048,45 +1061,45 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   stepCountText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: PRIMARY_NAVY,
   },
   progressHintText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "600",
     color: PRIMARY_BLUE,
   },
   mainTitle: {
-    fontSize: 24,
+    fontSize: normalize(20),
     fontWeight: "800",
     color: "#0f172a",
-    marginBottom: 4,
+    marginBottom: normalize(4),
   },
   mainSubtitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "#64748b",
-    marginBottom: 20,
+    marginBottom: normalize(16),
   },
   sectionHeaderUpper: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "800",
     color: PRIMARY_NAVY,
     letterSpacing: 0.8,
-    marginTop: 14,
-    marginBottom: 10,
+    marginTop: normalize(10),
+    marginBottom: normalize(8),
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: normalize(14),
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: "#1e293b",
-    marginBottom: 6,
+    marginBottom: normalize(5),
   },
   required: {
     color: "#ef4444",
@@ -1095,9 +1108,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 14,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(12),
     justifyContent: "center",
   },
   inputWrapperActive: {
@@ -1108,46 +1121,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 14,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(12),
     justifyContent: "center",
   },
   disabledInputText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "600",
     color: "#475569",
   },
   textInput: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "#0f172a",
     padding: 0,
   },
   capturedHint: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "#94a3b8",
-    marginTop: 4,
+    marginTop: normalize(3),
   },
   exampleHint: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "#64748b",
-    marginTop: 4,
+    marginTop: normalize(3),
   },
   salaryRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   currencySelectWrap: {
-    width: 76,
-    marginRight: 8,
+    width: normalize(72),
+    marginRight: normalize(6),
   },
   currencyTriggerStyle: {
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 8,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(6),
     justifyContent: "center",
   },
   salaryInputBox: {
@@ -1155,36 +1168,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 10,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(8),
     justifyContent: "center",
   },
   salaryInputSmallLabel: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     color: "#94a3b8",
   },
   salaryTextInput: {
-    fontSize: 13,
+    fontSize: normalize(12.5),
     fontWeight: "600",
     color: "#0f172a",
     padding: 0,
   },
   salaryDash: {
-    fontSize: 16,
+    fontSize: normalize(14),
     color: "#94a3b8",
-    marginHorizontal: 6,
+    marginHorizontal: normalize(4),
   },
   textAreaWrapper: {
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 110,
+    borderRadius: normalize(12),
+    padding: normalize(10),
+    minHeight: normalize(100),
   },
   textAreaInput: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "#0f172a",
     textAlignVertical: "top",
     padding: 0,
@@ -1194,46 +1207,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#eff6ff",
     borderWidth: 1,
     borderColor: "#bfdbfe",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginBottom: normalize(16),
   },
   tipBoxText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#1e3a8a",
-    lineHeight: 18,
+    lineHeight: normalize(16),
   },
   navRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: normalize(8),
   },
   backOutlineBtn: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 20,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    paddingHorizontal: normalize(16),
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: normalize(8),
   },
   backOutlineText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: "#475569",
   },
   primaryButton: {
     backgroundColor: PRIMARY_BLUE,
-    borderRadius: 12,
-    height: 48,
+    borderRadius: normalize(12),
+    height: normalize(46),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: normalize(12),
   },
   primaryButtonText: {
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "700",
     color: "#ffffff",
   },
@@ -1243,50 +1256,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0fdf4",
     borderWidth: 1,
     borderColor: "#bbf7d0",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    borderRadius: normalize(12),
+    paddingVertical: normalize(8),
+    paddingHorizontal: normalize(14),
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: normalize(14),
   },
   completionBannerText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: "#15803d",
   },
   reviewCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: normalize(16),
+    padding: normalize(14),
     borderWidth: 1,
     borderColor: "#e2e8f0",
     shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1.5,
+    marginBottom: normalize(14),
   },
   reviewCardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: normalize(14),
   },
   reviewRoleIconCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: normalize(40),
+    height: normalize(40),
+    borderRadius: normalize(20),
     backgroundColor: "#dcfce7",
     alignItems: "center",
     justifyContent: "center",
   },
   reviewRoleTitle: {
-    fontSize: 18,
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
   },
   reviewRoleCategory: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "#64748b",
     marginTop: 2,
   },
@@ -1295,36 +1308,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#f8fafc",
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    marginBottom: 14,
+    borderRadius: normalize(12),
+    paddingVertical: normalize(10),
+    paddingHorizontal: normalize(4),
+    marginBottom: normalize(12),
   },
   gridCol: {
     flex: 1,
     alignItems: "center",
-    paddingHorizontal: 2,
+    paddingHorizontal: normalize(2),
   },
   gridColDivider: {
     width: 1,
-    height: 40,
+    height: normalize(34),
     backgroundColor: "#e2e8f0",
   },
   gridIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 6,
+    marginBottom: normalize(4),
   },
   gridLabel: {
-    fontSize: 11,
+    fontSize: normalize(10),
     color: "#64748b",
     marginBottom: 2,
   },
   gridValue: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "700",
     color: "#0f172a",
     textAlign: "center",
@@ -1332,43 +1345,43 @@ const styles = StyleSheet.create({
   reviewDivider: {
     height: 1,
     backgroundColor: "#f1f5f9",
-    marginVertical: 12,
+    marginVertical: normalize(10),
   },
   reviewListRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: normalize(6),
   },
   reviewListLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
   reviewListLabel: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "#475569",
     fontWeight: "500",
   },
   reviewListValue: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
     color: "#0f172a",
   },
   reviewDescHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   reviewDescTitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "800",
     color: "#0f172a",
-    marginLeft: 8,
+    marginLeft: normalize(6),
   },
   reviewDescBody: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "#475569",
-    lineHeight: 20,
+    lineHeight: normalize(18),
   },
   postingTipBox: {
     flexDirection: "row",
@@ -1376,46 +1389,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#eff6ff",
     borderWidth: 1,
     borderColor: "#bfdbfe",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 20,
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginBottom: normalize(16),
   },
   tipIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
     backgroundColor: "#dbeafe",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: normalize(8),
   },
   postingTipText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#1e40af",
-    lineHeight: 18,
+    lineHeight: normalize(16),
   },
   submitApprovalButton: {
     backgroundColor: PRIMARY_BLUE,
-    borderRadius: 12,
-    height: 50,
+    borderRadius: normalize(12),
+    height: normalize(46),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   submitApprovalButtonText: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "700",
     color: "#ffffff",
   },
   backToEditButton: {
-    paddingVertical: 12,
+    paddingVertical: normalize(10),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: normalize(16),
   },
   backToEditButtonText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: PRIMARY_BLUE,
   },
