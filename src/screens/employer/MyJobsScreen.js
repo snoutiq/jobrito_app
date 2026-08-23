@@ -141,8 +141,8 @@ export default function MyJobsScreen({ navigation, route }) {
     if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
       return { label: t("status.pending", "PENDING"), bg: "#feefc3", color: "#b06000" };
     }
-    if (s === "closed") {
-      return { label: t("status.closed", "CLOSED"), bg: "#f1f3f4", color: "#5f6368" };
+    if (s === "closed" || s === "completed") {
+      return { label: t("completed", "COMPLETED").toUpperCase(), bg: "#f1f3f4", color: "#5f6368" };
     }
     return { label: s.toUpperCase(), bg: "#e8effe", color: "#1b4dff" };
   };
@@ -483,7 +483,7 @@ export default function MyJobsScreen({ navigation, route }) {
                 activeTab === "closed" && styles.tabTextActive,
               ]}
             >
-              {t("closed", "Closed")} ({closedJobs.length})
+              {t("completed", "Completed")} ({closedJobs.length})
             </Text>
           </TouchableOpacity>
         </View>
