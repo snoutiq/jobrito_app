@@ -60,6 +60,8 @@ export default function CardStack({
     );
   }
 
+  const isSwipeable = applicants.length > 1;
+
   // Render original full detail stacked cards (up to 3)
   const renderCards = () => {
     const visibleCards = [];
@@ -83,7 +85,7 @@ export default function CardStack({
           translateY={translateY}
           onSwipeComplete={handleSwipeComplete}
           onPressDetails={onPressDetails}
-          swipeEnabled={true}
+          swipeEnabled={isSwipeable}
         />
       );
     }
@@ -96,22 +98,26 @@ export default function CardStack({
       <View style={styles.stackContainer}>
         {renderCards()}
 
-        {/* Floating Side Navigation Buttons — Positioned outside card edges */}
-        <TouchableOpacity
-          style={[styles.floatingSideBtn, styles.leftSideBtn]}
-          activeOpacity={0.85}
-          onPress={() => triggerManualSwipe("left")}
-        >
-          <Ionicons name="chevron-back" size={24} color="#153e69" />
-        </TouchableOpacity>
+        {/* Floating Side Navigation Buttons — Only show when there are multiple applicants */}
+        {isSwipeable && (
+          <>
+            <TouchableOpacity
+              style={[styles.floatingSideBtn, styles.leftSideBtn]}
+              activeOpacity={0.85}
+              onPress={() => triggerManualSwipe("left")}
+            >
+              <Ionicons name="chevron-back" size={24} color="#153e69" />
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.floatingSideBtn, styles.rightSideBtn]}
-          activeOpacity={0.85}
-          onPress={() => triggerManualSwipe("right")}
-        >
-          <Ionicons name="chevron-forward" size={24} color="#153e69" />
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.floatingSideBtn, styles.rightSideBtn]}
+              activeOpacity={0.85}
+              onPress={() => triggerManualSwipe("right")}
+            >
+              <Ionicons name="chevron-forward" size={24} color="#153e69" />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* Single View Details Button at Bottom */}

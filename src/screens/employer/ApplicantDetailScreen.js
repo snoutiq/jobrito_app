@@ -8,6 +8,8 @@ import {
   ScrollView,
   Image,
   Platform,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +23,10 @@ import { getAvatarUrl, getAbsoluteProfilePhotoUrl } from "../../components/Swipe
 import MatchBadge from "../../components/SwipeDeck/MatchBadge";
 import Timeline from "../../components/SwipeDeck/Timeline";
 import { getMatchScore } from "../../services/employerApi"; // Import getMatchScore
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 export default function ApplicantDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -619,9 +625,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0a0504",
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontSize: 12,

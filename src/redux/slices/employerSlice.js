@@ -74,9 +74,15 @@ const employerSlice = createSlice({
       })
       .addCase(fetchEmployerDashboard.fulfilled, (state, action) => {
         state.loading = false;
+        state.dashboardRaw = action.payload;
         state.stats = action.payload?.stats || [];
         state.metrics = action.payload?.metrics || {};
-        state.submittedJobs = action.payload?.submittedJobs || [];
+        state.submittedJobs =
+          action.payload?.created_jobs ||
+          action.payload?.submittedJobs ||
+          action.payload?.jobs ||
+          action.payload?.data ||
+          [];
         state.success = true;
       })
       .addCase(fetchEmployerDashboard.rejected, (state, action) => {

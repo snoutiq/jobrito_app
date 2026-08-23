@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, PixelRatio } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +7,10 @@ import { useTranslation } from "react-i18next";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
 import { getMatchScore } from "../../services/employerApi";
 import CardStack from "../../components/SwipeDeck/CardStack";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 export default function ApplicantListScreen({ route, navigation }) {
   const { t } = useTranslation();
@@ -192,9 +196,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0a0504",
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontSize: 12,

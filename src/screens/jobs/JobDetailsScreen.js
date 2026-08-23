@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
   Pressable,
@@ -8,114 +8,81 @@ import {
   View,
   Linking,
   TouchableOpacity,
-  Platform,
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import ScreenWrapper from "../../components/common/ScreenWrapper";
-import AppButton from "../../components/buttons/AppButton";
-import colors from "../../constants/colors";
+import { CustomAlert } from "../../components/common/CustomAlert";
+import { closeEmployerJob } from "../../redux/slices/employerSlice";
 import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
 import { getJobDetails } from "../../services/jobApi";
 import CallbackModal from "../../components/common/CallbackModal";
-import { ActivityIndicator } from "react-native";
+import AppButton from "../../components/buttons/AppButton";
 
-const formatPostedTime = (postedDate, t) => {
-  if (!postedDate) return t("jobDetails.recently", "Recently");
-  const posted = new Date(postedDate);
-  if (Number.isNaN(posted.getTime()))
-    return t("jobDetails.recently", "Recently");
-  const diffMs = Date.now() - posted.getTime();
-  const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-  if (diffDays === 0) return t("jobDetails.today", "Today");
-  if (diffDays === 1) return t("jobDetails.oneDayAgo", "1 day ago");
-  return t("jobDetails.daysAgo", "{{count}} days ago", { count: diffDays });
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
+
+const PRIMARY_GREEN = "#153e69";
+
+const normalizeStatus = (status) => String(status || "").toLowerCase();
+
+const getCategoryIconDetails = (job) => {
+  const title = (job?.title || job?.job_title || job?.category || "").toLowerCase();
+  if (title.includes("packer") || title.includes("pack")) {
+    return { icon: "cube-outline", bg: "rgba(27, 77, 255, 0.08)", color: "#1b4dff" };
+  }
+  if (title.includes("baker") || title.includes("chef") || title.includes("cook")) {
+    return { icon: "restaurant-outline", bg: "rgba(245, 127, 32, 0.08)", color: "#f57f20" };
+  }
+  if (title.includes("barista") || title.includes("cafe") || title.includes("coffee")) {
+    return { icon: "cafe-outline", bg: "rgba(10, 185, 129, 0.08)", color: "#10b981" };
+  }
+  return { icon: "briefcase-outline", bg: "rgba(21, 62, 105, 0.08)", color: "#153e69" };
 };
 
-const getDisplayStatusText = (statusStr, t) => {
-  if (!statusStr) return "";
-  const s = statusStr.toUpperCase().trim();
-  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return t("status.underProcess", "UNDER PROCESS");
+const getStatusBadgeConfig = (status, t) => {
+  const s = normalizeStatus(status);
+  if (s === "approved" || s === "active") {
+    return { label: t("status.approved", "APPROVED"), bg: "#e6f4ea", color: "#137333" };
   }
-  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return t("status.discussionPending", "DISCUSSION PENDING");
+  if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
+    return { label: t("status.pending", "PENDING"), bg: "#feefc3", color: "#b06000" };
   }
-  if (s === "SHORTLISTED") {
-    return t("status.shortlisted", "SHORTLISTED");
+  if (s === "closed") {
+    return { label: t("status.closed", "CLOSED"), bg: "#f1f3f4", color: "#5f6368" };
   }
-  if (s === "CONTACTED") {
-    return t("status.contacted", "CONTACTED");
-  }
-  if (s === "JOB CLOSED") {
-    return t("status.jobClosed", "JOB CLOSED");
-  }
-  return t(`status.${s.toLowerCase()}`, s);
+  return { label: (status || "APPROVED").toUpperCase(), bg: "#e6f4ea", color: "#137333" };
 };
 
-const getStatusBadgeColors = (statusStr) => {
-  if (!statusStr)
-    return {
-      bg: "rgba(242, 200, 121, 0.06)",
-      text: "#f2c879",
-      border: "rgba(242, 200, 121, 0.2)",
-    };
-  const s = statusStr.toUpperCase().trim();
-  if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return {
-      bg: "rgba(21, 62, 105, 0.06)",
-      text: "#153e69",
-      border: "rgba(21, 62, 105, 0.2)",
-    };
-  }
-  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return {
-      bg: "rgba(245, 127, 32, 0.06)",
-      text: "#f57f20",
-      border: "rgba(245, 127, 32, 0.2)",
-    };
-  }
-  if (s === "SHORTLISTED" || s === "CONTACTED") {
-    return {
-      bg: "rgba(21, 105, 62, 0.06)",
-      text: "#15693e",
-      border: "rgba(21, 105, 62, 0.2)",
-    };
-  }
-  if (s === "JOB CLOSED") {
-    return {
-      bg: "rgba(10, 5, 4, 0.04)",
-      text: "rgba(10, 5, 4, 0.6)",
-      border: "rgba(10, 5, 4, 0.15)",
-    };
-  }
-  return {
-    bg: "rgba(242, 200, 121, 0.06)",
-    text: "#f2c879",
-    border: "rgba(242, 200, 121, 0.2)",
-  };
-};
-
-export default function JobDetailsScreen({ route }) {
+export default function JobDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  console.log("📱 [JobDetailsScreen] Received Route Params:", JSON.stringify(route?.params, null, 2));
+  const activeRole = useSelector(
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
+  );
+  const isEmployer =
+    activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
 
-  const { feedJobs, myJobs, savedJobs, jobDetails, loading, applyingJobId } = useSelector(
+  const { feedJobs, myJobs, savedJobs, jobDetails } = useSelector(
     (state) => state.job,
   );
-  const { submittedJobs } = useSelector(
-    (state) => state.employer,
-  );
-  const { history: applicationHistory, loading: applyLoading } = useSelector(
+  const { submittedJobs } = useSelector((state) => state.employer);
+  const { history: applicationHistory } = useSelector(
     (state) => state.application,
   );
+
   const jobId = route?.params?.jobId || route?.params?.job?.id;
   const passedJob = route?.params?.job;
+
   const [showCallModal, setShowCallModal] = useState(false);
   const [directJob, setDirectJob] = useState(null);
   const [directLoading, setDirectLoading] = useState(false);
@@ -148,7 +115,6 @@ export default function JobDetailsScreen({ route }) {
     if (directJob && String(directJob.id) === targetId) return directJob;
     if (jobDetails && String(jobDetails.id) === targetId) return jobDetails;
 
-    // Search in loaded Redux feed & myJobs
     const foundFeed = (feedJobs || []).find((j) => String(j.id) === targetId);
     if (foundFeed) return foundFeed;
 
@@ -175,338 +141,291 @@ export default function JobDetailsScreen({ route }) {
     }
   };
 
-  const title = job?.title;
-  const company = job?.company;
-  const location = job?.location;
-  const salary = job?.salary;
-  const experience =
-    job?.experience ||
-    job?.experience_range ||
-    t("jobDetails.notSpecified", "Not Specified");
-  const postedTime = formatPostedTime(job?.postedDate || job?.created_at, t);
-  const jobRequirements = Array.isArray(job?.requirements)
-    ? job.requirements.filter(Boolean)
-    : typeof job?.requirements === "string"
-      ? job.requirements
-          .split("\n")
-          .map((r) => r.trim())
-          .filter(Boolean)
-      : [];
-  const jobBenefits = Array.isArray(job?.benefits)
-    ? job.benefits.filter(Boolean)
-    : typeof job?.benefits === "string"
-      ? job.benefits
-          .split("\n")
-          .map((b) => b.trim())
-          .filter(Boolean)
-      : [];
+  const closeJob = (jobIdToClose) => {
+    CustomAlert.show(
+      t("areYouSure", "Are you sure?"),
+      t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
+      [
+        { text: t("cancel", "Cancel"), style: "cancel" },
+        {
+          text: t("closeJob", "Close Job"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await dispatch(closeEmployerJob(jobIdToClose)).unwrap();
+              CustomAlert.show(
+                t("success", "Success"),
+                t("jobClosed", "Job has been closed."),
+              );
+              if (navigation && navigation.canGoBack()) {
+                navigation.goBack();
+              }
+            } catch (err) {
+              CustomAlert.show(
+                t("error", "Error"),
+                err || t("failCloseJob", "Failed to close the job."),
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
 
-  if (!job) {
+  const isApplied = useMemo(() => {
+    if (!job?.id) return false;
+    return (applicationHistory || []).some(
+      (app) => String(app.job_id || app.job?.id) === String(job.id),
+    );
+  }, [applicationHistory, job?.id]);
+
+  if (directLoading && !job) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-        <View style={styles.headerBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={normalize(22)} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+          <Text style={styles.headerTitle}>{t("jobDetails.title", "JOB DETAILS")}</Text>
         </View>
-        <ScreenWrapper edges={["left", "right", "bottom"]}>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 40 }}>
-            <ActivityIndicator size="large" color="#153e69" />
-            <Text style={[styles.loading, { marginTop: 12 }]}>
-              {t("jobDetails.loading", "Loading job details...")}
-            </Text>
-          </View>
-        </ScreenWrapper>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+          <Text style={styles.loadingText}>{t("loading", "Loading job details...")}</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
-  const isApplied =
-    job?.applied ||
-    (applicationHistory || []).some(
-      (app) => String(app.jobId) === String(job?.id || jobId),
-    ) ||
-    false;
-  const isApplying = applyingJobId === job?.id || applyLoading;
+  const title = String(job?.title || job?.job_title || job?.name || "").trim();
+  const company = String(job?.company || job?.company_name || job?.business_name || "").trim();
+  const location = String(job?.location || job?.city || job?.country || "").trim() || t("notMentioned", "Not Mentioned");
+  const rawSalary = job?.salary || job?.salary_range || job?.offered_salary || job?.salary_display;
+  const salaryStr = rawSalary && String(rawSalary).trim() ? String(rawSalary).trim() : t("notMentioned", "Not Mentioned");
+  const rawExp = job?.experience || job?.experience_range || job?.experience_level;
+  const experienceStr = rawExp && String(rawExp).trim() ? String(rawExp).trim() : t("notSpecified", "Not Specified");
+  const openings = job?.open_positions ?? job?.openings ?? job?.vacancies ?? 1;
+  const rawType = job?.job_type || job?.type || "";
+  const jobType = rawType ? String(rawType).toUpperCase() : t("fullTime", "FULL-TIME");
+  const description = job?.description || job?.job_description || job?.summary || "";
+  const statusConfig = getStatusBadgeConfig(job?.status, t);
+  const iconConfig = getCategoryIconDetails(job);
+  const logoUrl = job?.company_logo_url || job?.company_logo || job?.logo || null;
+  const formattedJobId = job?.job_id || (job?.id ? `#${job.id}` : "");
+  const contactInfo = job?.contact_info || job?.phone || job?.contact_person_phone;
 
-  const isReferral = job?.category === "referral" || job?.is_referral;
-  const effectiveRoleSource =
-    job?.submitted_by_role ||
-    job?.posted_by_role ||
-    job?.active_role ||
-    job?.user_role ||
-    job?.creator?.role ||
-    job?.creator?.active_role ||
-    "";
-  const effectiveRole = effectiveRoleSource.toLowerCase();
-  const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
-  const isChefOrJobSeeker = [
-    "chef",
-    "jobseeker",
-    "job_seeker",
-    "talent",
-    "candidate",
-  ].includes(normalizedRole);
-  const showApply = !isReferral && !isChefOrJobSeeker;
+  const isJobPending =
+    Boolean(route?.params?.isSubmitted) ||
+    route?.params?.activeTab === "pending" ||
+    normalizeStatus(job?.status) === "pending" ||
+    normalizeStatus(job?.status) === "new" ||
+    normalizeStatus(job?.status) === "under_review" ||
+    normalizeStatus(job?.status) === "under review";
 
-  const app = (applicationHistory || []).find(
-    (a) => String(a.jobId) === String(job?.id || jobId),
-  );
-  const statusText = app ? getDisplayStatusText(app.status, t) : null;
-  const statusColors = app ? getStatusBadgeColors(app.status) : null;
+  const jobRequirements = Array.isArray(job?.requirements)
+    ? job.requirements.filter(Boolean)
+    : typeof job?.requirements === "string"
+      ? job.requirements.split("\n").map((r) => r.trim()).filter(Boolean)
+      : [];
 
-  const handleCall = () => {
-    const phoneNumber =
-      job?.creator?.mobile_number ||
-      job?.mobile_number ||
-      job?.phone ||
-      job?.contact_phone ||
-      job?.creator?.phone ||
-      "+919876543210";
-    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert(
-        t("error", "Error"),
-        (t("couldNotOpenDialer", "Could not open dialer: ") ||
-          "Could not open dialer: ") + err.message,
-      );
-    });
-  };
+  const jobBenefits = Array.isArray(job?.benefits)
+    ? job.benefits.filter(Boolean)
+    : typeof job?.benefits === "string"
+      ? job.benefits.split("\n").map((b) => b.trim()).filter(Boolean)
+      : [];
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation && navigation.canGoBack()) {
+              navigation.goBack();
+            }
+          }}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={normalize(22)} color="#0a0504" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("jobDetails.title", "Job Details")}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t("jobDetails.subtitle", "View job information and details")}
+          </Text>
+        </View>
       </View>
 
-      <ScreenWrapper
-        edges={["left", "right", "bottom"]}
-        contentStyle={styles.page}
-      >
-
-      <View style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View style={styles.brandAvatar}>
-            <Ionicons name="restaurant" size={24} color={colors.primaryDark} />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroCard}>
+          <View style={[styles.jobIconBox, { backgroundColor: iconConfig.bg }]}>
+            {logoUrl ? (
+              <Image source={{ uri: logoUrl }} style={styles.companyLogoImage} />
+            ) : (
+              <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
+            )}
           </View>
-          <View style={styles.heroTextBlock}>
-            <View style={styles.titleRow}>
-              <Text style={styles.companyTitle}>{company}</Text>
-              <Ionicons
-                name="checkmark-circle"
-                size={14}
-                color={colors.success}
-              />
+
+          <View style={styles.heroMainInfo}>
+            {Boolean(company) && (
+              <View style={styles.companyRow}>
+                <Text style={styles.companyNameText} numberOfLines={1}>
+                  {company}
+                </Text>
+                <Ionicons name="checkmark-circle" size={normalize(15)} color="#1d9bf0" style={{ marginLeft: 4 }} />
+              </View>
+            )}
+
+            {Boolean(title) && (
+              <Text style={styles.jobTitleText} numberOfLines={1}>
+                {title.toUpperCase()}
+              </Text>
+            )}
+
+            <View style={styles.badgesRow}>
+              <View style={styles.typeBadge}>
+                <Text style={styles.typeBadgeText}>{jobType}</Text>
+              </View>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+                <Text style={[styles.statusBadgeText, { color: statusConfig.color }]}>
+                  {statusConfig.label}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.positionTitle}>{title}</Text>
-            <View style={styles.tagRow}>
-              {statusText && (
-                <View
-                  style={[
-                    styles.tag,
-                    {
-                      backgroundColor: statusColors.bg,
-                      borderWidth: 1,
-                      borderColor: statusColors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: statusColors.text,
-                      fontSize: 9,
-                      fontWeight: "800",
-                      textTransform: "uppercase",
-                      letterSpacing: 0.3,
-                    }}
-                  >
-                    {statusText}
-                  </Text>
+          </View>
+        </View>
+
+        <View style={styles.gridContainer}>
+          <View style={styles.gridRow}>
+            <View style={styles.gridCard}>
+              <View style={styles.gridIconCircle}>
+                <Ionicons name="location-outline" size={normalize(16)} color="#153e69" />
+              </View>
+              <View style={styles.gridTextContainer}>
+                <Text style={styles.gridLabel}>{t("location", "LOCATION")}</Text>
+                <Text style={styles.gridValue} numberOfLines={1}>{location}</Text>
+              </View>
+            </View>
+
+            {!isJobPending && (
+              <View style={styles.gridCard}>
+                <View style={styles.gridCardContent}>
+                  <View style={styles.gridIconCircle}>
+                    <Ionicons name="people-outline" size={normalize(16)} color="#153e69" />
+                  </View>
+                  <View style={styles.gridTextContainer}>
+                    <Text style={styles.gridLabel}>{t("talents", "TALENTS")}</Text>
+                    <Text style={styles.gridValue}>{openings}</Text>
+                  </View>
                 </View>
-              )}
-              <View style={[styles.tag, styles.tagFullTime]}>
-                <Text style={styles.tagFullTimeText}>
-                  {t("jobDetails.fullTime", "Full Time")}
-                </Text>
+                {Boolean(contactInfo) && (
+                  <TouchableOpacity
+                    style={styles.callIconBtn}
+                    onPress={() => Linking.openURL(`tel:${contactInfo}`)}
+                  >
+                    <Ionicons name="call-outline" size={normalize(14)} color="#153e69" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.gridRow}>
+            <View style={styles.gridCard}>
+              <View style={styles.gridIconCircle}>
+                <Ionicons name="card-outline" size={normalize(16)} color="#153e69" />
+              </View>
+              <View style={styles.gridTextContainer}>
+                <Text style={styles.gridLabel}>{t("salary", "SALARY")}</Text>
+                <Text style={styles.gridValue} numberOfLines={1}>{salaryStr}</Text>
               </View>
             </View>
-          </View>
-          <View style={styles.timeBadge}>
-            <Ionicons
-              name="time-outline"
-              size={12}
-              color="rgba(10, 5, 4, 0.6)"
-            />
-            <Text style={styles.timeBadgeText}>{postedTime}</Text>
+
+            <View style={styles.gridCard}>
+              <View style={styles.gridIconCircle}>
+                <Ionicons name="briefcase-outline" size={normalize(16)} color="#153e69" />
+              </View>
+              <View style={styles.gridTextContainer}>
+                <Text style={styles.gridLabel}>{t("experience", "EXPERIENCE")}</Text>
+                <Text style={styles.gridValue} numberOfLines={1}>{experienceStr}</Text>
+              </View>
+            </View>
           </View>
         </View>
 
-        <View style={styles.metaGrid}>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons name="cash-outline" size={16} color={colors.success} />
+        {Boolean(formattedJobId) && (
+          <View style={styles.jobIdFullCard}>
+            <View style={styles.jobIdAvatar}>
+              <Text style={styles.jobIdAvatarText}>ID</Text>
             </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>
-                {t("jobDetails.salary", "Salary")}
-              </Text>
-              <Text style={styles.metaValue}>{salary}</Text>
+            <View style={styles.jobIdTextContainer}>
+              <Text style={styles.jobIdLabel}>{t("jobId", "JOB ID")}</Text>
+              <Text style={styles.jobIdValueText}>{formattedJobId}</Text>
             </View>
           </View>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons
-                name="location-outline"
-                size={16}
-                color={colors.primary}
-              />
-            </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>
-                {t("jobDetails.location", "Location")}
-              </Text>
-              <Text style={styles.metaValue}>{location}</Text>
-            </View>
-          </View>
-          <View style={styles.metaItem}>
-            <View style={styles.metaIcon}>
-              <Ionicons
-                name="briefcase-outline"
-                size={16}
-                color={colors.primary}
-              />
-            </View>
-            <View style={styles.metaItemContent}>
-              <Text style={styles.metaLabel}>
-                {t("jobDetails.experience", "Experience")}
-              </Text>
-              <Text style={styles.metaValue}>{experience}</Text>
-            </View>
-          </View>
-          {job?.contract_duration ? (
-            <View style={styles.metaItem}>
-              <View style={styles.metaIcon}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={16}
-                  color={colors.primary}
-                />
-              </View>
-              <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>
-                  {t("jobDetails.contract", "Contract")}
-                </Text>
-                <Text style={styles.metaValue}>{job.contract_duration}</Text>
-              </View>
-            </View>
-          ) : null}
-          {job?.visa_assistance ? (
-            <View style={styles.metaItem}>
-              <View style={styles.metaIcon}>
-                <Ionicons
-                  name="card-outline"
-                  size={16}
-                  color={colors.success}
-                />
-              </View>
-              <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>
-                  {t("jobDetails.visaAssistance", "Visa Assistance")}
-                </Text>
-                <Text style={styles.metaValue}>
-                  {t("jobDetails.available", "Available")}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-          {job?.accommodation_available ? (
-            <View style={styles.metaItem}>
-              <View style={styles.metaIcon}>
-                <Ionicons
-                  name="home-outline"
-                  size={16}
-                  color={colors.primary}
-                />
-              </View>
-              <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>
-                  {t("jobDetails.accommodation", "Accommodation")}
-                </Text>
-                <Text style={styles.metaValue}>
-                  {t("jobDetails.provided", "Provided")}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-          {job?.open_positions ? (
-            <View style={styles.metaItem}>
-              <View style={styles.metaIcon}>
-                <Ionicons
-                  name="people-outline"
-                  size={16}
-                  color={colors.success}
-                />
-              </View>
-              <View style={styles.metaItemContent}>
-                <Text style={styles.metaLabel}>
-                  {t("jobDetails.openPositions", "Open Positions")}
-                </Text>
-                <Text style={styles.metaValue}>{job.open_positions}</Text>
-              </View>
-            </View>
-          ) : null}
-        </View>
-      </View>
+        )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {t("jobDetails.aboutRole", "About the Role")}
-        </Text>
-        <Text style={styles.bodyText}>{job?.description}</Text>
-      </View>
-
-      {jobRequirements.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("jobDetails.keyRequirements", "Key Requirements")}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>{t("aboutTheRole", "ABOUT THE ROLE")}</Text>
+          <View style={styles.sectionTitleUnderline} />
+          <Text style={styles.bodyDescription}>
+            {description || t("noDescription", "No description available for this role.")}
           </Text>
-          <View style={styles.requirementList}>
-            {jobRequirements.map((item) => (
-              <View key={item} style={styles.requirementRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color={colors.success}
-                />
-                <Text style={styles.requirementText}>{item}</Text>
-              </View>
-            ))}
-          </View>
         </View>
-      )}
 
-      {jobBenefits.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("jobDetails.benefitsPerks", "Benefits & Perks")}
-          </Text>
-          <View style={styles.benefitWrap}>
-            {jobBenefits.map((item) => (
-              <View key={item} style={styles.benefitChip}>
-                <Text style={styles.benefitText}>{item}</Text>
-              </View>
-            ))}
+        {jobRequirements.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "KEY REQUIREMENTS")}</Text>
+            <View style={styles.sectionTitleUnderline} />
+            <View style={styles.requirementList}>
+              {jobRequirements.map((item) => (
+                <View key={item} style={styles.requirementRow}>
+                  <Ionicons name="checkmark-circle" size={normalize(16)} color="#10b981" />
+                  <Text style={styles.requirementText}>{item}</Text>
+                </View>
+              ))}
+            </View>
           </View>
+        )}
+
+        {jobBenefits.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "BENEFITS & PERKS")}</Text>
+            <View style={styles.sectionTitleUnderline} />
+            <View style={styles.benefitWrap}>
+              {jobBenefits.map((item) => (
+                <View key={item} style={styles.benefitChip}>
+                  <Text style={styles.benefitText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      {isEmployer && !isJobPending ? (
+        <View style={styles.employerActionsRow}>
+          <TouchableOpacity
+            style={styles.viewTalentBtn}
+            activeOpacity={0.8}
+            onPress={() =>
+              navigation.navigate("ApplicantList", {
+                jobId: job?.id,
+                jobTitle: title,
+              })
+            }
+          >
+            <Text style={styles.viewTalentBtnText}>{t("viewTalent", "View Talent")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.closeJobBtn}
+            activeOpacity={0.8}
+            onPress={() => closeJob(job?.id)}
+          >
+            <Text style={styles.closeJobBtnText}>{t("completed", "Completed")}</Text>
+          </TouchableOpacity>
         </View>
-      )}
-
-      <View style={styles.bottomSpacer} />
-
-      <View style={styles.bottomBar}>
-        {showApply ? (
+      ) : !isEmployer ? (
+        <View style={styles.bottomBar}>
           <AppButton
             title={
               isApplied
@@ -514,28 +433,17 @@ export default function JobDetailsScreen({ route }) {
                 : t("jobDetails.applyNow", "Apply Now")
             }
             onPress={() => setShowCallModal(true)}
-            loading={isApplying}
-            disabled={isApplied || isApplying}
+            disabled={isApplied}
             style={[
               styles.applyButton,
               isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" },
             ]}
           />
-        ) : (
-          <AppButton
-            title={t("jobs.callNow", "Call Now")}
-            onPress={handleCall}
-            style={[styles.applyButton, { backgroundColor: "#f57f20" }]}
-          />
-        )}
-        <Pressable onPress={handleShare} style={styles.chatButton}>
-          <Ionicons
-            name="share-social-outline"
-            size={18}
-            color={colors.primary}
-          />
-        </Pressable>
-      </View>
+          <Pressable onPress={handleShare} style={styles.chatButton}>
+            <Ionicons name="share-social-outline" size={normalize(18)} color="#153e69" />
+          </Pressable>
+        </View>
+      ) : null}
 
       <CallbackModal
         visible={showCallModal}
@@ -543,7 +451,7 @@ export default function JobDetailsScreen({ route }) {
         onConfirm={async (timeSlot) => {
           try {
             await dispatch(
-              applyJob({ jobId: job.id, preferredCallTime: timeSlot }),
+              applyJob({ jobId: job?.id, preferredCallTime: timeSlot }),
             ).unwrap();
             return true;
           } catch (err) {
@@ -555,7 +463,6 @@ export default function JobDetailsScreen({ route }) {
           }
         }}
       />
-      </ScreenWrapper>
     </SafeAreaView>
   );
 }
@@ -563,304 +470,345 @@ export default function JobDetailsScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f8fafc",
   },
-  headerBar: {
+  header: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === "ios" ? 6 : 10,
-    paddingBottom: 12,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(10, 5, 4, 0.1)",
+    borderBottomColor: "rgba(10, 5, 4, 0.08)",
   },
-  backButton: {
-    padding: 4,
-    marginRight: 10,
+  backBtn: {
+    marginRight: normalize(12),
+    padding: normalize(2),
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0a0504",
+    letterSpacing: 0.3,
   },
-  loading: {
-    color: colors.mutedText,
-    textAlign: "center",
-    marginTop: 40,
+  headerSubtitle: {
+    fontSize: normalize(10.5),
+    color: "rgba(10, 5, 4, 0.55)",
+    fontWeight: "500",
+    marginTop: 1,
+  },
+  scrollContent: {
+    padding: normalize(16),
+    paddingBottom: normalize(100),
   },
   heroCard: {
-    gap: 14,
-  },
-  heroTop: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(16),
+    padding: normalize(16),
     flexDirection: "row",
-    gap: 12,
-    alignItems: "flex-start",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.08)",
+    marginBottom: normalize(14),
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  brandAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  jobIconBox: {
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(14),
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primarySoft,
-    borderWidth: 1,
-    borderColor: colors.primarySoftBorder,
+    marginRight: normalize(14),
   },
-  heroTextBlock: {
+  companyLogoImage: {
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(14),
+  },
+  heroMainInfo: {
     flex: 1,
-    gap: 6,
   },
-  titleRow: {
+  companyRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    flexWrap: "wrap",
+    marginBottom: normalize(2),
   },
-  companyTitle: {
-    color: "#0a0504",
-    fontSize: 18,
+  companyNameText: {
+    fontSize: normalize(15),
     fontWeight: "800",
+    color: "#0d2b52",
   },
-  positionTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: "800",
+  jobTitleText: {
+    fontSize: normalize(13.5),
+    fontWeight: "700",
+    color: "#475569",
+    letterSpacing: 0.3,
+    marginBottom: normalize(8),
   },
-  tagRow: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  tag: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  tagUrgent: {
-    backgroundColor: "#FFF2E8",
-  },
-  tagFullTime: {
-    backgroundColor: "#EEF4FF",
-  },
-  tagUrgentText: {
-    color: "#C2410C",
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  tagFullTimeText: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  metaGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  metaItem: {
-    width: "48%",
+  badgesRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    backgroundColor: "#f2f2f3",
+    gap: normalize(6),
+  },
+  typeBadge: {
+    backgroundColor: "#eef2ff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(8),
+  },
+  typeBadgeText: {
+    fontSize: normalize(10),
+    fontWeight: "800",
+    color: "#3b82f6",
+    letterSpacing: 0.4,
+  },
+  statusBadge: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(8),
+  },
+  statusBadgeText: {
+    fontSize: normalize(10),
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
+  gridContainer: {
+    gap: normalize(10),
+    marginBottom: normalize(14),
+  },
+  gridRow: {
+    flexDirection: "row",
+    gap: normalize(10),
+  },
+  gridCard: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
-  metaIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.card,
+  gridCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  gridIconCircle: {
+    width: normalize(34),
+    height: normalize(34),
+    borderRadius: normalize(17),
+    backgroundColor: "#eef2ff",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginRight: normalize(10),
   },
-  metaLabel: {
-    color: colors.mutedText,
-    fontSize: 11,
-    fontWeight: "700",
+  gridTextContainer: {
+    flex: 1,
   },
-  metaValue: {
-    color: colors.text,
-    fontSize: 12,
+  gridLabel: {
+    fontSize: normalize(9.5),
     fontWeight: "800",
+    color: "#64748b",
+    letterSpacing: 0.4,
+    marginBottom: 2,
   },
-  section: {
-    gap: 10,
+  gridValue: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0d2b52",
+  },
+  callIconBtn: {
+    width: normalize(30),
+    height: normalize(30),
+    borderRadius: normalize(15),
+    backgroundColor: "#eef2ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  jobIdFullCard: {
+    backgroundColor: "#eff6ff",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+    marginBottom: normalize(16),
+  },
+  jobIdAvatar: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(12),
+  },
+  jobIdAvatarText: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#1d4ed8",
+  },
+  jobIdTextContainer: {
+    flex: 1,
+  },
+  jobIdLabel: {
+    fontSize: normalize(9.5),
+    fontWeight: "800",
+    color: "#64748b",
+    letterSpacing: 0.4,
+    marginBottom: 1,
+  },
+  jobIdValueText: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#1d4ed8",
+  },
+  sectionContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(16),
+    padding: normalize(16),
+    marginBottom: normalize(14),
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
   sectionTitle: {
-    color: colors.text,
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "900",
+    color: "#0d2b52",
+    letterSpacing: 0.4,
   },
-  bodyText: {
-    color: colors.text,
-    fontSize: 13,
-    lineHeight: 20,
+  sectionTitleUnderline: {
+    width: normalize(24),
+    height: 3,
+    backgroundColor: "#3b82f6",
+    borderRadius: 2,
+    marginTop: 4,
+    marginBottom: normalize(10),
+  },
+  bodyDescription: {
+    fontSize: normalize(12.5),
+    color: "#475569",
+    lineHeight: normalize(18),
+    fontWeight: "500",
   },
   requirementList: {
-    gap: 10,
+    gap: normalize(8),
   },
   requirementRow: {
     flexDirection: "row",
-    gap: 8,
-    alignItems: "flex-start",
+    alignItems: "center",
+    gap: normalize(8),
   },
   requirementText: {
-    flex: 1,
-    color: colors.text,
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  imageCard: {
-    gap: 8,
-  },
-  imagePlaceholder: {
-    height: 190,
-    borderRadius: 18,
-    overflow: "hidden",
-    backgroundColor: "#0a0504",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dessertGlow: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: "rgba(34, 197, 94, 0.12)",
-    top: -60,
-    right: -40,
-  },
-  dessertPlate: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#111827",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-  },
-  dessertTop: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#F59E0B",
-    opacity: 0.95,
-    position: "absolute",
-    top: 20,
-  },
-  dessertBase: {
-    width: 90,
-    height: 46,
-    borderRadius: 24,
-    backgroundColor: "#f2c879",
-    position: "absolute",
-    bottom: 18,
-  },
-  imageCaption: {
-    color: colors.mutedText,
-    fontSize: 12,
+    fontSize: normalize(12),
+    color: "#334155",
     fontWeight: "600",
+    flex: 1,
   },
   benefitWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: normalize(8),
   },
   benefitChip: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primarySoftBorder,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: "#eef2ff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(8),
   },
   benefitText: {
-    color: colors.primaryDark,
-    fontSize: 12,
+    fontSize: normalize(11.5),
     fontWeight: "700",
+    color: "#3b82f6",
   },
-  mapCard: {
-    height: 190,
-    borderRadius: 18,
-    overflow: "hidden",
-    backgroundColor: "#DDE7F5",
-    borderWidth: 1,
-    borderColor: colors.border,
+  employerActionsRow: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
+    flexDirection: "row",
+    gap: normalize(10),
+    borderTopWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
-  mapTile: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#DDE7F5",
-    opacity: 0.95,
-  },
-  mapOverlay: {
-    flex: 1,
+  viewTalentBtn: {
+    flex: 1.5,
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: normalize(10),
+    height: normalize(42),
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    backgroundColor: "rgba(255,255,255,0.18)",
   },
-  mapPin: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.success,
-  },
-  mapText: {
-    color: colors.text,
-    fontSize: 13,
+  viewTalentBtnText: {
+    fontSize: normalize(13),
     fontWeight: "800",
-    backgroundColor: "rgba(255,255,255,0.8)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    color: "#ffffff",
   },
-  bottomSpacer: {
-    height: 6,
+  closeJobBtn: {
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.15)",
+    borderRadius: normalize(10),
+    height: normalize(42),
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+  },
+  closeJobBtnText: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#475569",
   },
   bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
     flexDirection: "row",
+    gap: normalize(10),
     alignItems: "center",
-    gap: 10,
+    borderTopWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
   applyButton: {
     flex: 1,
+    height: normalize(44),
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: normalize(10),
   },
   chatButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(10),
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+    borderColor: "rgba(15, 23, 42, 0.15)",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#ffffff",
   },
-  metaItemContent: {
+  loadingContainer: {
     flex: 1,
-  },
-  timeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: "rgba(10, 5, 4, 0.05)",
-    flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-start",
+    justifyContent: "center",
+    gap: normalize(10),
   },
-  timeBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
+  loadingText: {
+    fontSize: normalize(13),
     color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "600",
   },
 });

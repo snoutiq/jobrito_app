@@ -273,7 +273,7 @@ export default function SettingsScreen({ navigation }) {
       icon: "mail-outline",
     },
     {
-      label: isEmployer ? `${t("location", "Location")} (${t("primaryTag", "Primary")})` : t("location", "Location"),
+      label: isEmployer ? t("primaryLocation", "Primary Location") : t("location", "Location"),
       value: primaryLocationValue,
       icon: "location-outline",
     },
@@ -281,7 +281,7 @@ export default function SettingsScreen({ navigation }) {
 
   if (isEmployer && optionalLocationValue) {
     accountRows.push({
-      label: t("optionalLocation", "Optional Location"),
+      label: t("otherLocation", "Other Location"),
       value: optionalLocationValue,
       icon: "map-outline",
     });
@@ -510,8 +510,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: normalize(16),
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0a0504",
+    letterSpacing: 0.3,
   },
   scrollContent: {
     padding: normalize(14),

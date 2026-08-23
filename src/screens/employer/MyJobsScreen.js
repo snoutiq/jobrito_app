@@ -7,6 +7,10 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Image,
+  Dimensions,
+  PixelRatio,
+  TextInput,
 } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +23,10 @@ import {
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
 import { getDailyPostLimit } from "../../services/jobApi";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -35,12 +43,47 @@ const formatDate = (dateStr) => {
   });
 };
 
+const getCategoryIconDetails = (job) => {
+  const title = (job?.title || job?.job_title || job?.category || "").toLowerCase();
+  if (title.includes("packer") || title.includes("pack")) {
+    return { icon: "cube-outline", bg: "rgba(27, 77, 255, 0.08)", color: "#1b4dff" };
+  }
+  if (title.includes("baker") || title.includes("chef") || title.includes("cook")) {
+    return { icon: "restaurant-outline", bg: "rgba(245, 127, 32, 0.08)", color: "#f57f20" };
+  }
+  if (title.includes("barista") || title.includes("cafe") || title.includes("coffee")) {
+    return { icon: "cafe-outline", bg: "rgba(16, 185, 129, 0.08)", color: "#10b981" };
+  }
+  return { icon: "briefcase-outline", bg: "rgba(21, 62, 105, 0.08)", color: "#153e69" };
+};
+
 export default function MyJobsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const [toastMessage, setToastMessage] = useState("");
   const [checkingLimit, setCheckingLimit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Redux Selectors
+  const employerDashboardRaw = useSelector((state) => state.employer.dashboardRaw);
+  const submittedJobs = useSelector((state) => state.employer.submittedJobs);
+  const myJobs = useSelector((state) => state.job.myJobs);
+  const jobLoading = useSelector((state) => state.job.loading);
+  const employerLoading = useSelector((state) => state.employer.loading);
+  const activeRole = useSelector(
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
+  );
+
+  const isEmployer =
+    activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
+
+  const [activeTab, setActiveTab] = useState(
+    route?.params?.activeTab || route?.params?.initialTab || "active"
+  );
+  const [localJobs, setLocalJobs] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const checkPostLimitAndNavigate = async () => {
     if (checkingLimit) return;
@@ -71,75 +114,68 @@ export default function MyJobsScreen({ navigation, route }) {
     }
   };
 
-  // Redux Selectors
-  const submittedJobs = useSelector((state) => state.employer.submittedJobs);
-  const myJobs = useSelector((state) => state.job.myJobs);
-  const jobLoading = useSelector((state) => state.job.loading);
-  const employerLoading = useSelector((state) => state.employer.loading);
-  const activeRole = useSelector(
-    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
-  );
-
-  const [activeTab, setActiveTab] = useState(
-    route?.params?.activeTab || route?.params?.initialTab || "active"
-  );
-  const [localJobs, setLocalJobs] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-
   const getJobTypeLabel = (opt) => {
     switch (opt?.toLowerCase()) {
       case "full-time":
       case "full time":
-        return t("jobType.fullTime", "Full-time");
+        return t("fullTime", "Full-time");
       case "part-time":
       case "part time":
-        return t("jobType.partTime", "Part-time");
+        return t("partTime", "Part-time");
       case "contract":
         return t("jobType.contract", "Contract");
       case "internship":
         return t("jobType.internship", "Internship");
       case "freelance":
-        return t("jobType.freelance", "Freelance");
+        return t("freelanceChef", "Freelance");
       default:
-        return opt;
+        return opt || t("fullTime", "Full-time");
     }
   };
 
-  const getStatusLabel = (status, activeTabVal) => {
-    const s = (normalizeStatus(status) || activeTabVal).toLowerCase();
-    switch (s) {
-      case "pending": return t("status.pending", "PENDING");
-      case "active": return t("status.active", "ACTIVE");
-      case "closed": return t("status.closed", "CLOSED");
-      case "new": return t("status.new", "NEW");
-      case "under review":
-      case "under_review":
-        return t("status.underProcess", "UNDER PROCESS");
-      case "rejected":
-      case "reject":
-      case "declined":
-        return t("status.discussionPending", "DISCUSSION PENDING");
-      case "shortlisted":
-        return t("status.shortlisted", "SHORTLISTED");
-      case "contacted":
-        return t("status.contacted", "CONTACTED");
-      default:
-        return t(`status.${s}`, s.toUpperCase());
+  const getStatusBadgeConfig = (status) => {
+    const s = normalizeStatus(status);
+    if (s === "approved" || s === "active") {
+      return { label: t("status.approved", "APPROVED"), bg: "#e6f4ea", color: "#137333" };
     }
+    if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
+      return { label: t("status.pending", "PENDING"), bg: "#feefc3", color: "#b06000" };
+    }
+    if (s === "closed") {
+      return { label: t("status.closed", "CLOSED"), bg: "#f1f3f4", color: "#5f6368" };
+    }
+    return { label: s.toUpperCase(), bg: "#e8effe", color: "#1b4dff" };
   };
 
-  const isEmployer =
-    activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
   const jobsToShow = useMemo(() => {
-    return isEmployer
-      ? myJobs && myJobs.length > 0
-        ? myJobs.map((mj) => {
-            const sj = (submittedJobs || []).find((x) => String(x.id) === String(mj.id));
-            return sj ? { ...sj, ...mj } : mj;
-          })
-        : submittedJobs || []
-      : myJobs || [];
-  }, [isEmployer, myJobs, submittedJobs]);
+    let combined = [];
+
+    if (isEmployer) {
+      if (employerDashboardRaw) {
+        const created = employerDashboardRaw.created_jobs || [];
+        const pending = employerDashboardRaw.pending_created_jobs || [];
+        const extraJobs = employerDashboardRaw.jobs || employerDashboardRaw.data || [];
+        combined = [...created, ...pending, ...extraJobs];
+      }
+      if (combined.length === 0 && submittedJobs && submittedJobs.length > 0) {
+        combined = [...submittedJobs];
+      }
+      if (combined.length === 0 && myJobs && myJobs.length > 0) {
+        combined = [...myJobs];
+      }
+    } else {
+      combined = myJobs || [];
+    }
+
+    const map = new Map();
+    combined.forEach((j) => {
+      if (j && j.id && !map.has(String(j.id))) {
+        map.set(String(j.id), j);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [isEmployer, employerDashboardRaw, submittedJobs, myJobs]);
 
   const fetchAllData = React.useCallback(() => {
     if (isEmployer) {
@@ -180,95 +216,55 @@ export default function MyJobsScreen({ navigation, route }) {
     }
   }, [dispatch, isEmployer]);
 
-  const activeJobs = localJobs.filter((job) => {
+  // Filter jobs by tab & search query
+  const filteredSearchJobs = useMemo(() => {
+    if (!searchQuery.trim()) return localJobs;
+    const q = searchQuery.toLowerCase().trim();
+    return localJobs.filter((job) => {
+      const title = String(job.title || job.job_title || "").toLowerCase();
+      const company = String(job.company || job.company_name || "").toLowerCase();
+      const jobIdStr = String(job.job_id || job.id || "").toLowerCase();
+      return title.includes(q) || company.includes(q) || jobIdStr.includes(q);
+    });
+  }, [localJobs, searchQuery]);
+
+  const activeJobs = filteredSearchJobs.filter((job) => {
     const status = normalizeStatus(job.status);
     return status === "active" || status === "approved";
   });
 
-  const pendingJobs = localJobs.filter(
-    (job) => normalizeStatus(job.status) === "pending",
+  const pendingJobs = filteredSearchJobs.filter(
+    (job) => {
+      const status = normalizeStatus(job.status);
+      return status === "pending" || status === "new" || status === "under_review" || status === "under review";
+    }
   );
-  const closedJobs = localJobs.filter(
-    (job) => normalizeStatus(job.status) === "closed",
+
+  const closedJobs = filteredSearchJobs.filter(
+    (job) => normalizeStatus(job.status) === "closed"
   );
 
-  const getApplicationsCount = (job) =>
-    job?.applicants?.length || job?.applicationsCount || 0;
-
-  const getJobStats = (job) => {
-    const applicants = job?.applicants || [];
-    const countByStatus = (status) =>
-      applicants.filter(
-        (applicant) => normalizeStatus(applicant.status) === status,
-      ).length;
-
-    return {
-      pending: countByStatus("new") || countByStatus("pending"),
-      shortlist: countByStatus("shortlisted"),
-      contact: countByStatus("contacted"),
-      rejected: countByStatus("rejected"),
-    };
-  };
-
-  const closeJob = (jobId) => {
-    CustomAlert.show(
-      t("areYouSure", "Are you sure?"),
-      t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("closeJob"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await dispatch(closeEmployerJob(jobId)).unwrap();
-              CustomAlert.show(
-                t("success"),
-                t("jobClosed", "Job has been closed."),
-              );
-              fetchAllData();
-            } catch (err) {
-              CustomAlert.show(
-                t("error"),
-                err || t("failCloseJob", "Failed to close the job."),
-              );
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const deletePendingJob = (jobId) => {
-    CustomAlert.show(
-      t("deleteDraftConfirmTitle", "Delete Draft"),
-      t(
-        "deleteDraftConfirm",
-        "Are you sure you want to delete this job posting?",
-      ),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("delete"),
-          style: "destructive",
-          onPress: () => {
-            setLocalJobs((current) =>
-              current.filter((job) => String(job.id) !== String(jobId)),
-            );
-          },
-        },
-      ],
-    );
-  };
-
-  const renderJobCard = (job, isActive = false) => {
-    const jobOpenings = job.open_positions ?? job.openings ?? 0;
-    const jobType = getJobTypeLabel(job.job_type ?? job.type ?? "Full-time");
+  const renderJobCard = (job) => {
+    const jobTitle = String(job.title || job.job_title || "").trim();
+    const companyName = String(job.company || job.company_name || "").trim();
+    const locationStr = String(job.location || job.city || job.country || "").trim();
+    const rawSalary = job.salary || job.salary_range || job.offered_salary || job.salary_display;
+    const salaryStr = rawSalary && String(rawSalary).trim() ? String(rawSalary).trim() : t("notMentioned", "Not Mentioned");
+    const jobOpenings = job.open_positions ?? job.openings ?? job.vacancies ?? 1;
+    const rawType = job.job_type || job.type;
+    const jobType = rawType ? getJobTypeLabel(rawType) : t("fullTime", "Full-time");
     const jobDate = job.created_at
       ? formatDate(job.created_at)
       : job.date_posted || job.date || "";
-    const isReferral = job.is_referral || job.isReferral;
-    const stats = getJobStats(job);
+
+    const isReferral = Boolean(job.is_referral || job.isReferral || job.submitted_by_role === "candidate" || job.submitted_by_role === "chef");
+    const statusConfig = getStatusBadgeConfig(job.status);
+    const iconConfig = getCategoryIconDetails(job);
+    const logoUrl = job.company_logo_url || job.company_logo || job.logo || null;
+
+    // Formatted Job ID (Use exact API ID)
+    const formattedJobId = job.job_id || (job.id ? `#${job.id}` : "");
+
     const savedCount =
       job.total_saved_count ??
       job.saves_count ??
@@ -285,125 +281,121 @@ export default function MyJobsScreen({ navigation, route }) {
         style={styles.jobCard}
         activeOpacity={0.95}
         onPress={() => {
-          navigation.navigate("MyJobDetails", { jobId: job.id, job: job });
+          navigation.navigate("MyJobDetails", {
+            jobId: job.id,
+            job: job,
+            activeTab: activeTab,
+            isSubmitted: activeTab === "pending",
+          });
         }}
       >
-        <View style={styles.jobHeader}>
-          <View style={styles.jobTitleWrapper}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.jobTitleText}>{job.title}</Text>
-              {job.company ? (
-                <Text style={styles.jobCompanyText}>{job.company}</Text>
-              ) : null}
-              <View style={styles.jobLocationDateRow}>
-                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 2 }} />
-                <Text numberOfLines={1} style={styles.jobMetaLocationText}>
-                  {job.location || "N/A"}
+        {/* Top Header Row */}
+        <View style={styles.cardHeaderRow}>
+          <View style={[styles.jobIconBox, { backgroundColor: iconConfig.bg }]}>
+            {logoUrl ? (
+              <Image source={{ uri: logoUrl }} style={styles.companyLogoImage} />
+            ) : (
+              <Ionicons name={iconConfig.icon} size={normalize(20)} color={iconConfig.color} />
+            )}
+          </View>
+
+          <View style={styles.jobMainInfo}>
+            {Boolean(jobTitle) && (
+              <Text style={styles.jobTitleText} numberOfLines={1}>
+                {jobTitle.toUpperCase()}
+              </Text>
+            )}
+
+            {Boolean(companyName) && (
+              <View style={styles.companyRow}>
+                <Text style={styles.companyNameText} numberOfLines={1}>
+                  {companyName}
                 </Text>
+                <Ionicons name="checkmark-circle" size={normalize(13)} color="#1d9bf0" style={{ marginLeft: normalize(4) }} />
+              </View>
+            )}
+
+            {(Boolean(locationStr) || Boolean(jobDate)) && (
+              <View style={styles.locationDateRow}>
+                {Boolean(locationStr) && (
+                  <>
+                    <Ionicons name="location-outline" size={normalize(11)} color="rgba(10, 5, 4, 0.5)" style={{ marginRight: normalize(2) }} />
+                    <Text style={styles.locationDateText} numberOfLines={1}>
+                      {locationStr} {jobDate ? ` •  ` : ""}
+                    </Text>
+                  </>
+                )}
                 {Boolean(jobDate) && (
-                  <Text numberOfLines={1} style={styles.jobMetaDateText}>
-                    {" · "}{jobDate}
+                  <Text style={styles.locationDateText} numberOfLines={1}>
+                    {jobDate}
                   </Text>
                 )}
               </View>
-            </View>
+            )}
           </View>
 
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View
-              style={[
-                styles.statusBadge,
-                activeTab === "pending" && { backgroundColor: "rgba(242, 200, 121, 0.12)" },
-                activeTab === "closed" && { backgroundColor: "#f2f2f3" },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusBadgeText,
-                  activeTab === "pending" && { color: "#f2c879" },
-                  activeTab === "closed" && { color: "rgba(10, 5, 4, 0.6)" },
-                ]}
-              >
-                {getStatusLabel(job.status, activeTab)}
+          <View style={styles.badgesContainer}>
+            {isReferral && (
+              <View style={styles.referralBadge}>
+                <Text style={styles.referralBadgeText}>{t("referral", "REFERRAL")}</Text>
+              </View>
+            )}
+            <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+              <Text style={[styles.statusBadgeText, { color: statusConfig.color }]}>
+                {statusConfig.label}
               </Text>
             </View>
+            {activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
+              <View style={styles.savedBadge}>
+                <Text style={styles.savedBadgeText}>
+                  {t("favoriteJobBadge", "Favorite: {{count}}", { count: savedCount })}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {activeTab !== "pending" && (
-          <View style={styles.detailsRow}>
-            <Text style={styles.savedByText}>
-              {t("jobSavedByCount", "Job saved by {{count}} applicants", { count: savedCount })}
+        {/* Metadata Row (No top border line) */}
+        <View style={styles.metaRow}>
+          <View style={styles.metaItem}>
+            <Ionicons name="people-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" />
+            <Text style={styles.metaItemText}>
+              {jobOpenings} {jobOpenings === 1 ? t("opening", "Opening") : t("openings", "Openings")}
             </Text>
           </View>
-        )}
 
-        {/* Commented out Hiring Progress & candidate counts for future use
-        {isActive && isEmployer && !isReferral && (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.progressSection}>
-              <Text style={styles.progressLabel}>
-                {t("hiringProgressCount", { count: getApplicationsCount(job) })}
-              </Text>
-              <View style={styles.statsGrid}>
-                <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#153e69" }]}>
-                    {stats.pending}
-                  </Text>
-                  <Text style={styles.statLabel}>{t("pending")}</Text>
-                </View>
-                <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: PRIMARY_GREEN }]}>
-                    {stats.shortlist}
-                  </Text>
-                  <Text style={styles.statLabel}>{t("shortlisted")}</Text>
-                </View>
-                <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#f2c879" }]}>
-                    {stats.contact}
-                  </Text>
-                  <Text style={styles.statLabel}>{t("contacted")}</Text>
-                </View>
-                <View style={styles.statBox}>
-                  <Text style={[styles.statValue, { color: "#f57f20" }]}>
-                    {stats.rejected}
-                  </Text>
-                  <Text style={styles.statLabel}>{t("rejected")}</Text>
-                </View>
-              </View>
-            </View>
-          </>
-        )}
-        */}
+          <View style={styles.metaItem}>
+            <Ionicons name="briefcase-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" />
+            <Text style={styles.metaItemText}>{jobType}</Text>
+          </View>
 
+          <View style={styles.metaItem}>
+            <Ionicons name="card-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" />
+            <Text style={styles.metaItemText}>{salaryStr}</Text>
+          </View>
+        </View>
 
-
-        <View style={styles.actionsRow}>
-          {isActive && !isReferral && (
-            <TouchableOpacity
-              style={styles.viewTalentBtn}
-              activeOpacity={0.8}
-              onPress={() =>
-                navigation.navigate("ApplicantList", {
-                  jobId: job.id,
-                  jobTitle: job.title,
-                })
-              }
-            >
-              <Text style={styles.viewTalentBtnText}>{t("viewTalent")}</Text>
-            </TouchableOpacity>
+        {/* Card Footer Row */}
+        <View style={styles.cardFooterRow}>
+          {Boolean(formattedJobId) && (
+            <Text style={styles.jobIdText}>
+              {t("jobId", "Job ID")}: <Text style={styles.jobIdValue}>{formattedJobId}</Text>
+            </Text>
           )}
 
-          {isActive && isEmployer && (
+          {isEmployer && (
             <TouchableOpacity
-              style={styles.closeJobBtn}
+              style={styles.viewDetailsBtn}
               activeOpacity={0.8}
-              onPress={() => closeJob(job.id)}
+              onPress={() => {
+                navigation.navigate("ApplicantList", {
+                  jobId: job.id,
+                  jobTitle: jobTitle || job.title,
+                });
+              }}
             >
-              <Text style={styles.closeJobBtnText}>
-                {t("closeJob", "Close Job")}
-              </Text>
+              <Text style={styles.viewDetailsBtnText}>{t("viewTalent", "View Talent")}</Text>
+              <Ionicons name="arrow-forward" size={normalize(13)} color="#153e69" style={{ marginLeft: normalize(4) }} />
             </TouchableOpacity>
           )}
         </View>
@@ -415,6 +407,7 @@ export default function MyJobsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
@@ -427,14 +420,22 @@ export default function MyJobsScreen({ navigation, route }) {
             }}
             style={styles.backBtn}
           >
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
+            <Ionicons name="arrow-back" size={normalize(22)} color="#0a0504" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {t("myJobs", "My Jobs")}
-          </Text>
+          <View>
+            <Text style={styles.headerTitle}>
+              {!isEmployer ? t("myJobReferrals", "MY JOB REFERRALS") : t("myJobs", "MY JOBS")}
+            </Text>
+            {!isEmployer && (
+              <Text style={styles.headerSubtitle}>
+                {t("myJobReferralsSubtitle", "Jobs you have shared with the community")}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
 
+      {/* ALL JOB STATUS Tabs Container */}
       <View style={styles.tabCardContainer}>
         <Text style={styles.tabCardHeaderTitle}>
           {t("allJobStatus", "ALL JOB STATUS")}
@@ -446,6 +447,7 @@ export default function MyJobsScreen({ navigation, route }) {
               activeTab === "active" && styles.tabButtonActive,
             ]}
             onPress={() => setActiveTab("active")}
+            activeOpacity={0.8}
           >
             <Text
               style={[
@@ -453,7 +455,7 @@ export default function MyJobsScreen({ navigation, route }) {
                 activeTab === "active" && styles.tabTextActive,
               ]}
             >
-              {t("active")} ({activeJobs.length})
+              {t("active", "Active")} ({activeJobs.length})
             </Text>
           </TouchableOpacity>
 
@@ -463,6 +465,7 @@ export default function MyJobsScreen({ navigation, route }) {
               activeTab === "pending" && styles.tabButtonActive,
             ]}
             onPress={() => setActiveTab("pending")}
+            activeOpacity={0.8}
           >
             <Text
               style={[
@@ -480,6 +483,7 @@ export default function MyJobsScreen({ navigation, route }) {
               activeTab === "closed" && styles.tabButtonActive,
             ]}
             onPress={() => setActiveTab("closed")}
+            activeOpacity={0.8}
           >
             <Text
               style={[
@@ -487,10 +491,39 @@ export default function MyJobsScreen({ navigation, route }) {
                 activeTab === "closed" && styles.tabTextActive,
               ]}
             >
-              {t("closed")} ({closedJobs.length})
+              {t("closed", "Closed")} ({closedJobs.length})
             </Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Search Bar */}
+      <View
+        style={[
+          styles.searchContainer,
+          isSearchFocused && styles.searchContainerFocused,
+        ]}
+      >
+        <Ionicons
+          name="search-outline"
+          size={normalize(18)}
+          color={isSearchFocused ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          placeholder={t("searchPlaceholder", "Search by Job Title or Job ID")}
+          placeholderTextColor="rgba(10, 5, 4, 0.4)"
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFocus={() => setIsSearchFocused(true)}
+          onBlur={() => setIsSearchFocused(false)}
+        />
+        {Boolean(searchQuery) && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={normalize(18)} color="rgba(10, 5, 4, 0.4)" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {isLoading && localJobs.length === 0 ? (
@@ -516,11 +549,9 @@ export default function MyJobsScreen({ navigation, route }) {
           {activeTab === "active" && (
             <>
               {activeJobs.length === 0 ? (
-                <EmptyState
-                  message={t("noActiveJobs", "No active jobs found")}
-                />
+                <EmptyState message={t("noActiveJobs", "No active jobs found")} />
               ) : (
-                activeJobs.map((job) => renderJobCard(job, true))
+                activeJobs.map((job) => renderJobCard(job))
               )}
             </>
           )}
@@ -530,9 +561,9 @@ export default function MyJobsScreen({ navigation, route }) {
               <View style={styles.tabSubheadingBanner}>
                 <Ionicons
                   name="information-circle"
-                  size={18}
+                  size={normalize(16)}
                   color="#f57f20"
-                  style={{ marginRight: 8, marginTop: 1 }}
+                  style={{ marginRight: normalize(6), marginTop: 1 }}
                 />
                 <Text style={styles.tabSubheadingText}>
                   {t(
@@ -542,11 +573,9 @@ export default function MyJobsScreen({ navigation, route }) {
                 </Text>
               </View>
               {pendingJobs.length === 0 ? (
-                <EmptyState
-                  message={t("noPendingJobs", "No pending jobs found")}
-                />
+                <EmptyState message={t("noPendingJobs", "No pending jobs found")} />
               ) : (
-                pendingJobs.map((job) => renderJobCard(job, false))
+                pendingJobs.map((job) => renderJobCard(job))
               )}
             </>
           )}
@@ -554,24 +583,51 @@ export default function MyJobsScreen({ navigation, route }) {
           {activeTab === "closed" && (
             <>
               {closedJobs.length === 0 ? (
-                <EmptyState
-                  message={t("noClosedJobs", "No closed jobs found")}
-                />
+                <EmptyState message={t("noClosedJobs", "No closed jobs found")} />
               ) : (
-                closedJobs.map((job) => renderJobCard(job, false))
+                closedJobs.map((job) => renderJobCard(job))
               )}
             </>
+          )}
+
+          {/* Bottom Referral / Share Card Banner for Talent & Chef Side */}
+          {!isEmployer && (
+            <View style={styles.shareBannerCard}>
+              <View style={styles.shareBannerLeft}>
+                <View style={styles.shareBannerIconBox}>
+                  <Ionicons name="people" size={normalize(18)} color="#153e69" />
+                </View>
+                <View style={styles.shareBannerTextContainer}>
+                  <Text style={styles.shareBannerTitle}>
+                    {t("shareMoreJobsTitle", "Share more job opportunities!")}
+                  </Text>
+                  <Text style={styles.shareBannerSubtitle}>
+                    {t("shareMoreJobsSub", "Help your network grow by sharing verified job openings.")}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.shareJobBtn}
+                onPress={checkPostLimitAndNavigate}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.shareJobBtnText}>{t("shareAJob", "SHARE A JOB")}</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </ScrollView>
       )}
 
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
-        activeOpacity={0.8}
-        onPress={checkPostLimitAndNavigate}
-      >
-        <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
+      {/* Floating Action Button for Employer */}
+      {isEmployer && (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
+          activeOpacity={0.8}
+          onPress={checkPostLimitAndNavigate}
+        >
+          <Ionicons name="add" size={normalize(24)} color="#fff" />
+        </TouchableOpacity>
+      )}
 
       {Boolean(toastMessage) && (
         <View style={styles.toastContainer}>
@@ -585,7 +641,7 @@ export default function MyJobsScreen({ navigation, route }) {
 function EmptyState({ message }) {
   return (
     <View style={styles.emptyContainer}>
-      <Ionicons name="folder-open-outline" size={48} color="rgba(10, 5, 4, 0.15)" />
+      <Ionicons name="folder-open-outline" size={normalize(40)} color="rgba(10, 5, 4, 0.15)" />
       <Text style={styles.emptyText}>{message}</Text>
     </View>
   );
@@ -594,291 +650,351 @@ function EmptyState({ message }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
   },
   header: {
     backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#f1f5f9",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   backBtn: {
-    marginRight: 12,
+    marginRight: normalize(10),
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0a0504",
+    letterSpacing: 0.3,
+  },
+  headerSubtitle: {
+    fontSize: normalize(10.5),
+    color: "rgba(10, 5, 4, 0.6)",
+    fontWeight: "500",
+    marginTop: 1,
   },
   tabCardContainer: {
     backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingHorizontal: normalize(12),
+    paddingTop: normalize(8),
+    paddingBottom: normalize(8),
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#f1f5f9",
   },
   tabCardHeaderTitle: {
-    fontSize: 11,
+    fontSize: normalize(9.5),
     fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.6)",
+    color: "rgba(10, 5, 4, 0.5)",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: normalize(4),
   },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#ffffff",
+    gap: normalize(6),
   },
   tabButton: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: normalize(6),
+    borderRadius: normalize(8),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    marginHorizontal: 4,
-    backgroundColor: "#f2f2f3",
+    borderColor: "rgba(10, 5, 4, 0.12)",
+    backgroundColor: "#f8fafc",
   },
   tabButtonActive: {
     backgroundColor: PRIMARY_GREEN,
     borderColor: PRIMARY_GREEN,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     fontWeight: "700",
     color: "rgba(10, 5, 4, 0.6)",
   },
   tabTextActive: {
     color: "#ffffff",
   },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f4f9",
+    marginHorizontal: normalize(12),
+    marginTop: normalize(10),
+    marginBottom: normalize(4),
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(12),
+    height: normalize(44),
+    borderWidth: 1.5,
+    borderColor: "rgba(10, 5, 4, 0.08)",
+  },
+  searchContainerFocused: {
+    backgroundColor: "#ffffff",
+    borderColor: PRIMARY_GREEN,
+    shadowColor: PRIMARY_GREEN,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: normalize(8),
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: normalize(12.5),
+    color: "#0a0504",
+    padding: 0,
+    height: "100%",
+  },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    padding: normalize(12),
+    paddingBottom: normalize(80),
   },
   jobCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: normalize(12),
+    padding: normalize(12),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    borderColor: "rgba(15, 23, 42, 0.08)",
+    marginBottom: normalize(10),
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  jobHeader: {
+  cardHeaderRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 12,
   },
-  jobTitleWrapper: {
-    flexDirection: "row",
-    flex: 1,
-    marginRight: 8,
-  },
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+  jobIconBox: {
+    width: normalize(40),
+    height: normalize(40),
+    borderRadius: normalize(10),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: normalize(10),
+  },
+  companyLogoImage: {
+    width: normalize(40),
+    height: normalize(40),
+    borderRadius: normalize(10),
+  },
+  jobMainInfo: {
+    flex: 1,
+    marginRight: normalize(6),
   },
   jobTitleText: {
-    fontSize: 16,
+    fontSize: normalize(14),
     fontWeight: "800",
-    color: "#0a0504",
+    color: "#0d2b52",
+    letterSpacing: 0.2,
+    marginBottom: 1,
+  },
+  companyRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 2,
   },
-  jobCompanyText: {
-    fontSize: 13,
+  companyNameText: {
+    fontSize: normalize(11.5),
     fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 2,
+    color: "#475569",
+    flexShrink: 1,
   },
-  jobMetaText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
+  locationDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "nowrap",
   },
-  statusBadge: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  locationDateText: {
+    fontSize: normalize(10.5),
+    color: "#64748b",
+    fontWeight: "500",
+    flexShrink: 1,
   },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: PRIMARY_GREEN,
+  badgesContainer: {
+    alignItems: "flex-end",
+    gap: normalize(3),
   },
   referralBadge: {
-    backgroundColor: "rgba(245, 127, 32, 0.12)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    backgroundColor: "#e8effe",
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(4),
   },
   referralBadgeText: {
-    fontSize: 10,
+    fontSize: normalize(8.5),
+    fontWeight: "800",
+    color: "#3b82f6",
+    letterSpacing: 0.3,
+  },
+  statusBadge: {
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(4),
+  },
+  statusBadgeText: {
+    fontSize: normalize(8.5),
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  savedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(4),
+  },
+  savedBadgeText: {
+    fontSize: normalize(8.5),
+    fontWeight: "700",
+    color: "#153e69",
+    letterSpacing: 0.2,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginTop: normalize(8),
+    paddingTop: normalize(4),
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(3),
+  },
+  metaItemText: {
+    fontSize: normalize(10.5),
+    color: "#475569",
+    fontWeight: "600",
+  },
+  cardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: normalize(8),
+    paddingTop: normalize(8),
+    borderTopWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  jobIdText: {
+    fontSize: normalize(10.5),
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  jobIdValue: {
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  viewDetailsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(5),
+    borderRadius: normalize(6),
+    borderWidth: 1,
+    borderColor: "#153e69",
+    backgroundColor: "#ffffff",
+  },
+  viewDetailsBtnText: {
+    fontSize: normalize(10.5),
     fontWeight: "700",
     color: "#153e69",
   },
-  detailsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginBottom: 6,
-    paddingLeft: 0,
-  },
-  jobDetailsMetaText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(10, 5, 4, 0.6)",
-    textAlign: "left",
-  },
-  savedByText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: PRIMARY_GREEN,
-    textAlign: "left",
-  },
-  detailsText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  descriptionContainer: {
-    paddingLeft: 52,
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  jobDescriptionText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 16,
-    fontStyle: "italic",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    marginVertical: 12,
-  },
-  progressSection: {
-    marginBottom: 16,
-  },
-  progressLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 10,
-  },
-  statsGrid: {
-    flexDirection: "row",
-    backgroundColor: "#f2f2f3",
-    borderRadius: 10,
+
+  // Bottom Referral Banner
+  shareBannerCard: {
+    backgroundColor: "#eff6ff",
+    borderRadius: normalize(12),
+    padding: normalize(10),
+    marginTop: normalize(8),
+    marginBottom: normalize(12),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    paddingVertical: 8,
+    borderColor: "#dbeafe",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  statBox: {
+  shareBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
-    alignItems: "center",
+    marginRight: normalize(8),
   },
-  statValue: {
-    fontSize: 16,
+  shareBannerIconBox: {
+    width: normalize(34),
+    height: normalize(34),
+    borderRadius: normalize(17),
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(8),
+  },
+  shareBannerTextContainer: {
+    flex: 1,
+  },
+  shareBannerTitle: {
+    fontSize: normalize(12),
     fontWeight: "800",
-    marginBottom: 2,
+    color: "#1e3a8a",
+    marginBottom: 1,
   },
-  statLabel: {
-    fontSize: 10,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "600",
+  shareBannerSubtitle: {
+    fontSize: normalize(10),
+    color: "#3b82f6",
+    fontWeight: "500",
+    lineHeight: normalize(13),
   },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 10,
+  shareJobBtn: {
+    backgroundColor: "#1d4ed8",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(7),
+    borderRadius: normalize(8),
   },
-  viewTalentBtn: {
-    flex: 1.5,
-    backgroundColor: PRIMARY_GREEN,
-    borderRadius: 8,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  viewTalentBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
+  shareJobBtnText: {
     color: "#ffffff",
+    fontSize: normalize(10),
+    fontWeight: "800",
+    letterSpacing: 0.4,
   },
-  closeJobBtn: {
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 8,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ffffff",
-  },
-  closeJobBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-    paddingHorizontal: 14,
-  },
+
   tabSubheadingBanner: {
     flexDirection: "row",
     backgroundColor: "rgba(245, 127, 32, 0.08)",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
+    borderRadius: normalize(8),
     alignItems: "flex-start",
-    marginBottom: 12,
+    marginBottom: normalize(10),
     borderWidth: 1,
     borderColor: "rgba(245, 127, 32, 0.2)",
   },
   tabSubheadingText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#0a0504",
-    lineHeight: 17,
-    fontWeight: "500",
-  },
-  jobLocationDateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 3,
-    maxWidth: "100%",
-  },
-  jobMetaLocationText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  jobMetaDateText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
+    lineHeight: normalize(15),
     fontWeight: "500",
   },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 80,
-    gap: 12,
+    paddingVertical: normalize(60),
+    gap: normalize(10),
   },
   emptyText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.4)",
     fontWeight: "600",
   },
@@ -886,50 +1002,50 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 100,
-    gap: 12,
+    paddingVertical: normalize(80),
+    gap: normalize(10),
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   fab: {
     position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: normalize(20),
+    right: normalize(20),
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(24),
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
   toastContainer: {
     position: "absolute",
-    bottom: 100,
-    left: 20,
-    right: 20,
+    bottom: normalize(80),
+    left: normalize(16),
+    right: normalize(16),
     backgroundColor: "rgba(10, 5, 4, 0.9)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: normalize(10),
+    paddingHorizontal: normalize(14),
+    borderRadius: normalize(10),
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
     shadowColor: "#000",
     shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
   toastText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "600",
     textAlign: "center",
   },

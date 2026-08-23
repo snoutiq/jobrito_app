@@ -516,7 +516,9 @@
   "emailAddress": "ईमेल पता",
   "city": "शहर",
   "primaryTag": "प्राथमिक",
-  "optionalLocation": "वैकल्पिक स्थान",
+  "primaryLocation": "प्राथमिक स्थान",
+  "otherLocation": "अन्य स्थान",
+  "optionalLocation": "अन्य स्थान",
   "back": "वापस",
   "postJobTitle": "नौकरी पोस्ट करें",
   "postJobStep1Subtitle": "केवल 3 आसान चरणों में अपनी नौकरी पोस्ट करें।",
@@ -693,6 +695,18 @@
   "regionalExperienceLabel": "क्षेत्रीय अनुभव:",
   "availabilityLabel": "उपलब्धता:",
   "purposePlaceholder": "उदा. रसोई व्यवस्था और कॉन्टिनेंटल मेनू योजना",
+  "myJobReferrals": "मेरे जॉब रेफ़रल",
+  "myJobReferralsSubtitle": "वे नौकरियां जिन्हें आपने समुदाय के साथ साझा किया है",
+  "referral": "रेफ़रल",
+  "opening": "पद",
+  "openings": "पद",
+  "viewDetails": "विवरण देखें",
+  "jobId": "जॉब आईडी",
+  "shareMoreJobsTitle": "और अधिक नौकरी के अवसर साझा करें!",
+  "shareMoreJobsSub": "सत्यापित नौकरी की रिक्तियों को साझा करके अपने नेटवर्क को बढ़ाने में मदद करें।",
+  "shareAJob": "जॉब शेयर करें",
+  "notMentioned": "उल्लेख नहीं किया गया",
+  "savedJobBadge": "सहेजा गया: {{count}}",
   "applyFilters": "फ़िल्टर लागू करें",
   "emailTakenTitle": "ईमेल पहले से ही पंजीकृत है",
   "emailTakenMessage": "यह ईमेल पता पहले से उपयोग में है। कृपया दूसरा ईमेल पता दर्ज करें।",
@@ -872,7 +886,8 @@
     "bookmarkInstruction": "त्वरित पहुंच के लिए आपके द्वारा बुकमार्क की गई नौकरियां यहां दिखाई देंगी।",
     "removeSavedJob": "पसंदीदा नौकरी हटाएं",
     "removeConfirm": "क्या आप निश्चित रूप से अपने पसंदीदा सूची से \"{{title}}\" को हटाना चाहते हैं?",
-    "removedMsg": "नौकरी पसंदीदा सूची से हटा दी गई।",
-    "failedToRemove": "नौकरी हटाने में विफल।"
-  }
+    "removedMsg": "सहेजी गई सूची से नौकरी हटा दी गई।",
+    "failedToRemove": "नौकरी हटाने में विफल。"
+  },
+  "favoriteJobBadge": "पंसदीदा: {{count}}"
 }

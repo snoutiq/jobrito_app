@@ -504,7 +504,9 @@
   "emailAddress": "Email Address",
   "city": "City",
   "primaryTag": "Primary",
-  "optionalLocation": "Optional Location",
+  "primaryLocation": "Primary Location",
+  "otherLocation": "Other Location",
+  "optionalLocation": "Other Location",
   "back": "Back",
   "postJobTitle": "Post a Job",
   "postJobStep1Subtitle": "Post your job in just 3 simple steps.",
@@ -681,6 +683,18 @@
   "regionalExperienceLabel": "Regional Experience:",
   "availabilityLabel": "Availability:",
   "purposePlaceholder": "e.g. Kitchen setup and continental menu planning",
+  "myJobReferrals": "MY JOB REFERRALS",
+  "myJobReferralsSubtitle": "Jobs you have shared with the community",
+  "referral": "REFERRAL",
+  "opening": "Opening",
+  "openings": "Openings",
+  "viewDetails": "View Details",
+  "jobId": "Job ID",
+  "shareMoreJobsTitle": "Share more job opportunities!",
+  "shareMoreJobsSub": "Help your network grow by sharing verified job openings.",
+  "shareAJob": "SHARE A JOB",
+  "notMentioned": "Not Mentioned",
+  "savedJobBadge": "Saved: {{count}}",
   "emailTakenTitle": "Email Already Registered",
   "emailTakenMessage": "This email address is already in use. Please enter a different email address.",
   "yes": "Yes",
@@ -858,5 +872,6 @@
     "removeConfirm": "Are you sure you want to remove \"{{title}}\" from your saved list?",
     "removedMsg": "Job removed from saved list.",
     "failedToRemove": "Failed to remove job."
-  }
+  },
+  "favoriteJobBadge": "Favorite: {{count}}"
 }
