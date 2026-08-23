@@ -212,7 +212,7 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const closeJob = (jobId) => {
     CustomAlert.show(
-      t("closeJobPrompt", "Close Job?"),
+      t("areYouSure", "Are you sure?"),
       t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
       [
         { text: t("cancel"), style: "cancel" },
@@ -330,16 +330,13 @@ export default function MyJobsScreen({ navigation, route }) {
           </View>
         </View>
 
-        <View style={styles.detailsRow}>
-          <Text style={styles.jobDetailsMetaText}>
-            {t("openings_count", { count: jobOpenings })}
-            {jobType ? ` · ${jobType}` : ""}
-            {job.salary ? ` · ${job.salary}` : ""}
-            {savedCount > 0
-              ? ` · ${t("jobSavedByCount", "Job saved by {{count}} applicants", { count: savedCount })}`
-              : ""}
-          </Text>
-        </View>
+        {activeTab !== "pending" && (
+          <View style={styles.detailsRow}>
+            <Text style={styles.savedByText}>
+              {t("jobSavedByCount", "Job saved by {{count}} applicants", { count: savedCount })}
+            </Text>
+          </View>
+        )}
 
         {/* Commented out Hiring Progress & candidate counts for future use
         {isActive && isEmployer && !isReferral && (
@@ -746,6 +743,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
     color: "rgba(10, 5, 4, 0.6)",
+    textAlign: "left",
+  },
+  savedByText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: PRIMARY_GREEN,
     textAlign: "left",
   },
   detailsText: {
