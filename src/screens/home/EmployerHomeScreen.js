@@ -8,6 +8,8 @@ import {
   Image,
   RefreshControl,
   BackHandler,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,14 +22,22 @@ import { setUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import { getDailyPostLimit } from "../../services/jobApi";
 import { getEmployerNotifications } from "../../services/notificationApi";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
+
 const PRIMARY_GREEN = "#153e69";
 
 export default function EmployerHomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
-  const unreadNotificationsCount = useSelector((state) => state.user.unreadNotificationsCount);
-  const { metrics, submittedJobs, loading } = useSelector((state) => state.employer || {});
+  const unreadNotificationsCount = useSelector(
+    (state) => state.user.unreadNotificationsCount
+  );
+  const { metrics, submittedJobs, loading } = useSelector(
+    (state) => state.employer || {}
+  );
   const { myJobs } = useSelector((state) => state.job || {});
   const safeJobsArray = Array.isArray(submittedJobs)
     ? submittedJobs
@@ -45,7 +55,9 @@ export default function EmployerHomeScreen({ navigation }) {
     try {
       const res = await getDailyPostLimit();
       if (res && res.success && res.can_post_today === false) {
-        setToastMessage(t("dailyPostLimitComplete", "Daily job post limit completed!"));
+        setToastMessage(
+          t("dailyPostLimitComplete", "Daily job post limit completed!")
+        );
         setTimeout(() => {
           setToastMessage("");
         }, 1000);
@@ -65,14 +77,14 @@ export default function EmployerHomeScreen({ navigation }) {
       dispatch(fetchEmployerDashboard());
       getEmployerNotifications("employer")
         .then((res) => {
-          const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
+          const list =
+            res?.notifications || res?.data || (Array.isArray(res) ? res : []);
           const unread = list.filter((n) => !n.is_read).length;
           dispatch(setUnreadNotificationsCount(unread));
         })
         .catch(() => null);
 
       const onBackPress = () => {
-        // Exit the app directly when back is pressed on the Employer Home Screen
         BackHandler.exitApp();
         return true;
       };
@@ -116,7 +128,9 @@ export default function EmployerHomeScreen({ navigation }) {
     ? rawBusiness.split(",")[0].trim()
     : rawBusiness;
   const businessName =
-    cleanBusiness.length > 18 ? `${cleanBusiness.slice(0, 18).trim()}...` : cleanBusiness;
+    cleanBusiness.length > 18
+      ? `${cleanBusiness.slice(0, 18).trim()}...`
+      : cleanBusiness;
 
   const rawLocation =
     profile?.country ||
@@ -133,11 +147,9 @@ export default function EmployerHomeScreen({ navigation }) {
     ? rawLocation.split(",").pop().trim()
     : rawLocation;
 
-  const mobileNumber =
-    profile?.mobile_number || profile?.phone || profile?.contact_number || "";
-
   const getLogoSource = () => {
-    const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
+    const uri =
+      profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
     if (!uri) return null;
     if (
       uri.startsWith("http://") ||
@@ -147,7 +159,9 @@ export default function EmployerHomeScreen({ navigation }) {
     ) {
       return { uri };
     }
-    return { uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}` };
+    return {
+      uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}`,
+    };
   };
 
   const logoSource = getLogoSource();
@@ -165,57 +179,50 @@ export default function EmployerHomeScreen({ navigation }) {
     metrics?.closed_count ??
     metrics?.closed ??
     0;
-  const totalSavedCount =
-    metrics?.total_saved_count ??
-    metrics?.saved_count ??
-    safeJobsArray.reduce((acc, job) => {
-      const cnt =
-        job?.total_saved_count ??
-        job?.saves_count ??
-        job?.saved_count ??
-        job?.saved_by_users_count ??
-        (Array.isArray(job?.saved_by_users) ? job.saved_by_users.length : null) ??
-        (Array.isArray(job?.saved_users) ? job.saved_users.length : null) ??
-        (Array.isArray(job?.saved_by) ? job.saved_by.length : null) ??
-        0;
-      return acc + (Number(cnt) || 0);
-    }, 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {logoSource ? (
             <Image source={logoSource} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="business" size={24} color="rgba(10, 5, 4, 0.6)" />
+              <Ionicons name="business" size={normalize(22)} color="#475569" />
             </View>
           )}
           <View style={styles.headerInfo}>
             <Text style={styles.businessName} numberOfLines={1}>
-              {[businessName, countryName].filter(Boolean).join(", ") || businessName || contactName || "Employer"}
+              {[businessName, countryName].filter(Boolean).join(", ") ||
+                businessName ||
+                contactName ||
+                "Employer"}
             </Text>
             <Text style={styles.contactText} numberOfLines={1}>
-              {contactName ? `${contactName} • ${t("employer", "Employer")}` : t("employer", "Employer")}
+              {contactName
+                ? `${contactName} • ${t("employer", "Employer")}`
+                : t("employer", "Employer")}
             </Text>
           </View>
         </View>
+
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.headerIconBtn}
+            activeOpacity={0.8}
             onPress={() => navigation.navigate("EmployerNotifications")}
           >
-            <Ionicons name="notifications-outline" size={22} color="#0a0504" />
-            {unreadNotificationsCount > 0 && (
-              <View style={styles.notificationDot} />
-            )}
+            <Ionicons name="notifications-outline" size={normalize(20)} color="#1e293b" />
+            {unreadNotificationsCount > 0 && <View style={styles.notificationDot} />}
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.headerIconBtn}
+            activeOpacity={0.8}
             onPress={() => navigation.navigate("Settings")}
           >
-            <Ionicons name="person-circle-outline" size={24} color="#0a0504" />
+            <Ionicons name="person-outline" size={normalize(20)} color="#1e293b" />
           </TouchableOpacity>
         </View>
       </View>
@@ -223,126 +230,224 @@ export default function EmployerHomeScreen({ navigation }) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[PRIMARY_GREEN]} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#6366f1"]}
+            tintColor="#6366f1"
+          />
+        }
       >
-        <Text style={styles.dashboardTitle}>{t("hiringDashboard", "HIRING DASHBOARD")}</Text>
-
-        <View style={styles.mainStatsCard}>
-          <View style={styles.statsCardHeader}>
-            <Text style={styles.statsCardLabel}>{t("talentApplications", "TALENT APPLICATIONS")}</Text>
+        {/* Welcome Hero Section */}
+        <View style={styles.heroBanner}>
+          <View style={styles.heroLeft}>
+            <Text style={styles.welcomeText}>
+              Welcome back, {contactName || "Feras"} 👋
+            </Text>
+            <Text style={styles.heroDashboardTitle}>
+              {t("hiringDashboard", "Hiring Dashboard")}
+            </Text>
           </View>
 
-          <View style={styles.statsSubRow}>
-            <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#2563eb" }]}>{totalApplicants}</Text>
-              <Text style={styles.subStatLabel}>{t("new", "New")}</Text>
-              <Text style={styles.subStatSubLabel}>{t("applicants", "Applicant")}</Text>
+          <Image
+            source={require("../../assets/employer_dashboard.png")}
+            style={styles.heroDashboardImage}
+            resizeMode="contain"
+          />
+        </View>
+
+        {/* 1. TALENT APPLICATIONS CARD */}
+        <View style={styles.cardContainer}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderLeft}>
+              <View style={[styles.cardHeaderIconBox, { backgroundColor: "#f5f3ff" }]}>
+                <Ionicons name="people-outline" size={normalize(18)} color="#5b46f6" />
+              </View>
+              <Text style={styles.cardHeaderTitle}>
+                {t("talentApplications", "Talent Applications")}
+              </Text>
             </View>
-            <View style={styles.verticalDivider} />
-            <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: PRIMARY_GREEN }]}>{shortlistedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("shortlisted", "Shortlisted")}</Text>
-              <Text style={styles.subStatSubLabel}>{t("selected", "Selected")}</Text>
+          </View>
+
+          <View style={styles.statsGridRow}>
+            {/* New Applicant */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#f5f3ff" }]}>
+                <Ionicons name="person-add-outline" size={normalize(18)} color="#5b46f6" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#4338ca" }]}>
+                {totalApplicants}
+              </Text>
+              <Text style={styles.statLine1}>{t("new", "New")}</Text>
+              <Text style={styles.statLine2}>{t("applicants", "Applicant")}</Text>
             </View>
-            <View style={styles.verticalDivider} />
-            <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#f57f20" }]}>{rejectedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("rejected", "Rejected")}</Text>
-              <Text style={styles.subStatSubLabel}>{t("declined", "Declined")}</Text>
+
+            <View style={styles.gridDivider} />
+
+            {/* Shortlisted Selected */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#eff6ff" }]}>
+                <Ionicons name="bookmark-outline" size={normalize(18)} color="#2563eb" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#1d4ed8" }]}>
+                {shortlistedCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("shortlisted", "Shortlisted")}</Text>
+              <Text style={styles.statLine2}>{t("selected", "Selected")}</Text>
             </View>
-            <View style={styles.verticalDivider} />
-            <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#0a0504" }]}>{contactedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("contacted", "Contacted")}</Text>
-              <Text style={styles.subStatSubLabel}>{t("connected", "Connected")}</Text>
+
+            <View style={styles.gridDivider} />
+
+            {/* Rejected Declined */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#fff7ed" }]}>
+                <Ionicons name="close-circle-outline" size={normalize(18)} color="#f97316" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#c2410c" }]}>
+                {rejectedCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("rejected", "Rejected")}</Text>
+              <Text style={styles.statLine2}>{t("declined", "Declined")}</Text>
             </View>
-            {/* <View style={styles.verticalDivider} />
-            <View style={styles.subStatItem}>
-              <Text style={[styles.subStatValue, { color: "#1b8755" }]}>{totalSavedCount}</Text>
-              <Text style={styles.subStatLabel}>{t("saved", "Saved")}</Text>
-              <Text style={styles.subStatSubLabel}>{t("bookmarked", "Bookmarked")}</Text>
-            </View> */}
+
+            <View style={styles.gridDivider} />
+
+            {/* Contacted Connected */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#ecfdf5" }]}>
+                <Ionicons name="call-outline" size={normalize(18)} color="#10b981" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#047857" }]}>
+                {contactedCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("contacted", "Contacted")}</Text>
+              <Text style={styles.statLine2}>{t("connected", "Connected")}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.statusMainCard}>
-          <Text style={styles.statusCardTitle}>{t("jobStatus", "JOB STATUS")}</Text>
-          
-          <View style={styles.statusRow}>
-            <View style={styles.statusColumnItem}>
-              <Text style={[styles.statusColumnValue, { color: "#e65100" }]}>{pendingJobsCount}</Text>
-              <Text style={styles.statusColumnLabel}>{t("submitted", "Submitted")}</Text>
-              <Text style={styles.statusColumnSubLabel}>{t("forApproval", "For Approval")}</Text>
+        {/* 2. JOB STATUS CARD */}
+        <View style={styles.cardContainer}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderLeft}>
+              <View style={[styles.cardHeaderIconBox, { backgroundColor: "#f5f3ff" }]}>
+                <Ionicons name="briefcase-outline" size={normalize(18)} color="#5b46f6" />
+              </View>
+              <Text style={styles.cardHeaderTitle}>{t("jobStatus", "Job Status")}</Text>
+            </View>
+          </View>
+
+          <View style={styles.statsGridRow}>
+            {/* Submitted For Approval */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#fff7ed" }]}>
+                <Ionicons name="document-text-outline" size={normalize(18)} color="#ea580c" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#c2410c" }]}>
+                {pendingJobsCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("submitted", "Submitted")}</Text>
+              <Text style={styles.statLine2}>{t("forApproval", "For Approval")}</Text>
             </View>
 
-            <View style={styles.verticalStatusDivider} />
+            <View style={styles.gridDivider} />
 
-            <View style={styles.statusColumnItem}>
-              <Text style={[styles.statusColumnValue, { color: PRIMARY_GREEN }]}>{activeJobsCount}</Text>
-              <Text style={styles.statusColumnLabel}>{t("active", "Active")}</Text>
-              <Text style={styles.statusColumnSubLabel}>{t("published", "Published")}</Text>
+            {/* Active Published */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#eff6ff" }]}>
+                <Ionicons name="paper-plane-outline" size={normalize(18)} color="#2563eb" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#1d4ed8" }]}>
+                {activeJobsCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("active", "Active")}</Text>
+              <Text style={styles.statLine2}>{t("published", "Published")}</Text>
             </View>
 
-            <View style={styles.verticalStatusDivider} />
+            <View style={styles.gridDivider} />
 
-            <View style={styles.statusColumnItem}>
-              <Text style={[styles.statusColumnValue, { color: "#64748b" }]}>
+            {/* Closed Completed */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#ecfdf5" }]}>
+                <Ionicons name="checkbox-outline" size={normalize(18)} color="#10b981" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#047857" }]}>
                 {closedJobsCount}
               </Text>
-              <Text style={styles.statusColumnLabel}>{t("closed", "Closed")}</Text>
-              <Text style={styles.statusColumnSubLabel}>{t("completed", "Completed")}</Text>
+              <Text style={styles.statLine1}>{t("closed", "Closed")}</Text>
+              <Text style={styles.statLine2}>{t("completed", "Completed")}</Text>
             </View>
           </View>
         </View>
 
-        <Text style={[styles.dashboardTitle, { marginTop: 20, marginBottom: 12 }]}>
-          {t("quickActions", "QUICK ACTIONS")}
-        </Text>
+        {/* 3. QUICK ACTIONS SECTION */}
+        <View style={styles.quickActionsHeader}>
+          <Ionicons name="flash" size={normalize(16)} color="#5b46f6" style={{ marginRight: 6 }} />
+          <Text style={styles.quickActionsTitle}>
+            {t("quickActions", "Quick Actions")}
+          </Text>
+        </View>
 
-        <View style={styles.actionsContainer}>
+        <View style={styles.quickActionsList}>
+          {/* Post a Job */}
           <TouchableOpacity
-            style={styles.actionItem}
-            activeOpacity={0.7}
+            style={styles.actionCard}
+            activeOpacity={0.8}
             onPress={() => checkPostLimitAndNavigate("Post Job")}
           >
-            <View style={[styles.actionIconBox, { backgroundColor: `${PRIMARY_GREEN}1A` }]}>
-              <Ionicons name="add-circle" size={26} color={PRIMARY_GREEN} />
+            <View style={[styles.actionIconBox, { backgroundColor: "#818cf8" }]}>
+              <Ionicons name="document-text-outline" size={normalize(20)} color="#ffffff" />
             </View>
-            <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{t("postAJob", "Post a Job")}</Text>
-              <Text style={styles.actionSubtitle}>{t("createOpeningSubtitle", "Create a new opening for your team")}</Text>
+            <View style={styles.actionTextWrap}>
+              <Text style={styles.actionMainTitle}>{t("postAJob", "Post a Job")}</Text>
+              <Text style={styles.actionSubTitle}>
+                {t("createOpeningSubtitle", "Create a new opening for your team")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+            <View style={[styles.arrowCircleBtn, { backgroundColor: "#f5f3ff" }]}>
+              <Ionicons name="arrow-forward" size={normalize(14)} color="#5b46f6" />
+            </View>
           </TouchableOpacity>
 
+          {/* My Jobs */}
           <TouchableOpacity
-            style={styles.actionItem}
-            activeOpacity={0.7}
+            style={styles.actionCard}
+            activeOpacity={0.8}
             onPress={() => navigation.navigate("MyJobs")}
           >
-            <View style={[styles.actionIconBox, { backgroundColor: "#f2f2f3" }]}>
-              <Ionicons name="briefcase" size={22} color="rgba(10, 5, 4, 0.6)" />
+            <View style={[styles.actionIconBox, { backgroundColor: "#3b82f6" }]}>
+              <Ionicons name="briefcase-outline" size={normalize(20)} color="#ffffff" />
             </View>
-            <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{t("myJobs", "My Jobs")}</Text>
-              <Text style={styles.actionSubtitle}>{t("manageJobPostingsSubtitle", "Manage your job postings")}</Text>
+            <View style={styles.actionTextWrap}>
+              <Text style={styles.actionMainTitle}>{t("myJobs", "My Jobs")}</Text>
+              <Text style={styles.actionSubTitle}>
+                {t("manageJobPostingsSubtitle", "Manage your job postings")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+            <View style={[styles.arrowCircleBtn, { backgroundColor: "#eff6ff" }]}>
+              <Ionicons name="arrow-forward" size={normalize(14)} color="#2563eb" />
+            </View>
           </TouchableOpacity>
 
+          {/* Chef Connect */}
           <TouchableOpacity
-            style={styles.actionItem}
-            activeOpacity={0.7}
+            style={styles.actionCard}
+            activeOpacity={0.8}
             onPress={() => navigation.navigate("ChefConnectDiscovery")}
           >
-            <View style={[styles.actionIconBox, { backgroundColor: "#FFF7ED" }]}>
-              <Ionicons name="people-outline" size={22} color="#F97316" />
+            <View style={[styles.actionIconBox, { backgroundColor: "#10b981" }]}>
+              <Ionicons name="people-outline" size={normalize(20)} color="#ffffff" />
             </View>
-            <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{t("chefConnect", "Chef Connect")}</Text>
-              <Text style={styles.actionSubtitle}>{t("findChefsSubtitle", "Find and connect with chefs & consultants")}</Text>
+            <View style={styles.actionTextWrap}>
+              <Text style={styles.actionMainTitle}>{t("chefConnect", "Chef Connect")}</Text>
+              <Text style={styles.actionSubTitle}>
+                {t("findChefsSubtitle", "Find hospitality consultants & experts")}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(10, 5, 4, 0.4)" />
+            <View style={[styles.arrowCircleBtn, { backgroundColor: "#ecfdf5" }]}>
+              <Ionicons name="arrow-forward" size={normalize(14)} color="#059669" />
+            </View>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -359,17 +464,15 @@ export default function EmployerHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(8),
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -377,15 +480,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 12,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    marginRight: normalize(8),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#e2e8f0",
   },
   avatarPlaceholder: {
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -393,245 +496,236 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   businessName: {
-    color: "#0a0504",
-    fontSize: 16,
+    color: "#0f172a",
+    fontSize: normalize(14),
     fontWeight: "800",
+    letterSpacing: -0.2,
   },
   contactText: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
-    marginTop: 2,
+    color: "#64748b",
+    fontSize: normalize(10.5),
+    marginTop: 1,
+    fontWeight: "500",
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: normalize(6),
   },
   headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(16),
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: normalize(5),
+    right: normalize(5),
+    width: normalize(6),
+    height: normalize(6),
+    borderRadius: normalize(3),
+    backgroundColor: "#ef4444",
+    borderWidth: 1,
+    borderColor: "#ffffff",
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingHorizontal: normalize(12),
+    paddingTop: normalize(8),
+    paddingBottom: normalize(24),
   },
-  mainStatsCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-    marginBottom: 16,
-  },
-  statsCardHeader: {
+  heroBanner: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    marginBottom: normalize(8),
+    paddingHorizontal: normalize(2),
   },
-  statsCardLabel: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
-    fontWeight: "700",
+  heroLeft: {
+    flex: 1,
   },
-  statsCardValue: {
-    color: "#0a0504",
-    fontSize: 34,
+  welcomeText: {
+    fontSize: normalize(11),
+    fontWeight: "600",
+    color: "#6366f1",
+    marginBottom: 1,
+  },
+  heroDashboardTitle: {
+    fontSize: normalize(20),
     fontWeight: "900",
-    marginTop: 6,
+    color: "#1e1b4b",
+    letterSpacing: -0.4,
   },
-  statsIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
+  heroDashboardImage: {
+    width: normalize(105),
+    height: normalize(70),
+    marginLeft: normalize(8),
   },
-  statsSubRow: {
+
+  /* Card Containers */
+  cardContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(14),
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+    padding: normalize(10),
+    marginBottom: normalize(10),
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
+    justifyContent: "space-between",
+    marginBottom: normalize(8),
   },
-  subStatItem: {
-    flex: 1,
+  cardHeaderLeft: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: normalize(6),
   },
-  subStatValue: {
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  dashboardTitle: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#0a0504",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  subStatSubLabel: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 2,
-    textAlign: "center",
-  },
-  statusColumnItem: {
-    flex: 1,
+  cardHeaderIconBox: {
+    width: normalize(24),
+    height: normalize(24),
+    borderRadius: normalize(6),
     alignItems: "center",
     justifyContent: "center",
   },
-  statusColumnValue: {
-    fontSize: 20,
-    fontWeight: "900",
-    marginBottom: 4,
-  },
-  statusColumnLabel: {
-    fontSize: 12,
-    color: "#0a0504",
+  cardHeaderTitle: {
+    fontSize: normalize(13),
     fontWeight: "800",
-    textAlign: "center",
+    color: "#0f172a",
   },
-  statusColumnSubLabel: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 2,
-    textAlign: "center",
-  },
-  verticalDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-  },
-  statusMainCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-    marginBottom: 10,
-  },
-  statusCardTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.6)",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 14,
-  },
-  statusRow: {
+
+  /* Stats Grid */
+  statsGridRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  statusItem: {
-    flexDirection: "row",
+  gridColItem: {
+    flex: 1,
     alignItems: "center",
-    flex: 1,
-    gap: 10,
   },
-  statusTextContainer: {
-    flex: 1,
-  },
-  statusLabel: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "700",
-    marginBottom: 2,
-  },
-  statusValue: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  verticalStatusDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    marginHorizontal: 12,
-  },
-  smallStatIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+  statIconCircle: {
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(16),
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: normalize(4),
   },
-  sectionTitle: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    marginLeft: 4,
+  statNumberText: {
+    fontSize: normalize(15),
+    fontWeight: "900",
+    marginBottom: 1,
   },
-  actionsContainer: {
-    gap: 12,
+  statLine1: {
+    fontSize: normalize(9.5),
+    fontWeight: "700",
+    color: "#334155",
+    textAlign: "center",
   },
-  actionItem: {
+  statLine2: {
+    fontSize: normalize(9),
+    fontWeight: "500",
+    color: "#94a3b8",
+    textAlign: "center",
+    marginTop: 1,
+  },
+  gridDivider: {
+    width: 1.1,
+    height: normalize(34),
+    backgroundColor: "#cbd5e1",
+    marginHorizontal: normalize(1),
+  },
+
+  /* Quick Actions */
+  quickActionsHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    marginTop: normalize(10),
+    marginBottom: normalize(8),
+    paddingHorizontal: normalize(2),
+  },
+  quickActionsTitle: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  quickActionsList: {
+    gap: normalize(8),
+  },
+  actionCard: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#ffffff",
-    borderRadius: 18,
+    borderRadius: normalize(14),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 14,
+    borderColor: "#f1f5f9",
+    padding: normalize(10),
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.015,
+    shadowRadius: 4,
+    elevation: 1,
   },
   actionIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(10),
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(10),
+  },
+  actionTextWrap: {
+    flex: 1,
+  },
+  actionMainTitle: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  actionSubTitle: {
+    fontSize: normalize(10.5),
+    fontWeight: "500",
+    color: "#64748b",
+    marginTop: 1,
+  },
+  arrowCircleBtn: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
     alignItems: "center",
     justifyContent: "center",
   },
-  actionDetails: {
-    flex: 1,
-  },
-  actionTitle: {
-    color: "#0a0504",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  actionSubtitle: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 12,
-    marginTop: 3,
-  },
+
+  /* Toast */
   toastContainer: {
     position: "absolute",
-    bottom: 100,
+    bottom: 80,
     left: 20,
     right: 20,
-    backgroundColor: "rgba(10, 5, 4, 0.9)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: "rgba(15, 23, 42, 0.9)",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
   toastText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     textAlign: "center",
-  },
-  notificationDot: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#e53935",
   },
 });
