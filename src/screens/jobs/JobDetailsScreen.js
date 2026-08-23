@@ -256,14 +256,6 @@ export default function JobDetailsScreen({ navigation, route }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCard}>
-          <View style={[styles.jobIconBox, { backgroundColor: iconConfig.bg }]}>
-            {logoUrl ? (
-              <Image source={{ uri: logoUrl }} style={styles.companyLogoImage} />
-            ) : (
-              <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
-            )}
-          </View>
-
           <View style={styles.heroMainInfo}>
             {Boolean(company) && (
               <View style={styles.companyRow}>

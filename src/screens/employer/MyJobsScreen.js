@@ -291,14 +291,6 @@ export default function MyJobsScreen({ navigation, route }) {
       >
         {/* Top Header Row */}
         <View style={styles.cardHeaderRow}>
-          <View style={[styles.jobIconBox, { backgroundColor: iconConfig.bg }]}>
-            {logoUrl ? (
-              <Image source={{ uri: logoUrl }} style={styles.companyLogoImage} />
-            ) : (
-              <Ionicons name={iconConfig.icon} size={normalize(20)} color={iconConfig.color} />
-            )}
-          </View>
-
           <View style={styles.jobMainInfo}>
             {Boolean(jobTitle) && (
               <Text style={styles.jobTitleText} numberOfLines={1}>

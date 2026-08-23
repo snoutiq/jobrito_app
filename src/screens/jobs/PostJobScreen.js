@@ -821,10 +821,7 @@ export default function PostJobScreen({ navigation, route }) {
               <View style={styles.reviewCard}>
                 {/* Header Row */}
                 <View style={styles.reviewCardHeader}>
-                  <View style={styles.reviewRoleIconCircle}>
-                    <Ionicons name="briefcase-outline" size={24} color="#16a34a" />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={{ flex: 1 }}>
                     <Text style={styles.reviewRoleTitle}>{effectiveJobRole || t("jobRole", "Job Role")}</Text>
                   </View>
                 </View>
