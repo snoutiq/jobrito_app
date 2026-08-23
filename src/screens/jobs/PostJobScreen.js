@@ -785,24 +785,14 @@ export default function PostJobScreen({ navigation, route }) {
                 </Text>
               </View>
 
-              {/* Nav Buttons */}
-              <View style={styles.navRow}>
-                <TouchableOpacity
-                  style={styles.backOutlineBtn}
-                  activeOpacity={0.8}
-                  onPress={() => setStep(1)}
-                >
-                  <Text style={styles.backOutlineText}>← {t("back", "Back")}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.primaryButton, { flex: 1, marginTop: 0 }]}
-                  activeOpacity={0.85}
-                  onPress={handleStep2Next}
-                >
-                  <Text style={styles.primaryButtonText}>{t("next", "Next")} →</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Nav Button */}
+              <TouchableOpacity
+                style={styles.primaryButton}
+                activeOpacity={0.85}
+                onPress={handleStep2Next}
+              >
+                <Text style={styles.primaryButtonText}>{t("next", "Next")} →</Text>
+              </TouchableOpacity>
 
               {/* Bottom Spacer for smooth keyboard scroll */}
               <View style={{ height: 220 }} />
@@ -955,15 +945,6 @@ export default function PostJobScreen({ navigation, route }) {
                     {t("submitForApproval", "Submit for Approval")} →
                   </Text>
                 )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backToEditButton}
-                activeOpacity={0.7}
-                onPress={() => setStep(2)}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.backToEditButtonText}>{t("backToEdit", "Back to Edit")}</Text>
               </TouchableOpacity>
             </View>
           )}

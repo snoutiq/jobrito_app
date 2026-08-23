@@ -158,11 +158,18 @@ export default function SettingsScreen({ navigation }) {
     profile?.full_name ||
     profile?.name ||
     "";
-  const mobileNumber =
+  const rawMobile =
+    profile?.business_mobile ||
+    profile?.contactPhone ||
     profile?.mobile_number ||
     profile?.phone ||
     profile?.contact_number ||
     "";
+  const mobileNumber = rawMobile
+    ? rawMobile.startsWith("+")
+      ? rawMobile
+      : `+91 ${rawMobile}`
+    : "-";
   const email = profile?.email || profile?.contactEmail || "";
   const location = profile?.location || profile?.business_location || profile?.city || "";
   const rawLocation =
