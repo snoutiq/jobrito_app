@@ -5,10 +5,16 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -171,7 +177,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -197,7 +203,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -223,7 +229,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -249,7 +255,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -275,7 +281,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -301,7 +307,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                      {opt}
+                      {t(opt, opt)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -330,8 +336,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     borderBottomWidth: 1,
     borderColor: "#f2f2f3",
   },
@@ -340,29 +346,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButton: {
-    padding: 4,
-    marginRight: 10,
+    padding: normalize(4),
+    marginRight: normalize(8),
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
   },
   resetButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: normalize(4),
+    paddingHorizontal: normalize(6),
   },
   resetButtonText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
     color: "#153e69",
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: normalize(34),
   },
   filterSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(12),
   },
   sectionHeader: {
     flexDirection: "row",
@@ -370,20 +376,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   sectionTitleText: {
-    fontSize: 14,
+    fontSize: normalize(13.5),
     fontWeight: "800",
     color: "#0a0504",
   },
   pillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 14,
+    gap: normalize(6),
+    marginTop: normalize(10),
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(18),
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
     backgroundColor: "#ffffff",
@@ -393,7 +399,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_GREEN,
   },
   pillText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -406,21 +412,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   footer: {
-    padding: 16,
+    padding: normalize(14),
     borderTopWidth: 1,
     borderColor: "#f2f2f3",
     backgroundColor: "#ffffff",
   },
   applyButton: {
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: normalize(10),
+    paddingVertical: normalize(12),
     alignItems: "center",
     justifyContent: "center",
   },
   applyButtonText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13.5),
     fontWeight: "700",
   },
 });

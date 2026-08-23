@@ -11,6 +11,8 @@ import {
   Modal,
   Alert,
   Linking,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +20,10 @@ import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { getEmployerChefs, bookChefAppointment, recordChefProfileView } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -481,13 +487,13 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                       </View>
                     </View>
                     <Text style={styles.currentRoleText} numberOfLines={1}>
-                      Current Role: <Text style={styles.detailValue}>{currentRole || "N/A"}</Text>
+                      {t("currentRoleLabel", "Current Role:")} <Text style={styles.detailValue}>{currentRole || "N/A"}</Text>
                     </Text>
 
                     <View style={styles.detailRow}>
                       <Ionicons name="home-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                       <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Current Location:</Text>{" "}
+                        <Text style={styles.detailLabel}>{t("currentLocationLabel", "Current Location:")}</Text>{" "}
                         <Text style={styles.detailValue}>{displayCurrentLocation}</Text>
                       </Text>
                     </View>
@@ -495,7 +501,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                     <View style={styles.detailRow}>
                       <Ionicons name="navigate-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                       <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Preferred Job Location:</Text>{" "}
+                        <Text style={styles.detailLabel}>{t("preferredLocationLabel", "Preferred Job Location:")}</Text>{" "}
                         <Text style={styles.detailValue}>{displayPreferredLocation}</Text>
                       </Text>
                     </View>
@@ -504,7 +510,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                       <View style={styles.detailRow}>
                         <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                         <Text style={styles.detailText}>
-                          <Text style={styles.detailLabel}>Experience:</Text>{" "}
+                          <Text style={styles.detailLabel}>{t("experienceLabel", "Experience:")}</Text>{" "}
                           <Text style={styles.detailValue}>{experience}</Text>
                         </Text>
                       </View>
@@ -513,7 +519,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                     <View style={styles.detailRow}>
                       <Ionicons name="map-outline" size={14} color="rgba(10, 5, 4, 0.6)" />
                       <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Regional Experience:</Text>{" "}
+                        <Text style={styles.detailLabel}>{t("regionalExperienceLabel", "Regional Experience:")}</Text>{" "}
                         <Text style={styles.detailValue}>{displayRegionalExperience}</Text>
                       </Text>
                     </View>
@@ -650,7 +656,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
               {/* Purpose Input */}
               <Text style={[styles.modalLabel, { marginTop: 18 }]}>{t("purposeConsultation")}</Text>
               <TextInput
-                placeholder="e.g. Kitchen setup and continental menu planning"
+                placeholder={t("purposePlaceholder", "e.g. Kitchen setup and continental menu planning")}
                 value={purpose}
                 onChangeText={setPurpose}
                 multiline
@@ -688,8 +694,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
@@ -699,31 +705,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButton: {
-    padding: 4,
-    marginRight: 10,
+    padding: normalize(4),
+    marginRight: normalize(8),
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
   },
   menuIcon: {
-    padding: 4,
+    padding: normalize(4),
   },
   titleBanner: {
     backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: normalize(14),
+    paddingTop: normalize(14),
+    paddingBottom: normalize(6),
   },
   bannerMainTitle: {
-    fontSize: 20,
+    fontSize: normalize(18),
     fontWeight: "900",
     color: "#0a0504",
-    marginBottom: 4,
+    marginBottom: normalize(3),
   },
   bannerSubtitle: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
@@ -731,12 +737,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(8),
     backgroundColor: "#ffffff",
   },
   metricsText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     fontWeight: "700",
     color: "#153e69",
   },
@@ -745,12 +751,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(5),
   },
   advancedFiltersText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "700",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -758,41 +764,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
+    marginHorizontal: normalize(14),
+    marginTop: normalize(10),
+    borderRadius: normalize(10),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    paddingHorizontal: 12,
+    paddingHorizontal: normalize(10),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: normalize(6),
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    fontSize: 13,
+    paddingVertical: normalize(8),
+    fontSize: normalize(12.5),
     color: "#0a0504",
   },
   quickFiltersContainer: {
-    paddingVertical: 12,
+    paddingVertical: normalize(10),
     backgroundColor: "#f2f2f3",
   },
   quickFiltersList: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: normalize(14),
+    gap: normalize(6),
   },
   quickFilterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(18),
     backgroundColor: "rgba(10, 5, 4, 0.15)",
   },
   quickFilterPillActive: {
     backgroundColor: "#153e69",
   },
   quickFilterPillText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "700",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -800,16 +806,16 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   chefsList: {
-    padding: 16,
-    gap: 16,
-    paddingBottom: 40,
+    padding: normalize(14),
+    gap: normalize(14),
+    paddingBottom: normalize(34),
   },
   chefCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
+    borderRadius: normalize(16),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
+    padding: normalize(14),
     shadowColor: "#0a0504",
     shadowOpacity: 0.02,
     shadowRadius: 8,
@@ -820,16 +826,16 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: normalize(6),
   },
   chefIdBadgeInline: {
     backgroundColor: "rgba(245, 127, 32, 0.08)",
-    paddingHorizontal: 6,
+    paddingHorizontal: normalize(6),
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: normalize(6),
   },
   chefIdBadgeInlineText: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     fontWeight: "800",
     color: "#f57f20",
   },
@@ -838,17 +844,17 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    marginRight: 16,
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(10),
+    marginRight: normalize(12),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
   avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(10),
     backgroundColor: "#f2f2f3",
     alignItems: "center",
     justifyContent: "center",
@@ -861,115 +867,115 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: normalize(3),
   },
   chefName: {
-    fontSize: 15,
+    fontSize: normalize(14),
     fontWeight: "800",
     color: "#0a0504",
   },
   tagBadge: {
     backgroundColor: "#f2f2f3",
-    paddingHorizontal: 8,
+    paddingHorizontal: normalize(6),
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: normalize(6),
   },
   tagBadgeText: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     fontWeight: "700",
     color: "rgba(10, 5, 4, 0.6)",
   },
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: normalize(5),
   },
   detailText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
   },
   detailLabel: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   detailValue: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "#153e69",
     fontWeight: "700",
   },
   currentRoleText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.8)",
     fontWeight: "700",
     marginBottom: 2,
   },
   titleText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "#153e69",
     fontWeight: "700",
     marginBottom: 2,
   },
   bioText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 4,
-    lineHeight: 16,
+    marginTop: normalize(3),
+    lineHeight: normalize(14),
   },
   statusRow: {
-    marginTop: 6,
+    marginTop: normalize(4),
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: normalize(6),
+    paddingVertical: 2,
+    borderRadius: normalize(6),
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: normalize(5),
+    height: normalize(5),
+    borderRadius: normalize(2.5),
     backgroundColor: PRIMARY_GREEN,
-    marginRight: 6,
+    marginRight: normalize(4),
   },
   statusText: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     fontWeight: "700",
     color: PRIMARY_GREEN,
   },
   skillsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    marginTop: 14,
+    gap: normalize(5),
+    marginTop: normalize(10),
   },
   skillPill: {
     backgroundColor: "#f2f2f3",
-    borderRadius: 8,
+    borderRadius: normalize(6),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(3),
   },
   skillPillText: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   cardActionsRow: {
-    marginTop: 16,
+    marginTop: normalize(12),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 10,
+    gap: normalize(8),
   },
   bookBtn: {
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: normalize(10),
+    paddingVertical: normalize(10),
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
@@ -979,21 +985,21 @@ const styles = StyleSheet.create({
   },
   bookBtnText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
   },
   secondaryButton: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: normalize(10),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: normalize(10),
   },
   secondaryButtonText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.7)",
     fontWeight: "700",
   },
@@ -1001,16 +1007,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 32,
+    padding: normalize(28),
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
     marginBottom: 4,
   },
   emptySubtitle: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     textAlign: "center",
   },
@@ -1023,9 +1029,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#ffffff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    borderTopLeftRadius: normalize(20),
+    borderTopRightRadius: normalize(20),
+    padding: normalize(16),
     maxHeight: "80%",
   },
   modalHeaderRow: {
@@ -1034,37 +1040,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderColor: "#f2f2f3",
-    paddingBottom: 14,
+    paddingBottom: normalize(12),
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
   },
   modalSubtitle: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     marginTop: 2,
   },
   modalScrollBody: {
-    paddingVertical: 16,
+    paddingVertical: normalize(14),
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   modalDateRow: {
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   slotPill: {
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(6),
     backgroundColor: "#ffffff",
   },
   slotPillSelected: {
@@ -1072,7 +1078,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotPillText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -1083,15 +1089,15 @@ const styles = StyleSheet.create({
   modalTimeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
+    gap: normalize(6),
+    marginBottom: normalize(6),
   },
   timeSlotCell: {
     width: "23%",
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 8,
-    paddingVertical: 8,
+    borderRadius: normalize(8),
+    paddingVertical: normalize(6),
     alignItems: "center",
     backgroundColor: "#ffffff",
   },
@@ -1100,7 +1106,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   timeSlotText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -1109,7 +1115,7 @@ const styles = StyleSheet.create({
     fontWeight: "750",
   },
   noSlotsText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     paddingHorizontal: 4,
@@ -1117,24 +1123,24 @@ const styles = StyleSheet.create({
   modalTextInput: {
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 13,
+    borderRadius: normalize(10),
+    padding: normalize(10),
+    fontSize: normalize(12),
     color: "#0a0504",
     textAlignVertical: "top",
     backgroundColor: "#f2f2f3",
   },
   modalBookButton: {
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: normalize(10),
+    paddingVertical: normalize(12),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: normalize(8),
   },
   modalBookButtonText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
   },
 });

@@ -13,6 +13,8 @@ import {
   Linking,
   Share,
   Platform,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +23,10 @@ import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import { bookChefAppointment, recordChefProfileView, getChefProfileDetails } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -466,22 +472,22 @@ ${shareUrl}
                     activeOpacity={0.7}
                   >
                     <Ionicons name="create-outline" size={16} color="#153e69" style={{ marginRight: 4 }} />
-                    <Text style={styles.editProfileTopText}>Edit</Text>
+                    <Text style={styles.editProfileTopText}>{t("edit", "Edit")}</Text>
                   </TouchableOpacity>
                 )}
               </View>
               {Boolean(displayTitle) && (
-                <Text style={styles.chefTitle}>Current Role: {displayTitle}</Text>
+                <Text style={styles.chefTitle}>{t("currentRoleLabel", "Current Role:")} {displayTitle}</Text>
               )}
               
               <View style={styles.profileDetailsList}>
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Current Location: </Text>
+                  <Text style={styles.detailLabel}>{t("currentLocationLabel", "Current Location:")} </Text>
                   <Text style={styles.detailValue}>{displayCity || "N/A"}</Text>
                 </Text>
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Preferred Job Location: </Text>
+                  <Text style={styles.detailLabel}>{t("preferredLocationLabel", "Preferred Job Location:")} </Text>
                   <Text style={styles.detailValue}>
                     {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
                       ? "India & Overseas"
@@ -490,17 +496,17 @@ ${shareUrl}
                 </Text>
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Experience: </Text>
+                  <Text style={styles.detailLabel}>{t("experienceLabel", "Experience:")} </Text>
                   <Text style={styles.detailValue}>{displayExperience || "N/A"}</Text>
                 </Text>
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Regional Experience: </Text>
+                  <Text style={styles.detailLabel}>{t("regionalExperienceLabel", "Regional Experience:")} </Text>
                   <Text style={styles.detailValue}>{getRegionalList().join(", ") || "N/A"}</Text>
                 </Text>
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Availability: </Text>
+                  <Text style={styles.detailLabel}>{t("availabilityLabel", "Availability:")} </Text>
                   <Text style={styles.detailValue}>
                     {getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available"
                       ? "Immediately Available"
@@ -533,7 +539,7 @@ ${shareUrl}
             <View style={styles.reviewPillContainer}>
               {getCuisinesList().map((cuisine) => (
                 <View key={cuisine} style={styles.reviewPill}>
-                  <Text style={styles.reviewPillText}>{cuisine}</Text>
+                  <Text style={styles.reviewPillText}>{t(cuisine, cuisine)}</Text>
                 </View>
               ))}
             </View>
@@ -550,7 +556,7 @@ ${shareUrl}
             <View style={styles.reviewPillContainer}>
               {getSkillsList().map((op) => (
                 <View key={op} style={styles.reviewPill}>
-                  <Text style={styles.reviewPillText}>{op}</Text>
+                  <Text style={styles.reviewPillText}>{t(op, op)}</Text>
                 </View>
               ))}
             </View>
@@ -688,7 +694,7 @@ ${shareUrl}
               {/* Purpose Input */}
               <Text style={[styles.modalLabel, { marginTop: 18 }]}>{t("purposeConsultation")}</Text>
               <TextInput
-                placeholder="e.g. Kitchen setup and continental menu planning"
+                placeholder={t("purposePlaceholder", "e.g. Kitchen setup and continental menu planning")}
                 value={purpose}
                 onChangeText={setPurpose}
                 multiline
@@ -726,8 +732,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
@@ -737,35 +743,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButton: {
-    padding: 4,
-    marginRight: 10,
+    padding: normalize(4),
+    marginRight: normalize(8),
   },
-  shareHeaderButton: {
-    padding: 6,
-    borderRadius: 18,
+  actionIconBtn: {
+    padding: normalize(5),
+    borderRadius: normalize(16),
     backgroundColor: "#f2f2f3",
-    width: 36,
-    height: 36,
+    width: normalize(32),
+    height: normalize(32),
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: normalize(16),
     fontWeight: "700",
     color: "#0a0504",
   },
   menuIcon: {
-    padding: 4,
+    padding: normalize(4),
   },
   scrollContent: {
-    padding: 16,
-    gap: 10,
-    paddingBottom: 40,
+    padding: normalize(14),
+    gap: normalize(8),
+    paddingBottom: normalize(34),
   },
   reviewCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: normalize(12),
+    padding: normalize(10),
     borderWidth: 1,
     borderColor: "#f2f2f3",
     shadowColor: "#000",
@@ -777,48 +783,48 @@ const styles = StyleSheet.create({
   reviewSecTitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   reviewSecTitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "750",
     color: "#153e69",
-    marginLeft: 8,
+    marginLeft: normalize(6),
   },
   reviewSecBioText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.7)",
-    lineHeight: 18,
+    lineHeight: normalize(16),
   },
   reviewPillContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 4,
+    gap: normalize(6),
+    marginTop: normalize(4),
   },
   reviewPill: {
     backgroundColor: "rgba(21, 62, 105, 0.05)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(5),
+    borderRadius: normalize(6),
   },
   reviewPillText: {
-    fontSize: 12,
+    fontSize: normalize(11),
     color: "#153e69",
     fontWeight: "600",
   },
   profileHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: normalize(12),
   },
   profileInfo: {
     flex: 1,
   },
   avatarContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 14,
+    width: normalize(76),
+    height: normalize(76),
+    borderRadius: normalize(12),
     borderWidth: 2,
     borderColor: "#153e69",
     overflow: "hidden",
@@ -829,19 +835,19 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   profileDetailsList: {
-    marginTop: 6,
-    gap: 3,
+    marginTop: normalize(4),
+    gap: 2,
   },
   detailRowText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: normalize(11.5),
+    lineHeight: normalize(16),
   },
   detailLabel: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
   },
   detailValue: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     fontWeight: "600",
     color: "#0a0504",
   },
@@ -851,33 +857,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarInitials: {
-    fontSize: 22,
+    fontSize: normalize(18),
     color: "#153e69",
     fontWeight: "800",
   },
   chefName: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
     marginBottom: 2,
   },
   chefTitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "600",
     color: "#153e69",
-    marginBottom: 4,
+    marginBottom: normalize(3),
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 2,
-    marginBottom: 6,
+    marginBottom: normalize(4),
   },
   locationText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "550",
-    lineHeight: 16,
+    lineHeight: normalize(14),
     flex: 1,
   },
   statusBadge: {
@@ -885,53 +891,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "flex-start",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: normalize(6),
+    paddingVertical: 2,
+    borderRadius: normalize(5),
   },
   greenDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+    width: normalize(5),
+    height: normalize(5),
+    borderRadius: normalize(2.5),
+    marginRight: normalize(4),
   },
   statusText: {
-    fontSize: 11,
+    fontSize: normalize(10),
     fontWeight: "700",
     color: "#153e69",
   },
   mainCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
+    borderRadius: normalize(16),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.12)",
-    padding: 16,
-    marginBottom: 12,
+    padding: normalize(14),
+    marginBottom: normalize(10),
   },
   mainCardHeaderTitle: {
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "800",
     color: "#153e69",
-    marginBottom: 12,
+    marginBottom: normalize(10),
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   cardSubSection: {
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   cardSubSectionInline: {
-    marginBottom: 14,
+    marginBottom: normalize(10),
   },
   cardDivider: {
     height: 1,
     backgroundColor: "rgba(10, 5, 4, 0.08)",
-    marginVertical: 12,
+    marginVertical: normalize(10),
   },
   cardSubTitle: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "800",
     color: "rgba(10, 5, 4, 0.4)",
-    marginBottom: 8,
+    marginBottom: normalize(6),
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -939,15 +945,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   metaMetricsText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.45)",
     fontWeight: "700",
-    marginTop: 4,
+    marginTop: 3,
   },
   inlineRowText: {
-    fontSize: 12,
+    fontSize: normalize(11.5),
     color: "rgba(10, 5, 4, 0.7)",
-    lineHeight: 18,
+    lineHeight: normalize(16),
   },
   inlineLabel: {
     fontWeight: "800",
@@ -963,116 +969,116 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
+    borderRadius: normalize(14),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
+    padding: normalize(14),
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   bioText: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 20,
+    lineHeight: normalize(18),
     fontWeight: "500",
   },
   infoGridRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
+    gap: normalize(10),
   },
   infoGridBadge: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f8fafc",
-    borderRadius: 12,
+    borderRadius: normalize(10),
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.05)",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
   },
   badgeLabel: {
-    fontSize: 10,
+    fontSize: normalize(9.5),
     color: "rgba(10, 5, 4, 0.4)",
     fontWeight: "700",
     textTransform: "uppercase",
     marginBottom: 2,
   },
   badgeValue: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#0a0504",
   },
   pillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: normalize(6),
   },
   pillGrey: {
     backgroundColor: "#f2f2f3",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: normalize(6),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(5),
   },
   pillText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   pillGreenLight: {
     backgroundColor: "#e7eff7",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: normalize(6),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(5),
   },
   pillTextGreen: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "#153e69",
     fontWeight: "700",
   },
   pillOutline: {
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: normalize(6),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(5),
     backgroundColor: "#ffffff",
   },
   pillTextGrey: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
   sectionTitleCap: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "850",
     color: "rgba(10, 5, 4, 0.4)",
     textTransform: "uppercase",
     marginLeft: 4,
-    marginTop: 8,
+    marginTop: normalize(6),
   },
   socialRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: normalize(10),
     marginLeft: 4,
-    marginBottom: 24,
-    marginTop: 8,
+    marginBottom: normalize(20),
+    marginTop: normalize(6),
   },
   socialIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: normalize(38),
+    height: normalize(38),
+    borderRadius: normalize(19),
     alignItems: "center",
     justifyContent: "center",
   },
   footer: {
-    padding: 16,
+    padding: normalize(14),
     borderTopWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
     backgroundColor: "#ffffff",
@@ -1081,16 +1087,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: normalize(10),
+    paddingVertical: normalize(12),
   },
   appointmentBtnText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
   },
-
-  // Modal styling
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.45)",
@@ -1098,9 +1102,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#ffffff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    borderTopLeftRadius: normalize(20),
+    borderTopRightRadius: normalize(20),
+    padding: normalize(16),
     maxHeight: "80%",
   },
   modalHeaderRow: {
@@ -1109,31 +1113,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderColor: "#f2f2f3",
-    paddingBottom: 14,
+    paddingBottom: normalize(12),
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
   },
   modalScrollBody: {
-    paddingVertical: 16,
+    paddingVertical: normalize(14),
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   modalDateRow: {
-    marginBottom: 8,
+    marginBottom: normalize(6),
   },
   slotPill: {
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(6),
     backgroundColor: "#ffffff",
   },
   slotPillSelected: {
@@ -1141,7 +1145,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   slotPillText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -1152,15 +1156,15 @@ const styles = StyleSheet.create({
   modalTimeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
+    gap: normalize(6),
+    marginBottom: normalize(6),
   },
   timeSlotCell: {
     width: "23%",
     borderWidth: 1.5,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 8,
-    paddingVertical: 8,
+    borderRadius: normalize(8),
+    paddingVertical: normalize(6),
     alignItems: "center",
     backgroundColor: "#ffffff",
   },
@@ -1169,7 +1173,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(21, 62, 105, 0.08)",
   },
   timeSlotText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     fontWeight: "600",
     color: "rgba(10, 5, 4, 0.6)",
   },
@@ -1178,7 +1182,7 @@ const styles = StyleSheet.create({
     fontWeight: "750",
   },
   noSlotsText: {
-    fontSize: 11,
+    fontSize: normalize(10.5),
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "500",
     paddingHorizontal: 4,
@@ -1186,24 +1190,24 @@ const styles = StyleSheet.create({
   modalTextInput: {
     borderWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 13,
+    borderRadius: normalize(10),
+    padding: normalize(10),
+    fontSize: normalize(12),
     color: "#0a0504",
     textAlignVertical: "top",
     backgroundColor: "#f2f2f3",
   },
   modalBookButton: {
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: normalize(10),
+    paddingVertical: normalize(12),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: normalize(8),
   },
   modalBookButtonText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: normalize(13),
     fontWeight: "700",
   },
   centerContainer: {
@@ -1212,35 +1216,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bookingCardDesc: {
-    fontSize: 13,
+    fontSize: normalize(12),
     color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 18,
-    marginBottom: 12,
+    lineHeight: normalize(16),
+    marginBottom: normalize(10),
   },
   calendlyButton: {
     backgroundColor: "#153e69",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: normalize(10),
+    borderRadius: normalize(10),
   },
   calendlyButtonText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: normalize(12),
     fontWeight: "700",
   },
   editProfileTopBtn: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(21, 62, 105, 0.08)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(6),
     alignSelf: "flex-start",
   },
   editProfileTopText: {
-    fontSize: 13,
+    fontSize: normalize(11.5),
     fontWeight: "700",
     color: "#153e69",
   },
