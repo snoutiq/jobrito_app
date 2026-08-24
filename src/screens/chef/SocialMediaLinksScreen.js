@@ -8,24 +8,29 @@ import {
   ScrollView,
   Linking,
   ActivityIndicator,
-  Clipboard,
   Modal,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import colors from "../../constants/colors";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setStoredProfile } from "../../services/storage";
 import { saveChefOnboarding, saveUserSocials } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+
+function normalize(size) {
+  const newSize = size * scale;
+  return Math.round(newSize);
+}
+
 const PRIMARY = "#153e69";
-const SECONDARY = "#f2f2f3";
-const NEUTRAL = "#0a0504";
 
 export default function SocialMediaLinksScreen({ navigation }) {
   const { t } = useTranslation();
@@ -51,9 +56,7 @@ export default function SocialMediaLinksScreen({ navigation }) {
 
   const extractUsername = (url, platform) => {
     if (!url) return "";
-    let cleaned = url.trim().replace(/\/$/, ""); // remove trailing slash
-    
-    // Remove protocol
+    let cleaned = url.trim().replace(/\/$/, ""); 
     cleaned = cleaned.replace(/^https?:\/\/(www\.)?/, "");
     
     if (platform === "linkedin") {
@@ -85,7 +88,6 @@ export default function SocialMediaLinksScreen({ navigation }) {
       if (profile.youtube) setYoutube(extractUsername(profile.youtube, "youtube"));
       if (profile.website || profile.portfolio) setWebsite(profile.website || profile.portfolio);
 
-      // Load custom social links from profile response
       const standardKeys = ["linkedin", "instagram", "facebook", "twitter", "youtube", "website", "portfolio", "calendly", "calendly_link"];
       const socialsObj = profile.socials || {};
       const foundCustoms = [];
@@ -101,10 +103,6 @@ export default function SocialMediaLinksScreen({ navigation }) {
       setCustomSocialLinks(foundCustoms);
     }
   }, [profile]);
-
-  const connectedCount = [linkedin, instagram, facebook, twitter, youtube, website].filter(
-    (item) => item && item.trim().length > 0
-  ).length;
 
   const handleTestLink = (value, platform) => {
     if (!value || !value.trim()) return;
@@ -128,8 +126,6 @@ export default function SocialMediaLinksScreen({ navigation }) {
       CustomAlert.show(t("error", "Error"), "Could not open URL: " + err.message);
     });
   };
-
-
 
   const handleSaveSocialLinks = async () => {
     const formatUrl = (val, platform) => {
@@ -164,18 +160,14 @@ export default function SocialMediaLinksScreen({ navigation }) {
 
     setLoading(true);
     try {
-      // 1. Dispatch Redux store update
       const updatedProfilePayload = {
         ...profile,
         ...updatedSocials,
         customSocialLinks,
       };
       dispatch(setProfileData({ ...updatedSocials, customSocialLinks }));
-
-      // 2. Update local storage
       await setStoredProfile(updatedProfilePayload);
 
-      // 3. Update server API
       const formData = new FormData();
       Object.keys(updatedSocials).forEach((key) => {
         const val = updatedSocials[key] || "";
@@ -184,7 +176,6 @@ export default function SocialMediaLinksScreen({ navigation }) {
         formData.append(`${key}Link`, val);
       });
 
-      // Append custom social links to FormData
       customSocialLinks.forEach((item) => {
         const key = item.platform.toLowerCase();
         formData.append(key, item.link);
@@ -194,13 +185,11 @@ export default function SocialMediaLinksScreen({ navigation }) {
 
       await saveChefOnboarding(formData).catch(() => null);
 
-      // Map custom links to others array format
       const others = customSocialLinks.map((item) => ({
         title: item.platform,
         url: item.link,
       }));
 
-      // 4. Update dedicated user socials endpoint
       const socialsPayload = {
         instagram: updatedSocials.instagram || "",
         linkedin: updatedSocials.linkedin || "",
@@ -231,222 +220,160 @@ export default function SocialMediaLinksScreen({ navigation }) {
     }
   };
 
+  const platformsList = [
+    {
+      id: "linkedin",
+      icon: "logo-linkedin",
+      iconColor: "#0a66c2",
+      title: t("linkedInProfileTitle", "LinkedIn Profile"),
+      subTitle: t("linkedInProfileSub", "Help businesses see your professional profile."),
+      placeholder: t("linkedInPlaceholder", "linkedin.com/in/your-profile"),
+      prefix: "linkedin.com/in/",
+      value: linkedin,
+      setter: setLinkedin,
+    },
+    {
+      id: "instagram",
+      icon: "logo-instagram",
+      iconColor: "#e1306c",
+      title: t("instagramProfileTitle", "Instagram (Food Portfolio)"),
+      subTitle: t("instagramProfileSub", "Help businesses see your food portfolio."),
+      placeholder: t("instagramPlaceholder", "instagram.com/chef_username"),
+      prefix: "instagram.com/",
+      value: instagram,
+      setter: setInstagram,
+    },
+    {
+      id: "facebook",
+      icon: "logo-facebook",
+      iconColor: "#1877f2",
+      title: t("facebookPageTitle", "Facebook Page"),
+      subTitle: t("facebookPageSub", "Share your updates and connect with more businesses."),
+      placeholder: t("facebookPlaceholder", "facebook.com/your-page"),
+      prefix: "facebook.com/",
+      value: facebook,
+      setter: setFacebook,
+    },
+    {
+      id: "twitter",
+      icon: "logo-twitter",
+      iconColor: "#000000",
+      title: t("twitterProfileTitle", "Twitter / X"),
+      subTitle: t("twitterProfileSub", "Share your thoughts and professional insights."),
+      placeholder: t("twitterPlaceholder", "x.com/your-handle"),
+      prefix: "x.com/",
+      value: twitter,
+      setter: setTwitter,
+    },
+    {
+      id: "youtube",
+      icon: "logo-youtube",
+      iconColor: "#ff0000",
+      title: t("youtubeChannelTitle", "YouTube Channel"),
+      subTitle: t("youtubeChannelSub", "Help businesses see your professional food videos."),
+      placeholder: t("youtubePlaceholder", "youtube.com/@your-channel"),
+      prefix: "youtube.com/@",
+      value: youtube,
+      setter: setYoutube,
+    },
+    {
+      id: "website",
+      icon: "globe-outline",
+      iconColor: "#2563eb",
+      title: t("personalWebsiteTitle", "Personal Website / Portfolio"),
+      subTitle: t("personalWebsiteSub", "Showcase your work, experience and achievements."),
+      placeholder: t("personalWebsitePlaceholder", "https://yourwebsite.com"),
+      prefix: "",
+      value: website,
+      setter: setWebsite,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={NEUTRAL} />
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBackBtnCircle}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chevron-back" size={normalize(20)} color="#0f172a" />
         </TouchableOpacity>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>{t("socials.title", "Social Media Links")}</Text>
-        </View>
-        <View style={{ width: 36 }} />
+        <Text style={styles.headerBarTitle}>{t("myProfile", "My Profile")}</Text>
+        <View style={{ width: normalize(36) }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Info Banner */}
-        <View style={styles.infoBanner}>
-          <Ionicons name="sparkles" size={22} color={PRIMARY} style={{ marginRight: 10 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.infoTitle}>{t("socials.title", "Social Media Links")}</Text>
-            <Text style={styles.infoSubtitle}>
-              {t("socials.subtitle", "Connect your social profiles to increase your visibility to top employers.")}
+        <View style={styles.bannerBox}>
+          <View style={styles.bannerIconCircle}>
+            <Ionicons name="share-social-outline" size={normalize(22)} color="#4f46e5" />
+          </View>
+          <View style={styles.bannerTextCol}>
+            <Text style={styles.bannerTitle}>
+              {t("socialMediaLinksTitle", "Social Media Links")}
+            </Text>
+            <Text style={styles.bannerDesc}>
+              {t("socialMediaLinksDesc", "Connect your social profiles to showcase your work, achievements and culinary journey to potential businesses.")}
             </Text>
           </View>
         </View>
 
-        {/* Input Fields Card */}
-        <View style={styles.formCard}>
-          {/* LinkedIn */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="logo-linkedin" size={18} color="#0077b5" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelLinkedIn", "LinkedIn Profile")}</Text>
-            </View>
-            <View style={[styles.inputWrapper, activeInput === "linkedin" && styles.inputWrapperActive]}>
-              <Text style={styles.prefixText}>linkedin.com/in/</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderLinkedIn", "your-profile")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={linkedin}
-                onChangeText={(text) => handleInputChange(text, "linkedin", setLinkedin)}
-                onFocus={() => setActiveInput("linkedin")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {linkedin ? (
-                <TouchableOpacity onPress={() => handleTestLink(linkedin, "linkedin")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
+        <View style={styles.mainFormCard}>
+          {platformsList.map((item) => (
+            <View key={item.id} style={styles.platformFieldBlock}>
+              <View style={styles.platformHeaderRow}>
+                <Ionicons name={item.icon} size={normalize(20)} color={item.iconColor} style={{ marginRight: normalize(8) }} />
+                <View style={styles.platformHeaderTextCol}>
+                  <Text style={styles.platformTitle}>{item.title}</Text>
+                  <Text style={styles.platformSub}>{item.subTitle}</Text>
+                </View>
+              </View>
 
-          {/* Instagram */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="logo-instagram" size={18} color="#e1306c" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelInstagram", "Instagram (Food Portfolio)")}</Text>
+              <View style={[styles.modernInputWrapper, activeInput === item.id && styles.modernInputWrapperActive]}>
+                <TextInput
+                  style={styles.modernTextInput}
+                  placeholder={item.placeholder}
+                  placeholderTextColor="#94a3b8"
+                  value={item.value}
+                  onChangeText={(text) => handleInputChange(text, item.id, item.setter)}
+                  onFocus={() => setActiveInput(item.id)}
+                  onBlur={() => setActiveInput(null)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType={item.id === "website" ? "url" : "default"}
+                />
+                {item.value ? (
+                  <TouchableOpacity onPress={() => handleTestLink(item.value, item.id)} style={styles.testLinkBtn}>
+                    <Ionicons name="open-outline" size={normalize(18)} color="#153e69" />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
             </View>
-            <View style={[styles.inputWrapper, activeInput === "instagram" && styles.inputWrapperActive]}>
-              <Text style={styles.prefixText}>instagram.com/</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderInstagram", "chef_username")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={instagram}
-                onChangeText={(text) => handleInputChange(text, "instagram", setInstagram)}
-                onFocus={() => setActiveInput("instagram")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {instagram ? (
-                <TouchableOpacity onPress={() => handleTestLink(instagram, "instagram")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
+          ))}
 
-          {/* Facebook */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="logo-facebook" size={18} color="#1877f2" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelFacebook", "Facebook Page")}</Text>
-            </View>
-            <View style={[styles.inputWrapper, activeInput === "facebook" && styles.inputWrapperActive]}>
-              <Text style={styles.prefixText}>facebook.com/</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderFacebook", "your-page")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={facebook}
-                onChangeText={(text) => handleInputChange(text, "facebook", setFacebook)}
-                onFocus={() => setActiveInput("facebook")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {facebook ? (
-                <TouchableOpacity onPress={() => handleTestLink(facebook, "facebook")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Twitter / X */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="logo-twitter" size={18} color="#000000" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelTwitter", "Twitter / X")}</Text>
-            </View>
-            <View style={[styles.inputWrapper, activeInput === "twitter" && styles.inputWrapperActive]}>
-              <Text style={styles.prefixText}>x.com/</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderTwitter", "your-handle")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={twitter}
-                onChangeText={(text) => handleInputChange(text, "twitter", setTwitter)}
-                onFocus={() => setActiveInput("twitter")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {twitter ? (
-                <TouchableOpacity onPress={() => handleTestLink(twitter, "twitter")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
-
-          {/* YouTube */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="logo-youtube" size={18} color="#ff0000" style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelYouTube", "YouTube Channel")}</Text>
-            </View>
-            <View style={[styles.inputWrapper, activeInput === "youtube" && styles.inputWrapperActive]}>
-              <Text style={styles.prefixText}>youtube.com/@</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderYouTube", "your-channel")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={youtube}
-                onChangeText={(text) => handleInputChange(text, "youtube", setYoutube)}
-                onFocus={() => setActiveInput("youtube")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {youtube ? (
-                <TouchableOpacity onPress={() => handleTestLink(youtube, "youtube")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Website / Portfolio */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Ionicons name="globe-outline" size={18} color={PRIMARY} style={{ marginRight: 6 }} />
-              <Text style={styles.inputLabel}>{t("socials.labelWebsite", "Personal Website / Portfolio")}</Text>
-            </View>
-            <View style={[styles.inputWrapper, activeInput === "website" && styles.inputWrapperActive]}>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("socials.placeholderWebsite", "https://yourwebsite.com")}
-                placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                value={website}
-                onChangeText={setWebsite}
-                onFocus={() => setActiveInput("website")}
-                onBlur={() => setActiveInput(null)}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-              />
-              {website ? (
-                <TouchableOpacity onPress={() => handleTestLink(website, "website")} style={styles.testBtn}>
-                  <Ionicons name="open-outline" size={16} color={PRIMARY} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Dynamically Rendered Custom Links */}
           {customSocialLinks.map((item) => (
             <View key={item.id} style={styles.customSocialRow}>
               <View style={styles.customSocialLeft}>
-                <View style={[styles.socialIconCircle, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
-                  <Ionicons name="link-outline" size={18} color={PRIMARY} />
+                <View style={styles.customSocialIconCircle}>
+                  <Ionicons name="link-outline" size={normalize(18)} color="#153e69" />
                 </View>
-                <View style={{ marginLeft: 10, flex: 1 }}>
+                <View style={{ marginLeft: normalize(10), flex: 1 }}>
                   <Text style={styles.customSocialPlatform}>{item.platform}</Text>
                   <Text style={styles.customSocialUrl} numberOfLines={1}>{item.link}</Text>
                 </View>
               </View>
               <TouchableOpacity
-                onPress={() => {
-                  setCustomSocialLinks(prev => prev.filter(x => x.id !== item.id));
-                }}
-                style={{ padding: 6 }}
+                onPress={() => setCustomSocialLinks(prev => prev.filter(x => x.id !== item.id))}
+                style={{ padding: normalize(6) }}
               >
-                <Ionicons name="trash-outline" size={18} color="red" />
+                <Ionicons name="trash-outline" size={normalize(18)} color="#ef4444" />
               </TouchableOpacity>
             </View>
           ))}
 
-          {/* Add More Button Row */}
           <TouchableOpacity
-            style={styles.addMoreRow}
-            activeOpacity={0.7}
+            style={styles.addMoreDashedCard}
+            activeOpacity={0.8}
             onPress={() => {
               setEditingPlatform("Add More");
               setCustomPlatformName("");
@@ -454,38 +381,48 @@ export default function SocialMediaLinksScreen({ navigation }) {
               setSocialModalVisible(true);
             }}
           >
-            <View style={styles.addMoreLeft}>
-              <View style={[styles.socialIconCircle, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
-                <Ionicons name="add" size={20} color={PRIMARY} />
+            <View style={styles.addMoreLeftRow}>
+              <View style={styles.addMorePlusCircle}>
+                <Ionicons name="add" size={normalize(20)} color="#6366f1" />
               </View>
-              <View style={{ marginLeft: 12 }}>
-                <Text style={styles.addMoreText}>{t("addMore", "Add More")}</Text>
-                <Text style={styles.addMoreSubtitle}>Website, Portfolio or other links</Text>
+              <View style={{ marginLeft: normalize(12) }}>
+                <Text style={styles.addMoreCardTitle}>{t("addMoreLinkTitle", "Add More Link")}</Text>
+                <Text style={styles.addMoreCardSub}>{t("addMoreLinkSub", "Add website, portfolio or any other link")}</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" />
-          </TouchableOpacity>
-
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
-            onPress={handleSaveSocialLinks}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <>
-                <Text style={styles.saveBtnText}>{t("socials.btnSave", "Save Social Links")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#ffffff" />
-              </>
-            )}
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
         </View>
+
+        <View style={styles.whyConnectCardBox}>
+          <View style={styles.whyConnectIconCircle}>
+            <Ionicons name="checkmark-circle" size={normalize(24)} color="#16a34a" />
+          </View>
+          <View style={styles.whyConnectTextCol}>
+            <Text style={styles.whyConnectTitle}>{t("whyConnectProfilesTitle", "Why connect your profiles?")}</Text>
+            <Text style={styles.whyConnectSub}>
+              {t("whyConnectProfilesSub", "It builds credibility, increases visibility and helps businesses better understand your expertise and style.")}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.saveSolidBtn, loading && styles.saveSolidBtnDisabled]}
+          onPress={handleSaveSocialLinks}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: normalize(8) }}>
+              <Text style={styles.saveSolidBtnText}>{t("saveLinks", "Save Links")}</Text>
+              <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" />
+            </View>
+          )}
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Custom Link Modal */}
       <Modal
         visible={socialModalVisible}
         transparent
@@ -499,28 +436,28 @@ export default function SocialMediaLinksScreen({ navigation }) {
             </Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Platform Name</Text>
-              <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+              <Text style={styles.modalInputLabel}>Platform Name</Text>
+              <View style={styles.modalInputWrapper}>
                 <TextInput
                   value={customPlatformName}
                   onChangeText={setCustomPlatformName}
                   placeholder="e.g. Behance, GitHub, Pinterest"
-                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                  style={styles.textInput}
+                  placeholderTextColor="#94a3b8"
+                  style={styles.modalTextInput}
                 />
               </View>
             </View>
 
-            <View style={[styles.inputGroup, { marginTop: 12 }]}>
-              <Text style={styles.inputLabel}>Link / Handle</Text>
-              <View style={[styles.inputWrapper, { minHeight: 46 }]}>
+            <View style={[styles.inputGroup, { marginTop: normalize(12) }]}>
+              <Text style={styles.modalInputLabel}>Link / Handle</Text>
+              <View style={styles.modalInputWrapper}>
                 <TextInput
                   value={tempLink}
                   onChangeText={setTempLink}
                   placeholder="https://..."
-                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                  placeholderTextColor="#94a3b8"
                   autoCapitalize="none"
-                  style={styles.textInput}
+                  style={styles.modalTextInput}
                 />
               </View>
             </View>
@@ -565,251 +502,317 @@ export default function SocialMediaLinksScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
   },
-  header: {
+  headerBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(12),
+    paddingBottom: normalize(14),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#f1f5f9",
   },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f2f2f3",
+  headerBackBtnCircle: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: NEUTRAL,
-  },
-  headerCountBadge: {
-    backgroundColor: "rgba(21, 62, 105, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  headerCountText: {
-    fontSize: 11,
+  headerBarTitle: {
+    fontSize: normalize(16.5),
     fontWeight: "800",
-    color: PRIMARY,
+    color: "#0f172a",
   },
   scrollContent: {
-    padding: 16,
-    gap: 14,
-    paddingBottom: 40,
-  },
-  infoBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 14,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: NEUTRAL,
-    marginBottom: 2,
-  },
-  infoSubtitle: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 16,
-  },
-  formCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-    gap: 14,
-  },
-  inputGroup: {},
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: NEUTRAL,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: SECONDARY,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.12)",
-    paddingHorizontal: 12,
-    height: 46,
-  },
-  inputWrapperActive: {
-    borderColor: PRIMARY,
-    backgroundColor: "#ffffff",
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 13,
-    color: NEUTRAL,
-    fontWeight: "600",
+    padding: normalize(16),
+    gap: normalize(16),
+    paddingBottom: normalize(40),
   },
 
-  testBtn: {
-    padding: 6,
-  },
-  saveBtn: {
+  bannerBox: {
     flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#f5f3ff",
+    borderWidth: 1,
+    borderColor: "#e0e7ff",
+    borderRadius: normalize(18),
+    padding: normalize(16),
+  },
+  bannerIconCircle: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(22),
+    backgroundColor: "#ede9fe",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: PRIMARY,
-    minHeight: 52,
-    borderRadius: 12,
-    marginTop: 20,
-    gap: 8,
-    shadowColor: PRIMARY,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    marginRight: normalize(14),
   },
-  saveBtnDisabled: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    shadowOpacity: 0,
-    elevation: 0,
+  bannerTextCol: {
+    flex: 1,
   },
-  saveBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#ffffff",
+  bannerTitle: {
+    fontSize: normalize(15),
+    fontWeight: "800",
+    color: "#1e1b4b",
+    marginBottom: normalize(4),
   },
-  prefixText: {
-    fontSize: 14,
-    color: "rgba(10, 5, 4, 0.45)",
+  bannerDesc: {
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#475569",
+    lineHeight: normalize(18),
+  },
+
+  mainFormCard: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(18),
+    padding: normalize(16),
+    gap: normalize(16),
+  },
+  platformFieldBlock: {
+    flexDirection: "column",
+  },
+  platformHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: normalize(8),
+  },
+  platformHeaderTextCol: {
+    flex: 1,
+  },
+  platformTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: normalize(2),
+  },
+  platformSub: {
+    fontSize: normalize(11.5),
+    fontWeight: "500",
+    color: "#64748b",
+  },
+  modernInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#cbd5e1",
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(14),
+    height: normalize(46),
+  },
+  modernInputWrapperActive: {
+    borderColor: "#153e69",
+    backgroundColor: "#ffffff",
+  },
+  modernTextInput: {
+    flex: 1,
+    fontSize: normalize(13.5),
     fontWeight: "600",
-    marginRight: 2,
+    color: "#0f172a",
   },
-  
-  // Custom Links and Modal Styles
+  testLinkBtn: {
+    padding: normalize(4),
+    marginLeft: normalize(6),
+  },
+
+  addMoreDashedCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#faf5ff",
+    borderWidth: 1.5,
+    borderColor: "#ede9fe",
+    borderRadius: normalize(14),
+    padding: normalize(14),
+    marginTop: normalize(4),
+  },
+  addMoreLeftRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  addMorePlusCircle: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#ede9fe",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addMoreCardTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#4f46e5",
+    marginBottom: normalize(2),
+  },
+  addMoreCardSub: {
+    fontSize: normalize(11.5),
+    fontWeight: "500",
+    color: "#64748b",
+  },
+
   customSocialRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: normalize(10),
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.08)",
+    borderColor: "#f1f5f9",
   },
   customSocialLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
-  customSocialPlatform: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: NEUTRAL,
-  },
-  customSocialUrl: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 1,
-  },
-  socialIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  customSocialIconCircle: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
   },
-  addMoreRow: {
+  customSocialPlatform: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  customSocialUrl: {
+    fontSize: normalize(11.5),
+    color: "#64748b",
+    marginTop: normalize(1),
+  },
+
+  whyConnectCardBox: {
     flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1.5,
+    borderColor: "#bbf7d0",
+    borderRadius: normalize(16),
+    padding: normalize(14),
+  },
+  whyConnectIconCircle: {
+    marginRight: normalize(12),
+    marginTop: normalize(2),
+  },
+  whyConnectTextCol: {
+    flex: 1,
+  },
+  whyConnectTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#14532d",
+    marginBottom: normalize(2),
+  },
+  whyConnectSub: {
+    fontSize: normalize(12),
+    fontWeight: "500",
+    color: "#166534",
+    lineHeight: normalize(17),
+  },
+
+  saveSolidBtn: {
+    width: "100%",
+    backgroundColor: "#002b5c",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(16),
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    marginTop: 6,
+    justifyContent: "center",
+    marginTop: normalize(4),
+    shadowColor: "#002b5c",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  addMoreLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+  saveSolidBtnDisabled: {
+    backgroundColor: "#cbd5e1",
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  addMoreText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: PRIMARY,
+  saveSolidBtnText: {
+    fontSize: normalize(15.5),
+    fontWeight: "800",
+    color: "#ffffff",
   },
-  addMoreSubtitle: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 1,
-  },
+
   socialModalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.45)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: normalize(24),
   },
   socialModalCard: {
     width: "100%",
-    maxWidth: 340,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    maxWidth: normalize(340),
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(16),
+    padding: normalize(20),
+    gap: normalize(12),
     elevation: 5,
   },
   socialModalTitle: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: "800",
-    color: NEUTRAL,
+    color: "#0f172a",
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: normalize(4),
+  },
+  inputGroup: {},
+  modalInputLabel: {
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: normalize(6),
+  },
+  modalInputWrapper: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#cbd5e1",
+    borderRadius: normalize(10),
+    paddingHorizontal: normalize(12),
+    height: normalize(44),
+    justifyContent: "center",
+  },
+  modalTextInput: {
+    fontSize: normalize(13.5),
+    fontWeight: "600",
+    color: "#0f172a",
   },
   socialModalActions: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 12,
+    gap: normalize(10),
+    marginTop: normalize(12),
   },
   socialModalButton: {
     flex: 1,
-    height: 44,
-    borderRadius: 10,
+    height: normalize(44),
+    borderRadius: normalize(10),
     alignItems: "center",
     justifyContent: "center",
   },
   socialModalCancel: {
-    backgroundColor: SECONDARY,
+    backgroundColor: "#f1f5f9",
   },
   socialModalCancelText: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
+    color: "#64748b",
   },
   socialModalSave: {
-    backgroundColor: PRIMARY,
+    backgroundColor: "#153e69",
   },
   socialModalSaveText: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontWeight: "700",
     color: "#ffffff",
   },

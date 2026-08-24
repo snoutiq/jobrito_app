@@ -6,22 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Linking,
   Share,
   Switch,
   Pressable,
   ActivityIndicator,
   Modal,
-  Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
-import * as Notifications from "expo-notifications";
-import colors from "../../constants/colors";
 import {
   resetUser,
   setProfileData,
@@ -34,13 +31,18 @@ import {
   getChefAppointments,
   getChefDashboardStats,
   getChefProfileViews,
-  saveChefOnboarding,
   updateChefAvailability,
 } from "../../services/chefApi";
 import { getMyJobs, getSavedJobs } from "../../services/jobApi";
 import { getApplicationHistory } from "../../services/applicationApi";
 
-const PRIMARY_GREEN = "#153e69";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+
+function normalize(size) {
+  const newSize = size * scale;
+  return Math.round(newSize);
+}
 
 export default function ChefProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -48,7 +50,7 @@ export default function ChefProfileScreen({ navigation }) {
   const profile = useSelector((state) => state.user.profile);
   const [loading, setLoading] = useState(true);
 
-  // Appointments State (only length needed for badge)
+  // Appointments & Stats State
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [stats, setStats] = useState({
     profile_views: 0,
@@ -63,51 +65,23 @@ export default function ChefProfileScreen({ navigation }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const displayName =
-    profile?.name || profile?.full_name || "Chef Rajesh Kumar";
+    profile?.name || profile?.full_name || "Kevin";
   const displayTitle =
     profile?.professionalTitle ||
     profile?.preferred_role ||
-    "Culinary Consultant & Kitchen Setup Expert";
-
-  console.log(
-    "[DEBUG ChefProfileScreen] Profile state:",
-    JSON.stringify(profile),
-  );
+    "Hospitality Consultant";
 
   const displayCity =
     profile?.city && profile?.country
       ? `${profile.city}, ${profile.country}`
-      : profile?.city || profile?.country || "";
-  const displayPrefLocation =
-    profile?.locationPreference || profile?.location_preference || "";
+      : profile?.city || profile?.country || "Jeddah, Saudi Arabia";
+
   const displayExperience =
     profile?.experienceYears ||
     profile?.experience_range ||
     profile?.experience ||
-    "";
+    "5–10 Years";
 
-  const getRegionalList = () => {
-    let list = [];
-    if (
-      profile?.availability_info &&
-      typeof profile.availability_info === "object" &&
-      !Array.isArray(profile.availability_info)
-    ) {
-      list = profile.availability_info.regional_experience || [];
-    } else if (profile?.regional_experience) {
-      list = profile.regional_experience;
-    }
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map((x) => x.trim());
-    return [];
-  };
-
-  // const getAvailability = () => {
-  //   if (profile?.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
-  //     return profile.availability_info.availability_status || profile.availability || "Available for Consultation";
-  //   }
-  //   return profile?.availability || "Available for Consultation";
-  // };
   const getAvailability = () => {
     if (
       profile?.availability_info &&
@@ -117,16 +91,13 @@ export default function ChefProfileScreen({ navigation }) {
       return (
         profile.availability_info.availability_status ||
         profile.availability ||
-        "Available for Consultation"
+        "Currently Employed"
       );
     }
-
-    return profile?.availability || "Available for Consultation";
+    return profile?.availability || "Currently Employed";
   };
 
-  // const displayAvailability = getAvailability();
   const availability = getAvailability();
-
   const displayAvailability =
     availability === "Unavailable" ? "Currently Employed" : availability;
 
@@ -137,68 +108,7 @@ export default function ChefProfileScreen({ navigation }) {
     availability === "Available immediately";
 
   const getProfileCompletionPercentage = () => {
-    if (!profile) return 0;
-
-    const calendly =
-      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const hasCalendly =
-      calendly &&
-      calendly.trim().length > 0 &&
-      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-
-    const hasPhoto = !!(profile.profile_photo_path || profile.profile_photo);
-    const hasCity = !!profile.city;
-    const hasBio = !!profile.bio;
-    const hasCuisines = !!(profile.cuisines || profile.cuisine_specialty);
-    const hasSkills = !!(
-      profile.operations ||
-      profile.skills ||
-      profile.chef_profile.operational_experties ||
-      profile.chef_profile.operational_expertise
-    );
-    const hasSocial = !!(
-      profile.linkedin ||
-      profile.instagram ||
-      profile.facebook ||
-      profile.twitter
-    );
-
-    const regionalExp = getRegionalList();
-    const hasRegionalExp = regionalExp && regionalExp.length > 0;
-
-    const hasLocationPref = !!(
-      profile.locationPreference || profile.location_preference
-    );
-
-    const getEmploymentPref = () => {
-      if (
-        profile.availability_info &&
-        typeof profile.availability_info === "object" &&
-        !Array.isArray(profile.availability_info) &&
-        Array.isArray(profile.availability_info.employment_preference)
-      ) {
-        return profile.availability_info.employment_preference;
-      }
-      return profile.employmentPreference || profile.employment_preference;
-    };
-    const empPref = getEmploymentPref();
-    const hasEmploymentPref =
-      empPref &&
-      (Array.isArray(empPref)
-        ? empPref.length > 0
-        : typeof empPref === "string" && empPref.trim().length > 0);
-
-    const isActuallyComplete =
-      hasPhoto &&
-      hasCity &&
-      hasBio &&
-      hasCuisines &&
-      hasSkills &&
-      hasCalendly &&
-      hasSocial &&
-      hasLocationPref &&
-      hasEmploymentPref &&
-      hasRegionalExp;
+    if (!profile) return 80;
 
     const apiPct =
       profile.completeness ??
@@ -208,14 +118,13 @@ export default function ChefProfileScreen({ navigation }) {
       return Math.round(Number(apiPct));
     }
 
-    let totalFields = 16;
+    let totalFields = 10;
     let filledFields = 0;
 
     if (profile?.full_name || profile?.name) filledFields++;
     if (profile?.profile_photo_path || profile?.profile_photo) filledFields++;
     if (profile?.professionalTitle || profile?.preferred_role) filledFields++;
     if (profile?.city) filledFields++;
-    if (profile?.country) filledFields++;
     if (
       profile?.experienceYears ||
       profile?.experience_range ||
@@ -223,317 +132,35 @@ export default function ChefProfileScreen({ navigation }) {
     )
       filledFields++;
     if (profile?.bio) filledFields++;
+    if (profile?.skills || profile?.operations) filledFields++;
+    if (profile?.calendly_link || profile?.calendlyUrl) filledFields++;
+    if (profile?.linkedin || profile?.instagram) filledFields++;
+    if (profile?.locationPreference || profile?.location_preference) filledFields++;
 
-    // Languages
-    const langs = profile?.languages;
-    if (Array.isArray(langs) && langs.length > 0) filledFields++;
-    else if (typeof langs === "string" && langs.trim().length > 0)
-      filledFields++;
-
-    // Cuisines
-    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (Array.isArray(cuisines) && cuisines.length > 0) filledFields++;
-    else if (typeof cuisines === "string" && cuisines.trim().length > 0)
-      filledFields++;
-
-    // Skills/Operations
-    const ops =
-      profile?.operations ||
-      profile?.skills ||
-      profile.chef_profile.operational_experties ||
-      profile.chef_profile.operational_expertise;
-    if (Array.isArray(ops) && ops.length > 0) filledFields++;
-    else if (typeof ops === "string" && ops.trim().length > 0) filledFields++;
-
-    // Calendly Link (Only if it's actually set and not default domain placeholder)
-    if (hasCalendly) {
-      filledFields++;
-    }
-
-    // Social Links
-    if (hasSocial) {
-      filledFields++;
-    }
-
-    // Location Preference
-    if (hasLocationPref) {
-      filledFields++;
-    }
-
-    // Employment Preference
-    if (hasEmploymentPref) {
-      filledFields++;
-    }
-
-    if (hasRegionalExp) {
-      filledFields++;
-    }
-
-    return Math.round((filledFields / totalFields) * 100);
-  };
-
-  const getMissedOutFields = () => {
-    const missed = [];
-    if (!profile?.profile_photo_path && !profile?.profile_photo)
-      missed.push(t("profilePhoto", "Profile Photo"));
-    if (!profile?.bio) missed.push(t("bio", "Bio"));
-
-    const langs = profile?.languages;
-    if (
-      !langs ||
-      (Array.isArray(langs) && langs.length === 0) ||
-      (typeof langs === "string" && !langs.trim())
-    ) {
-      missed.push(t("languages", "Languages"));
-    }
-
-    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (
-      !cuisines ||
-      (Array.isArray(cuisines) && cuisines.length === 0) ||
-      (typeof cuisines === "string" && !cuisines.trim())
-    ) {
-      missed.push(t("cuisines", "Cuisines"));
-    }
-
-    const ops = profile?.operations || profile?.skills;
-    if (
-      !ops ||
-      (Array.isArray(ops) && ops.length === 0) ||
-      (typeof ops === "string" && !ops.trim())
-    ) {
-      missed.push(t("skills", "Operational Skills"));
-    }
-
-    const calendly =
-      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid =
-      calendly &&
-      calendly.trim().length > 0 &&
-      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-    if (!isCalendlyValid) {
-      missed.push("Calendly");
-    }
-
-    const hasSocial =
-      profile?.linkedin ||
-      profile?.instagram ||
-      profile?.facebook ||
-      profile?.twitter;
-    if (!hasSocial) {
-      missed.push(t("socialLinks", "Social Links"));
-    }
-
-    const hasLocationPref = !!(
-      profile.locationPreference || profile.location_preference
-    );
-    if (!hasLocationPref) {
-      missed.push(t("locationPreference", "Job Location Preference"));
-    }
-
-    const getEmploymentPref = () => {
-      if (
-        profile.availability_info &&
-        typeof profile.availability_info === "object" &&
-        !Array.isArray(profile.availability_info) &&
-        Array.isArray(profile.availability_info.employment_preference)
-      ) {
-        return profile.availability_info.employment_preference;
-      }
-      return profile.employmentPreference || profile.employment_preference;
-    };
-    const empPref = getEmploymentPref();
-    const hasEmploymentPref =
-      empPref &&
-      (Array.isArray(empPref)
-        ? empPref.length > 0
-        : typeof empPref === "string" && empPref.trim().length > 0);
-    if (!hasEmploymentPref) {
-      missed.push(t("employmentPreference", "Employment Preference"));
-    }
-
-    return missed;
-  };
-
-  const getMissingFieldText = () => {
-    if (completionPercent >= 100)
-      return t("profile.allInfoAdded", "All information added successfully!");
-
-    if (!profile?.profile_photo_path && !profile?.profile_photo)
-      return t("profile.addPhotoAction", "Add Profile Photo");
-    if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
-
-    const langs = profile?.languages;
-    if (
-      !langs ||
-      (Array.isArray(langs) && langs.length === 0) ||
-      (typeof langs === "string" && !langs.trim())
-    ) {
-      return t("profile.addLanguagesAction", "Add Languages");
-    }
-
-    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (
-      !cuisines ||
-      (Array.isArray(cuisines) && cuisines.length === 0) ||
-      (typeof cuisines === "string" && !cuisines.trim())
-    ) {
-      return t("profile.addCuisinesAction", "Add Cuisines");
-    }
-
-    const ops =
-      profile?.operations ||
-      profile?.skills ||
-      profile?.chef_profile?.operational_experties ||
-      profile?.chef_profile?.operational_expertise;
-    console.log("ChefProfileScreen - getMissingFieldText - ops value:", ops);
-    if (
-      !ops ||
-      (Array.isArray(ops) && ops.length === 0) ||
-      (typeof ops === "string" && !ops.trim())
-    ) {
-      console.log(
-        "ChefProfileScreen - getMissingFieldText - ops is missing. Array?",
-        Array.isArray(ops),
-        "length:",
-        ops?.length,
-      );
-      return t("profile.addSkillsAction", "Add Operational Skills");
-    }
-
-    const hasLocationPref = !!(
-      profile.locationPreference || profile.location_preference
-    );
-    if (!hasLocationPref) {
-      return t("profile.addLocationPreference", "Add Job Location Preference");
-    }
-
-    const getEmploymentPref = () => {
-      if (
-        profile.availability_info &&
-        typeof profile.availability_info === "object" &&
-        !Array.isArray(profile.availability_info) &&
-        Array.isArray(profile.availability_info.employment_preference)
-      ) {
-        return profile.availability_info.employment_preference;
-      }
-      return profile.employmentPreference || profile.employment_preference;
-    };
-    const empPref = getEmploymentPref();
-    const hasEmploymentPref =
-      empPref &&
-      (Array.isArray(empPref)
-        ? empPref.length > 0
-        : typeof empPref === "string" && empPref.trim().length > 0);
-    if (!hasEmploymentPref) {
-      return t("profile.addEmploymentPreference", "Add Employment Preference");
-    }
-
-    const calendly =
-      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid =
-      calendly &&
-      calendly.trim().length > 0 &&
-      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-    if (!isCalendlyValid) {
-      return t("profile.addCalendlyAction", "Add Calendly Link");
-    }
-
-    const hasSocial =
-      profile?.linkedin ||
-      profile?.instagram ||
-      profile?.facebook ||
-      profile?.twitter;
-    if (!hasSocial) {
-      return t("profile.addSocialLinksAction", "Add Social Media Links");
-    }
-
-    return t("profile.completeProfilePrompt", "Complete your profile details");
+    const calculated = Math.round((filledFields / totalFields) * 100);
+    return calculated > 0 ? calculated : 80;
   };
 
   const getMissingFieldStep = () => {
     if (!profile?.profile_photo_path && !profile?.profile_photo) return 1;
     if (!profile?.bio) return 3;
-
-    const langs = profile?.languages;
-    if (
-      !langs ||
-      (Array.isArray(langs) && langs.length === 0) ||
-      (typeof langs === "string" && !langs.trim())
-    ) {
-      return 1;
-    }
-
-    const cuisines = profile?.cuisines || profile?.cuisine_specialty;
-    if (
-      !cuisines ||
-      (Array.isArray(cuisines) && cuisines.length === 0) ||
-      (typeof cuisines === "string" && !cuisines.trim())
-    ) {
-      return 2;
-    }
-
-    const ops = profile?.operations || profile?.skills;
-    if (
-      !ops ||
-      (Array.isArray(ops) && ops.length === 0) ||
-      (typeof ops === "string" && !ops.trim())
-    ) {
-      return 2;
-    }
-
-    const hasLocationPref = !!(
-      profile.locationPreference || profile.location_preference
-    );
-    if (!hasLocationPref) {
-      return 3;
-    }
-
-    const getEmploymentPref = () => {
-      if (
-        profile.availability_info &&
-        typeof profile.availability_info === "object" &&
-        !Array.isArray(profile.availability_info) &&
-        Array.isArray(profile.availability_info.employment_preference)
-      ) {
-        return profile.availability_info.employment_preference;
-      }
-      return profile.employmentPreference || profile.employment_preference;
-    };
-    const empPref = getEmploymentPref();
-    const hasEmploymentPref =
-      empPref &&
-      (Array.isArray(empPref)
-        ? empPref.length > 0
-        : typeof empPref === "string" && empPref.trim().length > 0);
-    if (!hasEmploymentPref) {
-      return 3;
-    }
-
-    const calendly =
-      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    const isCalendlyValid =
-      calendly &&
-      calendly.trim().length > 0 &&
-      !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-    if (!isCalendlyValid) {
-      return 4;
-    }
-
-    const hasSocial =
-      profile?.linkedin ||
-      profile?.instagram ||
-      profile?.facebook ||
-      profile?.twitter;
-    if (!hasSocial) {
-      return 5;
-    }
-
+    if (!profile?.skills && !profile?.operations) return 2;
+    if (!profile?.calendly_link && !profile?.calendlyUrl) return 4;
     return 1;
   };
 
+  const getMissingFieldText = () => {
+    if (completionPercent >= 100)
+      return t("profile.allInfoAdded", "All information added successfully!");
+    if (!profile?.profile_photo_path && !profile?.profile_photo)
+      return t("addProfilePhoto", "Add Profile Photo");
+    if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
+    if (!profile?.skills && !profile?.operations)
+      return t("profile.addSkillsAction", "Add Operational Skills");
+    return t("profile.completeProfilePrompt", "Complete your profile details");
+  };
+
   const completionPercent = getProfileCompletionPercentage();
-  const missedFields = getMissedOutFields();
 
   // Refresh dashboard data on focus
   useFocusEffect(
@@ -586,16 +213,6 @@ export default function ChefProfileScreen({ navigation }) {
               ...statsRes.stats,
               profile_views: resolvedProfileViews,
             });
-          } else if (statsRes?.success && statsRes.stats) {
-            setStats({
-              ...statsRes.stats,
-              profile_views: resolvedProfileViews,
-            });
-          } else {
-            setStats((prev) => ({
-              ...prev,
-              profile_views: resolvedProfileViews,
-            }));
           }
           if (appsRes?.success && appsRes.applications) {
             setApplicationsCount(appsRes.applications.length);
@@ -613,22 +230,20 @@ export default function ChefProfileScreen({ navigation }) {
         } catch (err) {
           console.warn("Failed to fetch dashboard data:", err.message || err);
         } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
+          if (isMounted) setLoading(false);
         }
       };
       fetchDashboardData();
       return () => {
         isMounted = false;
       };
-    }, []),
+    }, [dispatch]),
   );
 
-  // Helper to determine the company logo source URL
   const getLogoSource = () => {
     const uri =
       profile?.profile_photo_path ||
+      profile?.profile_photo ||
       profile?.company_logo ||
       profile?.companyLogo;
     if (!uri) return null;
@@ -647,90 +262,40 @@ export default function ChefProfileScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
+  const handleLogout = () => setShowLogoutModal(true);
 
   const executeLogout = async () => {
     setShowLogoutModal(false);
     try {
       const { logout: logoutApi } = require("../../services/authApi");
       logoutApi().catch(() => {});
-    } catch (e) {
-      // ignore network logout errors
-    }
+    } catch (e) {}
     await clearAuthStorage();
     try {
       const { clearClientState } = require("../../services/apiClient");
       clearClientState();
-    } catch (e) {
-      console.warn("Failed to clear API client state:", e);
-    }
+    } catch (e) {}
     dispatch(logout());
     dispatch(resetUser());
   };
 
   const handleShareProfile = async () => {
     try {
-      const chefId = profile?.id || user?.id || "profile";
-      const safeList = (val, fallback = "N/A") => {
-        if (Array.isArray(val))
-          return val.filter(Boolean).join(", ") || fallback;
-        if (typeof val === "string" && val.trim()) return val.trim();
-        return fallback;
-      };
-
-      const cuisines = safeList(
-        profile?.cuisines || profile?.cuisine_specializations,
-        "Multi Cuisine",
-      );
-      const experience =
-        typeof profile?.experience === "string" && profile.experience.trim()
-          ? profile.experience.trim()
-          : profile?.years_of_experience || profile?.experienceYears || "N/A";
-      const operations = safeList(
-        profile?.operations || profile?.operational_expertises,
-        "Kitchen Operations",
-      );
-
+      const chefId = profile?.id || "profile";
       const shareUrl = `https://jobrito.com/chef/${chefId}`;
-      const deepUrl = `jobrito://chef/${chefId}`;
-
       const shareText = `
-🍳 *CHEF PROFESSIONAL PROFILE* 🍳
-----------------------------------
-👤 *Name:* Chef ${displayName || "Profile"}
-💼 *Title:* ${displayTitle || "Chef"}
+🍳 *CHEF PROFILE* 🍳
+👤 *Name:* ${displayName}
+💼 *Title:* ${displayTitle}
 📍 *Location:* ${displayCity || "N/A"}
-⏱️ *Experience:* ${experience}
-🍽️ *Cuisines:* ${cuisines}
-⚙️ *Operational Expertise:* ${operations}
-🟢 *Status:* ${displayAvailability || "Available"}
 ----------------------------------
-🔗 View full profile on Jobrito app:
+🔗 View profile on Jobrito:
 ${shareUrl}
-(App Deep Link: ${deepUrl})
 `.trim();
 
-      const shareOptions = Platform.select({
-        ios: {
-          message: shareText,
-          url: shareUrl,
-          title: `Chef ${displayName || "Profile"}`,
-        },
-        android: {
-          message: shareText,
-          title: `Chef ${displayName || "Profile"}`,
-        },
-        default: {
-          message: shareText,
-        },
-      });
-
-      await Share.share(shareOptions);
+      await Share.share({ message: shareText });
     } catch (error) {
       console.warn("Share profile error:", error);
-      CustomAlert.show("Error", error?.message || "Unable to share profile.");
     }
   };
 
@@ -743,7 +308,6 @@ ${shareUrl}
         ? { ...profile.availability_info, availability_status: newStatus }
         : { availability_status: newStatus };
 
-    // 1. Update Redux store
     dispatch(
       setProfileData({
         availability: newStatus,
@@ -752,7 +316,6 @@ ${shareUrl}
       }),
     );
 
-    // 2. Update Storage
     try {
       const updatedProfile = {
         ...profile,
@@ -761,33 +324,15 @@ ${shareUrl}
         availability_info: newAvailabilityInfo,
       };
       await setStoredProfile(updatedProfile);
-    } catch (e) {
-      console.warn("Failed to store updated availability locally:", e);
-    }
+    } catch (e) {}
 
-    // 3. Update server API via dedicated toggle helper
     try {
       const response = await updateChefAvailability(newStatus);
       if (response && response.success && response.user) {
         const { normalizeProfile } = require("../../services/profileApi");
         dispatch(setProfileData(normalizeProfile(response.user)));
       }
-    } catch (err) {
-      console.warn("Failed to update availability on server:", err);
-    }
-  };
-
-  const handleOpenCalendly = () => {
-    const link =
-      profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
-    if (link) {
-      const fullUrl = link.startsWith("http") ? link : `https://${link}`;
-      Linking.openURL(fullUrl).catch(() => {
-        CustomAlert.show("Error", "Unable to open Calendly link.");
-      });
-    } else {
-      CustomAlert.show(t("error"), "Calendly link is not configured.");
-    }
+    } catch (err) {}
   };
 
   const LANGUAGE_LABELS = {
@@ -813,491 +358,398 @@ ${shareUrl}
           { justifyContent: "center", alignItems: "center" },
         ]}
       >
-        <ActivityIndicator size="large" color="#153e69" />
+        <ActivityIndicator size="large" color="#002b5c" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {t("chefProfile", "Chef Profile")}
-          </Text>
-        </View>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBackBtn}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={normalize(22)} color="#002b5c" />
+        </TouchableOpacity>
+
+        <Text style={styles.headerBarTitle}>
+          {t("chefProfileTitle", "Chef Profile")}
+        </Text>
+
+        {/* Bell Icon with Red Dot Indicator */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("EmployerNotifications")}
+          style={styles.headerBellBtn}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="notifications-outline" size={normalize(22)} color="#002b5c" />
+          <View style={styles.bellRedDot} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileHeaderRow}>
-            {logoSource ? (
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={logoSource}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                />
-              </View>
-            ) : (
-              <View style={[styles.avatarContainer, styles.avatarPlaceholder]}>
-                <Ionicons name="person" size={28} color="rgba(10, 5, 4, 0.6)" />
-              </View>
-            )}
-            <View style={styles.profileTextInfo}>
-              <Text style={styles.profileName}>{displayName}</Text>
-              {Boolean(displayTitle) && (
-                <Text style={styles.profileTitle}>
-                  Current Role: {displayTitle}
-                </Text>
-              )}
-
-              <View style={styles.profileDetailsList}>
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Current Location: </Text>
-                  <Text style={styles.detailValue}>{displayCity || "N/A"}</Text>
-                </Text>
-
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>
-                    Preferred Job Location:{" "}
-                  </Text>
-                  <Text style={styles.detailValue}>
-                    {displayPrefLocation === "Both" ||
-                    displayPrefLocation === "Both (India & Overseas)"
-                      ? "India & Overseas"
-                      : displayPrefLocation || "N/A"}
-                  </Text>
-                </Text>
-
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Experience: </Text>
-                  <Text style={styles.detailValue}>
-                    {displayExperience || "N/A"}
-                  </Text>
-                </Text>
-
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Regional Experience: </Text>
-                  <Text style={styles.detailValue}>
-                    {getRegionalList().join(", ") || "N/A"}
-                  </Text>
-                </Text>
-
-                <Text numberOfLines={1} style={styles.detailRowText}>
-                  <Text style={styles.detailLabel}>Availability: </Text>
-                  {/* <Text style={styles.detailValue}>{displayAvailability || "N/A"}</Text> */}
-                  <Text style={styles.detailValue}>
-                    {displayAvailability || "N/A"}
-                  </Text>
-                </Text>
-              </View>
-            </View>
-          </View>
-
+        {/* Chef Hero Card */}
+        <View style={styles.heroCard}>
           <TouchableOpacity
+            style={styles.heroTopRow}
             onPress={() =>
               navigation.navigate("ChefProfileDetails", {
                 chef: profile,
                 isOwnProfile: true,
               })
             }
-            style={[styles.viewProfileBtn, { backgroundColor: PRIMARY_GREEN }]}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Text style={styles.viewProfileBtnText}>
-              {t("chefDashboard.viewProfile", "View Profile")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Profile Completion banner */}
-        {completionPercent < 100 && (
-          <View style={styles.completionCardContainer}>
-            <View style={styles.completionCard}>
-              <View style={styles.completionHeader}>
-                <Text style={styles.completionTitle}>
-                  {t("profile.profileCompletion", "Profile Completion")}
-                </Text>
-                <Text style={styles.completionPercent}>
-                  {completionPercent}%
-                </Text>
+            <View style={styles.avatarWrapper}>
+              {logoSource ? (
+                <Image
+                  source={logoSource}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons name="person" size={normalize(32)} color="#a5b4fc" />
+                </View>
+              )}
+              <View style={styles.cameraBadgeCircle}>
+                <Ionicons name="camera" size={normalize(10)} color="#ffffff" />
               </View>
+            </View>
 
-              {/* Clean Progress bar track */}
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBarTrack}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      { width: `${completionPercent}%` },
-                    ]}
-                  />
+            <View style={styles.heroTextCol}>
+              <View style={styles.nameRow}>
+                <Text style={styles.heroNameText}>{displayName}</Text>
+                <View style={styles.activePillBadge}>
+                  <View style={styles.greenActiveDot} />
+                  <Text style={styles.activePillText}>{t("active", "Active")}</Text>
                 </View>
               </View>
 
-              {/* Dynamic Missing Field / Add Action */}
-              <Pressable
-                style={styles.addSkillsBar}
-                onPress={() =>
-                  navigation.navigate("ChefCompleteProfile", {
-                    step: getMissingFieldStep(),
-                  })
-                }
-              >
-                <Text style={styles.addSkillsText}>
-                  {getMissingFieldText()}
+              <Text style={styles.heroRoleText}>{displayTitle}</Text>
+
+              <View style={styles.jobTypePillBadge}>
+                <Text style={styles.jobTypePillText}>
+                  {profile?.job_type || "Freelance"}
                 </Text>
-                <Ionicons
-                  name={
-                    completionPercent >= 100 ? "create-outline" : "add-circle"
-                  }
-                  size={18}
-                  color="#153e69"
-                />
-              </Pressable>
+              </View>
+            </View>
+
+            <Ionicons name="chevron-forward" size={normalize(20)} color="#94a3b8" />
+          </TouchableOpacity>
+
+          <View style={styles.heroDividerLine} />
+
+          {/* Bottom 3 Metrics Row */}
+          <View style={styles.metricsRow}>
+            <View style={styles.metricItemCol}>
+              <View style={styles.metricTitleRow}>
+                <Ionicons name="location-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Text style={styles.metricValueText} numberOfLines={1}>
+                  {displayCity}
+                </Text>
+              </View>
+              <Text style={styles.metricLabelText}>{t("currentLocation", "Current Location")}</Text>
+            </View>
+
+            <View style={styles.metricVerticalDivider} />
+
+            <View style={styles.metricItemCol}>
+              <View style={styles.metricTitleRow}>
+                <Ionicons name="briefcase-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Text style={styles.metricValueText} numberOfLines={1}>
+                  {displayExperience}
+                </Text>
+              </View>
+              <Text style={styles.metricLabelText}>{t("experience", "Experience")}</Text>
+            </View>
+
+            <View style={styles.metricVerticalDivider} />
+
+            <View style={styles.metricItemCol}>
+              <View style={styles.metricTitleRow}>
+                <Ionicons name="time-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Text style={styles.metricValueText} numberOfLines={1}>
+                  {displayAvailability}
+                </Text>
+              </View>
+              <Text style={styles.metricLabelText}>{t("availability", "Availability")}</Text>
             </View>
           </View>
-        )}
+        </View>
 
-        {/* My Activity */}
-        <Text style={styles.sectionTitle}>{t("chefDashboard.myActivity")}</Text>
-        <View style={styles.menuGroup}>
-          {/* My Applications */}
+        {/* Profile Completion Progress Card */}
+        <View style={styles.completionCardBox}>
+          <View style={styles.completionTopRow}>
+            <Text style={styles.completionCardTitle}>{t("profileCompletion", "Profile Completion")}</Text>
+            <Text style={styles.completionCardValue}>{`${completionPercent}% Complete`}</Text>
+          </View>
+
+          <View style={styles.completionTrack}>
+            <View style={[styles.completionFill, { width: `${completionPercent}%` }]} />
+          </View>
+
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("Applications")}
+            style={styles.completionActionBox}
+            onPress={() =>
+              navigation.navigate("ChefCompleteProfile", {
+                step: getMissingFieldStep(),
+              })
+            }
+            activeOpacity={0.85}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="mail-open-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.myApplications")}
+            <View style={styles.completionActionIconCircle}>
+              <Ionicons name="cloud-upload-outline" size={normalize(18)} color="#002b5c" />
+            </View>
+            <View style={styles.completionActionTextCol}>
+              <Text style={styles.completionActionTitle}>{getMissingFieldText()}</Text>
+              <Text style={styles.completionActionSub}>
+                {t("completeProfileVisibilitySub", "A complete profile gets more visibility")}
               </Text>
             </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{applicationsCount}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(10, 5, 4, 0.6)"
-              />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          {/* My Saved Jobs */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("SavedJobs")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="star-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.mySavedJobs")}
-              </Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{savedJobsCount}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(10, 5, 4, 0.6)"
-              />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          {/* My Posted Jobs */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("MyJobs")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="share-social-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.myPostedJobs")}
-              </Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{postedJobsCount}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(10, 5, 4, 0.6)"
-              />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          {/* Profile Views */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("ProfileViews")}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="eye-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.profileViews", "Profile Views")}
-              </Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{stats.profile_views}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(10, 5, 4, 0.6)"
-              />
+            <View style={styles.completionArrowCircle}>
+              <Ionicons name="arrow-forward" size={normalize(14)} color="#ffffff" />
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Professional Tools */}
-        <Text style={styles.sectionTitle}>
-          {t("chefDashboard.professionalTools")}
-        </Text>
-        <View style={styles.menuGroup}>
+        {/* Section 1: MY ACTIVITY */}
+        <Text style={styles.sectionHeadingText}>{t("myActivity", "MY ACTIVITY")}</Text>
+        <View style={styles.groupMenuCard}>
           <TouchableOpacity
-            style={styles.menuItem}
+            style={styles.menuRowItem}
+            onPress={() => navigation.navigate("Applications")}
             activeOpacity={0.7}
+          >
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="mail-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("myApplications", "My Applications")}</Text>
+            </View>
+            <View style={styles.menuRowRight}>
+              <View style={styles.badgeOrangePill}>
+                <Text style={styles.badgeOrangeText}>{applicationsCount}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuRowDivider} />
+
+          <TouchableOpacity
+            style={styles.menuRowItem}
+            onPress={() => navigation.navigate("SavedJobs")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="star-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("mySavedJobs", "My Saved Jobs")}</Text>
+            </View>
+            <View style={styles.menuRowRight}>
+              <View style={styles.badgeOrangePill}>
+                <Text style={styles.badgeOrangeText}>{savedJobsCount}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuRowDivider} />
+
+          <TouchableOpacity
+            style={styles.menuRowItem}
+            onPress={() => navigation.navigate("MyJobs")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="share-social-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("myPostedJobs", "My Posted Jobs")}</Text>
+            </View>
+            <View style={styles.menuRowRight}>
+              <View style={styles.badgeOrangePill}>
+                <Text style={styles.badgeOrangeText}>{postedJobsCount}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuRowDivider} />
+
+          <TouchableOpacity
+            style={styles.menuRowItem}
+            onPress={() => navigation.navigate("ProfileViews")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="eye-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("profileViews", "Profile Views")}</Text>
+            </View>
+            <View style={styles.menuRowRight}>
+              <View style={styles.badgeOrangePill}>
+                <Text style={styles.badgeOrangeText}>{stats.profile_views}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Section 2: PROFESSIONAL TOOLS */}
+        <Text style={styles.sectionHeadingText}>{t("professionalTools", "PROFESSIONAL TOOLS")}</Text>
+        <View style={styles.groupMenuCard}>
+          <TouchableOpacity
+            style={styles.menuRowItem}
             onPress={() => navigation.navigate("CalendlyIntegration")}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.calendlyIntegration")}
-              </Text>
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="calendar-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <View style={styles.menuTextCol}>
+                <Text style={styles.menuRowLabel}>{t("calendlyIntegration", "Calendly Integration")}</Text>
+                <Text style={styles.menuRowSub}>Manage your scheduling link</Text>
+              </View>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={() => navigation.navigate("SocialMediaLinks")}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="globe-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.socialMediaLinks")}
-              </Text>
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="globe-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <View style={styles.menuTextCol}>
+                <Text style={styles.menuRowLabel}>{t("socialMediaLinksTitle", "Social Media Links")}</Text>
+                <Text style={styles.menuRowSub}>Manage your connected accounts</Text>
+              </View>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
-          <View style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="time-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.availability")}
-              </Text>
+          <View style={styles.menuRowItem}>
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="time-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <View style={styles.menuTextCol}>
+                <Text style={styles.menuRowLabel}>{t("availability", "Availability")}</Text>
+                <Text style={styles.menuRowSub}>Update your availability status</Text>
+              </View>
             </View>
             <Switch
               value={isAvailable}
               onValueChange={handleToggleAvailability}
-              trackColor={{ false: "rgba(10, 5, 4, 0.15)", true: "#f2c879" }}
-              thumbColor={isAvailable ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
+              trackColor={{ false: "#cbd5e1", true: "#cbd5e1" }}
+              thumbColor={isAvailable ? "#002b5c" : "#94a3b8"}
             />
           </View>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={handleShareProfile}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="share-outline"
-                size={20}
-                color="#153e69"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("chefDashboard.shareProfile")}
-              </Text>
+            <View style={styles.menuRowLeft}>
+              <View style={styles.menuIconCircle}>
+                <Ionicons name="share-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <View style={styles.menuTextCol}>
+                <Text style={styles.menuRowLabel}>{t("shareProfessionalProfile", "Share Professional Profile")}</Text>
+                <Text style={styles.menuRowSub}>Share your profile with others</Text>
+              </View>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
         </View>
 
-        {/* Settings & Support */}
-        <Text style={styles.sectionTitle}>
-          {t("chefDashboard.settingsSupport")}
-        </Text>
-        <View style={styles.menuGroup}>
+        {/* Section 3: SETTINGS & SUPPORT */}
+        <Text style={styles.sectionHeadingText}>{t("settingsAndSupport", "SETTINGS & SUPPORT")}</Text>
+        <View style={styles.groupMenuCard}>
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={() => navigation.navigate("Language")}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="language-outline"
-                size={20}
-                color="rgba(10, 5, 4, 0.6)"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>{t("language")}</Text>
+            <View style={styles.menuRowLeft}>
+              <View style={[styles.menuIconCircle, { backgroundColor: "#f1f5f9" }]}>
+                <Ionicons name="language-outline" size={normalize(18)} color="#64748b" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("language", "Language")}</Text>
             </View>
-            <View style={styles.menuItemRight}>
+            <View style={styles.menuRowRight}>
               <Text style={styles.langValueText}>{currentLanguageName}</Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(10, 5, 4, 0.6)"
-              />
+              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
             </View>
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={() => navigation.navigate("TalentSettings")}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="settings-outline"
-                size={20}
-                color="rgba(10, 5, 4, 0.6)"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>
-                {t("settingsTitle", "Settings")}
-              </Text>
+            <View style={styles.menuRowLeft}>
+              <View style={[styles.menuIconCircle, { backgroundColor: "#f1f5f9" }]}>
+                <Ionicons name="settings-outline" size={normalize(18)} color="#64748b" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("settingsTitle", "Settings")}</Text>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={() => navigation.navigate("HelpSupport")}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="headset-outline"
-                size={20}
-                color="rgba(10, 5, 4, 0.6)"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemLabel}>{t("customerSupport")}</Text>
+            <View style={styles.menuRowLeft}>
+              <View style={[styles.menuIconCircle, { backgroundColor: "#f1f5f9" }]}>
+                <Ionicons name="headset-outline" size={normalize(18)} color="#64748b" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("helpAndSupport", "Help & Support")}</Text>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
+          <View style={styles.menuRowDivider} />
 
           <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
+            style={styles.menuRowItem}
             onPress={handleLogout}
+            activeOpacity={0.7}
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="log-out-outline"
-                size={20}
-                color="#f57f20"
-                style={styles.menuIcon}
-              />
-              <Text style={[styles.menuItemLabel, { color: "#f57f20" }]}>
-                {t("logOut")}
-              </Text>
+            <View style={styles.menuRowLeft}>
+              <View style={[styles.menuIconCircle, { backgroundColor: "#fff7ed" }]}>
+                <Ionicons name="log-out-outline" size={normalize(18)} color="#f57f20" />
+              </View>
+              <Text style={[styles.menuRowLabel, { color: "#f57f20" }]}>{t("logOut", "Log Out")}</Text>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color="rgba(10, 5, 4, 0.6)"
-            />
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1314,39 +766,31 @@ ${shareUrl}
             style={StyleSheet.absoluteFill}
             onPress={() => setShowLogoutModal(false)}
           />
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setShowLogoutModal(false)}
-          />
           <View style={styles.modalCard}>
-            <View style={styles.modalIcon}>
-              <Ionicons name="log-out-outline" size={22} color="#f57f20" />
+            <View style={styles.modalIconCircle}>
+              <Ionicons name="log-out-outline" size={normalize(22)} color="#f57f20" />
             </View>
-            <Text style={styles.modalTitle}>
+            <Text style={styles.modalTitleText}>
               {t("profile.logoutConfirmTitle", "Logout")}
             </Text>
-            <Text style={styles.modalText}>
+            <Text style={styles.modalSubText}>
               {t("profile.logoutConfirm", "Are you sure you want to logout?")}
             </Text>
 
-            <View style={styles.modalActions}>
+            <View style={styles.modalActionsRow}>
               <Pressable
                 onPress={() => setShowLogoutModal(false)}
-                style={[styles.modalButton, styles.modalCancelButton]}
+                style={[styles.modalBtn, styles.modalCancelBtn]}
               >
-                <Text style={styles.modalCancelText}>
+                <Text style={styles.modalCancelBtnText}>
                   {t("cancel", "Cancel")}
                 </Text>
               </Pressable>
               <Pressable
                 onPress={executeLogout}
-                style={[
-                  styles.modalButton,
-                  styles.modalConfirmButton,
-                  { backgroundColor: "#f57f20" },
-                ]}
+                style={[styles.modalBtn, styles.modalConfirmBtn]}
               >
-                <Text style={styles.modalConfirmText}>
+                <Text style={styles.modalConfirmBtnText}>
                   {t("logout", "Logout")}
                 </Text>
               </Pressable>
@@ -1361,338 +805,415 @@ ${shareUrl}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f7f8fd",
   },
-  header: {
+  headerBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(10),
+    paddingBottom: normalize(12),
+    backgroundColor: "#f7f8fd",
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+  headerBackBtn: {
+    padding: normalize(4),
   },
-  backButton: {
-    padding: 4,
-    marginRight: 10,
+  headerBarTitle: {
+    fontSize: normalize(18),
+    fontWeight: "700",
+    color: "#0f172a",
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0a0504",
+  headerBellBtn: {
+    padding: normalize(4),
+    position: "relative",
   },
-  bellButton: {
-    padding: 4,
+  bellRedDot: {
+    position: "absolute",
+    top: normalize(3),
+    right: normalize(3),
+    width: normalize(8),
+    height: normalize(8),
+    borderRadius: normalize(4),
+    backgroundColor: "#ef4444",
+    borderWidth: 1.5,
+    borderColor: "#ffffff",
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  profileCard: {
-    backgroundColor: "#ffffff",
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    shadowColor: "#0a0504",
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    marginBottom: 20,
-  },
-  profileHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  avatarContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#153e69",
-    overflow: "hidden",
-    marginRight: 16,
-    backgroundColor: "#f2f2f3",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  avatarPlaceholder: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  profileTextInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0a0504",
-    marginBottom: 2,
-  },
-  profileTitle: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 4,
-    lineHeight: 16,
-  },
-  profileDetailsList: {
-    marginTop: 4,
-    gap: 3,
-  },
-  detailRowText: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  detailLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.5)",
-  },
-  detailValue: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.8)",
-  },
-  statusText: {
-    fontSize: 11,
-    color: "#153e69",
-    fontWeight: "700",
-  },
-  viewProfileBtn: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  viewProfileBtnText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.6)",
-    textTransform: "uppercase",
-    marginBottom: 12,
-    marginLeft: 4,
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(6),
+    gap: normalize(14),
+    paddingBottom: normalize(30),
   },
 
-  fullWidthCardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#ffffff",
+  // Hero Card
+  heroCard: {
+    backgroundColor: "#f4f6f9",
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 20,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  fullWidthCardLeft: {
+  heroTopRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-  fullWidthCardText: {
-    fontSize: 12,
-    color: "#0a0504",
-    fontWeight: "500",
+  avatarWrapper: {
+    position: "relative",
+    marginRight: normalize(12),
   },
-  menuGroup: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 20,
-    overflow: "hidden",
+  avatarImage: {
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(28),
+    backgroundColor: "#eef2ff",
   },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  menuItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuIcon: {
-    marginRight: 12,
-  },
-  menuItemLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#0a0504",
-  },
-  menuItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  badgeContainer: {
-    backgroundColor: "rgba(245, 127, 32, 0.08)",
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    minWidth: 20,
+  avatarPlaceholder: {
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(28),
+    backgroundColor: "#eef2ff",
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#f57f20",
+  cameraBadgeCircle: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: normalize(18),
+    height: normalize(18),
+    borderRadius: normalize(9),
+    backgroundColor: "#002b5c",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#ffffff",
   },
-  menuDivider: {
+  heroTextCol: {
+    flex: 1,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(6),
+    marginBottom: normalize(2),
+  },
+  heroNameText: {
+    fontSize: normalize(17),
+    fontWeight: "700",
+    color: "#0f172a",
+    flexShrink: 1,
+  },
+  activePillBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e6f4ea",
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(10),
+    gap: normalize(4),
+  },
+  greenActiveDot: {
+    width: normalize(6),
+    height: normalize(6),
+    borderRadius: normalize(3),
+    backgroundColor: "#16a34a",
+  },
+  activePillText: {
+    fontSize: normalize(10.5),
+    fontWeight: "700",
+    color: "#16a34a",
+  },
+  heroRoleText: {
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#475569",
+    marginBottom: normalize(4),
+  },
+  jobTypePillBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#eef2ff",
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(6),
+  },
+  jobTypePillText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+    color: "#4f46e5",
+  },
+  heroDividerLine: {
     height: 1,
-    backgroundColor: "#f2f2f3",
-    marginLeft: 16,
+    backgroundColor: "#e2e8f0",
+    marginVertical: normalize(10),
+  },
+
+  // 3 Metrics Row
+  metricsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  metricItemCol: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  metricTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(2),
+  },
+  metricValueText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  metricLabelText: {
+    fontSize: normalize(10),
+    fontWeight: "500",
+    color: "#94a3b8",
+  },
+  metricVerticalDivider: {
+    width: 1,
+    height: normalize(22),
+    backgroundColor: "#cbd5e1",
+    marginHorizontal: normalize(6),
+  },
+
+  // Profile Completion Card
+  completionCardBox: {
+    backgroundColor: "#f4f6f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(14),
+    padding: normalize(10),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  completionTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: normalize(4),
+  },
+  completionCardTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  completionCardValue: {
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+    color: "#002b5c",
+  },
+  completionTrack: {
+    height: normalize(6),
+    backgroundColor: "#e2e8f0",
+    borderRadius: normalize(3),
+    overflow: "hidden",
+    marginBottom: normalize(8),
+  },
+  completionFill: {
+    height: "100%",
+    backgroundColor: "#002b5c",
+    borderRadius: normalize(3),
+  },
+  completionActionBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(10),
+    padding: normalize(8),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  completionActionIconCircle: {
+    width: normalize(30),
+    height: normalize(30),
+    borderRadius: normalize(8),
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(8),
+  },
+  completionActionTextCol: {
+    flex: 1,
+  },
+  completionActionTitle: {
+    fontSize: normalize(13),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: normalize(1),
+  },
+  completionActionSub: {
+    fontSize: normalize(10.5),
+    fontWeight: "500",
+    color: "#64748b",
+  },
+  completionArrowCircle: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
+    backgroundColor: "#002b5c",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Section Heading
+  sectionHeadingText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+    color: "#64748b",
+    letterSpacing: 0.8,
+    marginTop: normalize(2),
+  },
+
+  // Group Menu Card
+  groupMenuCard: {
+    backgroundColor: "#f4f6f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(14),
+    paddingVertical: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  menuRowItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(7),
+  },
+  menuRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  menuIconCircle: {
+    width: normalize(34),
+    height: normalize(34),
+    borderRadius: normalize(17),
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(12),
+  },
+  menuTextCol: {
+    flex: 1,
+  },
+  menuRowLabel: {
+    fontSize: normalize(13.5),
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  menuRowSub: {
+    fontSize: normalize(11),
+    fontWeight: "500",
+    color: "#64748b",
+    marginTop: normalize(1),
+  },
+  menuRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(8),
+  },
+  badgeOrangePill: {
+    backgroundColor: "#fff7ed",
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(10),
+  },
+  badgeOrangeText: {
+    fontSize: normalize(11.5),
+    fontWeight: "700",
+    color: "#f97316",
   },
   langValueText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "600",
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#64748b",
   },
-  completionCardContainer: {
-    paddingHorizontal: 0,
-    marginBottom: 16,
-  },
-  completionCard: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    borderRadius: 20,
-    padding: 16,
-  },
-  completionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  completionTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  completionPercent: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#153e69",
-  },
-  progressContainer: {
-    height: 6,
-    marginBottom: 12,
-    width: "100%",
-  },
-  progressBarTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#f2f2f3",
-    width: "100%",
-  },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 3,
-    backgroundColor: "#153e69",
-  },
-  addSkillsBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f2f2f3",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 4,
-  },
-  addSkillsText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "600",
+  menuRowDivider: {
+    height: 1,
+    backgroundColor: "#e2e8f0",
+    marginHorizontal: normalize(10),
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.45)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: normalize(24),
   },
   modalCard: {
     width: "100%",
-    maxWidth: 340,
+    maxWidth: normalize(320),
     backgroundColor: "#ffffff",
-    borderRadius: 22,
-    padding: 20,
+    borderRadius: normalize(20),
+    padding: normalize(20),
     alignItems: "center",
-    gap: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
+    elevation: 5,
   },
-  modalIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: "rgba(245, 127, 32, 0.08)",
+  modalIconCircle: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(22),
+    backgroundColor: "#fff7ed",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(245, 127, 32, 0.2)",
+    marginBottom: normalize(12),
   },
-  modalTitle: {
-    color: "#0a0504",
-    fontSize: 18,
-    fontWeight: "900",
+  modalTitleText: {
+    fontSize: normalize(16),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: normalize(6),
+  },
+  modalSubText: {
+    fontSize: normalize(13),
+    fontWeight: "500",
+    color: "#64748b",
     textAlign: "center",
+    marginBottom: normalize(18),
   },
-  modalText: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: "center",
-  },
-  modalActions: {
+  modalActionsRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: normalize(10),
     width: "100%",
-    marginTop: 6,
   },
-  modalButton: {
+  modalBtn: {
     flex: 1,
-    minHeight: 46,
-    borderRadius: 14,
+    height: normalize(42),
+    borderRadius: normalize(10),
     alignItems: "center",
     justifyContent: "center",
   },
-  modalCancelButton: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.12)",
+  modalCancelBtn: {
+    backgroundColor: "#f1f5f9",
   },
-  modalConfirmButton: {
+  modalCancelBtnText: {
+    fontSize: normalize(13.5),
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  modalConfirmBtn: {
     backgroundColor: "#f57f20",
   },
-  modalCancelText: {
-    color: "#0a0504",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  modalConfirmText: {
+  modalConfirmBtnText: {
+    fontSize: normalize(13.5),
+    fontWeight: "700",
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "800",
   },
 });

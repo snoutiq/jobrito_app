@@ -8,23 +8,24 @@ import {
   ScrollView,
   Linking,
   ActivityIndicator,
-  Clipboard,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import colors from "../../constants/colors";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setStoredProfile } from "../../services/storage";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
-const PRIMARY = "#153e69";
-const SECONDARY = "#f2f2f3";
-const WARM_GOLD = "#f2c879";
-const EMBER_ORANGE = "#f57f20";
-const NEUTRAL = "#0a0504";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+
+function normalize(size) {
+  const newSize = size * scale;
+  return Math.round(newSize);
+}
 
 export default function CalendlyIntegrationScreen({ navigation }) {
   const { t } = useTranslation();
@@ -42,8 +43,6 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   }, [profile]);
 
   const isConnected = Boolean(calendlyLink && calendlyLink.trim().length > 5);
-
-
 
   const handleSignupCalendly = () => {
     Linking.openURL("https://calendly.com/signup").catch((err) => {
@@ -109,51 +108,65 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={NEUTRAL} />
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBackBtnCircle}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chevron-back" size={normalize(20)} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("calendlyIntegration", "Calendly Integration")}</Text>
-        <View style={{ width: 36 }} />
+        <Text style={styles.headerBarTitle}>{t("myProfile", "My Profile")}</Text>
+        <View style={{ width: normalize(36) }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Status Card */}
-        <View style={styles.statusCard}>
-          <View style={styles.statusRow}>
-            <View style={[styles.iconWrap, { backgroundColor: isConnected ? "rgba(34, 197, 94, 0.12)" : "rgba(242, 200, 121, 0.18)" }]}>
+        {/* Banner Box */}
+        <View style={styles.bannerBox}>
+          <View style={[styles.bannerIconCircle, isConnected && styles.bannerIconCircleConnected]}>
+            <Ionicons
+              name="calendar-outline"
+              size={normalize(22)}
+              color={isConnected ? "#16a34a" : "#d97706"}
+            />
+          </View>
+          <View style={styles.bannerTextCol}>
+            <Text style={styles.bannerTitle}>{t("calendlyIntegration", "Calendly Integration")}</Text>
+            
+            {/* Status Pill Badge */}
+            <View style={[styles.statusPillBadge, isConnected && styles.statusPillBadgeConnected]}>
               <Ionicons
                 name={isConnected ? "checkmark-circle" : "alert-circle"}
-                size={28}
-                color={isConnected ? "#15803d" : "#b8860b"}
+                size={normalize(13)}
+                color={isConnected ? "#15803d" : "#b45309"}
+                style={{ marginRight: normalize(4) }}
               />
-            </View>
-            <View style={styles.statusTextInfo}>
-              <Text style={styles.statusTitle}>
-                {isConnected ? t("calendly.statusConnected", "Calendly Connected") : t("calendly.statusNotConnected", "Not Integrated Yet")}
-              </Text>
-              <Text style={styles.statusSubtitle}>
-                {isConnected
-                  ? t("calendly.statusDescConnected", "Recruiters can schedule 1-on-1 calls directly into your calendar.")
-                  : t("calendly.statusDescNotConnected", "Link your Calendly account so employers can book consultation calls with you.")}
+              <Text style={[styles.statusPillBadgeText, isConnected && styles.statusPillBadgeTextConnected]}>
+                {isConnected ? t("connected", "Connected") : t("notIntegrated", "Not Integrated")}
               </Text>
             </View>
+
+            <Text style={styles.bannerDesc}>
+              {t("calendlyIntegrationDesc", "Link your Calendly account so employers and businesses can book consultation calls with you.")}
+            </Text>
           </View>
         </View>
 
-        {/* Input Form Section */}
-        <View style={styles.formCard}>
-          <Text style={styles.formLabel}>{t("calendly.label", "Calendly Scheduling Link")}</Text>
-          <Text style={styles.formHint}>
-            {t("calendly.hint", "Example: https://calendly.com/your-name/30min")}
+        {/* Input Form Section Card */}
+        <View style={styles.mainFormCard}>
+          <Text style={styles.formCardTitle}>
+            {t("calendlySchedulingLinkTitle", "Calendly Scheduling Link")}
+          </Text>
+          <Text style={styles.formCardSub}>
+            {t("calendlySchedulingLinkSub", "Enter your Calendly scheduling link (e.g. https://calendly.com/your-name/30min)")}
           </Text>
 
-          <View style={[styles.inputWrapper, activeInput && styles.inputWrapperActive]}>
-            <Ionicons name="link-outline" size={20} color={PRIMARY} style={{ marginRight: 8 }} />
+          <View style={[styles.modernInputWrapper, activeInput && styles.modernInputWrapperActive]}>
+            <Ionicons name="link-outline" size={normalize(18)} color="#64748b" style={{ marginRight: normalize(8) }} />
             <TextInput
-              style={styles.textInput}
-              placeholder="https://calendly.com/your-username"
-              placeholderTextColor="rgba(10, 5, 4, 0.4)"
+              style={styles.modernTextInput}
+              placeholder={t("calendlyPlaceholder", "https://calendly.com/your-link")}
+              placeholderTextColor="#94a3b8"
               value={calendlyLink}
               onChangeText={setCalendlyLink}
               onFocus={() => setActiveInput(true)}
@@ -163,73 +176,110 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               keyboardType="url"
             />
             {calendlyLink ? (
-              <TouchableOpacity onPress={() => setCalendlyLink("")} style={{ padding: 4 }}>
-                <Ionicons name="close-circle" size={18} color="rgba(10, 5, 4, 0.4)" />
+              <TouchableOpacity onPress={() => setCalendlyLink("")} style={{ padding: normalize(4) }}>
+                <Ionicons name="close-circle" size={normalize(18)} color="#94a3b8" />
               </TouchableOpacity>
             ) : null}
           </View>
 
-
-
           {/* Primary Save Button */}
           <TouchableOpacity
-            style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
+            style={[styles.saveSolidBtn, loading && styles.saveSolidBtnDisabled]}
             onPress={handleSaveLink}
             disabled={loading}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <>
-                <Text style={styles.saveBtnText}>{t("calendly.btnSave", "Save Calendly Link")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#ffffff" />
-              </>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: normalize(8) }}>
+                <Text style={styles.saveSolidBtnText}>{t("saveCalendlyLink", "Save Calendly Link")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" />
+              </View>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* How It Works Guide */}
-        <View style={styles.guideCard}>
-          <View style={styles.guideHeader}>
-            <Ionicons name="information-circle-outline" size={22} color={PRIMARY} style={{ marginRight: 8 }} />
-            <Text style={styles.guideTitle}>{t("calendly.whyIntegrate", "Why integrate Calendly?")}</Text>
+        {/* How It Works Guide Card */}
+        <View style={styles.howItWorksCard}>
+          <View style={styles.howItWorksHeaderRow}>
+            <Ionicons name="information-circle-outline" size={normalize(22)} color="#153e69" style={{ marginRight: normalize(8) }} />
+            <Text style={styles.howItWorksTitle}>{t("howItWorksTitle", "How it works?")}</Text>
           </View>
-          <View style={styles.guideStep}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>1</Text>
+
+          {/* Step 1 */}
+          <View style={styles.stepRowBlock}>
+            <View style={styles.stepLeftCol}>
+              <View style={styles.stepNumCircle}>
+                <Text style={styles.stepNumCircleText}>1</Text>
+              </View>
+              <View style={styles.stepDottedLine} />
             </View>
-            <Text style={styles.stepText}>
-              {t("calendly.step1", "Employers and restaurant owners browse your chef profile on Jobrito.")}
-            </Text>
+            <View style={styles.stepContentCol}>
+              <Text style={styles.stepText}>
+                {t("howItWorksStep1", "Employers and businesses browse your chef profile on Jobrito.")}
+              </Text>
+            </View>
+            <View style={styles.stepRightIconCircle}>
+              <Ionicons name="people-outline" size={normalize(20)} color="#153e69" />
+            </View>
           </View>
-          <View style={styles.guideStep}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>2</Text>
+
+          {/* Step 2 */}
+          <View style={styles.stepRowBlock}>
+            <View style={styles.stepLeftCol}>
+              <View style={styles.stepNumCircle}>
+                <Text style={styles.stepNumCircleText}>2</Text>
+              </View>
+              <View style={styles.stepDottedLine} />
             </View>
-            <Text style={styles.stepText}>
-              {t("calendly.step2", "They click 'Book Consultation' to view your available time slots.")}
-            </Text>
+            <View style={styles.stepContentCol}>
+              <Text style={styles.stepText}>
+                {t("howItWorksStep2", "They click 'Book Consultation' to view your available time slots.")}
+              </Text>
+            </View>
+            <View style={styles.stepRightIconCircle}>
+              <Ionicons name="calendar-outline" size={normalize(20)} color="#153e69" />
+            </View>
           </View>
-          <View style={styles.guideStep}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>3</Text>
+
+          {/* Step 3 */}
+          <View style={styles.stepRowBlock}>
+            <View style={styles.stepLeftCol}>
+              <View style={styles.stepNumCircle}>
+                <Text style={styles.stepNumCircleText}>3</Text>
+              </View>
             </View>
-            <Text style={styles.stepText}>
-              {t("calendly.step3", "Calls are automatically synced into your Google/Outlook calendar.")}
-            </Text>
+            <View style={styles.stepContentCol}>
+              <Text style={styles.stepText}>
+                {t("howItWorksStep3", "Calls are automatically synced into your Google/Outlook calendar.")}
+              </Text>
+            </View>
+            <View style={styles.stepRightIconCircle}>
+              <Ionicons name="sync-outline" size={normalize(20)} color="#153e69" />
+            </View>
           </View>
         </View>
 
-        {/* Don't have an account */}
-        <View style={styles.signupCard}>
-          <Text style={styles.signupTitle}>{t("calendly.noAccount", "Don't have a Calendly account yet?")}</Text>
-          <Text style={styles.signupSubtitle}>
-            {t("calendly.noAccountDesc", "Create a free account on Calendly in 2 minutes to get your scheduling URL.")}
-          </Text>
-          <TouchableOpacity style={styles.signupBtn} onPress={handleSignupCalendly}>
-            <Ionicons name="create-outline" size={16} color={PRIMARY} style={{ marginRight: 6 }} />
-            <Text style={styles.signupBtnText}>{t("calendly.btnSignUp", "Sign Up Free on Calendly")}</Text>
+        {/* Don't have a Calendly Account Card */}
+        <View style={styles.dontHaveAccountCard}>
+          <View style={styles.dontHaveAccountTopRow}>
+            <View style={styles.dontHaveIconCircle}>
+              <Ionicons name="calendar-outline" size={normalize(22)} color="#4f46e5" />
+            </View>
+            <View style={styles.dontHaveTextCol}>
+              <Text style={styles.dontHaveTitle}>
+                {t("dontHaveCalendlyTitle", "Don't have a Calendly account yet?")}
+              </Text>
+              <Text style={styles.dontHaveSub}>
+                {t("dontHaveCalendlySub", "Create a free account on Calendly in just 2 minutes to get your scheduling link.")}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignupCalendly} activeOpacity={0.85}>
+            <Ionicons name="open-outline" size={normalize(16)} color="#4f46e5" style={{ marginRight: normalize(6) }} />
+            <Text style={styles.signUpButtonText}>{t("signUpFreeCalendly", "Sign Up Free on Calendly")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -240,219 +290,284 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
   },
-  header: {
+  headerBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(12),
+    paddingBottom: normalize(14),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#f1f5f9",
   },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f2f2f3",
+  headerBackBtnCircle: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: NEUTRAL,
+  headerBarTitle: {
+    fontSize: normalize(16.5),
+    fontWeight: "800",
+    color: "#0f172a",
   },
   scrollContent: {
-    padding: 16,
-    gap: 16,
-    paddingBottom: 40,
+    padding: normalize(16),
+    gap: normalize(16),
+    paddingBottom: normalize(40),
   },
 
-  // Status Card
-  statusCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-  },
-  statusRow: {
+  // Banner Box
+  bannerBox: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    backgroundColor: "#fffdf5",
+    borderWidth: 1,
+    borderColor: "#fef08a",
+    borderRadius: normalize(18),
+    padding: normalize(16),
   },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+  bannerIconCircle: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(14),
+    backgroundColor: "#fef3c7",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 14,
+    marginRight: normalize(14),
   },
-  statusTextInfo: {
+  bannerIconCircleConnected: {
+    backgroundColor: "#dcfce7",
+  },
+  bannerTextCol: {
     flex: 1,
   },
-  statusTitle: {
-    fontSize: 16,
+  bannerTitle: {
+    fontSize: normalize(15),
     fontWeight: "800",
-    color: NEUTRAL,
-    marginBottom: 3,
+    color: "#0f172a",
+    marginBottom: normalize(4),
   },
-  statusSubtitle: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 17,
-  },
-
-  // Form Card
-  formCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-  },
-  formLabel: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: NEUTRAL,
-    marginBottom: 2,
-  },
-  formHint: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.5)",
-    marginBottom: 14,
-  },
-  inputWrapper: {
+  statusPillBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f2f2f3",
-    borderRadius: 14,
+    alignSelf: "flex-start",
+    backgroundColor: "#fef3c7",
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(3),
+    borderRadius: normalize(12),
+    marginBottom: normalize(6),
+  },
+  statusPillBadgeConnected: {
+    backgroundColor: "#dcfce7",
+  },
+  statusPillBadgeText: {
+    fontSize: normalize(11.5),
+    fontWeight: "800",
+    color: "#b45309",
+  },
+  statusPillBadgeTextConnected: {
+    color: "#15803d",
+  },
+  bannerDesc: {
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#475569",
+    lineHeight: normalize(18),
+  },
+
+  // Main Form Card
+  mainFormCard: {
+    backgroundColor: "#ffffff",
     borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    paddingHorizontal: 14,
-    height: 50,
-    marginBottom: 12,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(18),
+    padding: normalize(16),
   },
-  inputWrapperActive: {
-    borderColor: PRIMARY,
-    backgroundColor: "#ffffff",
+  formCardTitle: {
+    fontSize: normalize(15),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: normalize(4),
   },
-  textInput: {
-    flex: 1,
-    fontSize: 14,
-    color: NEUTRAL,
-    fontWeight: "600",
+  formCardSub: {
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#64748b",
+    lineHeight: normalize(18),
+    marginBottom: normalize(14),
   },
-
-  saveBtn: {
+  modernInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: PRIMARY,
-    minHeight: 52,
-    borderRadius: 12,
-    gap: 8,
-    shadowColor: PRIMARY,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    marginTop: 20,
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#cbd5e1",
+    borderRadius: normalize(12),
+    paddingHorizontal: normalize(14),
+    height: normalize(48),
+    marginBottom: normalize(16),
   },
-  saveBtnDisabled: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
+  modernInputWrapperActive: {
+    borderColor: "#153e69",
+    backgroundColor: "#ffffff",
+  },
+  modernTextInput: {
+    flex: 1,
+    fontSize: normalize(13.5),
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+
+  // Save Solid Button
+  saveSolidBtn: {
+    width: "100%",
+    backgroundColor: "#002b5c",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(16),
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#002b5c",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveSolidBtnDisabled: {
+    backgroundColor: "#cbd5e1",
     shadowOpacity: 0,
     elevation: 0,
   },
-  saveBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
+  saveSolidBtnText: {
+    fontSize: normalize(15.5),
+    fontWeight: "800",
     color: "#ffffff",
   },
 
-  // Guide Card
-  guideCard: {
+  // How It Works Guide Card
+  howItWorksCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    padding: 16,
-    gap: 12,
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: normalize(18),
+    padding: normalize(16),
   },
-  guideHeader: {
+  howItWorksHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: normalize(16),
   },
-  guideTitle: {
-    fontSize: 15,
+  howItWorksTitle: {
+    fontSize: normalize(15),
     fontWeight: "800",
-    color: NEUTRAL,
+    color: "#0f172a",
   },
-  guideStep: {
+  stepRowBlock: {
     flexDirection: "row",
     alignItems: "center",
+    minHeight: normalize(54),
   },
-  stepBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "rgba(21, 62, 105, 0.1)",
+  stepLeftCol: {
+    alignItems: "center",
+    marginRight: normalize(12),
+    height: "100%",
+  },
+  stepNumCircle: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
+    backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
   },
-  stepBadgeText: {
-    fontSize: 11,
+  stepNumCircleText: {
+    fontSize: normalize(12),
     fontWeight: "800",
-    color: PRIMARY,
+    color: "#0f172a",
+  },
+  stepDottedLine: {
+    flex: 1,
+    width: 1,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderStyle: "dashed",
+    marginVertical: normalize(4),
+  },
+  stepContentCol: {
+    flex: 1,
+    marginRight: normalize(10),
   },
   stepText: {
-    flex: 1,
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.7)",
-    lineHeight: 18,
+    fontSize: normalize(12.5),
+    fontWeight: "500",
+    color: "#334155",
+    lineHeight: normalize(18),
+  },
+  stepRightIconCircle: {
+    width: normalize(38),
+    height: normalize(38),
+    borderRadius: normalize(19),
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  // Signup Card
-  signupCard: {
-    backgroundColor: "rgba(21, 62, 105, 0.05)",
-    borderRadius: 18,
+  // Don't Have Account Card
+  dontHaveAccountCard: {
+    backgroundColor: "#f5f3ff",
     borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.15)",
-    padding: 16,
+    borderColor: "#e0e7ff",
+    borderRadius: normalize(18),
+    padding: normalize(16),
+  },
+  dontHaveAccountTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: normalize(14),
+  },
+  dontHaveIconCircle: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(14),
+    backgroundColor: "#ede9fe",
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(14),
   },
-  signupTitle: {
-    fontSize: 15,
+  dontHaveTextCol: {
+    flex: 1,
+  },
+  dontHaveTitle: {
+    fontSize: normalize(14.5),
     fontWeight: "800",
-    color: PRIMARY,
-    marginBottom: 4,
-    textAlign: "center",
+    color: "#1e1b4b",
+    marginBottom: normalize(4),
   },
-  signupSubtitle: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
-    textAlign: "center",
-    lineHeight: 17,
-    marginBottom: 14,
+  dontHaveSub: {
+    fontSize: normalize(12),
+    fontWeight: "500",
+    color: "#475569",
+    lineHeight: normalize(17),
   },
-  signupBtn: {
+  signUpButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.2)",
+    borderWidth: 1.5,
+    borderColor: "#c7d2fe",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(16),
   },
-  signupBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: PRIMARY,
+  signUpButtonText: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#4f46e5",
   },
 });
