@@ -44,6 +44,7 @@ import ProfileViewsScreen from "../screens/chef/ProfileViewsScreen";
 import ProjectRequestsScreen from "../screens/chef/ProjectRequestsScreen";
 import { setProfileData } from "../redux/slices/userSlice";
 import MyJobDetailsScreen from "../screens/employer/MyJobDetailsScreen";
+import MyPostJobsDetailsScreen from "../screens/employer/MyPostJobsDetailsScreen";
 import NotificationDetailsScreen from "../screens/employer/NotificationDetailsScreen";
 import DeepLinkGuideScreen from "../screens/common/DeepLinkGuideScreen";
 
@@ -75,7 +76,7 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: t("profileTab") , headerBackTitle: "" }}
+        options={{ title: t("myProfile", "My Profile"), headerBackTitle: "" }}
       />
       <Stack.Screen
         name="JobDetails"
@@ -85,6 +86,11 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="MyJobDetails"
         component={MyJobDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyPostJobsDetails"
+        component={MyPostJobsDetailsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -327,6 +333,11 @@ export default function MainTabs() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="MyPostJobsDetails"
+        component={MyPostJobsDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="ApplicantList"
         component={ApplicantListScreen}
         options={{ headerShown: false }}
@@ -437,7 +448,7 @@ export default function MainTabs() {
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: t("profileTab") }}
+        options={{ title: t("myProfile", "My Profile") }}
       />
       <Stack.Screen
         name="Post Job"

@@ -457,6 +457,20 @@
   "closed": "बंद",
   "completed": "पूर्ण झाले",
   "applicationStatus": "अर्जाची स्थिती",
+  "tapToViewFullProfile": "पूर्ण प्रोफाइल पाहण्यासाठी टॅप करा",
+  "preferredLocation": "पसंतीचे ठिकाण",
+  "profileCompletion": "प्रोफाइल पूर्णता",
+  "myJobActivity": "माझी नोकरी क्रियाकलाप",
+  "trackAppliedJobs": "आपण अर्ज केलेल्या नोकऱ्या ट्रॅक करा.",
+  "myJobReferrals": "माझ्या नोकरीच्या शिफारसी",
+  "viewSharedJobs": "समुदायासोबत शेअर केलेल्या नोकऱ्या पहा.",
+  "viewBookmarkedJobs": "नंतरसाठी बुकमार्क केलेल्या नोकऱ्या पहा.",
+  "savedOpportunities": "जतन केलेल्या संधी",
+  "savedJobsSubtitle": "नंतरसाठी जतन केलेल्या संधी",
+  "preferencesAndAccount": "प्राधान्ये आणि खाते",
+  "settingsAndSupport": "सेटिंग्ज आणि समर्थन",
+  "manageAccountSupport": "तुमचे खाते, गोपनीयता आणि समर्थन व्यवस्थापित करा.",
+  "logOut": "लॉग आउट",
   "quickActions": "जलद कृती",
   "postAJob": "नोकरी पोस्ट करा",
   "createOpeningSubtitle": "तुमच्या टीमसाठी नवीन संधी तयार करा",
@@ -479,6 +493,7 @@
   "fullySupported": "पूर्णपणे समर्थित",
   "inDevelopmentStayTuned": "प्रगतीपथावर आहे — अपडेटसाठी संपर्कात रहा",
   "needHelpQuestion": "मदत हवी आहे की काही प्रश्न आहे?",
+  "supportHoursTitle": "सहायता वेळ",
   "supportDays": "सोमवार – शनिवार",
   "supportTimings": "सकाळी 10:00 – संध्याकाळी 6:00 IST",
   "businessName": "बिजनेसचे नाव",
@@ -823,5 +838,17 @@
     "goBack": "मागे जा",
     "notLinked": "कॅलेंडली लिंक केलेले नाही",
     "notLinkedDesc": "या शेफने अद्याप त्यांचे कॅलेंडली कॅलेंडर एकत्रित केलेले नाही. कृपया त्यांच्याशी थेट संपर्क साधा."
-  }
+  },
+  "savedJobs": {
+    "title": "जतन केलेल्या नोकऱ्या",
+    "loadingOps": "जतन केलेल्या संधी लोड करत आहे...",
+    "opportunitiesCount": "{{count}} जतन केलेल्या संधी",
+    "noSavedYet": "अद्याप कोणतीही जतन केलेली नोकरी नाही",
+    "bookmarkInstruction": "तुम्ही बुकमार्क केलेल्या नोकऱ्या जलद प्रवेशासाठी येथे प्रदर्शित केल्या जातील.",
+    "removeSavedJob": "जतन केलेली नोकरी हटवा",
+    "removeConfirm": "तुम्ही नक्की तुमच्या जतन केलेल्या सूचीमधून \"{{title}}\" हटवू इच्छिता?",
+    "removedMsg": "नोकरी जतन केलेल्या सूचीमधून हटवली.",
+    "failedToRemove": "नोकरी हटवण्यात अपयशी."
+  },
+  "openings": "खुली पदे"
 }

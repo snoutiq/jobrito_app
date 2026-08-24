@@ -447,6 +447,20 @@
   "closed": "അവസാനിച്ചു",
   "completed": "പൂർത്തിയായി",
   "applicationStatus": "അപേക്ഷയുടെ നില",
+  "tapToViewFullProfile": "മുഴുവൻ പ്രൊഫൈലും കാണാൻ ടാപ്പ് ചെയ്യുക",
+  "preferredLocation": "ഇഷ്ടപ്പെട്ട സ്ഥലം",
+  "profileCompletion": "പ്രൊഫൈൽ പൂർത്തീകരണം",
+  "myJobActivity": "എന്റെ ജോലി പ്രവർത്തനങ്ങൾ",
+  "trackAppliedJobs": "നിങ്ങൾ അപേക്ഷിച്ച ജോലികൾ ട്രാക്ക് ചെയ്യുക.",
+  "myJobReferrals": "എന്റെ ജോലി റഫറലുകൾ",
+  "viewSharedJobs": "കമ്മ്യൂണിറ്റിയുമായി പങ്കിട്ട ജോലികൾ കാണുക.",
+  "viewBookmarkedJobs": "പിന്നീട്ടേക്ക് ബുക്ക്മാർക്ക് ചെയ്ത ജോലികൾ കാണുക.",
+  "savedOpportunities": "സേവ് ചെയ്ത അവസരങ്ങൾ",
+  "savedJobsSubtitle": "പിന്നീട്ടേക്ക് മാറ്റിവെച്ച ജോലികൾ",
+  "preferencesAndAccount": "മുൻഗണനകളും അക്കൗണ്ടും",
+  "settingsAndSupport": "സെറ്റിംഗ്സും പിന്തുണയും",
+  "manageAccountSupport": "നിങ്ങളുടെ അക്കൗണ്ട്, സ്വകാര്യത, പിന്തുണ എന്നിവ മാനേജ് ചെയ്യുക.",
+  "logOut": "ലോഗ് ഔട്ട്",
   "quickActions": "ദ്രുത പ്രവർത്തനങ്ങൾ",
   "postAJob": "ജോലി പോസ്റ്റ് ചെയ്യുക",
   "createOpeningSubtitle": "നിങ്ങളുടെ ടീമിനായി പുതിയ അവസരം സൃഷ്‌ടിക്കുക",
@@ -469,6 +483,7 @@
   "fullySupported": "പൂർണ്ണമായി പിന്തുണയ്ക്കുന്നു",
   "inDevelopmentStayTuned": "വികസനത്തിലാണ് — അപ്ഡേറ്റുകൾക്കായി കാത്തിരിക്കുക",
   "needHelpQuestion": "സഹായം വേണോ അതോ ചോദ്യമുണ്ടോ?",
+  "supportHoursTitle": "പിന്തുണ സമയങ്ങൾ",
   "supportDays": "തിങ്കൾ – ശനി",
   "supportTimings": "രാവിലെ 10:00 – വൈകുന്നേരം 6:00 IST",
   "businessName": "ബിസിനസ്സിന്റെ പേര്",
@@ -831,5 +846,17 @@
   },
   "Choose where you want to pick the image from": {
     "": "ചിത്രം എവിടെ നിന്ന് തിരഞ്ഞെടുക്കണമെന്ന് തിരഞ്ഞെടുക്കുക."
-  }
+  },
+  "savedJobs": {
+    "title": "സേവ് ചെയ്ത ജോലികൾ",
+    "loadingOps": "സേവ് ചെയ്ത അവസരങ്ങൾ ലോഡ് ചെയ്യുന്നു...",
+    "opportunitiesCount": "{{count}} സേവ് ചെയ്ത അവസരങ്ങൾ",
+    "noSavedYet": "ഇതുവരെ ജോലികളൊന്നും സേവ് ചെയ്തിട്ടില്ല",
+    "bookmarkInstruction": "നിങ്ങൾ സേവ് ചെയ്ത ജോലികൾ വേഗത്തിൽ കാണാൻ ഇവിടെ ഉണ്ടാകും.",
+    "removeSavedJob": "സേവ് ചെയ്ത ജോലി നീക്കം ചെയ്യുക",
+    "removeConfirm": "നിങ്ങളുടെ സേവ് ചെയ്ത ലിസ്റ്റിൽ നിന്ന് \"{{title}}\" നീക്കം ചെയ്യണമെന്ന് ഉറപ്പാണോ?",
+    "removedMsg": "ജോലി സേവ് ചെയ്ത ലിസ്റ്റിൽ നിന്ന് നീക്കം ചെയ്തു.",
+    "failedToRemove": "ജോലി നീക്കം ചെയ്യുന്നത് പരാജയപ്പെട്ടു."
+  },
+  "openings": "ഒഴിവുകൾ"
 }

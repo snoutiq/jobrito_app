@@ -447,6 +447,20 @@
   "closed": "ಮುಚ್ಚಲಾಗಿದೆ",
   "completed": "ಪೂರ್ಣಗೊಂಡಿದೆ",
   "applicationStatus": "ಅರ್ಜಿ ಸ್ಥಿತಿ",
+  "tapToViewFullProfile": "ಪೂರ್ಣ ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
+  "preferredLocation": "ಆದ್ಯತೆಯ ಸ್ಥಳ",
+  "profileCompletion": "ಪ್ರೊಫೈಲ್ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ",
+  "myJobActivity": "ನನ್ನ ಉದ್ಯೋಗ ಚಟುವಟಿಕೆ",
+  "trackAppliedJobs": "ನೀವು ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ ಉದ್ಯೋಗಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
+  "myJobReferrals": "ನನ್ನ ಉದ್ಯೋಗ ಶಿಫಾರಸುಗಳು",
+  "viewSharedJobs": "ಸಮುದಾಯದೊಂದಿಗೆ ಹಂಚಿಕೊಂಡ ಉದ್ಯೋಗಗಳನ್ನು ವೀಕ್ಷಿಸಿ.",
+  "viewBookmarkedJobs": "ನಂತರಕ್ಕಾಗಿ ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಿದ ಉದ್ಯೋಗಗಳನ್ನು ವೀಕ್ಷಿಸಿ.",
+  "savedOpportunities": "ಸೇವ್ ಮಾಡಿದ ಅವಕಾಶಗಳು",
+  "savedJobsSubtitle": "ನಂತರಕ್ಕಾಗಿ ಉಳಿಸಿದ ಉದ್ಯೋಗಗಳು",
+  "preferencesAndAccount": "ಆದ್ಯತೆಗಳು ಮತ್ತು ಖಾತೆ",
+  "settingsAndSupport": "ಸೇಟಿಂಗ್ಸ್ ಮತ್ತು ಬೆಂಬಲ",
+  "manageAccountSupport": "ನಿಮ್ಮ ಖಾತೆ, ಗೌಪ್ಯತೆ ಮತ್ತು ಬೆಂಬಲವನ್ನು ನಿರ್ವಹಿಸಿ.",
+  "logOut": "ಲಾಗ್ ಔಟ್",
   "quickActions": "ತ್ವರಿತ ಕ್ರಿಯೆಗಳು",
   "postAJob": "ಉದ್ಯೋಗ ಪೋಸ್ಟ್ ಮಾಡಿ",
   "createOpeningSubtitle": "ನಿಮ್ಮ ತಂಡಕ್ಕೆ ಹೊಸ ಅವಕಾಶವನ್ನು ರಚಿಸಿ",
@@ -469,6 +483,7 @@
   "fullySupported": "ಸಂಪೂರ್ಣವಾಗಿ ಬೆಂಬಲಿತವಾಗಿದೆ",
   "inDevelopmentStayTuned": "ಅಭಿವೃದ್ಧಿಯಲ್ಲಿದೆ — ನವೀಕರಣಗಳಿಗಾಗಿ ಕಾಯುತ್ತಿರಿ",
   "needHelpQuestion": "ಸಹಾಯ ಬೇಕೇ ಅಥವಾ ಪ್ರಶ್ನೆ ಇದೆಯೇ?",
+  "supportHoursTitle": "ಬೆಂಬಲದ ಸಮಯಗಳು",
   "supportDays": "ಸೋಮವಾರ – ಶನಿವಾರ",
   "supportTimings": "10:00 AM – 6:00 PM IST",
   "businessName": "ವ್ಯಾಪಾರದ ಹೆಸರು",
@@ -831,5 +846,17 @@
   "Choose where you want to pick the image from": {
     "": "ನೀವು ಚಿತ್ರವನ್ನು ಎಲ್ಲಿಂದ ಆರಿಸಬೇಕೆಂದು ಆರಿಸಿಕೊಳ್ಳಿ."
   },
-  "regionalExperience": "ಪ್ರಾದೇಶಿಕ ಅನುಭವ"
+  "regionalExperience": "ಪ್ರಾದೇಶಿಕ ಅನುಭವ",
+  "savedJobs": {
+    "title": "ಉಳಿಸಿದ ಉದ್ಯೋಗಗಳು",
+    "loadingOps": "ಸೇವ್ ಮಾಡಿದ ಅವಕಾಶಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+    "opportunitiesCount": "{{count}} ಸೇವ್ ಮಾಡಿದ ಅವಕಾಶಗಳು",
+    "noSavedYet": "ಇನ್ನೂ ಯಾವುದೇ ಉದ್ಯೋಗಗಳನ್ನು ಸೇವ್ ಮಾಡಲಾಗಿಲ್ಲ",
+    "bookmarkInstruction": "ನೀವು ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಿದ ಉದ್ಯೋಗಗಳನ್ನು ತ್ವರಿತ ಪ್ರವೇಶಕ್ಕಾಗಿ ಇಲ್ಲಿ ಪ್ರದರ್ಶಿಸಲಾಗುತ್ತದೆ.",
+    "removeSavedJob": "ಸೇವ್ ಮಾಡಿದ ಉದ್ಯೋಗವನ್ನು ತೆಗೆದುಹಾಕಿ",
+    "removeConfirm": "ಖಚಿತವಾಗಿ ನೀವು ನಿಮ್ಮ ಸೇವ್ ಮಾಡಿದ ಪಟ್ಟಿಯಿಂದ \"{{title}}\" ತೆಗೆದುಹಾಕಲು ಬಯಸುತ್ತೀರಾ?",
+    "removedMsg": "ಉದ್ಯೋಗವನ್ನು ಸೇವ್ ಮಾಡಿದ ಪಟ್ಟಿಯಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ.",
+    "failedToRemove": "ಉದ್ಯೋಗವನ್ನು ತೆಗೆದುಹಾಕಲು ವಿಫಲವಾಗಿದೆ."
+  },
+  "openings": "ಖಾಲಿ ಹುದ್ದೆಗಳು"
 }

@@ -447,6 +447,20 @@
   "closed": "ముగించబడింది",
   "completed": "పూర్తయింది",
   "applicationStatus": "దరఖాస్తు స్థితి",
+  "tapToViewFullProfile": "పూర్తి ప్రొఫైల్‌ను చూడటానికి ట్యాప్ చేయండి",
+  "preferredLocation": "ఇష్టమైన ప్రాంతం",
+  "profileCompletion": "ప్రొఫైల్ పూర్తిస్థాయి",
+  "myJobActivity": "నా ఉద్యోగ కార్యాచరణ",
+  "trackAppliedJobs": "మీరు దరఖాస్తు చేసిన ఉద్యోగాలను ట్రాక్ చేయండి.",
+  "myJobReferrals": "నా ఉద్యోగ రిఫరల్స్",
+  "viewSharedJobs": "కమ్యూనిటీతో పంచుకున్న ఉద్యోగాలను చూడండి.",
+  "viewBookmarkedJobs": "తరువాత కోసం బుక్‌మార్క్ చేసిన ఉద్యోగాలను చూడండి.",
+  "savedOpportunities": "సేవ్ చేసిన అవకాశాలు",
+  "savedJobsSubtitle": "తరువాత కోసం సేవ్ చేసిన ఉద్యోగాలు",
+  "preferencesAndAccount": "ప్రాధాన్యతలు & ఖాతా",
+  "settingsAndSupport": "సెట్టింగ్‌లు & మద్దతు",
+  "manageAccountSupport": "మీ ఖాతా, గోప్యత మరియు మద్దతును నిర్వహించండి.",
+  "logOut": "లాగ్ అవుట్",
   "quickActions": "త్వరిత చర్యలు",
   "postAJob": "ఉద్యోగాన్ని పోస్ట్ చేయండి",
   "createOpeningSubtitle": "మీ టీమ్ కోసం కొత్త అవకాశాన్ని సృష్టించండి",
@@ -469,6 +483,7 @@
   "fullySupported": "పూర్తిగా మద్దతు ఇస్తుంది",
   "inDevelopmentStayTuned": "అభివృద్ధిలో ఉంది — అప్‌డేట్‌ల కోసం వేచి ఉండండి",
   "needHelpQuestion": "సహాయం కావాలా లేదా ప్రశ్న ఉందా?",
+  "supportHoursTitle": "మద్దతు గంటలు",
   "supportDays": "సోమవారం – శనివారం",
   "supportTimings": "10:00 AM – 6:00 PM IST",
   "businessName": "వ్యాపారం పేరు",
@@ -832,5 +847,17 @@
   },
   "Choose where you want to pick the image from": {
     "": "మీరు చిత్రాన్ని ఎక్కడ నుండి ఎంచుకోవాలనుకుంటున్నారో ఎంచుకోండి."
-  }
+  },
+  "savedJobs": {
+    "title": "సేవ్ చేసిన ఉద్యోగాలు",
+    "loadingOps": "సేవ్ చేసిన అవకాశాలు లోడ్ అవుతున్నాయి...",
+    "opportunitiesCount": "{{count}} సేవ్ చేసిన అవకాశాలు",
+    "noSavedYet": "ఇంకా ఏ ఉద్యోగాలు సేవ్ చేయబడలేదు",
+    "bookmarkInstruction": "మీరు బుక్‌మార్క్ చేసిన ఉద్యోగాలు త్వరిత ప్రాప్యత కోసం ఇక్కడ చూపబడతాయి.",
+    "removeSavedJob": "సేవ్ చేసిన ఉద్యోగాన్ని తొలగించండి",
+    "removeConfirm": "మీరు ఖచ్చితంగా మీ సేవ్ చేసిన జాబితా నుండి \"{{title}}\" తొలగించాలనుకుంటున్నారా?",
+    "removedMsg": "ఉద్యోగం సేవ్ చేసిన జాబితా నుండి తొలగించబడింది.",
+    "failedToRemove": "ఉద్యోగాన్ని తొలగించడం విఫలమైంది."
+  },
+  "openings": "ఖాళీలు"
 }

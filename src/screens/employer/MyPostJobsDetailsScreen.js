@@ -235,7 +235,6 @@ export default function JobDetailsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Clean White Header matching design */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
@@ -243,142 +242,113 @@ export default function JobDetailsScreen({ navigation, route }) {
               navigation.goBack();
             }
           }}
-          style={styles.backBtnRow}
-          activeOpacity={0.8}
+          style={styles.backBtn}
         >
-          <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
-          <Text style={styles.backBtnText}>
-            {t("backToSavedJobs", "Back to Saved Jobs")}
-          </Text>
+          <Ionicons name="arrow-back" size={normalize(22)} color="#0a0504" />
         </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t("jobDetails.subtitle", "View job information and details")}
+          </Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Saved Job Top Blue Notice Banner */}
-        <View style={styles.savedNoticeBanner}>
-          <View style={styles.savedNoticeIconWrap}>
-            <Ionicons name="bookmark" size={normalize(20)} color="#ffffff" />
-          </View>
-          <View style={styles.savedNoticeTextWrap}>
-            <Text style={styles.savedNoticeTitle}>
-              {t("savedNoticeTitle", "This job has been saved by you.")}
-            </Text>
-            <Text style={styles.savedNoticeSub}>
-              {t("savedNoticeSub1", "If you're still interested, tap Apply.")}
-            </Text>
-            <Text style={styles.savedNoticeSub}>
-              {t("savedNoticeSub2", "You can also share this opportunity with others.")}
-            </Text>
-          </View>
-        </View>
-
-        {/* Hero Card */}
         <View style={styles.heroCard}>
-          <View style={[styles.heroIconBox, { backgroundColor: iconConfig.bg }]}>
-            {logoUrl ? (
-              <Image source={{ uri: logoUrl }} style={styles.logoImage} />
-            ) : (
-              <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
-            )}
-          </View>
-
-          <View style={styles.heroInfoWrap}>
+          <View style={styles.heroMainInfo}>
             {Boolean(company) && (
               <View style={styles.companyRow}>
                 <Text style={styles.companyNameText} numberOfLines={1}>
                   {company}
                 </Text>
-                <Ionicons name="checkmark-circle" size={normalize(16)} color="#3b82f6" style={{ marginLeft: normalize(4) }} />
+                <Ionicons name="checkmark-circle" size={normalize(15)} color="#1d9bf0" style={{ marginLeft: 4 }} />
               </View>
             )}
 
             {Boolean(title) && (
               <Text style={styles.jobTitleText} numberOfLines={1}>
-                {title}
+                {title.toUpperCase()}
               </Text>
             )}
 
-            <View style={styles.metaRowInfo}>
-              <View style={styles.metaItem}>
-                <Ionicons name="card-outline" size={normalize(14)} color="#64748b" />
-                <Text style={styles.metaLabel}>{t("jobDetails.jobId", "JOB ID")}</Text>
-                <Text style={styles.metaValueBlue}>{formattedJobId || "JR2026082101"}</Text>
+            <View style={styles.badgesRow}>
+              <View style={styles.typeBadge}>
+                <Text style={styles.typeBadgeText}>{jobType}</Text>
               </View>
-
-              <View style={styles.metaItem}>
-                <Ionicons name="person-outline" size={normalize(14)} color="#64748b" />
-                <Text style={styles.metaLabel}>{t("postedBy", "POSTED BY")}</Text>
-                <Text style={styles.metaValueGreen}>{t("employer", "EMPLOYER")}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+                <Text style={[styles.statusBadgeText, { color: statusConfig.color }]}>
+                  {statusConfig.label}
+                </Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* 2x2 Grid Container */}
         <View style={styles.gridContainer}>
-          {/* Row 1: Employment Type & Location */}
           <View style={styles.gridRow}>
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="briefcase-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons name="location-outline" size={normalize(16)} color="#153e69" />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("employmentTypeLabel", "Employment Type")}</Text>
-                <Text style={styles.gridValue} numberOfLines={1}>{jobType}</Text>
+                <Text style={styles.gridLabel}>{t("location", "LOCATION")}</Text>
+                <Text style={styles.gridValue} numberOfLines={1}>{location}</Text>
               </View>
             </View>
 
-            <View style={styles.gridCard}>
-              <View style={styles.gridIconCircle}>
-                <Ionicons name="location-outline" size={normalize(18)} color="#153e69" />
+            {!isJobPending && (
+              <View style={styles.gridCard}>
+                <View style={styles.gridCardContent}>
+                  <View style={styles.gridIconCircle}>
+                    <Ionicons name="people-outline" size={normalize(16)} color="#153e69" />
+                  </View>
+                  <View style={styles.gridTextContainer}>
+                    <Text style={styles.gridLabel}>{t("openings", "OPENINGS")}</Text>
+                    <Text style={styles.gridValue}>{openings}</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("location", "Location")}</Text>
-                <Text style={styles.gridValue} numberOfLines={2}>{location}</Text>
-              </View>
-            </View>
+            )}
           </View>
 
-          {/* Row 2: Salary & Experience */}
           <View style={styles.gridRow}>
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="card-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons name="card-outline" size={normalize(16)} color="#153e69" />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
+                <Text style={styles.gridLabel}>{t("salary", "SALARY")}</Text>
                 <Text style={styles.gridValue} numberOfLines={1}>{salaryStr}</Text>
               </View>
             </View>
 
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="bag-handle-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons name="briefcase-outline" size={normalize(16)} color="#153e69" />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("experience", "Experience")}</Text>
+                <Text style={styles.gridLabel}>{t("experience", "EXPERIENCE")}</Text>
                 <Text style={styles.gridValue} numberOfLines={1}>{experienceStr}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Row 3: Open Positions */}
-          <View style={styles.gridRow}>
-            <View style={[styles.gridCard, { flex: 0.485 }]}>
-              <View style={styles.gridIconCircle}>
-                <Ionicons name="people-outline" size={normalize(18)} color="#153e69" />
-              </View>
-              <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("openPositionsLabel", "Open Positions")}</Text>
-                <Text style={styles.gridValue}>{openings}</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Section: About the Role */}
+        {Boolean(formattedJobId) && (
+          <View style={styles.jobIdFullCard}>
+            <View style={styles.jobIdAvatar}>
+              <Text style={styles.jobIdAvatarText}>ID</Text>
+            </View>
+            <View style={styles.jobIdTextContainer}>
+              <Text style={styles.jobIdLabel}>{t("jobId", "JOB ID")}</Text>
+              <Text style={styles.jobIdValueText}>{formattedJobId}</Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("aboutTheRole", "About the Role")}</Text>
+          <Text style={styles.sectionTitle}>{t("aboutTheRole", "ABOUT THE ROLE")}</Text>
           <View style={styles.sectionTitleUnderline} />
           <Text style={styles.bodyDescription}>
             {description || t("noDescription", "No description available for this role.")}
@@ -440,22 +410,22 @@ export default function JobDetailsScreen({ navigation, route }) {
         </View>
       ) : !isEmployer ? (
         <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={[styles.applyBtnPrimary, isApplied && styles.appliedBtnDisabled]}
-            disabled={isApplied}
-            activeOpacity={0.8}
+          <AppButton
+            title={
+              isApplied
+                ? t("jobDetails.applied", "✓ Applied")
+                : t("jobDetails.applyNow", "Apply Now")
+            }
             onPress={() => setShowCallModal(true)}
-          >
-            <Ionicons name={isApplied ? "checkmark" : "send"} size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
-            <Text style={styles.applyBtnPrimaryText}>
-              {isApplied ? t("jobDetails.applied", "✓ APPLIED") : t("applyNow", "APPLY NOW")}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleShare} style={styles.shareBtnOutline} activeOpacity={0.8}>
-            <Ionicons name="share-social-outline" size={normalize(16)} color="#1d4ed8" style={{ marginRight: normalize(6) }} />
-            <Text style={styles.shareBtnOutlineText}>{t("share", "SHARE")}</Text>
-          </TouchableOpacity>
+            disabled={isApplied}
+            style={[
+              styles.applyButton,
+              isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" },
+            ]}
+          />
+          <Pressable onPress={handleShare} style={styles.chatButton}>
+            <Ionicons name="share-social-outline" size={normalize(18)} color="#153e69" />
+          </Pressable>
         </View>
       ) : null}
 
@@ -480,6 +450,7 @@ export default function JobDetailsScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -492,89 +463,57 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderColor: "#e2e8f0",
+    borderBottomColor: "rgba(10, 5, 4, 0.08)",
   },
-  backBtnRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: normalize(8),
+  backBtn: {
+    marginRight: normalize(12),
+    padding: normalize(2),
   },
-  backBtnText: {
-    fontSize: normalize(15),
+  headerTitle: {
+    fontSize: normalize(16),
     fontWeight: "800",
-    color: "#0f172a",
+    color: "#0a0504",
+    letterSpacing: 0.3,
+  },
+  headerSubtitle: {
+    fontSize: normalize(10.5),
+    color: "rgba(10, 5, 4, 0.55)",
+    fontWeight: "500",
+    marginTop: 1,
   },
   scrollContent: {
     padding: normalize(16),
     paddingBottom: normalize(100),
-    gap: normalize(14),
   },
-
-  // Saved Notice Banner
-  savedNoticeBanner: {
-    backgroundColor: "#eff6ff",
-    borderRadius: normalize(14),
-    padding: normalize(14),
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: normalize(12),
-    borderWidth: 1,
-    borderColor: "#dbeafe",
-  },
-  savedNoticeIconWrap: {
-    width: normalize(36),
-    height: normalize(36),
-    borderRadius: normalize(18),
-    backgroundColor: "#153e69",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  savedNoticeTextWrap: {
-    flex: 1,
-  },
-  savedNoticeTitle: {
-    fontSize: normalize(13.5),
-    fontWeight: "800",
-    color: "#0f172a",
-    marginBottom: normalize(2),
-  },
-  savedNoticeSub: {
-    fontSize: normalize(11.5),
-    fontWeight: "500",
-    color: "#475569",
-    lineHeight: normalize(16),
-  },
-
-  // Hero Card
   heroCard: {
     backgroundColor: "#ffffff",
     borderRadius: normalize(16),
     padding: normalize(16),
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(15, 23, 42, 0.08)",
+    marginBottom: normalize(14),
     shadowColor: "#0f172a",
     shadowOpacity: 0.03,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-    gap: normalize(12),
   },
-  heroIconBox: {
-    width: normalize(52),
-    height: normalize(52),
+  jobIconBox: {
+    width: normalize(56),
+    height: normalize(56),
     borderRadius: normalize(14),
     alignItems: "center",
     justifyContent: "center",
+    marginRight: normalize(14),
   },
-  logoImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  companyLogoImage: {
+    width: normalize(56),
+    height: normalize(56),
     borderRadius: normalize(14),
   },
-  heroInfoWrap: {
+  heroMainInfo: {
     flex: 1,
   },
   companyRow: {
@@ -583,46 +522,47 @@ const styles = StyleSheet.create({
     marginBottom: normalize(2),
   },
   companyNameText: {
-    fontSize: normalize(16),
+    fontSize: normalize(15),
     fontWeight: "800",
-    color: "#0f172a",
+    color: "#0d2b52",
   },
   jobTitleText: {
-    fontSize: normalize(14.5),
+    fontSize: normalize(13.5),
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#475569",
+    letterSpacing: 0.3,
     marginBottom: normalize(8),
   },
-  metaRowInfo: {
-    gap: normalize(4),
-  },
-  metaItem: {
+  badgesRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: normalize(6),
   },
-  metaLabel: {
-    fontSize: normalize(10.5),
-    fontWeight: "700",
-    color: "#64748b",
-    letterSpacing: 0.3,
+  typeBadge: {
+    backgroundColor: "#eef2ff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(8),
   },
-  metaValueBlue: {
-    fontSize: normalize(11),
+  typeBadgeText: {
+    fontSize: normalize(10),
     fontWeight: "800",
-    color: "#153e69",
-    marginLeft: normalize(4),
+    color: "#3b82f6",
+    letterSpacing: 0.4,
   },
-  metaValueGreen: {
-    fontSize: normalize(11),
+  statusBadge: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(8),
+  },
+  statusBadgeText: {
+    fontSize: normalize(10),
     fontWeight: "800",
-    color: "#16a34a",
-    marginLeft: normalize(4),
+    letterSpacing: 0.4,
   },
-
-  // Grid Container
   gridContainer: {
     gap: normalize(10),
+    marginBottom: normalize(14),
   },
   gridRow: {
     flexDirection: "row",
@@ -635,14 +575,20 @@ const styles = StyleSheet.create({
     padding: normalize(12),
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(15, 23, 42, 0.08)",
+  },
+  gridCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
   gridIconCircle: {
-    width: normalize(36),
-    height: normalize(36),
-    borderRadius: normalize(12),
-    backgroundColor: "#eff6ff",
+    width: normalize(34),
+    height: normalize(34),
+    borderRadius: normalize(17),
+    backgroundColor: "#eef2ff",
     alignItems: "center",
     justifyContent: "center",
     marginRight: normalize(10),
@@ -651,42 +597,90 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gridLabel: {
-    fontSize: normalize(10.5),
-    fontWeight: "600",
+    fontSize: normalize(9.5),
+    fontWeight: "800",
     color: "#64748b",
-    marginBottom: normalize(2),
+    letterSpacing: 0.4,
+    marginBottom: 2,
   },
   gridValue: {
     fontSize: normalize(13),
     fontWeight: "800",
-    color: "#0f172a",
+    color: "#0d2b52",
   },
-
-  // Sections
+  callIconBtn: {
+    width: normalize(30),
+    height: normalize(30),
+    borderRadius: normalize(15),
+    backgroundColor: "#eef2ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  jobIdFullCard: {
+    backgroundColor: "#eff6ff",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+    marginBottom: normalize(16),
+  },
+  jobIdAvatar: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(12),
+  },
+  jobIdAvatarText: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#1d4ed8",
+  },
+  jobIdTextContainer: {
+    flex: 1,
+  },
+  jobIdLabel: {
+    fontSize: normalize(9.5),
+    fontWeight: "800",
+    color: "#64748b",
+    letterSpacing: 0.4,
+    marginBottom: 1,
+  },
+  jobIdValueText: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#1d4ed8",
+  },
   sectionContainer: {
     backgroundColor: "#ffffff",
     borderRadius: normalize(16),
     padding: normalize(16),
+    marginBottom: normalize(14),
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
   sectionTitle: {
-    fontSize: normalize(15),
-    fontWeight: "800",
-    color: "#0f172a",
+    fontSize: normalize(14),
+    fontWeight: "900",
+    color: "#0d2b52",
+    letterSpacing: 0.4,
   },
   sectionTitleUnderline: {
-    width: normalize(32),
+    width: normalize(24),
     height: 3,
-    backgroundColor: "#153e69",
+    backgroundColor: "#3b82f6",
     borderRadius: 2,
-    marginTop: normalize(4),
+    marginTop: 4,
     marginBottom: normalize(10),
   },
   bodyDescription: {
-    fontSize: normalize(13),
+    fontSize: normalize(12.5),
     color: "#475569",
-    lineHeight: normalize(19),
+    lineHeight: normalize(18),
     fontWeight: "500",
   },
   requirementList: {
@@ -698,7 +692,7 @@ const styles = StyleSheet.create({
     gap: normalize(8),
   },
   requirementText: {
-    fontSize: normalize(12.5),
+    fontSize: normalize(12),
     color: "#334155",
     fontWeight: "600",
     flex: 1,
@@ -709,7 +703,7 @@ const styles = StyleSheet.create({
     gap: normalize(8),
   },
   benefitChip: {
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#eef2ff",
     paddingHorizontal: normalize(10),
     paddingVertical: normalize(6),
     borderRadius: normalize(8),
@@ -717,58 +711,7 @@ const styles = StyleSheet.create({
   benefitText: {
     fontSize: normalize(11.5),
     fontWeight: "700",
-    color: "#1d4ed8",
-  },
-
-  // Bottom Action Bar
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: normalize(16),
-    paddingVertical: normalize(12),
-    flexDirection: "row",
-    gap: normalize(10),
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  applyBtnPrimary: {
-    flex: 1,
-    height: normalize(44),
-    backgroundColor: "#1d4ed8",
-    borderRadius: normalize(12),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  appliedBtnDisabled: {
-    backgroundColor: "#94a3b8",
-  },
-  applyBtnPrimaryText: {
-    color: "#ffffff",
-    fontSize: normalize(13),
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  shareBtnOutline: {
-    height: normalize(44),
-    paddingHorizontal: normalize(18),
-    borderRadius: normalize(12),
-    borderWidth: 1.5,
-    borderColor: "#1d4ed8",
-    backgroundColor: "#ffffff",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  shareBtnOutlineText: {
-    color: "#1d4ed8",
-    fontSize: normalize(13),
-    fontWeight: "800",
-    letterSpacing: 0.5,
+    color: "#3b82f6",
   },
   employerActionsRow: {
     position: "absolute",
@@ -781,11 +724,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: normalize(10),
     borderTopWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(15, 23, 42, 0.08)",
   },
   viewTalentBtn: {
     flex: 1.5,
-    backgroundColor: "#153e69",
+    backgroundColor: PRIMARY_GREEN,
     borderRadius: normalize(10),
     height: normalize(42),
     alignItems: "center",
@@ -798,7 +741,7 @@ const styles = StyleSheet.create({
   },
   closeJobBtn: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(15, 23, 42, 0.15)",
     borderRadius: normalize(10),
     height: normalize(42),
     alignItems: "center",
@@ -810,6 +753,36 @@ const styles = StyleSheet.create({
     fontSize: normalize(13),
     fontWeight: "800",
     color: "#475569",
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
+    flexDirection: "row",
+    gap: normalize(10),
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.08)",
+  },
+  applyButton: {
+    flex: 1,
+    height: normalize(44),
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: normalize(10),
+  },
+  chatButton: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
   },
   loadingContainer: {
     flex: 1,

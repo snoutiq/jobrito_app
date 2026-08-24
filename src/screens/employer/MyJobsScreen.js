@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Dimensions,
   PixelRatio,
   TextInput,
+  Pressable,
 } from "react-native";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -60,11 +61,11 @@ const getCategoryIconDetails = (job) => {
 export default function MyJobsScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const searchInputRef = useRef(null);
 
   const [toastMessage, setToastMessage] = useState("");
   const [checkingLimit, setCheckingLimit] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Redux Selectors
   const employerDashboardRaw = useSelector((state) => state.employer.dashboardRaw);
@@ -178,7 +179,7 @@ export default function MyJobsScreen({ navigation, route }) {
       return { label: t("status.approved", "APPROVED"), bg: "#e6f4ea", color: "#137333" };
     }
     if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
-      return { label: t("status.pending", "PENDING"), bg: "#feefc3", color: "#b06000" };
+      return { label: t("new", "NEW").toUpperCase(), bg: "#feefc3", color: "#b06000" };
     }
     if (s === "closed" || s === "completed") {
       return { label: t("completed", "COMPLETED").toUpperCase(), bg: "#f1f3f4", color: "#5f6368" };
@@ -257,25 +258,31 @@ export default function MyJobsScreen({ navigation, route }) {
 
   // Filter jobs by tab & search query
   const filteredSearchJobs = useMemo(() => {
-    if (!searchQuery || !searchQuery.trim()) return localJobs;
+    const list = jobsToShow || [];
+    if (!searchQuery || !searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase().trim();
-    return localJobs.filter((job) => {
+    const cleanQ = q.startsWith("#") ? q.slice(1) : q;
+
+    return list.filter((job) => {
       const title = String(job.title || job.job_title || job.name || "").toLowerCase();
       const company = String(job.company || job.company_name || "").toLowerCase();
-      const jobIdStr = String(job.job_id || job.id || "").toLowerCase();
+      const rawJobId = String(job.job_id || job.id || "").toLowerCase();
+      const cleanJobId = rawJobId.startsWith("#") ? rawJobId.slice(1) : rawJobId;
       const location = String(job.location || job.city || job.country || "").toLowerCase();
       const status = String(job.status || "").toLowerCase();
       const category = String(job.category || job.business_type || "").toLowerCase();
+      
       return (
         title.includes(q) ||
         company.includes(q) ||
-        jobIdStr.includes(q) ||
+        rawJobId.includes(q) ||
+        cleanJobId.includes(cleanQ) ||
         location.includes(q) ||
         status.includes(q) ||
         category.includes(q)
       );
     });
-  }, [localJobs, searchQuery]);
+  }, [jobsToShow, searchQuery]);
 
   const activeJobs = filteredSearchJobs.filter((job) => {
     const status = normalizeStatus(job.status);
@@ -333,7 +340,7 @@ export default function MyJobsScreen({ navigation, route }) {
         style={styles.jobCard}
         activeOpacity={0.95}
         onPress={() => {
-          navigation.navigate("MyJobDetails", {
+          navigation.navigate("MyPostJobsDetails", {
             jobId: job.id,
             job: job,
             activeTab: activeTab,
@@ -407,6 +414,22 @@ export default function MyJobsScreen({ navigation, route }) {
             </Text>
             <View style={styles.statsGridRow}>
               <TouchableOpacity
+                style={[styles.statsBadgeCard, { backgroundColor: "#feefc3", borderColor: "#f9ab00" }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                    initialFilter: "new",
+                  });
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.statsBadgeNum, { color: "#b06000" }]}>{stats.pending}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#b06000" }]}>{t("new", "New")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={[styles.statsBadgeCard, { backgroundColor: "#e6f4ea", borderColor: "#34a853" }]}
                 onPress={(e) => {
                   e.stopPropagation();
@@ -452,22 +475,6 @@ export default function MyJobsScreen({ navigation, route }) {
               >
                 <Text style={[styles.statsBadgeNum, { color: "#c5221f" }]}>{stats.rejected}</Text>
                 <Text style={[styles.statsBadgeLabel, { color: "#c5221f" }]}>{t("rejected", "Rejected")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.statsBadgeCard, { backgroundColor: "#feefc3", borderColor: "#f9ab00" }]}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  navigation.navigate("ApplicantList", {
-                    jobId: job.id,
-                    jobTitle: jobTitle || job.title,
-                    initialFilter: "new",
-                  });
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.statsBadgeNum, { color: "#b06000" }]}>{stats.pending}</Text>
-                <Text style={[styles.statsBadgeLabel, { color: "#b06000" }]}>{t("pending", "Pending")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -525,7 +532,7 @@ export default function MyJobsScreen({ navigation, route }) {
               </TouchableOpacity>
             )}
 
-            {isEmployer && activeTab !== "pending" && (
+            {isEmployer && activeTab === "active" && (
               <TouchableOpacity
                 style={styles.viewDetailsBtn}
                 activeOpacity={0.8}
@@ -641,33 +648,37 @@ export default function MyJobsScreen({ navigation, route }) {
       </View>
 
       {/* Search Bar */}
-      <View
-        style={[
-          styles.searchContainer,
-          isSearchFocused && styles.searchContainerFocused,
-        ]}
+      <Pressable
+        style={styles.searchContainer}
+        onPress={() => searchInputRef.current?.focus()}
       >
         <Ionicons
           name="search-outline"
           size={normalize(18)}
-          color={isSearchFocused ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.4)"}
+          color="rgba(10, 5, 4, 0.5)"
           style={styles.searchIcon}
         />
         <TextInput
+          ref={searchInputRef}
           placeholder={t("searchPlaceholder", "Search by Job Title or Job ID")}
           placeholderTextColor="rgba(10, 5, 4, 0.4)"
           style={styles.searchInput}
           value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
+          onChangeText={(text) => setSearchQuery(text)}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
         />
         {Boolean(searchQuery) && (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            activeOpacity={0.7}
+            style={{ padding: normalize(4) }}
+          >
             <Ionicons name="close-circle" size={normalize(18)} color="rgba(10, 5, 4, 0.4)" />
           </TouchableOpacity>
         )}
-      </View>
+      </Pressable>
 
       {isLoading && localJobs.length === 0 ? (
         <View style={styles.loadingContainer}>
@@ -680,6 +691,8 @@ export default function MyJobsScreen({ navigation, route }) {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="none"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -843,34 +856,25 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f1f4f9",
+    backgroundColor: "#ffffff",
     marginHorizontal: normalize(12),
     marginTop: normalize(10),
-    marginBottom: normalize(4),
+    marginBottom: normalize(6),
     borderRadius: normalize(12),
     paddingHorizontal: normalize(12),
     height: normalize(44),
     borderWidth: 1.5,
-    borderColor: "rgba(10, 5, 4, 0.08)",
-  },
-  searchContainerFocused: {
-    backgroundColor: "#ffffff",
-    borderColor: PRIMARY_GREEN,
-    shadowColor: PRIMARY_GREEN,
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    borderColor: "#cbd5e1",
   },
   searchIcon: {
     marginRight: normalize(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: normalize(12.5),
+    fontSize: normalize(13),
     color: "#0a0504",
-    padding: 0,
-    height: "100%",
+    paddingVertical: normalize(6),
+    height: normalize(44),
   },
   scrollContent: {
     padding: normalize(12),

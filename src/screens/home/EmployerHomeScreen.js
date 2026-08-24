@@ -124,13 +124,7 @@ export default function EmployerHomeScreen({ navigation }) {
     profile?.company ||
     profile?.employer_profile?.business_name ||
     "";
-  const cleanBusiness = rawBusiness.includes(",")
-    ? rawBusiness.split(",")[0].trim()
-    : rawBusiness;
-  const businessName =
-    cleanBusiness.length > 18
-      ? `${cleanBusiness.slice(0, 18).trim()}...`
-      : cleanBusiness;
+  const businessName = rawBusiness ? rawBusiness.trim() : (contactName || "Employer");
 
   const rawLocation =
     profile?.country ||
@@ -193,11 +187,8 @@ export default function EmployerHomeScreen({ navigation }) {
             </View>
           )}
           <View style={styles.headerInfo}>
-            <Text style={styles.businessName} numberOfLines={1}>
-              {[businessName, countryName].filter(Boolean).join(", ") ||
-                businessName ||
-                contactName ||
-                "Employer"}
+            <Text style={styles.businessName}>
+              {businessName || contactName || "Employer"}
             </Text>
             <Text style={styles.contactText} numberOfLines={1}>
               {contactName
