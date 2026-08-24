@@ -121,6 +121,7 @@ export default function PostJobScreen({ navigation, route }) {
   const [showExperienceModal, setShowExperienceModal] = useState(false);
 
   const [openPositions, setOpenPositions] = useState("2");
+  const [positionsError, setPositionsError] = useState("");
   const [jobType, setJobType] = useState("Full-Time");
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
 
@@ -324,6 +325,17 @@ export default function PostJobScreen({ navigation, route }) {
       Alert.alert(t("error", "Error"), t("pleaseEnterCustomRole", "Please specify custom job role."));
       return;
     }
+    const parsedPositions = parseInt(openPositions, 10);
+    if (!openPositions || isNaN(parsedPositions) || parsedPositions <= 0) {
+      const errMsg = t("invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+      setPositionsError(errMsg);
+      Alert.alert(
+        t("invalidPositionsTitle", "Invalid Open Positions"),
+        errMsg
+      );
+      return;
+    }
+    setPositionsError("");
     setStep(2);
   };
 
@@ -708,10 +720,16 @@ export default function PostJobScreen({ navigation, route }) {
               {/* Open Positions */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("openPositions", "Open Positions")}</Text>
-                <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive]}>
+                <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive, Boolean(positionsError) && { borderColor: "#ef4444" }]}>
                   <TextInput
                     value={openPositions}
-                    onChangeText={setOpenPositions}
+                    onChangeText={(val) => {
+                      setOpenPositions(val);
+                      const p = parseInt(val, 10);
+                      if (val && (!isNaN(p) && p > 0)) {
+                        setPositionsError("");
+                      }
+                    }}
                     placeholder="1"
                     placeholderTextColor="#94a3b8"
                     keyboardType="numeric"
@@ -720,6 +738,11 @@ export default function PostJobScreen({ navigation, route }) {
                     onBlur={() => setActiveField(null)}
                   />
                 </View>
+                {Boolean(positionsError) && (
+                  <Text style={{ color: "#ef4444", fontSize: normalize(12), marginTop: normalize(4), fontWeight: "500" }}>
+                    {positionsError}
+                  </Text>
+                )}
               </View>
 
               {/* EMPLOYMENT TYPE & DESCRIPTION */}

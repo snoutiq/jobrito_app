@@ -1685,18 +1685,7 @@ export default function HomeScreen({ navigation }) {
                 </Text>
               </View>
 
-              {/* Contact Info (if available) */}
-              {Boolean(selectedDetailsJob?.contact_information || selectedDetailsJob?.contact_info) && (
-                <View style={[styles.modalSectionCard, { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" }]}>
-                  <View style={styles.modalSectionHeaderRow}>
-                    <Ionicons name="call-outline" size={normalize(16)} color="#0284c7" style={{ marginRight: 6 }} />
-                    <Text style={[styles.modalSectionTitle, { color: "#0369a1" }]}>{t("contactInformation", "Contact Information")}</Text>
-                  </View>
-                  <Text style={[styles.modalSectionBody, { color: "#0c4a6e", fontWeight: "700" }]}>
-                    {selectedDetailsJob.contact_information || selectedDetailsJob.contact_info}
-                  </Text>
-                </View>
-              )}
+
             </ScrollView>
 
             {/* Modal Bottom Action Button */}

@@ -207,8 +207,8 @@ export default function PostReferralJobScreen({ navigation, route }) {
     "Mid-Level (3-5 years)",
   );
   const [requirements, setRequirements] = useState("");
-  const [benefits, setBenefits] = useState("");
   const [openPositions, setOpenPositions] = useState("1");
+  const [positionsError, setPositionsError] = useState("");
 
   // Overseas Specific Fields
   const [country, setCountry] = useState("");
@@ -379,6 +379,17 @@ export default function PostReferralJobScreen({ navigation, route }) {
       );
       return;
     }
+    const parsedPositions = parseInt(openPositions, 10);
+    if (!openPositions || isNaN(parsedPositions) || parsedPositions <= 0) {
+      const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+      setPositionsError(errMsg);
+      Alert.alert(
+        t("postJob.invalidPositionsTitle", "Invalid Open Positions"),
+        errMsg,
+      );
+      return;
+    }
+    setPositionsError("");
     if (!description.trim()) {
       Alert.alert(
         t("error"),
@@ -1062,11 +1073,18 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       styles.inputWrapper,
                       activeField === "openPositions" &&
                         styles.inputWrapperActive,
+                      Boolean(positionsError) && { borderColor: "#ef4444" },
                     ]}
                   >
                     <TextInput
                       value={openPositions}
-                      onChangeText={setOpenPositions}
+                      onChangeText={(val) => {
+                        setOpenPositions(val);
+                        const p = parseInt(val, 10);
+                        if (val && (!isNaN(p) && p > 0)) {
+                          setPositionsError("");
+                        }
+                      }}
                       placeholder="1"
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
@@ -1075,6 +1093,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       onBlur={() => setActiveField(null)}
                     />
                   </View>
+                  {Boolean(positionsError) && (
+                    <Text style={{ color: "#ef4444", fontSize: 12, marginTop: 4, fontWeight: "500" }}>
+                      {positionsError}
+                    </Text>
+                  )}
                 </View>
 
                 {/* Experience Dropdown */}

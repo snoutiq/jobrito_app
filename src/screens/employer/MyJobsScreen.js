@@ -771,7 +771,11 @@ export default function MyJobsScreen({ navigation, route }) {
         {!isEmployer && (
           <View style={styles.fabTooltipCard}>
             <Text style={styles.fabTooltipTitle}>{t("postJobAsReferral", "Post a Job as Referral")}</Text>
-            <Text style={styles.fabTooltipSub}>{t("oneJobPerDay", "1 job per day")}</Text>
+            <Text style={styles.fabTooltipSub}>
+              {activeRole?.toLowerCase().includes("chef") || true
+                ? t("fiveJobsPerDay", "5 jobs per day")
+                : t("oneJobPerDay", "1 job per day")}
+            </Text>
           </View>
         )}
         <TouchableOpacity
