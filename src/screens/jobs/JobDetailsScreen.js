@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { closeEmployerJob } from "../../redux/slices/employerSlice";
-import { applyJob } from "../../redux/slices/applicationSlice";
+import { applyJob, fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 import { fetchJobDetails } from "../../redux/slices/jobSlice";
 import { getJobDetails } from "../../services/jobApi";
 import CallbackModal from "../../components/common/CallbackModal";
@@ -88,6 +88,7 @@ export default function JobDetailsScreen({ navigation, route }) {
   const [directLoading, setDirectLoading] = useState(false);
 
   useEffect(() => {
+    dispatch(fetchApplicationHistory());
     if (jobId) {
       dispatch(fetchJobDetails(jobId));
       if (!passedJob || !passedJob.description) {
@@ -448,7 +449,7 @@ export default function JobDetailsScreen({ navigation, route }) {
           >
             <Ionicons name={isApplied ? "checkmark" : "send"} size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
             <Text style={styles.applyBtnPrimaryText}>
-              {isApplied ? t("jobDetails.applied", "✓ APPLIED") : t("applyNow", "APPLY NOW")}
+              {isApplied ? String(t("applied", "APPLIED")).toUpperCase() : t("applyNow", "APPLY NOW")}
             </Text>
           </TouchableOpacity>
 
@@ -467,6 +468,7 @@ export default function JobDetailsScreen({ navigation, route }) {
             await dispatch(
               applyJob({ jobId: job?.id, preferredCallTime: timeSlot }),
             ).unwrap();
+            dispatch(fetchApplicationHistory());
             return true;
           } catch (err) {
             Alert.alert(
