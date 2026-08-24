@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,22 +12,32 @@ import {
   Platform,
   Image,
   Dimensions,
+  PixelRatio,
+  BackHandler,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { createJobPost } from "../../redux/slices/jobSlice";
+import { useFocusEffect } from "@react-navigation/native";
+import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import { createJobPost, fetchMyJobs } from "../../redux/slices/jobSlice";
 import colors from "../../constants/colors";
 import ModalPicker, {
   ModalPickerTrigger,
 } from "../../components/common/ModalPicker";
 import indianStatesCities from "../../data/indianStatesCities.json";
+import countryData from "../../data/countryStateCityData.json";
 
 const stateOptions = Object.keys(indianStatesCities);
 const allCitiesList = Array.from(new Set(Object.values(indianStatesCities).flat()));
 
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 const { width } = Dimensions.get("window");
@@ -51,18 +61,128 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeField, setActiveField] = useState(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (step > 1 && step < 4) {
+          setStep((prev) => prev - 1);
+          return true;
+        }
+        return false;
+      };
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [step])
+  );
+
   const handleDismissSuccessModal = () => {
     setShowSuccessModal(false);
     handleReset();
+    dispatch(fetchEmployerDashboard());
+    dispatch(fetchMyJobs());
     navigation.navigate("MyJobs", { activeTab: "pending" });
   };
 
   // Form Fields
   const [category, setCategory] = useState("India"); // "India", "KSA", "Dubai"
   const [title, setTitle] = useState("");
+  const [customRole, setCustomRole] = useState("");
+  const [showRoleModal, setShowRoleModal] = useState(false);
   const [company, setCompany] = useState("");
+
+  const roleOptions = [
+    "Executive Chef",
+    "Head Chef",
+    "Sous Chef",
+    "Chef de Partie",
+    "Commis Chef",
+    "Pastry Chef",
+    "Bakery Chef",
+    "Pizza Chef",
+    "Grill Chef",
+    "Indian Chef",
+    "Arabic Chef",
+    "Chinese Chef",
+    "Tandoor Chef",
+    "Kitchen Helper",
+    "Kitchen Steward",
+    "Dishwasher",
+    "Butcher",
+    "Sandwich Maker",
+    "Juice Maker",
+    "Restaurant Manager",
+    "Assistant Restaurant Manager",
+    "Café Manager",
+    "Outlet Manager",
+    "Floor Supervisor",
+    "Captain",
+    "Steward",
+    "Senior Steward",
+    "Host",
+    "Hostess",
+    "Cashier",
+    "Food Runner",
+    "Busser",
+    "Order Taker",
+    "Drive-Thru Staff",
+    "Barista",
+    "Bartender",
+    "Mixologist",
+    "Bar Supervisor",
+    "Bar Manager",
+    "Beverage Manager",
+    "Hotel Manager",
+    "Front Office Manager",
+    "Receptionist",
+    "Guest Relations Executive",
+    "Bell Boy",
+    "Concierge",
+    "Reservation Agent",
+    "Night Auditor",
+    "Housekeeping Supervisor",
+    "Housekeeping Staff",
+    "Laundry Attendant",
+    "Room Attendant",
+    "Operations Manager",
+    "Area Manager",
+    "General Manager",
+    "HR Executive",
+    "Recruitment Coordinator",
+    "Accountant",
+    "Purchase Manager",
+    "Store Keeper",
+    "Inventory Controller",
+    "Admin Executive",
+    "Delivery Driver",
+    "Bike Rider",
+    "Dispatch Executive",
+    "Warehouse Assistant",
+    "Logistics Coordinator",
+    "Catering Manager",
+    "Banquet Supervisor",
+    "Event Coordinator",
+    "Banquet Staff",
+    "Cleaner",
+    "Maintenance Technician",
+    "Electrician",
+    "Plumber",
+    "AC Technician",
+    "Security Guard",
+    "Other",
+  ];
   const [contactInfo, setContactInfo] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneDialCode, setPhoneDialCode] = useState("🇮🇳 +91");
+  const [showDialCodeModal, setShowDialCodeModal] = useState(false);
+  const dialCodeOptions = ["🇮🇳 +91", "🇸🇦 +966"];
+
+  useEffect(() => {
+    if (category === "KSA" || category === "Saudi Arabia") {
+      setPhoneDialCode("🇸🇦 +966");
+    } else {
+      setPhoneDialCode("🇮🇳 +91");
+    }
+  }, [category]);
   const [emailAddress, setEmailAddress] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [description, setDescription] = useState("");
@@ -75,6 +195,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [location, setLocation] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [showCountryModal, setShowCountryModal] = useState(false);
   const [showStateModal, setShowStateModal] = useState(false);
   const [showCityModal, setShowCityModal] = useState(false);
   const [jobType, setJobType] = useState("Full-time");
@@ -122,7 +243,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
     "Senior (5+ and above)",
   ];
 
-  const roleOptions = [
+  const submittedByRoleOptions = [
     { label: "Job Seeker", value: "jobseeker" },
     { label: "Chef", value: "chef" },
     { label: "Employer", value: "employer" },
@@ -213,11 +334,27 @@ export default function PostReferralJobScreen({ navigation, route }) {
 
   const handleNextStep1 = () => {
     if (!company.trim()) {
-      Alert.alert(t("error"), "Please enter a Business / Agency Name.");
+      Alert.alert(t("error"), t("postJob.businessNameRequired", "Please enter a Business Name."));
+      return;
+    }
+    if (!category) {
+      Alert.alert(t("error"), t("postJob.countryRequired", "Please select a Country."));
+      return;
+    }
+    if (!selectedState) {
+      Alert.alert(t("error"), t("selectStateRequired", "Please select a State."));
+      return;
+    }
+    if (!selectedCity) {
+      Alert.alert(t("error"), t("selectCityRequired", "Please select a City."));
       return;
     }
     if (!contactPerson.trim()) {
-      Alert.alert(t("error"), "Please enter a Contact Person Name.");
+      Alert.alert(t("error"), t("postJob.contactPersonRequired", "Please enter a Contact Person Name."));
+      return;
+    }
+    if (!phoneNumber.trim()) {
+      Alert.alert(t("error"), t("postJob.phoneRequired", "Please enter a Phone Number."));
       return;
     }
     setStep(2);
@@ -227,21 +364,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
     if (!title.trim()) {
       Alert.alert(
         t("error"),
-        t("postJob.jobTitleRequired", "Please enter a Job Title."),
+        t("postJob.pleaseSelectJobRole", "Please select a Job Role."),
       );
       return;
     }
-    if (!selectedState) {
+    if (title === "Other" && !customRole.trim()) {
       Alert.alert(
         t("error"),
-        t("selectStateRequired", "Please select a State."),
-      );
-      return;
-    }
-    if (!selectedCity) {
-      Alert.alert(
-        t("error"),
-        t("selectCityRequired", "Please select a City."),
+        t("postJob.pleaseEnterCustomRole", "Please specify custom job role."),
       );
       return;
     }
@@ -409,43 +539,44 @@ export default function PostReferralJobScreen({ navigation, route }) {
     setStep(1);
   };
 
-  const renderProgress = () => {
-    let percentage = "0%";
-    let titleText = "";
-    if (step === 1) {
-      percentage = "33%";
-      titleText = t("step", { current: 1, total: 3 });
-    } else if (step === 2) {
-      percentage = "66%";
-      titleText = t("step", { current: 2, total: 3 });
-    } else if (step === 3) {
-      percentage = "100%";
-      titleText = t("step", { current: 3, total: 3 });
-    }
-
+  // Connected Step Pills Progress Bar (Matching PostJobScreen)
+  const renderStepPills = () => {
+    const TOTAL_STEPS = 3;
     return (
-      <View style={styles.progressContainer}>
-        <View style={styles.progressTextRow}>
-          <Text style={styles.progressStepText}>{titleText}</Text>
-          {step === 1 && (
-            <Text style={styles.progressPercentText}>
-              33% {t("completeProfile.complete", "Complete")}
-            </Text>
-          )}
-          {step === 2 && (
-            <Text style={styles.progressPercentText}>
-              66% {t("completeProfile.complete", "Complete")}
-            </Text>
-          )}
-          {step === 3 && (
-            <Text style={styles.progressPercentText}>
-              100% {t("completeProfile.complete", "Complete")}
-            </Text>
-          )}
-        </View>
-        <View style={styles.progressBarBg}>
-          <View style={[styles.progressBarFill, { width: percentage }]} />
-        </View>
+      <View style={styles.stepPillContainer}>
+        {[1, 2, 3].map((stepNum) => {
+          const isActive = step === stepNum;
+          const isCompleted = step > stepNum;
+          return (
+            <React.Fragment key={`post_referral_pill_${stepNum}`}>
+              <View
+                style={[
+                  styles.stepPill,
+                  isActive && styles.stepPillActive,
+                  isCompleted && styles.stepPillCompleted,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.stepPillText,
+                    isActive && styles.stepPillTextActive,
+                    isCompleted && styles.stepPillTextCompleted,
+                  ]}
+                >
+                  {stepNum}
+                </Text>
+              </View>
+              {stepNum < TOTAL_STEPS && (
+                <View
+                  style={[
+                    styles.stepLine,
+                    step > stepNum && styles.stepLineCompleted,
+                  ]}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </View>
     );
   };
@@ -455,37 +586,26 @@ export default function PostReferralJobScreen({ navigation, route }) {
       style={styles.container}
       edges={["top", "left", "right", "bottom"]}
     >
-      {/* Custom Header — Fixed outside KeyboardAvoidingView */}
+      {/* Top Header — Fixed outside KeyboardAvoidingView */}
       <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => {
-              if (step > 1 && step < 4) {
-                setStep(step - 1);
-              } else {
-                navigation.goBack();
-              }
-            }}
-            style={styles.backBtn}
-          >
-            <Ionicons name="arrow-back" size={24} color="#153e69" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {t("postJob.title", "Post a Referral Job")}
-          </Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{ padding: 4 }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="close" size={28} color="#f57f20" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+        <TouchableOpacity
+          onPress={() => {
+            if (step > 1 && step < 4) {
+              setStep(step - 1);
+            } else {
+              navigation.goBack();
+            }
+          }}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
+        </TouchableOpacity>
 
-      {step < 4 && renderProgress()}
+        <Text style={styles.headerTitle}>
+          {t("postReferralJobTitle", "Post a Referral Job")}
+        </Text>
+        <View style={{ width: normalize(32) }} />
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -498,81 +618,250 @@ export default function PostReferralJobScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Step Pills rendered at top of form */}
+          {step < 4 && (
+            <View style={styles.topFormStepWrapper}>
+              {renderStepPills()}
+            </View>
+          )}
           {/* STEP 1: BUSINESS & CONTACT INFO */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              {/* Info Card */}
-              <View style={styles.infoBox}>
-                <Ionicons
-                  name="information-circle"
-                  size={26}
-                  color={PRIMARY_GREEN}
-                  style={styles.infoBoxIcon}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoBoxText}>
-                    Let's start with your business basics. This information
-                    helps applicants identify who they'll be working for.
-                  </Text>
-                  <Text style={styles.infoBoxSub}>
-                    {new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                </View>
+              <View style={styles.subHeaderRow}>
+                <Text style={styles.stepCountText}>{t("step1Of3", "Step 1 of 3")}</Text>
+                <Text style={styles.progressHintText}>{t("start0", "0% complete")}</Text>
               </View>
 
-              {/* Company Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  {t("postJob.businessName", "Business / Agency Name")}
-                </Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    activeField === "company" && styles.inputWrapperActive,
-                  ]}
-                >
-                  <TextInput
-                    value={company}
-                    onChangeText={setCompany}
-                    placeholder={t(
-                      "postJob.businessNamePlaceholder",
-                      "e.g. The Grand Bistro",
-                    )}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "company")}
-                    onBlur={() => setActiveField(null)}
-                  />
-                </View>
-              </View>
+              <Text style={styles.mainSubtitle}>
+                {t("postJobStep1Subtitle", "Post your job in just 3 simple steps.")}
+              </Text>
 
-              {/* Contact Person Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  {t("postJob.contactPerson", "Contact Person Name")}
-                </Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    activeField === "contactPerson" &&
-                      styles.inputWrapperActive,
-                  ]}
-                >
-                  <TextInput
-                    value={contactPerson}
-                    onChangeText={setContactPerson}
-                    placeholder={t(
-                      "postJob.contactPersonPlaceholder",
-                      "Full name of hiring manager",
-                    )}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "contactPerson")}
-                    onBlur={() => setActiveField(null)}
-                  />
+              {/* BASIC INFORMATION */}
+              <Text style={styles.sectionHeaderUpper}>{t("basicInformationUpper", "BUSINESS & CONTACT INFO")}</Text>
+
+              {/* Fields Card */}
+              <View style={styles.fieldsCard}>
+                {/* 1. Business Name */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.businessName", "Business Name")}<Text style={styles.required}> *</Text>
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "company" && styles.inputWrapperActive,
+                    ]}
+                  >
+                    <TextInput
+                      value={company}
+                      onChangeText={setCompany}
+                      placeholder={t(
+                        "postJob.businessNamePlaceholder",
+                        "e.g. The Grand Bistro",
+                      )}
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      onFocus={(e) => handleInputFocus(e, "company")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
+                </View>
+
+                {/* 2. Location (Country, State & City in 1 Row) */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.location", "Location")}<Text style={styles.required}> *</Text>
+                  </Text>
+
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    {/* Country Dropdown */}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>
+                        {t("selectCountry", "Country")}<Text style={styles.required}> *</Text>
+                      </Text>
+                      <ModalPickerTrigger
+                        onPress={() => setShowCountryModal(true)}
+                        label={
+                          category === "KSA" || category === "Saudi Arabia"
+                            ? t("regions.saudiArabia", "Saudi Arabia")
+                            : t("regions.india", "India")
+                        }
+                        placeholder={t("selectCountry", "Country")}
+                        isOpen={showCountryModal}
+                        style={styles.inputWrapper}
+                      />
+                      <ModalPicker
+                        visible={showCountryModal}
+                        onClose={() => setShowCountryModal(false)}
+                        title={t("selectCountry", "Select Country")}
+                        options={["India", "Saudi Arabia"]}
+                        selectedValue={category === "KSA" ? "Saudi Arabia" : category}
+                        onSelect={(val) => {
+                          const newCat = val === "Saudi Arabia" ? "KSA" : val;
+                          if (category !== newCat) {
+                            setCategory(newCat);
+                            setSelectedState("");
+                            setSelectedCity("");
+                          }
+                        }}
+                      />
+                    </View>
+
+                    {/* State Dropdown */}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>
+                        {t("selectState", "State")}<Text style={styles.required}> *</Text>
+                      </Text>
+                      <ModalPickerTrigger
+                        onPress={() => setShowStateModal(true)}
+                        label={selectedState}
+                        placeholder={t("selectState", "State")}
+                        isOpen={showStateModal}
+                        style={styles.inputWrapper}
+                      />
+                      <ModalPicker
+                        visible={showStateModal}
+                        onClose={() => setShowStateModal(false)}
+                        title={t("selectState", "Select State")}
+                        options={
+                          countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"]
+                            ? Object.keys(countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"])
+                            : []
+                        }
+                        selectedValue={selectedState}
+                        onSelect={(val) => {
+                          setSelectedState(val);
+                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                          if (selectedCity && cMap[val] && !cMap[val].includes(selectedCity)) {
+                            setSelectedCity("");
+                          }
+                        }}
+                        searchable={true}
+                        searchPlaceholder={t("searchState", "Search State...")}
+                      />
+                    </View>
+
+                    {/* City Dropdown */}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>
+                        {t("selectCity", "City")}<Text style={styles.required}> *</Text>
+                      </Text>
+                      <ModalPickerTrigger
+                        onPress={() => setShowCityModal(true)}
+                        label={selectedCity}
+                        placeholder={t("selectCity", "City")}
+                        isOpen={showCityModal}
+                        style={styles.inputWrapper}
+                      />
+                      <ModalPicker
+                        visible={showCityModal}
+                        onClose={() => setShowCityModal(false)}
+                        title={t("selectCity", "Select City")}
+                        options={(() => {
+                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                          if (selectedState && cMap[selectedState]) {
+                            return cMap[selectedState];
+                          }
+                          return Array.from(new Set(Object.values(cMap).flat()));
+                        })()}
+                        selectedValue={selectedCity}
+                        onSelect={(val) => {
+                          setSelectedCity(val);
+                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                          if (!selectedState) {
+                            const foundState = Object.keys(cMap).find((st) => cMap[st].includes(val));
+                            if (foundState) setSelectedState(foundState);
+                          }
+                        }}
+                        searchable={true}
+                        searchPlaceholder={t("searchCity", "Search City...")}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {/* 3. Contact Person Name */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.contactPerson", "Contact Person Name")}<Text style={styles.required}> *</Text>
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      activeField === "contactPerson" &&
+                        styles.inputWrapperActive,
+                    ]}
+                  >
+                    <TextInput
+                      value={contactPerson}
+                      onChangeText={setContactPerson}
+                      placeholder={t(
+                        "postJob.contactPersonPlaceholder",
+                        "Full name of hiring manager",
+                      )}
+                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      style={styles.textInput}
+                      onFocus={(e) => handleInputFocus(e, "contactPerson")}
+                      onBlur={() => setActiveField(null)}
+                    />
+                  </View>
+                </View>
+
+                {/* 4. Phone Number with Country Code Dropdown */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {t("postJob.phoneNumber", "Phone Number")}<Text style={styles.required}> *</Text>
+                  </Text>
+                  <View style={styles.salaryRow}>
+                    {/* Dial Code Dropdown Trigger */}
+                    <View style={styles.currencySelectWrap}>
+                      <ModalPickerTrigger
+                        onPress={() => setShowDialCodeModal(true)}
+                        label={phoneDialCode}
+                        isOpen={showDialCodeModal}
+                        style={styles.currencyTriggerStyle}
+                      />
+                      <ModalPicker
+                        visible={showDialCodeModal}
+                        onClose={() => setShowDialCodeModal(false)}
+                        title={t("selectCountryCode", "Select Code")}
+                        options={dialCodeOptions}
+                        selectedValue={phoneDialCode}
+                        onSelect={(val) => setPhoneDialCode(val)}
+                      />
+                    </View>
+
+                    {/* Phone Input Box */}
+                    <View
+                      style={[
+                        styles.salaryInputBox,
+                        activeField === "phone" && styles.inputWrapperActive,
+                      ]}
+                    >
+                      <TextInput
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                        placeholder={t(
+                          "postJob.phonePlaceholder",
+                          "9876543210",
+                        )}
+                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                        style={styles.textInput}
+                        keyboardType="phone-pad"
+                        maxLength={15}
+                        onFocus={(e) => handleInputFocus(e, "phone")}
+                        onBlur={() => setActiveField(null)}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Verified Text below Phone Field */}
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 }}>
+                    <Text style={{ fontSize: normalize(12), fontWeight: "700", color: "#16a34a" }}>
+                      {t("verified", "Verified")}
+                    </Text>
+                    <Ionicons name="checkmark-circle" size={normalize(14)} color="#16a34a" />
+                  </View>
                 </View>
               </View>
 
@@ -600,125 +889,76 @@ export default function PostReferralJobScreen({ navigation, route }) {
           {/* STEP 2: JOB DETAILS */}
           {step === 2 && (
             <View style={styles.stepContainer}>
-              {/* Category Chips */}
-              <Text style={styles.inputLabel}>
-                {t("postJob.category", "Category *")}
-              </Text>
-              <View style={styles.regionRow}>
-                {categories.map((c) => {
-                  const isActive = category === c.value;
-                  return (
-                    <TouchableOpacity
-                      key={c.value}
-                      style={[
-                        styles.regionChip,
-                        isActive && styles.regionChipActive,
-                      ]}
-                      onPress={() => setCategory(c.value)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.regionChipText,
-                          isActive && styles.regionChipTextActive,
-                        ]}
-                      >
-                        {c.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <View style={styles.subHeaderRow}>
+                <Text style={styles.stepCountText}>{t("step2Of3", "Step 2 of 3")}</Text>
+                <Text style={styles.progressHintText}>{t("almostDone50", "You're almost done! 50% complete")}</Text>
               </View>
+
+              <Text style={styles.mainSubtitle}>
+                {t("postJobStep2Subtitle", "Add the final details to complete your job posting.")}
+              </Text>
+
+              {/* SALARY & EXPERIENCE */}
+              <Text style={styles.sectionHeaderUpper}>{t("salaryExperienceUpper", "SALARY & EXPERIENCE")}</Text>
 
               {/* Fields Card */}
               <View style={styles.fieldsCard}>
-                {/* Job Title */}
+                {/* 1. Job Role Dropdown */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
-                    {t("postJob.jobTitle", "Job Title *")}
+                    {t("postJob.jobRole", "Job Role")}<Text style={styles.required}> *</Text>
                   </Text>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      activeField === "title" && styles.inputWrapperActive,
-                    ]}
-                  >
-                    <TextInput
-                      value={title}
-                      onChangeText={setTitle}
-                      placeholder={t(
-                        "postJob.jobTitlePlaceholder",
-                        "e.g., Senior Pastry Chef",
-                      )}
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "title")}
-                      onBlur={() => setActiveField(null)}
-                    />
-                  </View>
+                  <ModalPickerTrigger
+                    onPress={() => setShowRoleModal(true)}
+                    label={title === "Other" && customRole ? `Other: ${customRole}` : title}
+                    placeholder={t("selectRolePlaceholder", "Choose Job Role")}
+                    isOpen={showRoleModal}
+                    style={styles.inputWrapper}
+                  />
+                  <Text style={styles.exampleHint}>
+                    {t("jobRoleExampleHint", "e.g. Sous Chef, Barista, Waiter")}
+                  </Text>
+                  <ModalPicker
+                    visible={showRoleModal}
+                    onClose={() => setShowRoleModal(false)}
+                    title={t("selectJobRole", "Select or search for the job role")}
+                    options={roleOptions}
+                    selectedValue={title}
+                    onSelect={(val) => {
+                      setTitle(val);
+                      if (val !== "Other") {
+                        setCustomRole("");
+                      }
+                    }}
+                    searchable
+                  />
                 </View>
 
-                {/* State & City in a Single Row */}
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 12, marginBottom: 16 }}>
-                  {/* State Dropdown */}
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.inputLabel}>{t("selectState", "State")}</Text>
-                    <ModalPickerTrigger
-                      onPress={() => setShowStateModal(true)}
-                      label={selectedState}
-                      placeholder={t("selectState", "Select State")}
-                      isOpen={showStateModal}
-                      leftIcon="map-outline"
-                      style={styles.inputWrapper}
-                    />
-                    <ModalPicker
-                      visible={showStateModal}
-                      onClose={() => setShowStateModal(false)}
-                      title={t("selectState", "Select State")}
-                      options={stateOptions}
-                      selectedValue={selectedState}
-                      onSelect={(val) => {
-                        setSelectedState(val);
-                        if (selectedCity && indianStatesCities[val] && !indianStatesCities[val].includes(selectedCity)) {
-                          setSelectedCity("");
-                        }
-                      }}
-                      searchable={true}
-                      searchPlaceholder={t("searchState", "Search State...")}
-                    />
+                {/* Custom Role input if "Other" is selected */}
+                {title === "Other" && (
+                  <View style={[styles.inputGroup, { marginTop: 4 }]}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                      <Text style={styles.inputLabel}>
+                        {t("specifyJobRole", "Specify Job Role")}<Text style={styles.required}> *</Text>
+                      </Text>
+                      <Text style={{ fontSize: 12, color: customRole.length >= 20 ? "#ef4444" : "#64748b" }}>
+                        {customRole.length}/20
+                      </Text>
+                    </View>
+                    <View style={[styles.inputWrapper, activeField === "customRole" && styles.inputWrapperActive]}>
+                      <TextInput
+                        value={customRole}
+                        onChangeText={setCustomRole}
+                        placeholder={t("enterCustomRolePlaceholder", "e.g. Executive Barista")}
+                        placeholderTextColor="#94a3b8"
+                        maxLength={20}
+                        style={styles.textInput}
+                        onFocus={(e) => handleInputFocus(e, "customRole")}
+                        onBlur={() => setActiveField(null)}
+                      />
+                    </View>
                   </View>
-
-                  {/* City Dropdown */}
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.inputLabel}>{t("selectCity", "City")}</Text>
-                    <ModalPickerTrigger
-                      onPress={() => setShowCityModal(true)}
-                      label={selectedCity}
-                      placeholder={t("selectCity", "Select City")}
-                      isOpen={showCityModal}
-                      leftIcon="business-outline"
-                      style={styles.inputWrapper}
-                    />
-                    <ModalPicker
-                      visible={showCityModal}
-                      onClose={() => setShowCityModal(false)}
-                      title={t("selectCity", "Select City")}
-                      options={selectedState ? (indianStatesCities[selectedState] || []) : allCitiesList}
-                      selectedValue={selectedCity}
-                      onSelect={(val) => {
-                        setSelectedCity(val);
-                        if (!selectedState) {
-                          const foundState = Object.keys(indianStatesCities).find((st) =>
-                            indianStatesCities[st].includes(val)
-                          );
-                          if (foundState) setSelectedState(foundState);
-                        }
-                      }}
-                      searchable={true}
-                      searchPlaceholder={t("searchCity", "Search City...")}
-                    />
-                  </View>
-                </View>
+                )}
 
                 {/* Salary Currency & Range Section */}
                 <Text style={styles.inputLabel}>
@@ -857,9 +1097,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     renderOption={getExperienceLabel}
                   />
                 </View>
+              </View>
 
+              {/* EMPLOYMENT TYPE & DESCRIPTION */}
+              <Text style={styles.sectionHeaderUpper}>{t("employmentTypeDescUpper", "EMPLOYMENT TYPE & DESCRIPTION")}</Text>
+
+              <View style={styles.fieldsCard}>
                 {/* Job Type Dropdown */}
-                <View style={[styles.inputGroup, { marginTop: 14 }]}>
+                <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
                     {t("postJob.jobType", "Job Type")}
                   </Text>
@@ -881,20 +1126,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 </View>
 
                 {/* Job Description */}
-                <View
-                  style={[
-                    styles.inputGroup,
-                    {
-                      marginTop: 8,
-                      position: "relative",
-                      zIndex: 20,
-                      elevation: 20,
-                    },
-                  ]}
-                >
-                  <Text style={styles.inputLabel}>
-                    {t("postJob.jobDescription", "Job Description *")}
-                  </Text>
+                <View style={[styles.inputGroup, { marginTop: 8 }]}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text style={styles.inputLabel}>
+                      {t("postJob.jobDescription", "Job Description")}<Text style={styles.required}> *</Text>
+                    </Text>
+                    <Text style={{ fontSize: normalize(11.5), color: description.length >= 150 ? "#ef4444" : "#64748b" }}>
+                      {description.length}/150
+                    </Text>
+                  </View>
                   <View
                     style={[
                       styles.inputWrapper,
@@ -913,6 +1153,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       multiline
                       numberOfLines={4}
+                      maxLength={150}
                       style={[styles.textInput, styles.multilineInput]}
                       onFocus={(e) => handleInputFocus(e, "description")}
                       onBlur={() => setActiveField(null)}
@@ -930,34 +1171,29 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   style={styles.tipBoxIcon}
                 />
                 <Text style={styles.tipBoxText}>
-                  Detailed job descriptions attract{" "}
-                  <Text style={{ color: PRIMARY_GREEN, fontWeight: "700" }}>
-                    40% more
-                  </Text>{" "}
-                  qualified applicants. Be sure to mention specific benefits!
+                  {t(
+                    "postJob.detailedDescTip",
+                    "Detailed job descriptions attract qualified applicants. Be sure to mention specific benefits!",
+                  )}
                 </Text>
               </View>
 
               {/* Footer actions */}
-              <View style={styles.footerRowStep2}>
+              <View style={[styles.footerContainer, { marginTop: 24 }]}>
                 <TouchableOpacity
-                  style={styles.saveDraftLink}
-                  onPress={() => setStep(1)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.saveDraftLinkText}>
-                    {t("back", "Back")}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.primaryNextBtnSmall}
+                  style={styles.primaryNextBtn}
                   activeOpacity={0.8}
                   onPress={handleNextStep2}
                 >
                   <Text style={styles.primaryNextBtnText}>
                     {t("postJob.next", "Next")}
                   </Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color="#ffffff"
+                    style={{ marginLeft: 6 }}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -966,230 +1202,142 @@ export default function PostReferralJobScreen({ navigation, route }) {
           {/* STEP 3: CONTACT & EXTRAS (REVIEW) */}
           {step === 3 && (
             <View style={styles.stepContainer}>
-              {/* Top Banner Card */}
-              <View style={styles.step3BannerBox}>
-                <Text style={styles.step3BannerText}>
-                  {t("postJob.contactInfoBanner", "Almost done!")}
+              {/* Completion Banner */}
+              <View style={styles.completionBanner}>
+                <Text style={styles.completionBannerText}>
+                  {t("almostThere100", "Almost there! 100% complete 🎉")}
                 </Text>
               </View>
 
-              {/* Phone Number Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.step3InputLabel}>
-                  {t("postJob.phoneNumber", "Phone Number")}
-                </Text>
-                <View
-                  style={[
-                    styles.step3InputWrapper,
-                    activeField === "phone" && styles.step3InputWrapperActive,
-                  ]}
-                >
-                  <Ionicons
-                    name="call"
-                    size={18}
-                    color="rgba(10, 5, 4, 0.4)"
-                    style={styles.step3InputIcon}
-                  />
-                  <TextInput
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    placeholder={t(
-                      "postJob.phonePlaceholder",
-                      "+1 (555) 000-0000",
-                    )}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.step3TextInputField}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    onFocus={(e) => handleInputFocus(e, "phone")}
-                    onBlur={() => setActiveField(null)}
-                  />
-                </View>
-                <Text style={styles.step3InputNote}>
-                  {t(
-                    "postJob.phoneCaption",
-                    "We'll only show this to verified applicants.",
-                  )}
-                </Text>
-              </View>
-
-              {/* Email Address Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.step3InputLabel}>
-                  {t("postJob.emailAddress", "Email Address")}
-                </Text>
-                <View
-                  style={[
-                    styles.step3InputWrapper,
-                    activeField === "email" && styles.step3InputWrapperActive,
-                  ]}
-                >
-                  <Ionicons
-                    name="mail"
-                    size={18}
-                    color="rgba(10, 5, 4, 0.4)"
-                    style={styles.step3InputIcon}
-                  />
-                  <TextInput
-                    value={emailAddress}
-                    onChangeText={setEmailAddress}
-                    placeholder={t(
-                      "postJob.emailPlaceholder",
-                      "manager@hospitalityhub.com",
-                    )}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.step3TextInputField}
-                    keyboardType="email-address"
-                    onFocus={(e) => handleInputFocus(e, "email")}
-                    onBlur={() => setActiveField(null)}
-                  />
-                </View>
-              </View>
-
-              {/* Quick Review Header */}
-              <Text style={styles.reviewHeader}>
-                {t("postJob.quickReview", "QUICK REVIEW")}
+              {/* Title & Subtitle */}
+              <Text style={styles.mainTitle}>{t("step3ReadyToSubmit", "Step 3 — Ready to Submit?")}</Text>
+              <Text style={styles.mainSubtitle}>
+                {t("reviewDetailsBeforeSubmit", "Review your job details before sending for approval.")}
               </Text>
 
-              {/* Single Compact Review Card */}
-              <View style={styles.compactReviewCard}>
-                <View style={styles.reviewHeaderRow}>
-                  <View style={styles.reviewHeaderIconContainer}>
-                    <Ionicons
-                      name="briefcase"
-                      size={20}
-                      color={PRIMARY_GREEN}
-                    />
-                  </View>
+              {/* Quick Review Header */}
+              <Text style={styles.sectionHeaderUpper}>{t("quickReviewUpper", "QUICK REVIEW")}</Text>
+
+              {/* Quick Review Card */}
+              <View style={styles.reviewCard}>
+                {/* Header Row */}
+                <View style={styles.reviewCardHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.reviewJobTitle}>
-                      {title.trim() || "Job Title"}
-                    </Text>
-                    <Text style={styles.reviewCompanySub}>
-                      {company || "Business Name"}
-                    </Text>
+                    <Text style={styles.reviewRoleTitle}>{title || t("jobRole", "Job Role")}</Text>
+                    {company ? <Text style={styles.reviewCompanySub}>{company}</Text> : null}
                   </View>
                 </View>
-                {/* Metadata Row */}
-                <View style={styles.reviewMetaRow}>
-                  <View style={styles.reviewMetaChip}>
-                    <Ionicons
-                      name="location-outline"
-                      size={13}
-                      color={PRIMARY_GREEN}
-                      style={{ marginRight: 2 }}
-                    />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {selectedCity && selectedState ? `${selectedCity}, ${selectedState}` : selectedState || selectedCity || location.trim() || "Location"}
+
+                {/* 3 Columns Grid */}
+                <View style={styles.threeColGrid}>
+                  {/* Col 1: Location */}
+                  <View style={styles.gridCol}>
+                    <View style={[styles.gridIconCircle, { backgroundColor: "#eff6ff" }]}>
+                      <Ionicons name="location-outline" size={18} color="#2563eb" />
+                    </View>
+                    <Text style={styles.gridLabel}>{t("location", "Location")}</Text>
+                    <Text style={styles.gridValue} numberOfLines={2}>
+                      {selectedCity && selectedState ? `${selectedCity}, ${selectedState}` : selectedState || selectedCity || (category === "KSA" ? "Saudi Arabia" : "India")}
                     </Text>
                   </View>
-                  <View style={styles.reviewMetaChip}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={13}
-                      color={PRIMARY_GREEN}
-                      style={{ marginRight: 2 }}
-                    />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {salaryMin
-                        ? `${salaryCurrency} ${salaryMin}${salaryMax ? `-${salaryMax}` : "+"}`
-                        : "Not Specified"}
+
+                  <View style={styles.gridColDivider} />
+
+                  {/* Col 2: Contact Person */}
+                  <View style={styles.gridCol}>
+                    <View style={[styles.gridIconCircle, { backgroundColor: "#fff7ed" }]}>
+                      <Ionicons name="person-outline" size={18} color="#ea580c" />
+                    </View>
+                    <Text style={styles.gridLabel}>{t("contactPerson", "Contact")}</Text>
+                    <Text style={styles.gridValue} numberOfLines={2}>
+                      {contactPerson || "Manager"}
                     </Text>
                   </View>
-                  <View style={styles.reviewMetaChip}>
-                    <Ionicons
-                      name="people-outline"
-                      size={13}
-                      color={PRIMARY_GREEN}
-                      style={{ marginRight: 2 }}
-                    />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {t("openings_count", {
-                        count: parseInt(openPositions, 10) || 1,
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.reviewMetaChip}>
-                    <Ionicons
-                      name="bar-chart-outline"
-                      size={13}
-                      color={PRIMARY_GREEN}
-                      style={{ marginRight: 2 }}
-                    />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {experienceRange}
-                    </Text>
-                  </View>
-                  <View style={styles.reviewMetaChip}>
-                    <Ionicons
-                      name="time-outline"
-                      size={13}
-                      color={PRIMARY_GREEN}
-                      style={{ marginRight: 2 }}
-                    />
-                    <Text style={styles.reviewMetaChipText} numberOfLines={1}>
-                      {jobType}
+
+                  <View style={styles.gridColDivider} />
+
+                  {/* Col 3: Employment Type */}
+                  <View style={styles.gridCol}>
+                    <View style={[styles.gridIconCircle, { backgroundColor: "#f0fdf4" }]}>
+                      <Ionicons name="briefcase-outline" size={18} color="#16a34a" />
+                    </View>
+                    <Text style={styles.gridLabel}>{t("employmentType", "Job Type")}</Text>
+                    <Text style={styles.gridValue} numberOfLines={2}>
+                      {jobType || "Full-Time"}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.reviewDivider} />
 
-                {/* Bio / Description */}
-                <View
-                  style={[
-                    styles.reviewBioContainer,
-                    {
-                      borderLeftWidth: 3,
-                      borderLeftColor: PRIMARY_GREEN,
-                      paddingLeft: 10,
-                      marginTop: 4,
-                    },
-                  ]}
-                >
-                  <Text style={styles.reviewBioLabel}>
-                    {t("postJob.jobDescription", "Job Description")}
-                  </Text>
-                  <Text style={styles.reviewBioText} numberOfLines={3}>
-                    {description.trim() || "No description provided."}
+                {/* Info List Rows */}
+                <View style={styles.reviewListRow}>
+                  <View style={styles.reviewListLeft}>
+                    <Ionicons name="cash-outline" size={18} color="#3b82f6" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewListLabel}>{t("salaryRange", "Salary Range")}</Text>
+                  </View>
+                  <Text style={styles.reviewListValue}>
+                    {salaryMin && salaryMax
+                      ? `${salaryCurrency} ${parseFloat(salaryMin).toLocaleString()} - ${parseFloat(salaryMax).toLocaleString()}`
+                      : salaryMin
+                      ? `${salaryCurrency} ${parseFloat(salaryMin).toLocaleString()}+`
+                      : t("notSpecified", "Not Specified")}
                   </Text>
                 </View>
+
+                <View style={styles.reviewListRow}>
+                  <View style={styles.reviewListLeft}>
+                    <Ionicons name="call-outline" size={18} color="#10b981" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewListLabel}>{t("phoneNumber", "Phone Number")}</Text>
+                  </View>
+                  <Text style={styles.reviewListValue}>{phoneDialCode} {phoneNumber}</Text>
+                </View>
+
+                <View style={styles.reviewListRow}>
+                  <View style={styles.reviewListLeft}>
+                    <Ionicons name="star-outline" size={18} color="#f59e0b" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewListLabel}>{t("experienceLevel", "Experience Level")}</Text>
+                  </View>
+                  <Text style={styles.reviewListValue}>{experienceRange || "Mid Level"}</Text>
+                </View>
+
+                <View style={styles.reviewListRow}>
+                  <View style={styles.reviewListLeft}>
+                    <Ionicons name="people-outline" size={18} color="#8b5cf6" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewListLabel}>{t("openPositions", "Open Positions")}</Text>
+                  </View>
+                  <Text style={styles.reviewListValue}>{openPositions || "1"}</Text>
+                </View>
+
+                <View style={styles.reviewDivider} />
+
+                {/* Description Block */}
+                <View style={styles.reviewDescHeaderRow}>
+                  <View style={[styles.gridIconCircle, { backgroundColor: "#eff6ff", width: 28, height: 28, borderRadius: 14 }]}>
+                    <Ionicons name="document-text-outline" size={16} color="#2563eb" />
+                  </View>
+                  <Text style={styles.reviewDescTitle}>{t("jobDescription", "Job Description")}</Text>
+                </View>
+
+                <Text style={styles.reviewDescBody}>
+                  {description.trim() || "No description provided."}
+                </Text>
               </View>
-              {/* Submit Buttons */}
+
+              {/* Submit Approval Button */}
               <TouchableOpacity
-                style={[
-                  styles.step3SubmitBtn,
-                  isSubmitting && { opacity: 0.6 },
-                ]}
-                activeOpacity={0.8}
+                style={styles.submitApprovalButton}
+                activeOpacity={0.85}
                 onPress={handleSubmitJob}
                 disabled={isSubmitting}
               >
-                <Text style={styles.step3SubmitBtnText}>
-                  {isSubmitting
-                    ? "Submitting..."
-                    : t("postJob.submitApproval", "Submit For Approval")}
-                </Text>
-                {!isSubmitting && (
-                  <Ionicons
-                    name="paper-plane"
-                    size={18}
-                    color="#ffffff"
-                    style={{ marginLeft: 8 }}
-                  />
+                {isSubmitting ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text style={styles.submitApprovalButtonText}>
+                    {t("submitForApproval", "Submit for Approval")} →
+                  </Text>
                 )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.step3BackBtn}
-                onPress={() => {
-                  handleReset();
-                  navigation.navigate("MyJobs", { activeTab: "pending" });
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.step3BackBtnText}>
-                  {t("postJob.returnFeed", "Return to feed")}
-                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -1213,12 +1361,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
                 </View>
 
                 <Text style={styles.modalSuccessTitle}>
-                  🎉 Job Submitted Successfully
+                  {t("postJob.successTitle", "🎉 Job Submitted Successfully")}
                 </Text>
 
                 <Text style={styles.modalSuccessMessage}>
-                  Your job has been submitted for admin review. Once approved,
-                  it will be published in the community feed.
+                  {t(
+                    "postJob.successMessage",
+                    "Your job has been submitted for admin review. Once approved, it will be published in the community feed.",
+                  )}
                 </Text>
 
                 <TouchableOpacity
@@ -1240,33 +1390,70 @@ export default function PostReferralJobScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#f8fafc",
+  },
+  topFormStepWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: normalize(4),
+    marginBottom: normalize(12),
+  },
+  stepPillContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepPill: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepPillActive: {
+    backgroundColor: PRIMARY_GREEN,
+  },
+  stepPillCompleted: {
+    backgroundColor: "#16a34a",
+  },
+  stepPillText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  stepPillTextActive: {
+    color: "#ffffff",
+  },
+  stepPillTextCompleted: {
+    color: "#ffffff",
+  },
+  stepLine: {
+    width: normalize(24),
+    height: 2,
+    backgroundColor: "#e2e8f0",
+    marginHorizontal: normalize(4),
+  },
+  stepLineCompleted: {
+    backgroundColor: "#16a34a",
   },
   header: {
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-  },
-  headerRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(14),
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderColor: "#f1f5f9",
   },
   backBtn: {
-    padding: 4,
-    marginRight: 10,
+    padding: normalize(4),
   },
   headerTitle: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    fontSize: normalize(18),
+    fontWeight: "800",
+    color: "#0f172a",
   },
   headerAvatar: {
     width: 32,
@@ -1356,6 +1543,10 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     marginBottom: 8,
   },
+  required: {
+    color: "#ef4444",
+    fontWeight: "700",
+  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -1372,6 +1563,43 @@ const styles = StyleSheet.create({
     borderColor: PRIMARY_GREEN,
     borderWidth: 1.5,
     backgroundColor: "#ffffff",
+  },
+  salaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  currencySelectWrap: {
+    width: normalize(92),
+    marginRight: normalize(8),
+  },
+  currencyTriggerStyle: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 12,
+    height: 50,
+    paddingHorizontal: normalize(8),
+    justifyContent: "center",
+  },
+  salaryInputBox: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderRadius: 12,
+    height: 50,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+  },
+  capturedHint: {
+    fontSize: normalize(11),
+    color: "#64748b",
+    marginTop: normalize(4),
+  },
+  exampleHint: {
+    fontSize: normalize(10.5),
+    color: "#64748b",
+    marginTop: normalize(3),
   },
   textInput: {
     flex: 1,
@@ -1429,6 +1657,198 @@ const styles = StyleSheet.create({
   },
   primaryNextBtnText: {
     fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  subHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: normalize(6),
+  },
+  stepCountText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: PRIMARY_GREEN,
+  },
+  progressHintText: {
+    fontSize: normalize(11),
+    fontWeight: "600",
+    color: "#1860f0",
+  },
+  mainTitle: {
+    fontSize: normalize(20),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: normalize(4),
+  },
+  mainSubtitle: {
+    fontSize: normalize(13),
+    color: "#64748b",
+    marginBottom: normalize(16),
+  },
+  completionBanner: {
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(8),
+    paddingHorizontal: normalize(14),
+    alignItems: "center",
+    marginBottom: normalize(14),
+  },
+  completionBannerText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#15803d",
+  },
+  sectionHeaderUpper: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: PRIMARY_GREEN,
+    letterSpacing: 0.8,
+    marginTop: normalize(10),
+    marginBottom: normalize(8),
+  },
+  reviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(16),
+    padding: normalize(14),
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    marginBottom: normalize(16),
+  },
+  reviewCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: normalize(10),
+  },
+  reviewRoleTitle: {
+    fontSize: normalize(17),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  reviewCompanySub: {
+    fontSize: normalize(12),
+    color: "#64748b",
+    marginTop: 2,
+  },
+  threeColGrid: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f8fafc",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(10),
+    paddingHorizontal: normalize(4),
+    marginBottom: normalize(12),
+  },
+  gridCol: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: normalize(2),
+  },
+  gridColDivider: {
+    width: 1,
+    height: normalize(34),
+    backgroundColor: "#e2e8f0",
+  },
+  gridIconCircle: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: normalize(4),
+  },
+  gridLabel: {
+    fontSize: normalize(10),
+    color: "#64748b",
+    marginBottom: 2,
+  },
+  gridValue: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+    color: "#0f172a",
+    textAlign: "center",
+  },
+  reviewDivider: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: normalize(10),
+  },
+  reviewListRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: normalize(6),
+  },
+  reviewListLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  reviewListLabel: {
+    fontSize: normalize(12),
+    color: "#475569",
+    fontWeight: "500",
+  },
+  reviewListValue: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  reviewDescHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(6),
+  },
+  reviewDescTitle: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginLeft: normalize(6),
+  },
+  reviewDescBody: {
+    fontSize: normalize(12),
+    color: "#475569",
+    lineHeight: normalize(18),
+  },
+  postingTipBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginBottom: normalize(16),
+  },
+  tipIconCircle: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(8),
+  },
+  postingTipText: {
+    flex: 1,
+    fontSize: normalize(11),
+    color: "#1e40af",
+    lineHeight: normalize(16),
+  },
+  submitApprovalButton: {
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: normalize(12),
+    height: normalize(46),
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: normalize(16),
+  },
+  submitApprovalButtonText: {
+    fontSize: normalize(15),
     fontWeight: "700",
     color: "#ffffff",
   },

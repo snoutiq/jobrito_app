@@ -23,6 +23,7 @@ import {
 } from "../../redux/slices/employerSlice";
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import { getDailyPostLimit } from "../../services/jobApi";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -204,13 +205,22 @@ export default function MyJobsScreen({ navigation, route }) {
         combined = [...myJobs];
       }
     } else {
-      combined = myJobs || [];
+      combined = [...(myJobs || []), ...(submittedJobs || [])];
+      if (employerDashboardRaw) {
+        const created = employerDashboardRaw.created_jobs || [];
+        const pending = employerDashboardRaw.pending_created_jobs || [];
+        const extraJobs = employerDashboardRaw.jobs || employerDashboardRaw.data || [];
+        combined = [...combined, ...created, ...pending, ...extraJobs];
+      }
     }
 
     const map = new Map();
-    combined.forEach((j) => {
-      if (j && j.id && !map.has(String(j.id))) {
-        map.set(String(j.id), j);
+    combined.forEach((j, index) => {
+      if (j) {
+        const key = String(j.id || j.job_id || `job_index_${index}`);
+        if (!map.has(key)) {
+          map.set(key, j);
+        }
       }
     });
 
@@ -218,18 +228,15 @@ export default function MyJobsScreen({ navigation, route }) {
   }, [isEmployer, employerDashboardRaw, submittedJobs, myJobs]);
 
   const fetchAllData = React.useCallback(() => {
-    if (isEmployer) {
-      dispatch(fetchEmployerDashboard());
-    }
+    dispatch(fetchEmployerDashboard());
     dispatch(fetchMyJobs());
-  }, [dispatch, isEmployer]);
+  }, [dispatch]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchAllData();
-    });
-    return unsubscribe;
-  }, [navigation, fetchAllData]);
+    }, [fetchAllData])
+  );
 
   useEffect(() => {
     const targetTab = route?.params?.activeTab || route?.params?.initialTab;
@@ -246,9 +253,9 @@ export default function MyJobsScreen({ navigation, route }) {
     setRefreshing(true);
     try {
       if (isEmployer) {
-        await dispatch(fetchEmployerDashboard()).unwrap();
+        await dispatch(fetchEmployerDashboard()).unwrap().catch(() => {});
       }
-      await dispatch(fetchMyJobs()).unwrap();
+      await dispatch(fetchMyJobs()).unwrap().catch(() => {});
     } catch (e) {
       console.error("Failed to refresh jobs list:", e);
     } finally {
@@ -285,8 +292,8 @@ export default function MyJobsScreen({ navigation, route }) {
   }, [jobsToShow, searchQuery]);
 
   const activeJobs = filteredSearchJobs.filter((job) => {
-    const status = normalizeStatus(job.status);
-    return status === "active" || status === "approved";
+    const status = normalizeStatus(job.status || "active");
+    return status === "active" || status === "approved" || status === "published" || status === "";
   });
 
   const pendingJobs = filteredSearchJobs.filter(
@@ -297,7 +304,10 @@ export default function MyJobsScreen({ navigation, route }) {
   );
 
   const closedJobs = filteredSearchJobs.filter(
-    (job) => normalizeStatus(job.status) === "closed"
+    (job) => {
+      const status = normalizeStatus(job.status);
+      return status === "closed" || status === "completed";
+    }
   );
 
   const renderJobCard = (job) => {
@@ -386,7 +396,7 @@ export default function MyJobsScreen({ navigation, route }) {
           </View>
 
           <View style={styles.badgesContainer}>
-            {isReferral && (
+            {isEmployer && isReferral && (
               <View style={styles.referralBadge}>
                 <Text style={styles.referralBadgeText}>{t("referral", "REFERRAL")}</Text>
               </View>
@@ -396,7 +406,7 @@ export default function MyJobsScreen({ navigation, route }) {
                 {statusConfig.label}
               </Text>
             </View>
-            {activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
+            {isEmployer && activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
               <View style={styles.savedBadge}>
                 <Text style={styles.savedBadgeText}>
                   {t("favoriteJobBadge", "Favorite: {{count}}", { count: savedCount })}
@@ -407,7 +417,7 @@ export default function MyJobsScreen({ navigation, route }) {
         </View>
 
         {/* Dropdown Stats Breakdown Section */}
-        {isStatsExpanded && (
+        {isEmployer && isStatsExpanded && (
           <View style={styles.statsDropdownBox}>
             <Text style={styles.statsDropdownHeader}>
               📊 {t("applicationStatus", "Application Status")}
@@ -502,14 +512,22 @@ export default function MyJobsScreen({ navigation, route }) {
 
         {/* Card Footer Row */}
         <View style={styles.cardFooterRow}>
-          {Boolean(formattedJobId) && (
-            <Text style={styles.jobIdText}>
-              {t("jobId", "Job ID")}: <Text style={styles.jobIdValue}>{formattedJobId}</Text>
-            </Text>
-          )}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8) }}>
+            {Boolean(formattedJobId) && (
+              <Text style={styles.jobIdText}>
+                {t("jobId", "Job ID")}: <Text style={styles.jobIdValue}>{formattedJobId}</Text>
+              </Text>
+            )}
+
+            {!isEmployer && isReferral && (
+              <View style={styles.referralBadge}>
+                <Text style={styles.referralBadgeText}>{t("referral", "REFERRAL")}</Text>
+              </View>
+            )}
+          </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8) }}>
-            {activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
+            {isEmployer && activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
               <TouchableOpacity
                 style={[styles.statsFilterIconBtn, isStatsExpanded && styles.statsFilterIconBtnActive]}
                 onPress={(e) => {
@@ -748,16 +766,22 @@ export default function MyJobsScreen({ navigation, route }) {
         </ScrollView>
       )}
 
-      {/* Floating Action Button for Employer */}
-      {isEmployer && (
+      {/* Floating Action Button for ALL Roles */}
+      <View style={styles.fabContainerWrapper}>
+        {!isEmployer && (
+          <View style={styles.fabTooltipCard}>
+            <Text style={styles.fabTooltipTitle}>{t("postJobAsReferral", "Post a Job as Referral")}</Text>
+            <Text style={styles.fabTooltipSub}>{t("oneJobPerDay", "1 job per day")}</Text>
+          </View>
+        )}
         <TouchableOpacity
-          style={[styles.fab, { backgroundColor: PRIMARY_GREEN }]}
-          activeOpacity={0.8}
+          style={styles.fabBtnCircle}
           onPress={checkPostLimitAndNavigate}
+          activeOpacity={0.85}
         >
-          <Ionicons name="add" size={normalize(24)} color="#fff" />
+          <Ionicons name="add" size={normalize(26)} color="#ffffff" />
         </TouchableOpacity>
-      )}
+      </View>
 
       {Boolean(toastMessage) && (
         <View style={styles.toastContainer}>
@@ -1182,20 +1206,48 @@ const styles = StyleSheet.create({
     color: "rgba(10, 5, 4, 0.6)",
     fontWeight: "600",
   },
-  fab: {
+  fabContainerWrapper: {
     position: "absolute",
     bottom: normalize(20),
-    right: normalize(20),
-    width: normalize(48),
-    height: normalize(48),
-    borderRadius: normalize(24),
+    right: normalize(16),
+    alignItems: "flex-end",
+  },
+  fabTooltipCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(10),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(8),
+    marginBottom: normalize(8),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  fabTooltipTitle: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#153e69",
+  },
+  fabTooltipSub: {
+    fontSize: normalize(10),
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  fabBtnCircle: {
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
+    backgroundColor: "#153e69",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
+    shadowColor: "#153e69",
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   toastContainer: {
     position: "absolute",

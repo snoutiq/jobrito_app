@@ -409,20 +409,7 @@ export default function JobDetailsScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       ) : !isEmployer ? (
-        <View style={styles.bottomBar}>
-          <AppButton
-            title={
-              isApplied
-                ? t("jobDetails.applied", "✓ Applied")
-                : t("jobDetails.applyNow", "Apply Now")
-            }
-            onPress={() => setShowCallModal(true)}
-            disabled={isApplied}
-            style={[
-              styles.applyButton,
-              isApplied && { backgroundColor: "rgba(10, 5, 4, 0.4)" },
-            ]}
-          />
+        <View style={[styles.bottomBar, { justifyContent: "flex-end" }]}>
           <Pressable onPress={handleShare} style={styles.chatButton}>
             <Ionicons name="share-social-outline" size={normalize(18)} color="#153e69" />
           </Pressable>

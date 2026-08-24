@@ -209,12 +209,17 @@ const jobSlice = createSlice({
         const payload = action.payload || {};
         const createdJobs = Array.isArray(payload.created_jobs)
           ? payload.created_jobs
+          : Array.isArray(payload.jobs)
+          ? payload.jobs
+          : Array.isArray(payload.data)
+          ? payload.data
+          : Array.isArray(payload)
+          ? payload
           : [];
         const pendingJobs = Array.isArray(payload.pending_created_jobs)
           ? payload.pending_created_jobs
           : [];
 
-        // Strictly merge ONLY created + pending jobs (no jobs / data / applied_jobs fallback)
         const merged = [
           ...createdJobs,
           ...pendingJobs.map((job) => ({
@@ -223,9 +228,9 @@ const jobSlice = createSlice({
           })),
         ];
 
-        // De-dupe by id
         const seen = new Set();
         state.myJobs = merged.filter((job) => {
+          if (!job || !job.id) return false;
           const id = String(job.id);
           if (seen.has(id)) return false;
           seen.add(id);
