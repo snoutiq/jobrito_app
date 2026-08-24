@@ -426,6 +426,10 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       }
     };
     saveCurrentStep();
+
+    if (scrollViewRef?.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
   }, [step]);
 
   const handleCreateCalendlyAccount = () => {
@@ -1404,8 +1408,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
                 </Text>
               </View>
@@ -1608,8 +1613,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
                 </Text>
               </View>
@@ -1837,8 +1843,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
                 </Text>
               </View>
@@ -1985,8 +1992,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
                 </Text>
               </View>
@@ -2156,8 +2164,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
                 </Text>
               </View>
@@ -2315,10 +2324,13 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <View style={[styles.pillsRowWrap, { marginTop: normalize(4) }]}>
-                        {selectedCuisines.map((c) => (
-                          <View key={c} style={[styles.roundedPillCard, { paddingVertical: normalize(3), paddingHorizontal: normalize(8), backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }]}>
-                            <Text style={[styles.roundedPillCardText, { color: "#1d4ed8", fontSize: normalize(11) }]}>{c}</Text>
+                      <View style={{ marginTop: normalize(4) }}>
+                        {selectedCuisines.map((c, idx) => (
+                          <View key={c} style={{ paddingVertical: normalize(3) }}>
+                            <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
+                              • {c}
+                            </Text>
+                            {idx < selectedCuisines.length - 1 && <View style={styles.horizontalDividerLight} />}
                           </View>
                         ))}
                       </View>
@@ -2341,9 +2353,16 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
-                        {selectedOperations.join(", ")}
-                      </Text>
+                      <View style={{ marginTop: normalize(4) }}>
+                        {selectedOperations.map((op, idx) => (
+                          <View key={op} style={{ paddingVertical: normalize(3) }}>
+                            <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
+                              • {op}
+                            </Text>
+                            {idx < selectedOperations.length - 1 && <View style={styles.horizontalDividerLight} />}
+                          </View>
+                        ))}
+                      </View>
                     </View>
                     <View style={styles.horizontalDividerLight} />
                   </>
@@ -2363,7 +2382,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
                         {experienceYears}
                       </Text>
                     </View>
@@ -2385,9 +2404,16 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
-                        {regionalExperience.join(", ")}
-                      </Text>
+                      <View style={{ marginTop: normalize(4) }}>
+                        {regionalExperience.map((reg, idx) => (
+                          <View key={reg} style={{ paddingVertical: normalize(3) }}>
+                            <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
+                              • {reg}
+                            </Text>
+                            {idx < regionalExperience.length - 1 && <View style={styles.horizontalDividerLight} />}
+                          </View>
+                        ))}
+                      </View>
                     </View>
                     <View style={styles.horizontalDividerLight} />
                   </>
@@ -2407,7 +2433,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
                         {locationPreference}
                       </Text>
                     </View>
@@ -2429,9 +2455,16 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
-                        {employmentPreference.join(", ")}
-                      </Text>
+                      <View style={{ marginTop: normalize(4) }}>
+                        {employmentPreference.map((emp, idx) => (
+                          <View key={emp} style={{ paddingVertical: normalize(3) }}>
+                            <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
+                              • {emp}
+                            </Text>
+                            {idx < employmentPreference.length - 1 && <View style={styles.horizontalDividerLight} />}
+                          </View>
+                        ))}
+                      </View>
                     </View>
                     <View style={styles.horizontalDividerLight} />
                   </>
@@ -2451,7 +2484,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                           <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
                         {availability}
                       </Text>
                     </View>
@@ -2471,7 +2504,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                     </TouchableOpacity>
                   </View>
-                  <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                  <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
                     {calendlyLink ? "Connected" : "Not Linked"}
                   </Text>
                 </View>
@@ -2489,11 +2522,45 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
                     </TouchableOpacity>
                   </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6), marginTop: normalize(4) }}>
-                    {linkedinLink ? <Ionicons name="logo-linkedin" size={normalize(16)} color="#0077b5" /> : null}
-                    {instagramLink ? <Ionicons name="logo-instagram" size={normalize(16)} color="#e1306c" /> : null}
-                    {facebookLink ? <Ionicons name="logo-facebook" size={normalize(16)} color="#1877f2" /> : null}
-                    {customSocialLinks.length > 0 ? <Ionicons name="link-outline" size={normalize(16)} color="#64748b" /> : null}
+                  <View style={{ marginTop: normalize(6) }}>
+                    {linkedinLink ? (
+                      <View style={{ paddingVertical: normalize(3) }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
+                          <Ionicons name="logo-linkedin" size={normalize(15)} color="#0077b5" />
+                          <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>{linkedinLink}</Text>
+                        </View>
+                        <View style={styles.horizontalDividerLight} />
+                      </View>
+                    ) : null}
+                    {instagramLink ? (
+                      <View style={{ paddingVertical: normalize(3) }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
+                          <Ionicons name="logo-instagram" size={normalize(15)} color="#e1306c" />
+                          <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>{instagramLink}</Text>
+                        </View>
+                        <View style={styles.horizontalDividerLight} />
+                      </View>
+                    ) : null}
+                    {facebookLink ? (
+                      <View style={{ paddingVertical: normalize(3) }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
+                          <Ionicons name="logo-facebook" size={normalize(15)} color="#1877f2" />
+                          <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>{facebookLink}</Text>
+                        </View>
+                        <View style={styles.horizontalDividerLight} />
+                      </View>
+                    ) : null}
+                    {customSocialLinks.length > 0
+                      ? customSocialLinks.map((link, idx) => (
+                          <View key={link + idx} style={{ paddingVertical: normalize(3) }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
+                              <Ionicons name="link-outline" size={normalize(15)} color="#64748b" />
+                              <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>{link}</Text>
+                            </View>
+                            {idx < customSocialLinks.length - 1 && <View style={styles.horizontalDividerLight} />}
+                          </View>
+                        ))
+                      : null}
                     {!linkedinLink && !instagramLink && !facebookLink && customSocialLinks.length === 0 && (
                       <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left" }]}>No social links connected</Text>
                     )}
@@ -2510,7 +2577,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     <Text style={[styles.cardHeaderTitle, { color: "#3730a3" }]}>
                       {t("privacyPriorityTitle", "Your privacy is our priority")}
                     </Text>
-                    <Text style={[styles.cardSubtextBelowHeader, { color: "#4338ca", marginTop: normalize(2) }]}>
+                    <Text style={[styles.cardSubtextBelowHeader, { color: "#4338ca", marginTop: normalize(2), marginLeft: 0, marginBottom: 0, textAlign: "left" }]}>
                       {t("privacyPrioritySub", "Your information will only be shared with verified employers and businesses on JobRito.")}
                     </Text>
                   </View>
@@ -2536,8 +2603,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
               {/* Security Subtext */}
               <View style={styles.securityRow}>
-                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
                 <Text style={styles.securityText}>
+                  <Ionicons name="lock-closed-outline" size={normalize(12)} color="#64748b" />
+                  {"  "}
                   {t("agreeTermsPolicySub", "By submitting, you agree to our Terms & Conditions and Privacy Policy.")}
                 </Text>
               </View>
@@ -3998,15 +4066,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: normalize(4),
-    marginTop: normalize(2),
+    marginTop: normalize(4),
     marginBottom: normalize(16),
+    paddingHorizontal: normalize(20),
   },
   securityText: {
     fontSize: normalize(10.5),
     color: "#64748b",
     fontWeight: "400",
     textAlign: "center",
+    lineHeight: normalize(15),
   },
   requiredStar: {
     color: "#ef4444",
@@ -4241,8 +4310,8 @@ const styles = StyleSheet.create({
   },
   horizontalDividerLight: {
     height: 1,
-    backgroundColor: "#f1f5f9",
-    marginVertical: normalize(2),
+    backgroundColor: "#cbd5e1",
+    marginVertical: normalize(4),
   },
 
   // Step 6 & Step 7 Review & Success Styles

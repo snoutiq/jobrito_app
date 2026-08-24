@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { closeEmployerJob } from "../../redux/slices/employerSlice";
 import { applyJob, fetchApplicationHistory } from "../../redux/slices/applicationSlice";
-import { fetchJobDetails } from "../../redux/slices/jobSlice";
+import { fetchJobDetails, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
 import { getJobDetails } from "../../services/jobApi";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppButton from "../../components/buttons/AppButton";
@@ -465,10 +465,25 @@ export default function JobDetailsScreen({ navigation, route }) {
         onClose={() => setShowCallModal(false)}
         onConfirm={async (timeSlot) => {
           try {
+            const targetJobId = job?.id || jobId;
             await dispatch(
-              applyJob({ jobId: job?.id, preferredCallTime: timeSlot }),
+              applyJob({ jobId: targetJobId, preferredCallTime: timeSlot }),
             ).unwrap();
             dispatch(fetchApplicationHistory());
+
+            const isFromSaved =
+              Boolean(route?.params?.isSaved) ||
+              Boolean(job?.saved) ||
+              Boolean(job?.is_saved) ||
+              (savedJobs || []).some((sj) => String(sj.id || sj.job_post_id) === String(targetJobId));
+
+            if (isFromSaved && targetJobId) {
+              try {
+                await dispatch(toggleSaveJob(targetJobId)).unwrap();
+              } catch (e) {}
+              dispatch(fetchSavedJobs());
+            }
+
             return true;
           } catch (err) {
             Alert.alert(

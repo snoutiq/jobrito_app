@@ -10,7 +10,9 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Image
+  Image,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +23,10 @@ import colors from "../../constants/colors";
 import { requestOtp } from "../../redux/slices/authSlice";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
 import { CustomAlert } from "../../components/common/CustomAlert";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
@@ -113,7 +119,6 @@ export default function LoginScreen({ navigation }) {
       cleanErrorMsg.toLowerCase().includes("role conflict") ||
       cleanErrorMsg.toLowerCase().includes("already registered");
 
-    // Clean up technical prefix "Role conflict error: "
     cleanErrorMsg = cleanErrorMsg.replace(/^Role conflict error:\s*/i, "");
 
     const alertTitle = isRoleConflict
@@ -141,11 +146,11 @@ export default function LoginScreen({ navigation }) {
           style={styles.logoImage}
           resizeMode="contain"
         />
-        <Text style={styles.subtitle}>Empowering the Hospitality Community</Text>
+        <Text style={styles.subtitle}>{t("login.empoweringSubtitle", "Empowering the Hospitality Community")}</Text>
       </View>
 
       <View style={styles.inputSection}>
-        <Text style={styles.label}>Mobile Number</Text>
+        <Text style={styles.label}>{t("login.mobileNumber", "Mobile Number")}</Text>
         <PhoneInput
           value={phone}
           onChangeText={(text) => {
@@ -168,9 +173,9 @@ export default function LoginScreen({ navigation }) {
           {loading ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={styles.sendOtpButtonText}>Send OTP</Text>
-              <Ionicons name="arrow-forward" size={18} color="#ffffff" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8) }}>
+              <Text style={styles.sendOtpButtonText}>{t("login.sendOtp", "Send OTP")}</Text>
+              <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" />
             </View>
           )}
         </TouchableOpacity>
@@ -196,17 +201,17 @@ export default function LoginScreen({ navigation }) {
           />
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Country</Text>
+              <Text style={styles.modalTitle}>{t("login.selectCountry", "Select Country")}</Text>
               <TouchableOpacity onPress={() => setShowCountryModal(false)}>
-                <Ionicons name="close-circle" size={26} color="rgba(10, 5, 4, 0.4)" />
+                <Ionicons name="close-circle" size={normalize(26)} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
             </View>
 
             {/* Search Box */}
             <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
+              <Ionicons name="search" size={normalize(20)} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
               <TextInput
-                placeholder="Search country..."
+                placeholder={t("login.searchCountry", "Search country...")}
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -246,9 +251,9 @@ export default function LoginScreen({ navigation }) {
                       {active && (
                         <Ionicons
                           name="checkmark-circle"
-                          size={20}
+                          size={normalize(20)}
                           color={PRIMARY_GREEN}
-                          style={{ marginLeft: 8 }}
+                          style={{ marginLeft: normalize(8) }}
                         />
                       )}
                     </View>
@@ -256,7 +261,7 @@ export default function LoginScreen({ navigation }) {
                 );
               })}
               {filteredCountries.length === 0 && (
-                <Text style={styles.noResultsText}>No matching countries found.</Text>
+                <Text style={styles.noResultsText}>{t("login.noMatchingCountries", "No matching countries found.")}</Text>
               )}
             </ScrollView>
           </View>
@@ -268,55 +273,56 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   content: {
-    padding: 24,
+    padding: normalize(20),
     justifyContent: "center",
     flexGrow: 1,
-    gap: 24,
+    gap: normalize(20),
   },
   hero: {
     alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
+    gap: normalize(6),
+    marginBottom: normalize(8),
   },
   logoImage: {
-    width: 350,
-    height: 150,
+    width: normalize(300),
+    height: normalize(125),
     alignSelf: "center",
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   subtitle: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 14,
+    color: "#64748b",
+    fontSize: normalize(13.5),
     textAlign: "center",
+    fontWeight: "500",
   },
   inputSection: {
-    gap: 12,
+    gap: normalize(10),
   },
   label: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 14,
+    color: "#475569",
+    fontSize: normalize(13.5),
     fontWeight: "700",
   },
   sendOtpButton: {
     backgroundColor: PRIMARY_GREEN,
-    height: 56,
-    borderRadius: 14,
+    height: normalize(48),
+    borderRadius: normalize(12),
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: normalize(8),
   },
   sendOtpButtonText: {
     color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: normalize(15),
+    fontWeight: "800",
   },
   terms: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 12,
-    lineHeight: 18,
+    color: "#64748b",
+    fontSize: normalize(11.5),
+    lineHeight: normalize(17),
     textAlign: "center",
-    paddingHorizontal: 12,
-    marginTop: 8,
+    paddingHorizontal: normalize(10),
+    marginTop: normalize(6),
   },
   termsLink: {
     color: PRIMARY_GREEN,
@@ -329,51 +335,51 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     backgroundColor: "#ffffff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: normalize(20),
+    borderTopRightRadius: normalize(20),
     maxHeight: "80%",
-    padding: 20,
-    gap: 12,
+    padding: normalize(16),
+    gap: normalize(10),
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: normalize(4),
   },
   modalTitle: {
     color: "#0a0504",
-    fontSize: 18,
+    fontSize: normalize(17),
     fontWeight: "900",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f2f2f3",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
-    marginBottom: 8,
+    backgroundColor: "#f1f5f9",
+    borderRadius: normalize(10),
+    paddingHorizontal: normalize(10),
+    height: normalize(44),
+    marginBottom: normalize(6),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: normalize(8),
   },
   searchInputField: {
     flex: 1,
-    fontSize: 15,
+    fontSize: normalize(14),
     color: "#0a0504",
-    paddingVertical: 8,
+    paddingVertical: normalize(6),
   },
   countryList: {
-    marginBottom: 10,
+    marginBottom: normalize(8),
   },
   countryRow: {
-    minHeight: 52,
-    borderRadius: 12,
+    minHeight: normalize(48),
+    borderRadius: normalize(10),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    paddingHorizontal: 14,
-    marginVertical: 4,
+    borderColor: "#e2e8f0",
+    paddingHorizontal: normalize(12),
+    marginVertical: normalize(3),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -385,15 +391,15 @@ const styles = StyleSheet.create({
   countryRowLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: normalize(8),
     flex: 1,
   },
   countryFlagText: {
-    fontSize: 22,
+    fontSize: normalize(20),
   },
   countryLabel: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 14,
+    color: "#475569",
+    fontSize: normalize(13.5),
     fontWeight: "700",
   },
   countryLabelActive: {
@@ -404,14 +410,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   countryCodeText: {
-    color: "rgba(10, 5, 4, 0.6)",
-    fontSize: 13,
+    color: "#64748b",
+    fontSize: normalize(12.5),
     fontWeight: "600",
   },
   noResultsText: {
     textAlign: "center",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginTop: 20,
-    fontSize: 14,
+    color: "#64748b",
+    marginTop: normalize(16),
+    fontSize: normalize(13),
   },
 });

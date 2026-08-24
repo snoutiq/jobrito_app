@@ -184,7 +184,7 @@ export default function SavedJobsScreen({ navigation }) {
         "Professional Training & Development"
       ],
     };
-    navigation.navigate("JobDetails", { jobId: item.id, job: fullJob });
+    navigation.navigate("JobDetails", { jobId: item.id, job: fullJob, isSaved: true });
   };
 
   const renderItem = ({ item }) => {
@@ -361,6 +361,9 @@ export default function SavedJobsScreen({ navigation }) {
           if (selectedJob) {
             try {
               await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              try {
+                await dispatch(toggleSaveJob(selectedJob.id)).unwrap();
+              } catch (e) {}
               await dispatch(fetchSavedJobs());
               await dispatch(fetchApplicationHistory());
               return true;

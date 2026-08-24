@@ -398,7 +398,7 @@ export default function ChefHomeScreen({ navigation }) {
             return !isJobTraining && !job.is_pinned;
           })
           .map((job) => {
-            const isFav = savedJobs[job.id] || false;
+            const isFav = Boolean(favorites[job.id] || favorites[String(job.id)]);
             const isApplied = job.applied || false;
             const isApplying = applyingJobId === job.id;
             const isPinned = job.is_pinned || false;
@@ -438,11 +438,6 @@ export default function ChefHomeScreen({ navigation }) {
               <View key={job.id} style={styles.modernJobCard}>
                 {/* Main Card Content Row */}
                 <View style={styles.cardTopRow}>
-                  {/* Category Icon Box on Left */}
-                  <View style={[styles.cardIconBox, { backgroundColor: iconConfig.bg }]}>
-                    <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
-                  </View>
-
                   {/* Main Details Column */}
                   <View style={styles.cardMainContent}>
                     {isPinned && (
@@ -561,17 +556,19 @@ export default function ChefHomeScreen({ navigation }) {
                       <Ionicons name="share-social-outline" size={normalize(16)} color="#153e69" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                      style={styles.cardSquareIconBtn}
-                      onPress={() => toggleFavorite(job.id)}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons
-                        name={isFav ? "bookmark" : "bookmark-outline"}
-                        size={normalize(16)}
-                        color="#153e69"
-                      />
-                    </TouchableOpacity>
+                    {!isApplied && showApply && (
+                      <TouchableOpacity
+                        style={[styles.cardSquareIconBtn, isFav && styles.cardSquareIconBtnActive]}
+                        onPress={() => toggleFavorite(job.id)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name={isFav ? "bookmark" : "bookmark-outline"}
+                          size={normalize(16)}
+                          color={isFav ? "#d97706" : "#153e69"}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               </View>
@@ -688,14 +685,7 @@ export default function ChefHomeScreen({ navigation }) {
               {/* Hero Header Card */}
               <View style={styles.modalHeroCard}>
                 <View style={styles.modalHeroTop}>
-                  <View style={[styles.modalCardIconBox, { backgroundColor: getCategoryCardIconDetails(selectedDetailsJob || {}).bg }]}>
-                    <Ionicons
-                      name={getCategoryCardIconDetails(selectedDetailsJob || {}).icon}
-                      size={normalize(22)}
-                      color={getCategoryCardIconDetails(selectedDetailsJob || {}).color}
-                    />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: normalize(10) }}>
+                  <View style={{ flex: 1 }}>
                     <Text style={styles.modalJobTitle}>
                       {selectedDetailsJob?.program_name || selectedDetailsJob?.title}
                     </Text>
@@ -924,8 +914,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerLogo: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
   },
   headerLeft: {
     flexDirection: "row",
@@ -1208,6 +1198,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  cardSquareIconBtnActive: {
+    backgroundColor: "#fef3c7",
+    borderColor: "#f59e0b",
   },
 
   // FAB Container & Tooltip

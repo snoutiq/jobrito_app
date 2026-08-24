@@ -329,16 +329,23 @@
     "successSubTitle": "Your profile has been successfully set up. You can now start applying for jobs."
   },
   "roleSelection": {
+    "welcomeTitle": "Welcome to Jobrito",
+    "welcomeSub": "Your all-in-one platform for hospitality professionals, employers and businesses.",
+    "howGetStarted": "How would you like to get started?",
     "title": "Welcome to Jobrito",
     "subtitle": "How would you like to get started?",
     "description": {
-      "jobseeker": "Explore hospitality job opportunities",
-      "employer": "Hire talent for your kitchen",
-      "chef": "Showcase your culinary skills to top employers"
+      "jobseeker": "Discover exciting hospitality jobs and grow your career with leading brands.",
+      "employer": "Post jobs and connect with skilled hospitality professionals for your kitchen.",
+      "chef": "Showcase your culinary skills, experience and availability to top employers."
     },
     "jobseeker": "Talent",
     "employer": "Hire Talent",
-    "chef": "Chef Connect"
+    "chef": "Chef Connect",
+    "noticeTitle": "One mobile number. One module.",
+    "noticeSub": "Your registered mobile number cannot be used to access other modules.",
+    "initiativeBy": "An initiative by",
+    "companyName": "HOSS GLOBAL INC., INDIA"
   },
   "otp": {
     "title": "Verify your account",
@@ -389,6 +396,16 @@
   "login": {
     "title": "Welcome to Jobrito",
     "subtitle": "Enter your WhatsApp number to get started with your hospitality career.",
+    "empoweringSubtitle": "Empowering the Hospitality Community",
+    "mobileNumber": "Mobile Number",
+    "sendOtp": "Send OTP",
+    "selectCountry": "Select Country",
+    "searchCountry": "Search country...",
+    "noMatchingCountries": "No matching countries found.",
+    "phoneRequiredTitle": "Phone Required",
+    "phoneRequiredMessage": "Please enter your mobile number.",
+    "roleConflictTitle": "Account Already Registered",
+    "otpSendFailed": "Failed to send OTP. Please try again.",
     "phoneNumberPlaceholder": "Enter your WhatsApp number",
     "requestOtpButton": "Send OTP",
     "phoneLabel": "WhatsApp Number",

@@ -390,6 +390,9 @@ ${shareUrl}
         </TouchableOpacity>
       </View>
 
+      {/* Horizontal Divider Line Below Header */}
+      <View style={styles.headerHorizontalLine} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -815,6 +818,11 @@ const styles = StyleSheet.create({
     paddingTop: normalize(10),
     paddingBottom: normalize(12),
     backgroundColor: "#f7f8fd",
+  },
+  headerHorizontalLine: {
+    height: 1,
+    backgroundColor: "#e2e8f0",
+    width: "100%",
   },
   headerBackBtn: {
     padding: normalize(4),
