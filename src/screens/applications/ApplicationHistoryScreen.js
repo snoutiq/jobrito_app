@@ -1,136 +1,81 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
-  Image,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Linking,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import ScreenWrapper from "../../components/common/ScreenWrapper";
-import StatusBadge from "../../components/common/StatusBadge";
 import EmptyState from "../../components/common/EmptyState";
-import colors from "../../constants/colors";
 import { fetchApplicationHistory } from "../../redux/slices/applicationSlice";
 
-const PRIMARY_GREEN = "#153e69";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const formatAppliedTime = (appliedOn, t) => {
   if (!appliedOn) return t("applications.recently", "Recently");
   const date = new Date(appliedOn);
   if (Number.isNaN(date.getTime())) return t("applications.recently", "Recently");
-  
+
   const diffMs = Date.now() - date.getTime();
   const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-  
+
   if (diffDays === 0) return t("applications.today", "Today");
   if (diffDays === 1) return t("applications.yesterday", "Yesterday");
   if (diffDays < 7) return t("applications.daysAgo", "{{count}} days ago", { count: diffDays });
   if (diffDays >= 7 && diffDays < 14) return t("applications.weeksAgo", "1 week ago");
-  
-  // Format as "DD MMM" (e.g., "12 Oct", "30 Sep")
+
   const options = { day: "numeric", month: "short" };
   return date.toLocaleDateString("en-US", options);
 };
 
 const getDisplayStatusText = (statusStr, t) => {
-  if (!statusStr) return "";
+  if (!statusStr) return t("status.applied", "APPLIED");
   const s = statusStr.toUpperCase().trim();
-  if (s === "APPLIED") {
-    return t("status.applied", "APPLIED");
-  }
+  if (s === "APPLIED") return t("status.applied", "APPLIED");
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return t("status.underProcess", "UNDER PROCESS");
+    return t("status.underReview", "UNDER REVIEW");
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return t("status.discussionPending", "DISCUSSION PENDING");
+    return t("status.rejected", "REJECTED");
   }
-  if (s === "SHORTLISTED") {
-    return t("status.shortlisted", "SHORTLISTED");
-  }
-  if (s === "CONTACTED") {
-    return t("status.contacted", "CONTACTED");
-  }
-  if (s === "JOB CLOSED") {
-    return t("status.jobClosed", "JOB CLOSED");
-  }
+  if (s === "SHORTLISTED") return t("status.shortlisted", "SHORTLISTED");
+  if (s === "CONTACTED") return t("status.contacted", "CONTACTED");
+  if (s === "JOB CLOSED") return t("status.jobClosed", "JOB CLOSED");
   return t(`status.${s.toLowerCase()}`, s);
 };
 
-const getStatusBadgeColors = (statusStr) => {
-  if (!statusStr) return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+const getStatusBadgeStyle = (statusStr) => {
+  if (!statusStr) return { bg: "#eff6ff", text: "#153e69" };
   const s = statusStr.toUpperCase().trim();
-  if (s === "APPLIED") {
-    return { bg: "rgba(21, 62, 105, 0.08)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
-  }
+  if (s === "APPLIED") return { bg: "#eff6ff", text: "#153e69" };
   if (s === "NEW" || s === "UNDER REVIEW" || s === "UNDER_REVIEW") {
-    return { bg: "rgba(21, 62, 105, 0.06)", text: "#153e69", border: "rgba(21, 62, 105, 0.2)" };
-  }
-  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return { bg: "rgba(245, 127, 32, 0.06)", text: "#f57f20", border: "rgba(245, 127, 32, 0.2)" };
+    return { bg: "#fff7ed", text: "#ea580c" };
   }
   if (s === "SHORTLISTED" || s === "CONTACTED") {
-    return { bg: "rgba(21, 105, 62, 0.06)", text: "#15693e", border: "rgba(21, 105, 62, 0.2)" };
+    return { bg: "#f0fdf4", text: "#16a34a" };
   }
-  if (s === "JOB CLOSED") {
-    return { bg: "rgba(10, 5, 4, 0.04)", text: "rgba(10, 5, 4, 0.6)", border: "rgba(10, 5, 4, 0.15)" };
+  if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
+    return { bg: "#fef2f2", text: "#dc2626" };
   }
-  return { bg: "rgba(242, 200, 121, 0.06)", text: "#f2c879", border: "rgba(242, 200, 121, 0.2)" };
+  return { bg: "#f1f5f9", text: "#64748b" };
 };
 
 export default function ApplicationHistoryScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const insets = useSafeAreaInsets();
-  
+
   const { history, loading } = useSelector((state) => state.application);
-  const { profile } = useSelector((state) => state.user);
-  
   const [search, setSearch] = useState("");
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [activeStatusFilter, setActiveStatusFilter] = useState("All");
-
-  const filterOptions = [
-    "All",
-    "UNDER REVIEW",
-    "SHORTLISTED",
-    "CONTACTED",
-    "DECISION PENDING",
-    "JOB CLOSED"
-  ];
-
-  const statusTitles = {
-    "All": t("applications.status.all", "All Applications"),
-    "UNDER REVIEW": t("applications.status.underReview", "Under Review"),
-    "SHORTLISTED": t("applications.status.shortlisted", "Shortlisted"),
-    "CONTACTED": t("applications.status.contacted", "Contacted"),
-    "DECISION PENDING": t("applications.status.decisionPending", "Decision Pending"),
-    "JOB CLOSED": t("applications.status.jobClosed", "Job Closed")
-  };
-
-  const handleCall = (job) => {
-    const phoneNumber =
-      job?.creator?.mobile_number ||
-      job?.mobile_number ||
-      job?.phone ||
-      job?.contact_phone ||
-      job?.creator?.phone ||
-      "+919876543210";
-    Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-      Alert.alert(
-        t("error", "Error"),
-        (t("couldNotOpenDialer", "Could not open dialer: ") || "Could not open dialer: ") + err.message,
-      );
-    });
-  };
 
   useEffect(() => {
     dispatch(fetchApplicationHistory());
@@ -138,552 +83,431 @@ export default function ApplicationHistoryScreen({ navigation }) {
 
   const filteredHistory = useMemo(() => {
     const query = search.trim().toLowerCase();
+    if (!query) return history;
     return history.filter((item) => {
-      const matchesQuery =
-        !query ||
-        item.title?.toLowerCase().includes(query) ||
-        item.employer?.toLowerCase().includes(query);
-      
-      const matchesStatus =
-        activeStatusFilter === "All" ||
-        item.status?.toUpperCase() === activeStatusFilter.toUpperCase();
+      const jobObj = item.job || {};
+      const title = String(item.title || jobObj.title || "").toLowerCase();
+      const company = String(item.employer || jobObj.company || "").toLowerCase();
+      const location = String(item.location || jobObj.location || "").toLowerCase();
 
-      return matchesQuery && matchesStatus;
+      return (
+        title.includes(query) ||
+        company.includes(query) ||
+        location.includes(query)
+      );
     });
-  }, [history, search, activeStatusFilter]);
-
-  const displayName = profile?.name && profile.name !== "Guest User" ? profile.name : (profile?.phone || "");
-  const initials = displayName
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  }, [history, search]);
 
   const renderItem = ({ item }) => {
-    const jobOpenings = item.job?.open_positions ?? item.job?.openings ?? 0;
-    const jobType =
-      item.job?.job_type ??
-      item.job?.type ??
-      (item.job?.is_training || item.job?.category === "training"
-        ? "Training / Program"
-        : "Full-time");
-    const appliedDate = formatAppliedTime(item.appliedOn, t);
-    
-    // Determine status badge color
-    const displayStatus = getDisplayStatusText(item.status || "UNDER REVIEW", t);
-    const statusColors = getStatusBadgeColors(item.status || "UNDER REVIEW");
-    const statusBg = statusColors.bg;
-    const statusTextColor = statusColors.text;
-
     const jobObj = item.job || {};
-    const isReferral = jobObj.category === "referral" || jobObj.is_referral;
-    const effectiveRoleSource =
-      jobObj.submitted_by_role ||
-      jobObj.posted_by_role ||
-      jobObj.active_role ||
-      jobObj.user_role ||
-      jobObj.creator?.role ||
-      jobObj.creator?.active_role ||
-      item.submitted_by_role ||
-      "";
-    const effectiveRole = effectiveRoleSource.toLowerCase();
-    const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
-    const isChefOrJobSeeker = ["chef", "jobseeker", "job_seeker", "talent", "candidate"].includes(normalizedRole);
-    const showApply = !isReferral && !isChefOrJobSeeker;
+    const titleText = item.title || jobObj.title || "Job Opportunity";
+    const companyText = item.employer || jobObj.company || "Sheriff’s Kitchen";
+    const locationText = item.location || jobObj.location || "Mapusa, Goa, India";
+    const appliedTimeText = formatAppliedTime(item.appliedOn || item.applied_at || item.created_at, t);
+
+    const displayStatus = getDisplayStatusText(item.status || "APPLIED", t);
+    const badgeStyle = getStatusBadgeStyle(item.status || "APPLIED");
+
+    const jobType =
+      jobObj.job_type ||
+      item.job_type ||
+      (jobObj.is_training ? "Training / Program" : "Full-Time");
+
+    const secondaryPillText =
+      jobObj.salary ||
+      item.salary ||
+      jobObj.experience_range ||
+      item.experience_range ||
+      "Best in Industry";
+
+    const isTraining = jobObj.is_training || jobObj.category === "training";
+    const secondaryPillIcon = isTraining
+      ? "cash-outline"
+      : secondaryPillText.toLowerCase().includes("role")
+      ? "people-outline"
+      : secondaryPillText.toLowerCase().includes("cafe")
+      ? "cafe-outline"
+      : "star-outline";
+
+    const appIdStr = `#${item.id || item.application_id || "123456"}`;
 
     return (
       <Pressable
         onPress={() => {
-          if (item.jobId) {
-            navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
-          }
+          navigation.navigate("ApplicationJobDetails", {
+            jobId: item.jobId || item.job?.id || item.job_id || item.id,
+            job: item.job,
+            application: item,
+          });
         }}
         style={styles.jobCard}
       >
-        <View style={styles.jobHeader}>
-          <View style={styles.jobTitleWrapper}>
-            <View style={styles.iconContainer}>
-              {item.avatar ? (
-                <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
-              ) : (
-                <Ionicons name="restaurant-outline" size={22} color={PRIMARY_GREEN} />
-              )}
+        {/* Card Header Row */}
+        <View style={styles.cardHeaderRow}>
+          {/* Title & Company Info */}
+          <View style={styles.titleTextWrap}>
+            <Text style={styles.jobTitleText} numberOfLines={1}>
+              {titleText}
+            </Text>
+
+            <View style={styles.companyRow}>
+              <Text style={styles.companyNameText} numberOfLines={1}>
+                {companyText}
+              </Text>
+              <Ionicons
+                name="checkmark-circle"
+                size={normalize(14)}
+                color="#153e69"
+                style={{ marginLeft: normalize(3) }}
+              />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.jobTitleText} numberOfLines={1}>{item.title}</Text>
-              {item.employer ? (
-                <Text style={styles.jobCompanyText} numberOfLines={1}>{item.employer}</Text>
-              ) : null}
-              <Text style={styles.jobMetaText}>
-                <Ionicons name="location-outline" size={13} color="rgba(10, 5, 4, 0.6)" />{" "}
-                {item.job?.location || "Flexible"} • {appliedDate}
+
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={normalize(12)} color="#64748b" />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {locationText} • {appliedTimeText}
               </Text>
             </View>
           </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusBg, borderColor: statusColors.border }]}>
-            <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
+          {/* Status Badge Pill */}
+          <View style={[styles.statusBadge, { backgroundColor: badgeStyle.bg }]}>
+            <Text style={[styles.statusBadgeText, { color: badgeStyle.text }]}>
               {displayStatus}
             </Text>
           </View>
         </View>
 
-        <View style={styles.detailsRow}>
-          {jobOpenings > 0 && (
-            <Text style={styles.detailsText}>
-              <Ionicons name="people-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
-              {t("openings_count", { count: jobOpenings })}
-            </Text>
-          )}
-          <Text style={styles.detailsText}>
-            <Ionicons name="briefcase-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
-            {jobType}
-          </Text>
-          {item.job?.salary ? (
-            <Text style={styles.detailsText}>
-              <Ionicons name="card-outline" size={14} color="rgba(10, 5, 4, 0.6)" />{" "}
-              {item.job.salary}
-            </Text>
-          ) : null}
+        {/* Tag Pills Row */}
+        <View style={styles.pillsRow}>
+          <View style={styles.tagPill}>
+            <Ionicons
+              name={isTraining ? "book-outline" : "briefcase-outline"}
+              size={normalize(13)}
+              color="#475569"
+            />
+            <Text style={styles.tagPillText}>{jobType}</Text>
+          </View>
+
+          <View style={styles.tagPill}>
+            <Ionicons name={secondaryPillIcon} size={normalize(13)} color="#475569" />
+            <Text style={styles.tagPillText}>{secondaryPillText}</Text>
+          </View>
         </View>
 
-        <View style={styles.divider} />
-        <View style={styles.actionsRow}>
-          {showApply ? (
-            <TouchableOpacity
-              style={styles.viewDetailsBtn}
-              activeOpacity={0.8}
-              onPress={() => {
-                if (item.jobId) {
-                  navigation.navigate("JobDetails", { jobId: item.jobId, job: item.job });
-                }
-              }}
-            >
-              <Text style={styles.viewDetailsBtnText}>
-                {t("applications.viewDetails", "View Details")}
-              </Text>
-              <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.viewDetailsBtn, { backgroundColor: "#f57f20" }]}
-              activeOpacity={0.8}
-              onPress={() => handleCall(item.job)}
-            >
-              <Ionicons name="call" size={14} color="#ffffff" style={{ marginRight: 6 }} />
-              <Text style={styles.viewDetailsBtnText}>
-                {t("jobs.callNow", "Call Now")}
-              </Text>
-            </TouchableOpacity>
-          )}
+        {/* Card Bottom Footer */}
+        <View style={styles.cardFooter}>
+          <Text style={styles.appIdText}>
+            {t("applicationId", "Application ID")}: {appIdStr}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.viewDetailsBtn}
+            activeOpacity={0.8}
+            onPress={() => {
+              navigation.navigate("ApplicationJobDetails", {
+                jobId: item.jobId || item.job?.id || item.job_id || item.id,
+                job: item.job,
+                application: item,
+              });
+            }}
+          >
+            <Text style={styles.viewDetailsBtnText}>
+              {t("viewDetails", "View Details")}
+            </Text>
+            <Ionicons name="arrow-forward" size={normalize(14)} color="#153e69" />
+          </TouchableOpacity>
         </View>
       </Pressable>
     );
   };
 
-  const isFilterActive = activeStatusFilter !== "All";
-
   return (
-    <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container} contentStyle={{ padding: 0 }}>
-      {/* Custom Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#153e69" />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Top Header Bar */}
+      <View style={styles.topHeader}>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={normalize(22)} color="#0f2942" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("applications.title", "My Applications")}</Text>
+
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.mainTitle}>{t("myApplications", "My Applications")}</Text>
+            <Text style={styles.subTitle}>
+              {t("trackJobsSubtitle", "Track jobs you have applied for")}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Search / Filter Bar */}
-      <View style={styles.searchFilterRow}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color="rgba(10, 5, 4, 0.4)" />
+      {/* Search Section */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search-outline" size={normalize(18)} color="#94a3b8" />
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder={t("applications.searchPlaceholder", "Search applications")}
-            placeholderTextColor="rgba(10, 5, 4, 0.4)"
+            placeholder={t("searchApplications", "Search applications")}
+            placeholderTextColor="#94a3b8"
             style={styles.searchInput}
           />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Ionicons name="close-circle" size={normalize(16)} color="#94a3b8" />
+            </TouchableOpacity>
+          ) : null}
         </View>
-        <TouchableOpacity
-          style={[styles.filterBtn, isFilterActive && styles.filterBtnActive]}
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Ionicons
-            name={isFilterActive ? "options" : "options-outline"}
-            size={22}
-            color={isFilterActive ? "#153e69" : "rgba(10, 5, 4, 0.6)"}
-          />
-        </TouchableOpacity>
       </View>
 
-      {/* Filter Info Bar if active */}
-      {isFilterActive && (
-        <View style={styles.filterInfoBar}>
-          <Text style={styles.filterInfoText}>
-            {t("applications.showing", "Showing: ")}<Text style={{ fontWeight: "700" }}>{statusTitles[activeStatusFilter]}</Text>
-          </Text>
-          <TouchableOpacity onPress={() => setActiveStatusFilter("All")}>
-            <Text style={styles.resetFilterText}>{t("clear", "Clear")}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Applications List */}
+      {/* Main List Area */}
       <View style={{ flex: 1 }}>
         <FlatList
           data={filteredHistory}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => item.id || String(index)}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContentContainer}
           ListEmptyComponent={
             <EmptyState
-              title={loading ? t("loading", "Loading...") : t("applications.noFound", "No applications found")}
+              title={loading ? t("loading", "Loading...") : t("noApplicationsFound", "No applications found")}
               subtitle={
                 loading
                   ? t("pleaseWait", "Please wait...")
-                  : isFilterActive || search
-                  ? t("applications.tryChangingSearch", "Try changing your search query or status filter.")
-                  : t("applications.appliedJobsShowHere", "Your applied jobs will show up here.")
+                  : search
+                  ? t("tryChangingSearch", "Try changing your search query.")
+                  : t("appliedJobsShowHere", "Your applied jobs will show up here.")
               }
             />
           }
           ListFooterComponent={
-            filteredHistory.length > 0 ? (
-              <View style={styles.footerContainer}>
-                <Text style={styles.footerText}>
-                  {t("applications.showingHistoryRange", "Showing last 6 months of application history")}
+            <View style={styles.noticeBox}>
+              <Ionicons
+                name="information-circle"
+                size={normalize(24)}
+                color="#153e69"
+                style={{ marginTop: 1 }}
+              />
+              <View style={styles.noticeTextWrap}>
+                <Text style={styles.noticeTitle}>
+                  {t("cantFindApplication", "Can’t find an application?")}
+                </Text>
+                <Text style={styles.noticeSub}>
+                  {t("makeSureLoggedIn", "Make sure you’re logged in with the correct account.")}
                 </Text>
               </View>
-            ) : null
+            </View>
           }
-          contentContainerStyle={styles.listContent}
         />
       </View>
-
-      {/* Filter Options Bottom Sheet Modal */}
-      <Modal
-        visible={showFilterModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowFilterModal(false)} />
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 24 }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t("applications.filterByStatus", "Filter by Status")}</Text>
-              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={24} color="rgba(10, 5, 4, 0.6)" />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.optionsList}>
-              {filterOptions.map((option) => {
-                const isSelected = activeStatusFilter === option;
-                return (
-                  <TouchableOpacity
-                    key={option}
-                    style={[styles.optionItem, isSelected && styles.optionItemActive]}
-                    onPress={() => {
-                      setActiveStatusFilter(option);
-                      setShowFilterModal(false);
-                    }}
-                  >
-                    <Text style={[styles.optionText, isSelected && styles.optionTextActive]}>
-                      {statusTitles[option]}
-                    </Text>
-                    {isSelected && (
-                      <Ionicons name="checkmark" size={20} color="#153e69" />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {isFilterActive && (
-              <TouchableOpacity
-                style={styles.clearFilterBtn}
-                onPress={() => {
-                  setActiveStatusFilter("All");
-                  setShowFilterModal(false);
-                }}
-              >
-                <Text style={styles.clearFilterText}>{t("applications.clearFilter", "Clear Filter")}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </Modal>
-    </ScreenWrapper>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f3",
+    backgroundColor: "#fafbfc",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 8,
+
+  // Top Header
+  topHeader: {
     backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(10, 5, 4, 0.06)",
+    borderColor: "#f1f5f9",
   },
-  headerLeft: {
+  headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: normalize(12),
   },
   backBtn: {
-    padding: 4,
-    marginRight: 10,
+    padding: normalize(2),
   },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  searchFilterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: "#ffffff",
-  },
-  searchBar: {
+  headerTitleWrap: {
     flex: 1,
+  },
+  mainTitle: {
+    fontSize: normalize(17.5),
+    fontWeight: "800",
+    color: "#0f2942",
+    letterSpacing: 0.2,
+  },
+  subTitle: {
+    fontSize: normalize(12),
+    color: "#64748b",
+    fontWeight: "500",
+    marginTop: normalize(1),
+  },
+
+  // Search
+  searchSection: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
+    borderBottomWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  searchBarContainer: {
+    height: normalize(44),
+    backgroundColor: "#f8fafc",
+    borderRadius: normalize(12),
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#f2f2f3",
-    paddingHorizontal: 16,
+    paddingHorizontal: normalize(12),
+    gap: normalize(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
-    color: "#0a0504",
+    fontSize: normalize(13),
+    color: "#0f2942",
     paddingVertical: 0,
   },
-  filterBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.08)",
+
+  // List Content
+  listContentContainer: {
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(12),
+    paddingBottom: normalize(40),
+    gap: normalize(12),
   },
-  filterBtnActive: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderColor: "#153e69",
-  },
-  filterInfoBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: "#f2f2f3",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f3",
-  },
-  filterInfoText: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  resetFilterText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#f57f20",
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 100,
-  },
+
+  // Card Styles
   jobCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: normalize(14),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(10),
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    borderColor: "#eaedf1",
   },
-  jobHeader: {
+  cardHeaderRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 12,
+    gap: normalize(12),
   },
-  jobTitleWrapper: {
-    flexDirection: "row",
+  titleTextWrap: {
     flex: 1,
-    marginRight: 8,
-  },
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-    overflow: "hidden",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
   },
   jobTitleText: {
-    fontSize: 16,
+    fontSize: normalize(15.5),
     fontWeight: "800",
-    color: "#0a0504",
-    marginBottom: 2,
+    color: "#0f2942",
   },
-  jobCompanyText: {
-    fontSize: 13,
+  companyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: normalize(2),
+  },
+  companyNameText: {
+    fontSize: normalize(13),
     fontWeight: "600",
-    color: "rgba(10, 5, 4, 0.6)",
-    marginBottom: 2,
+    color: "#475569",
   },
-  jobMetaText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(4),
+    marginTop: normalize(4),
+  },
+  locationText: {
+    fontSize: normalize(11.5),
+    color: "#64748b",
+    fontWeight: "500",
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignSelf: "center",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(12),
   },
   statusBadgeText: {
-    fontSize: 9,
+    fontSize: normalize(10.5),
     fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
-  detailsRow: {
+
+  // Pills Row
+  pillsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    paddingLeft: 52,
+    gap: normalize(8),
+    marginTop: normalize(12),
   },
-  detailsText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.6)",
+  tagPill: {
     flexDirection: "row",
     alignItems: "center",
+    gap: normalize(6),
+    backgroundColor: "#f8fafc",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(8),
   },
-  footerContainer: {
-    paddingVertical: 24,
-    alignItems: "center",
-    justifyContent: "center",
+  tagPillText: {
+    fontSize: normalize(11.5),
+    fontWeight: "600",
+    color: "#475569",
   },
-  footerText: {
-    fontSize: 12,
-    color: "rgba(10, 5, 4, 0.4)",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#ffffff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  modalHeader: {
+
+  // Card Bottom Footer
+  cardFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginTop: normalize(14),
+    paddingTop: normalize(10),
+    borderTopWidth: 1,
+    borderColor: "#f1f5f9",
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  optionsList: {
-    gap: 8,
-  },
-  optionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "#f2f2f3",
-  },
-  optionItemActive: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.08)",
-  },
-  optionText: {
-    fontSize: 15,
+  appIdText: {
+    fontSize: normalize(11.5),
+    color: "#64748b",
     fontWeight: "500",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  optionTextActive: {
-    color: "#153e69",
-    fontWeight: "700",
-  },
-  clearFilterBtn: {
-    marginTop: 20,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#f2f2f3",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  clearFilterText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#f57f20",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    marginVertical: 12,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
   },
   viewDetailsBtn: {
+    height: normalize(34),
+    paddingHorizontal: normalize(12),
+    borderRadius: normalize(10),
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#153e69",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#153e69",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    gap: normalize(6),
   },
   viewDetailsBtnText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: normalize(12.5),
+    fontWeight: "800",
+    color: "#153e69",
+  },
+
+  // Notice Box
+  noticeBox: {
+    backgroundColor: "#eff6ff",
+    borderRadius: normalize(14),
+    padding: normalize(14),
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+    gap: normalize(10),
+    marginTop: normalize(8),
+  },
+  noticeTextWrap: {
+    flex: 1,
+  },
+  noticeTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#0f2942",
+    marginBottom: normalize(2),
+  },
+  noticeSub: {
+    fontSize: normalize(11.5),
+    color: "#475569",
+    fontWeight: "500",
   },
 });

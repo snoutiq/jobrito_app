@@ -25,7 +25,7 @@ export const applyJob = createAsyncThunk(
       // Immediately reload GET APIs (Application History & Saved Jobs)
       try {
         const { fetchSavedJobs } = require("./jobSlice");
-        dispatch(getApplicationHistory());
+        dispatch(fetchApplicationHistory());
         dispatch(fetchSavedJobs());
       } catch (e) {
         console.warn("Failed to auto-reload saved jobs / history after apply:", e);

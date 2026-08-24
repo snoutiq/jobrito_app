@@ -27,6 +27,7 @@ export const getApplicationHistory = async (email) => {
     const appId = item.application_id ?? item.id ?? jobIdVal;
 
     return {
+      ...item,
       id: String(appId),
       jobId: String(jobIdVal),
       title: item.title || "Job Opportunity",
@@ -34,7 +35,11 @@ export const getApplicationHistory = async (email) => {
       avatar: item.company_logo_url || item.logo || item.avatar || null,
       status: String(item.status || item.application_status || "APPLIED").toUpperCase(),
       appliedOn: item.applied_at || item.created_at || new Date().toISOString(),
+      created_at: item.created_at || item.applied_at,
+      applied_at: item.applied_at || item.created_at,
+      applied_at_formatted: item.applied_at_formatted,
       job: {
+        ...item,
         id: String(jobIdVal),
         job_post_id: item.job_post_id,
         training_id: item.training_id ?? null,
@@ -46,6 +51,8 @@ export const getApplicationHistory = async (email) => {
         job_type: item.job_type || (isTraining ? "Training / Program" : "Full-time"),
         experience_range: item.experience_range || null,
         description: item.description || "",
+        created_at: item.created_at || item.applied_at,
+        created_by: item.created_by || item.creator || item.company,
       },
     };
   });
