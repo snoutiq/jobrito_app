@@ -16,12 +16,18 @@ import {
   TextInput,
   Platform,
   Pressable,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import colors from "../../constants/colors";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 import {
   fetchFeedJobs,
   toggleSaveJob,
@@ -103,6 +109,23 @@ const categories = [
   }
 ];
 
+const getCategoryCardIconDetails = (job) => {
+  const title = (job?.title || job?.job_title || job?.category || "").toLowerCase();
+  if (title.includes("training") || title.includes("program") || title.includes("course") || title.includes("academy")) {
+    return { icon: "school-outline", bg: "#f3e8ff", color: "#7e22ce" };
+  }
+  if (title.includes("barista") || title.includes("cafe") || title.includes("coffee") || title.includes("beverage")) {
+    return { icon: "cafe-outline", bg: "#dcfce7", color: "#15803d" };
+  }
+  if (title.includes("chef") || title.includes("cook") || title.includes("baker") || title.includes("kitchen")) {
+    return { icon: "restaurant-outline", bg: "#ffedd5", color: "#c2410c" };
+  }
+  if (title.includes("housekeeping") || title.includes("supervisor") || title.includes("resort") || title.includes("hotel") || title.includes("manager")) {
+    return { icon: "business-outline", bg: "#f3e8ff", color: "#6b21a8" };
+  }
+  return { icon: "briefcase-outline", bg: "#e0f2fe", color: "#0369a1" };
+};
+
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -137,6 +160,7 @@ export default function HomeScreen({ navigation }) {
   const { profile } = useSelector((state) => state.user);
 
   const [activeFilter, setActiveFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("live"); // "live" or "pinned"
   const [highlightedJobId, setHighlightedJobId] = useState(null);
   const scrollViewRef = useRef(null);
   const jobPositions = useRef({});
@@ -616,50 +640,27 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Pagination timeline bar with pin icon */}
-      <View style={styles.filterBar}>
-        <Ionicons name="pin" size={18} color="#153e69" style={styles.pinIcon} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterPills}
+      {/* Sub Header Tabs */}
+      <View style={styles.tabsHeaderRow}>
+        <TouchableOpacity
+          style={[styles.tabHeaderItem, activeTab === "live" && styles.tabHeaderItemActive]}
+          onPress={() => setActiveTab("live")}
+          activeOpacity={0.8}
         >
-          {(feedJobs || [])
-            .filter((job) => job.is_pinned)
-            .map((job, index) => {
-              const isSelected = highlightedJobId === job.id;
-              return (
-                <TouchableOpacity
-                  key={job.id}
-                  style={[
-                    styles.filterPill,
-                    isSelected && styles.filterPillSelected,
-                  ]}
-                  onPress={() => {
-                    setHighlightedJobId((prev) =>
-                      prev === job.id ? null : job.id,
-                    );
-                    if (scrollViewRef.current && jobPositions.current[job.id] !== undefined) {
-                      scrollViewRef.current.scrollTo({
-                        y: jobPositions.current[job.id],
-                        animated: true,
-                      });
-                    }
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.filterPillText,
-                      isSelected && styles.filterPillTextSelected,
-                    ]}
-                  >
-                    {index + 1}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-        </ScrollView>
+          <Text style={[styles.tabHeaderLabel, activeTab === "live" && styles.tabHeaderLabelActive]}>
+            {t("liveJobFeed", "Live Job Feed")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabHeaderItem, activeTab === "pinned" && styles.tabHeaderItemActive]}
+          onPress={() => setActiveTab("pinned")}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.tabHeaderLabel, activeTab === "pinned" && styles.tabHeaderLabelActive]}>
+            {t("priorityPinnedJobs", "Priority Pinned Jobs")}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* JobList feed */}
@@ -675,231 +676,190 @@ export default function HomeScreen({ navigation }) {
           />
         }
       >
-        {feedJobs.map((job) => {
-          const isFav = favorites[job.id] || false;
-          const isApplied = job.applied || false;
-          const isApplying = applyingJobId === job.id;
-          const isCopied = copiedJobId === job.id;
-          const isPinned = job.is_pinned || false;
-          const isHighlighted = highlightedJobId === job.id;
-          const isTraining = job._type === "training_opportunity";
+        {/* Top Info Banner */}
+        {activeTab === "live" ? (
+          <View style={styles.topInfoBanner}>
+            <Ionicons name="information-circle-outline" size={normalize(18)} color="#2563eb" style={{ marginRight: normalize(8) }} />
+            <Text style={styles.topInfoBannerText}>
+              {t("realTimeOpportunities", "Real-time opportunities from employers and community referrals.")}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.topInfoBanner, { backgroundColor: "#fff7ed", borderColor: "#ffedd5" }]}>
+            <Ionicons name="shield-checkmark-outline" size={normalize(18)} color="#ea580c" style={{ marginRight: normalize(8) }} />
+            <Text style={[styles.topInfoBannerText, { color: "#c2410c" }]}>
+              {t("pinnedJobsNotice", "Pinned jobs are priority jobs set by the Jobrito team.")}
+            </Text>
+          </View>
+        )}
 
-          // Grand Hyatt and Global Talent are "Apply" jobs. Bombay Cafe is "Call & Share" referral.
-          const isReferral = job.category === "referral";
-          const hasMultipleActions = job.category === "overseas";
+        {(feedJobs || [])
+          .filter((job) => (activeTab === "pinned" ? job.is_pinned : true))
+          .map((job) => {
+            const isFav = favorites[job.id] || false;
+            const isApplied = job.applied || false;
+            const isApplying = applyingJobId === job.id;
+            const isPinned = job.is_pinned || false;
+            const isTraining = job._type === "training_opportunity" || (job.title || "").toLowerCase().includes("training");
+            const isReferral = job.category === "referral";
 
-          // --- UPDATED ROLE LOGIC (uses creator.active_role) ---
-          const effectiveRoleSource = job.creator?.active_role || "";
-          const effectiveRole = effectiveRoleSource.toLowerCase();
-          const normalizedRole = effectiveRole.replace(/[\s_]/g, ""); // "job_seeker" -> "jobseeker"
-          const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
-          const showApply = !isReferral && !isChefOrJobSeeker;
+            const effectiveRoleSource = job.creator?.active_role || "";
+            const effectiveRole = effectiveRoleSource.toLowerCase();
+            const normalizedRole = effectiveRole.replace(/[\s_]/g, "");
+            const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
+            const showApply = !isReferral && !isChefOrJobSeeker;
 
-          let roleBorderColor = null;
-          if (["jobseeker", "chef", "talent"].includes(normalizedRole)) {
-            roleBorderColor = "#f57f20"; // Orange
-          } else if (["administrator", "admin"].includes(normalizedRole)) {
-            roleBorderColor = "#2e7d32"; // Green
-          } else if (["employer", "agency"].includes(normalizedRole)) {
-            roleBorderColor = "#f2c879"; // Yellow
-          }
-          // --- END OF UPDATED ROLE LOGIC ---
+            const iconConfig = getCategoryCardIconDetails(job);
 
-          return (
-            <View
-              key={job.id}
-              style={[
-                styles.card,
-                roleBorderColor && Platform.select({
-                  ios: { borderColor: roleBorderColor, borderWidth: 1.5 },
-                  android: { borderLeftColor: roleBorderColor, borderLeftWidth: 4 }
-                }),
-                isTraining && { backgroundColor: "#f2c879" },
-                isHighlighted && styles.highlightedCard,
-              ]}
-            >
-              <View onLayout={(e) => {
-                jobPositions.current[job.id] = e.nativeEvent.layout.y;
-              }}>
-                {/* Pinned label indicator */}
-              {isPinned && (
-                <View style={styles.pinnedIndicator}>
-                  <Ionicons
-                    name="pin"
-                    size={14}
-                    color="#f57f20"
-                    style={{ marginRight: 4 }}
-                  />
-                  <Text style={styles.pinnedLabelText}>Pinned</Text>
-                </View>
-              )}
-
-              <View style={styles.cardHeaderRow}>
-                <View style={{ flex: 1 }}>
-                  {isReferral ? (
-                    <Text style={styles.referralHeader}>Referral Job Post</Text>
-                  ) : ( 
-                    <Text style={[styles.employerName, isTraining && { color: "#153e69" }]}>{job.company}</Text>
-                  )}
-                  <Text style={[styles.jobTitle, isTraining && { color: "#153e69" }]}>{job.title}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailsBlock}>
-                <View style={styles.detailItem}>
-                  <Ionicons
-                    name="location-outline"
-                    size={15}
-                    color="rgba(10, 5, 4, 0.6)"
-                  />
-                  <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
-                    {t("location", "Location")}: {job.location}
-                  </Text>
-                </View>
-                {job.salary && (
-                  <View style={styles.detailItem}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={15}
-                      color="rgba(10, 5, 4, 0.6)"
-                    />
-                    <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
-                      {t("salary", "Salary")}: {job.salary}
-                    </Text>
+            return (
+              <View key={job.id} style={styles.modernJobCard}>
+                {/* Main Card Content Row */}
+                <View style={styles.cardTopRow}>
+                  {/* Category Icon Box on Left */}
+                  <View style={[styles.cardIconBox, { backgroundColor: iconConfig.bg }]}>
+                    <Ionicons name={iconConfig.icon} size={normalize(22)} color={iconConfig.color} />
                   </View>
-                )}
-                {(() => {
-                  const jobExp =
-                    job.experience ||
-                    job.experience_range || 
-                    job.duration ||
-                    job.contract_duration;
-                  return jobExp ? (
-                    <View style={styles.detailItem}>
-                      <Ionicons
-                        name="calendar-outline"
-                        size={15}
-                        color="rgba(10, 5, 4, 0.6)"
-                      />
-                      <Text style={[styles.detailText, isTraining && { color: "#153e69" }]}>
-                        {t("contract", "Contract")}: {jobExp}
+
+                  {/* Main Details Column */}
+                  <View style={styles.cardMainContent}>
+                    {isPinned && (
+                      <View style={styles.pinnedTagRow}>
+                        <Ionicons name="pin" size={normalize(12)} color="#f57f20" style={{ marginRight: 3 }} />
+                        <Text style={styles.pinnedTagText}>Pinned</Text>
+                      </View>
+                    )}
+
+                    <Text style={styles.cardJobTitle} numberOfLines={1}>
+                      {job.title}
+                    </Text>
+
+                    <Text style={styles.cardCompanyName} numberOfLines={1}>
+                      {job.company || (isReferral ? t("referredByCommunity", "Referred by Community Member") : t("jobritoEmployer", "Employer"))}
+                    </Text>
+
+                    <View style={styles.cardLocationRow}>
+                      <Ionicons name="location-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" style={{ marginRight: 3 }} />
+                      <Text style={styles.cardLocationText} numberOfLines={1}>
+                        {job.location}
                       </Text>
                     </View>
-                  ) : null;
-                })()}
-              </View>
-              
-              <Text style={[styles.jobDescription, isTraining && { color: "#153e69" }]}>{job.description}</Text>
+                  </View>
 
-              {/* Action buttons rendering */}
-              <View style={styles.actionsContainer}>
-                {showApply ? (
-                  // employer/admin/agency: Apply Now only (no Call)
-                  <TouchableOpacity
-                    style={[
-                      styles.textActionBtn,
-                      isApplied && styles.textActionBtnApplied,
-                    ]}
-                    onPress={() =>
-                      isApplied || isApplying ? null : handleApplyPress(job)
-                    }
-                    disabled={isApplied || isApplying}
-                    activeOpacity={0.7}
-                  >
-                    {isApplying ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.textActionBtnText,
-                          isApplied && styles.textActionBtnTextApplied,
-                        ]}
-                      >
-                        {isApplied
-                          ? "✓ " + t("applied", "Applied")
-                          : t("applyNow", "Apply Now")}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                ) : (
-                  // chef/job_seeker/talent/referral: Call button (same size as Apply)
-                  <TouchableOpacity
-                    style={[styles.textActionBtn, { flexDirection: "row", gap: 6 }]}
-                    onPress={() => handleCall(job)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="call" size={16} color="#ffffff" />
-                    <Text style={styles.textActionBtnText}>Call Now</Text>
-                  </TouchableOpacity>
+                  {/* Top Right Type Badge */}
+                  <View style={[styles.cardTypeBadge, isTraining && { backgroundColor: "#f3e8ff" }]}>
+                    <Text style={[styles.cardTypeBadgeText, isTraining && { color: "#7e22ce" }]}>
+                      {String(job.job_type || job.type || (isTraining ? "Training Program" : "Full-time"))}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Inner Banner for Training Cards */}
+                {isTraining && (
+                  <View style={styles.cardInnerBanner}>
+                    <View style={styles.cardInnerBannerIconCircle}>
+                      <Ionicons name="school" size={normalize(16)} color="#7e22ce" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardInnerBannerTitle}>Build your skills. Boost your career.</Text>
+                      <Text style={styles.cardInnerBannerSub}>Join our certified training program designed for hospitality professionals.</Text>
+                    </View>
+                  </View>
                 )}
 
-                <TouchableOpacity
-                  style={styles.iconActionBtn}
-                  onPress={() => handleShare(job.title, job.company, job.id)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="share-social" size={18} color="#153e69" />
-                </TouchableOpacity>
+                {/* Horizontal Card Divider */}
+                <View style={styles.cardDividerLine} />
 
-                <TouchableOpacity
-                  style={styles.iconActionBtn}
-                  onPress={() => toggleFavorite(job.id)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={isFav ? "star" : "star-outline"}
-                    size={18}
-                    color={isFav ? "#f2c879" : "#153e69"}
-                  />
-                </TouchableOpacity>
-              </View>
+                {/* Card Footer Actions Row */}
+                <View style={styles.cardFooterRow}>
+                  {/* Left: Posted By */}
+                  <View style={styles.postedByCol}>
+                    <Ionicons
+                      name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
+                      size={normalize(14)}
+                      color="#2563eb"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={styles.postedByText} numberOfLines={1}>
+                      Posted by: <Text style={styles.postedByBold}>{isReferral ? "Referral" : isTraining ? "Jobrito Academy" : "Employer"}</Text>
+                    </Text>
+                  </View>
 
-              {/* --- UPDATED LABEL LOGIC (uses effectiveRoleSource fallback) --- */}
-              {effectiveRoleSource ? (
-                <View
-                  style={[
-                    styles.poweredRibbon,
-                    roleBorderColor && { borderColor: roleBorderColor },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.poweredRibbonText,
-                      roleBorderColor && { color: roleBorderColor },
-                    ]}
-                  >
-                    Posted By •{" "}
-                    {(() => {
-                      const roleDisplay = effectiveRoleSource.replace(/_/g, " ").toLowerCase();
-                      if (roleDisplay === "jobseeker" || roleDisplay === "job seeker") return "TALENT";
-                      return roleDisplay.toUpperCase();
-                    })()}
-                  </Text>
+                  {/* Right: Action Buttons */}
+                  <View style={styles.cardActionGroup}>
+                    <TouchableOpacity
+                      style={styles.cardNavyBtn}
+                      onPress={() => navigation.navigate("JobDetails", { jobId: job.id, job })}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.cardNavyBtnText}>{isTraining ? "VIEW DETAILS" : "VIEW JOB"}</Text>
+                    </TouchableOpacity>
+
+                    {showApply ? (
+                      <TouchableOpacity
+                        style={[styles.cardOutlineBtn, isApplied && styles.cardAppliedBtn]}
+                        onPress={() => isApplied || isApplying ? null : handleApplyPress(job)}
+                        disabled={isApplied || isApplying}
+                        activeOpacity={0.8}
+                      >
+                        {isApplying ? (
+                          <ActivityIndicator size="small" color="#153e69" />
+                        ) : (
+                          <Text style={[styles.cardOutlineBtnText, isApplied && styles.cardAppliedBtnText]}>
+                            {isApplied ? "✓ APPLIED" : "APPLY NOW"}
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.cardOutlineBtn}
+                        onPress={() => handleCall(job)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="call-outline" size={normalize(13)} color="#153e69" style={{ marginRight: 3 }} />
+                        <Text style={styles.cardOutlineBtnText}>CALL</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.cardSquareIconBtn}
+                      onPress={() => handleShare(job.title, job.company, job.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="share-social-outline" size={normalize(16)} color="#153e69" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.cardSquareIconBtn}
+                      onPress={() => toggleFavorite(job.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name={isFav ? "bookmark" : "bookmark-outline"}
+                        size={normalize(16)}
+                        color="#153e69"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              ) : null}
-              {/* --- END OF UPDATED LABEL LOGIC --- */}
               </View>
-            </View>
-          );
-        })}
-
-        {/* Bottom Informational Updates Banner */}
-        {/* <View style={styles.bottomBanner}>
-          <Ionicons name="sync" size={18} color="#153e69" style={{ marginRight: 10 }} />
-          <Text style={styles.bottomBannerText}>
-            Keep checking the feed regularly for new updates
-          </Text>
-        </View> */}
+            );
+          })}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => checkPostLimitAndNavigate("Post Referral Job")}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
+      {/* Floating Action Button with Referral Tooltip */}
+      <View style={styles.fabContainerWrapper}>
+        <View style={styles.fabTooltipCard}>
+          <Text style={styles.fabTooltipTitle}>{t("postJobAsReferral", "Post a Job as Referral")}</Text>
+          <Text style={styles.fabTooltipSub}>{t("oneJobPerDay", "1 job per day")}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.fabBtnCircle}
+          onPress={() => checkPostLimitAndNavigate("Post Referral Job")}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add" size={normalize(26)} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
 
       {Boolean(toastMessage) && (
         <View style={styles.toastContainer}>
@@ -1477,25 +1437,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.15)",
   },
   headerIcon: {
-    width: 32,
-    height: 32,
+    width: normalize(32),
+    height: normalize(32),
   },
   logoContainer: {
-    width: 140,
-    height: 38,
+    width: normalize(140),
+    height: normalize(38),
     overflow: "hidden",
     justifyContent: "center",
   },
   headerLogo: {
-    width: 120,
-    height: 120,
+    width: normalize(120),
+    height: normalize(120),
   },
   headerLeft: {
     flexDirection: "row",
@@ -1503,236 +1463,285 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   headerRight: {
-    padding: 6,
+    padding: normalize(6),
   },
   headerNotificationBtn: {
-    padding: 6,
+    padding: normalize(6),
     position: "relative",
   },
   notificationDot: {
     position: "absolute",
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: normalize(4),
+    right: normalize(4),
+    width: normalize(8),
+    height: normalize(8),
+    borderRadius: normalize(4),
     backgroundColor: "#f57f20",
   },
 
-  filterBar: {
+  // Sub Header Tabs
+  tabsHeaderRow: {
     flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
+    borderColor: "#e2e8f0",
   },
-  pinIcon: {
-    marginRight: 12,
-  },
-  filterPills: {
-    alignItems: "center",
-    gap: 8,
-  },
-  filterPill: {
-    paddingHorizontal: 12,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#f2f2f3",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterPillSelected: {
-    backgroundColor: "#153e69",
-  },
-  filterPillText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  filterPillTextSelected: {
-    color: "#ffffff",
-  },
-  feedScroll: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 85,
-  },
-  separatorContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 16,
-  },
-  separatorLine: {
+  tabHeaderItem: {
     flex: 1,
-    height: 1,
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
+    paddingVertical: normalize(14),
+    alignItems: "center",
+    justifyContent: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
-  separatorBadge: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginHorizontal: 10,
+  tabHeaderItemActive: {
+    borderBottomColor: "#153e69",
   },
-  separatorText: {
-    fontSize: 10,
+  tabHeaderLabel: {
+    fontSize: normalize(14),
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  tabHeaderLabelActive: {
+    color: "#153e69",
     fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.6)",
-    letterSpacing: 0.5,
   },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    position: "relative",
-    shadowColor: "#000",
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  highlightedCard: {
-    borderColor: "#153e69",
-    borderWidth: 2,
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    shadowColor: "#153e69",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  pinnedIndicator: {
+
+  // Top Info Banner
+  topInfoBanner: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#dbeafe",
+    borderRadius: normalize(10),
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
+    marginVertical: normalize(12),
+  },
+  topInfoBannerText: {
+    flex: 1,
+    fontSize: normalize(13),
+    fontWeight: "600",
+    color: "#1e40af",
+    lineHeight: normalize(17),
+  },
+
+  // Modern Job Card
+  modernJobCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(14),
+    padding: normalize(14),
+    marginBottom: normalize(14),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: normalize(12),
+  },
+  cardIconBox: {
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(12),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardMainContent: {
+    flex: 1,
+  },
+  pinnedTagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(2),
+  },
+  pinnedTagText: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#ea580c",
+  },
+  cardJobTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: normalize(2),
+  },
+  cardCompanyName: {
+    fontSize: normalize(13),
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: normalize(4),
+  },
+  cardLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  cardLocationText: {
+    fontSize: normalize(12),
+    fontWeight: "500",
+    color: "#64748b",
+  },
+  cardTypeBadge: {
+    backgroundColor: "#f1f5f9",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(12),
     alignSelf: "flex-start",
   },
-  pinnedLabelText: {
-    fontSize: 11,
+  cardTypeBadgeText: {
+    fontSize: normalize(11),
     fontWeight: "700",
-    color: "#f57f20",
+    color: "#475569",
   },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 6,
-  },
-  employerName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#153e69",
-    marginBottom: 2,
-  },
-  referralHeader: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#f57f20",
-    marginBottom: 2,
-  },
-  jobTitle: {
-    fontSize: 15,
-    fontWeight: "750",
-    color: "#0a0504",
-  },
-  favBtn: {
-    padding: 2,
-  },
-  detailsBlock: {
-    backgroundColor: "#f2f2f3",
-    borderRadius: 8,
-    padding: 8,
-    marginVertical: 6,
-    gap: 4,
-  },
-  detailItem: {
+
+  // Inner Banner for Training Cards
+  cardInnerBanner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    backgroundColor: "#f5f3ff",
+    borderRadius: normalize(10),
+    padding: normalize(10),
+    marginTop: normalize(10),
+    gap: normalize(10),
   },
-  detailText: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "550",
-  },
-  jobDescription: {
-    fontSize: 13,
-    color: "rgba(10, 5, 4, 0.6)",
-    lineHeight: 16,
-    marginBottom: 8,
-  },
-  actionsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 10,
-  },
-  textActionBtn: {
-    flex: 1,
-    height: 40,
-    backgroundColor: "#153e69",
-    borderRadius: 8,
+  cardInnerBannerIconCircle: {
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(16),
+    backgroundColor: "#ede9fe",
     alignItems: "center",
     justifyContent: "center",
+  },
+  cardInnerBannerTitle: {
+    fontSize: normalize(12),
+    fontWeight: "800",
+    color: "#6b21a8",
+  },
+  cardInnerBannerSub: {
+    fontSize: normalize(11),
+    fontWeight: "500",
+    color: "#7e22ce",
+    lineHeight: normalize(14),
+  },
+
+  // Card Divider & Footer
+  cardDividerLine: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: normalize(12),
+  },
+  cardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: normalize(8),
+  },
+  postedByCol: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  postedByText: {
+    fontSize: normalize(11),
+    color: "#64748b",
+  },
+  postedByBold: {
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  cardActionGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(6),
+  },
+  cardNavyBtn: {
+    backgroundColor: "#153e69",
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(8),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardNavyBtnText: {
+    color: "#ffffff",
+    fontSize: normalize(11),
+    fontWeight: "800",
+  },
+  cardOutlineBtn: {
+    backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#153e69",
-  },
-  textActionBtnApplied: {
-    backgroundColor: "rgba(10, 5, 4, 0.15)",
-    borderColor: "rgba(10, 5, 4, 0.15)",
-  },
-  textActionBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  textActionBtnTextApplied: {
-    color: "rgba(10, 5, 4, 0.6)",
-  },
-  iconActionBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "#f2f2f3",
-    borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  timeText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.4)",
-    textAlign: "right",
-    marginTop: 4,
-  },
-  bottomBanner: {
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(21, 62, 105, 0.18)",
-    borderRadius: 10,
-    padding: 12,
     justifyContent: "center",
-    marginTop: 8,
   },
-  bottomBannerText: {
-    fontSize: 12,
+  cardOutlineBtnText: {
     color: "#153e69",
-    fontWeight: "600",
+    fontSize: normalize(11),
+    fontWeight: "800",
   },
-  fab: {
+  cardAppliedBtn: {
+    backgroundColor: "#f1f5f9",
+    borderColor: "#cbd5e1",
+  },
+  cardAppliedBtnText: {
+    color: "#64748b",
+  },
+  cardSquareIconBtn: {
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(8),
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // FAB Container & Tooltip
+  fabContainerWrapper: {
     position: "absolute",
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: normalize(20),
+    right: normalize(16),
+    alignItems: "flex-end",
+  },
+  fabTooltipCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(10),
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(8),
+    marginBottom: normalize(8),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  fabTooltipTitle: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#153e69",
+  },
+  fabTooltipSub: {
+    fontSize: normalize(10),
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  fabBtnCircle: {
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
     backgroundColor: "#153e69",
     alignItems: "center",
     justifyContent: "center",
@@ -1740,7 +1749,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    elevation: 6,
   },
   modalOverlay: {
     flex: 1,

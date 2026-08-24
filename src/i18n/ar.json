@@ -456,6 +456,7 @@
   "published": "تم النشر",
   "closed": "مغلق",
   "completed": "مكتمل",
+  "applicationStatus": "حالة الطلب",
   "quickActions": "إجراءات سريعة",
   "postAJob": "نشر وظيفة",
   "createOpeningSubtitle": "أنشئ فرصة جديدة لفريقك",

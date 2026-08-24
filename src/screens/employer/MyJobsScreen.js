@@ -84,6 +84,45 @@ export default function MyJobsScreen({ navigation, route }) {
   );
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedStatsJobId, setExpandedStatsJobId] = useState(null);
+
+  const getJobApplicantStats = (job) => {
+    const applicants = Array.isArray(job?.applicants)
+      ? job.applicants
+      : Array.isArray(job?.applications)
+      ? job.applications
+      : [];
+
+    const shortlisted =
+      job?.shortlisted_count ??
+      job?.shortlisted ??
+      job?.shortlist_count ??
+      applicants.filter((a) => String(a?.status).toLowerCase() === "shortlisted").length;
+
+    const contacted =
+      job?.contacted_count ??
+      job?.contacted ??
+      applicants.filter((a) => String(a?.status).toLowerCase() === "contacted").length;
+
+    const rejected =
+      job?.rejected_count ??
+      job?.rejected ??
+      applicants.filter((a) => String(a?.status).toLowerCase() === "rejected").length;
+
+    const pending =
+      job?.pending_count ??
+      job?.new_count ??
+      job?.under_review_count ??
+      applicants.filter((a) => ["new", "pending", "under_review", "under review"].includes(String(a?.status).toLowerCase())).length;
+
+    const total =
+      job?.total_applicants ??
+      job?.applicants_count ??
+      job?.applicant_count ??
+      applicants.length;
+
+    return { shortlisted, contacted, rejected, pending, total };
+  };
 
   const checkPostLimitAndNavigate = async () => {
     if (checkingLimit) return;
@@ -218,13 +257,23 @@ export default function MyJobsScreen({ navigation, route }) {
 
   // Filter jobs by tab & search query
   const filteredSearchJobs = useMemo(() => {
-    if (!searchQuery.trim()) return localJobs;
+    if (!searchQuery || !searchQuery.trim()) return localJobs;
     const q = searchQuery.toLowerCase().trim();
     return localJobs.filter((job) => {
-      const title = String(job.title || job.job_title || "").toLowerCase();
+      const title = String(job.title || job.job_title || job.name || "").toLowerCase();
       const company = String(job.company || job.company_name || "").toLowerCase();
       const jobIdStr = String(job.job_id || job.id || "").toLowerCase();
-      return title.includes(q) || company.includes(q) || jobIdStr.includes(q);
+      const location = String(job.location || job.city || job.country || "").toLowerCase();
+      const status = String(job.status || "").toLowerCase();
+      const category = String(job.category || job.business_type || "").toLowerCase();
+      return (
+        title.includes(q) ||
+        company.includes(q) ||
+        jobIdStr.includes(q) ||
+        location.includes(q) ||
+        status.includes(q) ||
+        category.includes(q)
+      );
     });
   }, [localJobs, searchQuery]);
 
@@ -274,6 +323,9 @@ export default function MyJobsScreen({ navigation, route }) {
       (Array.isArray(job.saved_users) ? job.saved_users.length : null) ??
       (Array.isArray(job.saved_by) ? job.saved_by.length : null) ??
       0;
+
+    const stats = getJobApplicantStats(job);
+    const isStatsExpanded = expandedStatsJobId === job.id;
 
     return (
       <TouchableOpacity
@@ -347,6 +399,80 @@ export default function MyJobsScreen({ navigation, route }) {
           </View>
         </View>
 
+        {/* Dropdown Stats Breakdown Section */}
+        {isStatsExpanded && (
+          <View style={styles.statsDropdownBox}>
+            <Text style={styles.statsDropdownHeader}>
+              📊 {t("applicationStatus", "Application Status")}
+            </Text>
+            <View style={styles.statsGridRow}>
+              <TouchableOpacity
+                style={[styles.statsBadgeCard, { backgroundColor: "#e6f4ea", borderColor: "#34a853" }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                    initialFilter: "shortlisted",
+                  });
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.statsBadgeNum, { color: "#137333" }]}>{stats.shortlisted}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#137333" }]}>{t("shortlisted", "Shortlisted")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.statsBadgeCard, { backgroundColor: "#e8f0fe", borderColor: "#1a73e8" }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                    initialFilter: "contacted",
+                  });
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.statsBadgeNum, { color: "#1a73e8" }]}>{stats.contacted}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#1a73e8" }]}>{t("contacted", "Contacted")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.statsBadgeCard, { backgroundColor: "#fce8e6", borderColor: "#ea4335" }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                    initialFilter: "rejected",
+                  });
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.statsBadgeNum, { color: "#c5221f" }]}>{stats.rejected}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#c5221f" }]}>{t("rejected", "Rejected")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.statsBadgeCard, { backgroundColor: "#feefc3", borderColor: "#f9ab00" }]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                    initialFilter: "new",
+                  });
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.statsBadgeNum, { color: "#b06000" }]}>{stats.pending}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#b06000" }]}>{t("pending", "Pending")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Metadata Row (No top border line) */}
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
@@ -375,21 +501,46 @@ export default function MyJobsScreen({ navigation, route }) {
             </Text>
           )}
 
-          {isEmployer && (
-            <TouchableOpacity
-              style={styles.viewDetailsBtn}
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.navigate("ApplicantList", {
-                  jobId: job.id,
-                  jobTitle: jobTitle || job.title,
-                });
-              }}
-            >
-              <Text style={styles.viewDetailsBtnText}>{t("viewTalent", "View Talent")}</Text>
-              <Ionicons name="arrow-forward" size={normalize(13)} color="#153e69" style={{ marginLeft: normalize(4) }} />
-            </TouchableOpacity>
-          )}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8) }}>
+            {activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
+              <TouchableOpacity
+                style={[styles.statsFilterIconBtn, isStatsExpanded && styles.statsFilterIconBtnActive]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setExpandedStatsJobId((prev) => (prev === job.id ? null : job.id));
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="stats-chart"
+                  size={normalize(13)}
+                  color={isStatsExpanded ? "#ffffff" : "#153e69"}
+                />
+                <Ionicons
+                  name={isStatsExpanded ? "chevron-up" : "chevron-down"}
+                  size={normalize(11)}
+                  color={isStatsExpanded ? "#ffffff" : "#153e69"}
+                  style={{ marginLeft: 2 }}
+                />
+              </TouchableOpacity>
+            )}
+
+            {isEmployer && activeTab !== "pending" && (
+              <TouchableOpacity
+                style={styles.viewDetailsBtn}
+                activeOpacity={0.8}
+                onPress={() => {
+                  navigation.navigate("ApplicantList", {
+                    jobId: job.id,
+                    jobTitle: jobTitle || job.title,
+                  });
+                }}
+              >
+                <Text style={styles.viewDetailsBtnText}>{t("viewTalent", "View Talent")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(13)} color="#153e69" style={{ marginLeft: normalize(4) }} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -580,32 +731,6 @@ export default function MyJobsScreen({ navigation, route }) {
                 closedJobs.map((job) => renderJobCard(job))
               )}
             </>
-          )}
-
-          {/* Bottom Referral / Share Card Banner for Talent & Chef Side */}
-          {!isEmployer && (
-            <View style={styles.shareBannerCard}>
-              <View style={styles.shareBannerLeft}>
-                <View style={styles.shareBannerIconBox}>
-                  <Ionicons name="people" size={normalize(18)} color="#153e69" />
-                </View>
-                <View style={styles.shareBannerTextContainer}>
-                  <Text style={styles.shareBannerTitle}>
-                    {t("shareMoreJobsTitle", "Share more job opportunities!")}
-                  </Text>
-                  <Text style={styles.shareBannerSubtitle}>
-                    {t("shareMoreJobsSub", "Help your network grow by sharing verified job openings.")}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={styles.shareJobBtn}
-                onPress={checkPostLimitAndNavigate}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.shareJobBtnText}>{t("shareAJob", "SHARE A JOB")}</Text>
-              </TouchableOpacity>
-            </View>
           )}
         </ScrollView>
       )}
@@ -853,6 +978,57 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#153e69",
     letterSpacing: 0.2,
+  },
+  statsFilterIconBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(21, 62, 105, 0.2)",
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(4),
+  },
+  statsFilterIconBtnActive: {
+    backgroundColor: "#153e69",
+    borderColor: "#153e69",
+  },
+  statsDropdownBox: {
+    backgroundColor: "#f8fafc",
+    borderRadius: normalize(8),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: normalize(8),
+    marginTop: normalize(8),
+    marginBottom: normalize(4),
+  },
+  statsDropdownHeader: {
+    fontSize: normalize(11),
+    fontWeight: "800",
+    color: "#1e293b",
+    marginBottom: normalize(6),
+  },
+  statsGridRow: {
+    flexDirection: "row",
+    gap: normalize(6),
+  },
+  statsBadgeCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: normalize(6),
+    paddingVertical: normalize(6),
+    paddingHorizontal: normalize(4),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statsBadgeNum: {
+    fontSize: normalize(14),
+    fontWeight: "800",
+  },
+  statsBadgeLabel: {
+    fontSize: normalize(9),
+    fontWeight: "700",
+    marginTop: normalize(1),
   },
   metaRow: {
     flexDirection: "row",

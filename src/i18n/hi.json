@@ -433,6 +433,7 @@
   "published": "प्रकाशित",
   "closed": "बंद",
   "completed": "पूर्ण",
+  "applicationStatus": "आवेदन की स्थिति",
   "quickActions": "त्वरित कार्य",
   "postAJob": "जॉब पोस्ट करें",
   "createOpeningSubtitle": "अपनी टीम के लिए नया अवसर बनाएं",

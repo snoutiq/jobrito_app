@@ -443,6 +443,7 @@
   "published": "வெளியிடப்பட்டது",
   "closed": "மூடப் பட்டது",
   "completed": "நிறைவடைந்தது",
+  "applicationStatus": "விண்ணப்பத்தின் நிலை",
   "quickActions": "விரைவு நடவடிக்கைகள்",
   "postAJob": "வேலை பதிவிடவும்",
   "createOpeningSubtitle": "உங்கள் குழுவிற்கு புதிய வாய்ப்பை உருவாக்குங்கள்",

@@ -421,6 +421,7 @@
   "published": "Published",
   "closed": "Closed",
   "completed": "Completed",
+  "applicationStatus": "Application Status",
   "quickActions": "QUICK ACTIONS",
   "postAJob": "Post a Job",
   "createOpeningSubtitle": "Create a new opening for your team",
