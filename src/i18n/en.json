@@ -618,7 +618,7 @@
   "jobCategory": "Job Category",
   "talentSpecialization": "Talent Specialization",
   "callTalent": "Call Talent",
-  "preferredLocation": "Preferred Location (India & Overseas)",
+  "preferredLocation": "Preferred Location",
   "preferredCallback": "Callback Time",
   "preferredLanguage": "Preferred Language",
   "chefDashboard": {
@@ -896,5 +896,19 @@
     "removedMsg": "Job removed from saved list.",
     "failedToRemove": "Failed to remove job."
   },
-  "favoriteJobBadge": "Favorite: {{count}}"
+  "favoriteJobBadge": "Favorite: {{count}}",
+  "viewJobUpper": "VIEW JOB",
+  "viewDetailsUpper": "VIEW DETAILS",
+  "trainingDetails": "Training Details",
+  "jobDetailsTitle": "Job Details",
+  "skillsCovered": "Skills Covered",
+  "trainingProgramTab": "Training Program",
+  "trainingProgramNotice": "Certified training programs, skill workshops, and placement courses.",
+  "handpickedOpportunitiesTip": "Don't miss these handpicked opportunities!",
+  "referralPostTipTalent": "You can post 1 job as referral per day.",
+  "referralPostTipChef": "You can post 5 jobs as referral per day.",
+  "oneJobPerDay": "1 job per day",
+  "fiveJobsPerDay": "5 jobs per day",
+  "postJobAsReferral": "Post a Job as Referral",
+  "tipPrefix": "Tip:"
 }

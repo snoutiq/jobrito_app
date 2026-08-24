@@ -80,7 +80,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
     handleReset();
     dispatch(fetchEmployerDashboard());
     dispatch(fetchMyJobs());
-    navigation.navigate("MyJobs", { activeTab: "pending" });
+    if (typeof navigation.replace === "function") {
+      navigation.replace("MyJobs", { activeTab: "pending" });
+    } else {
+      navigation.navigate("MyJobs", { activeTab: "pending" });
+    }
   };
 
   // Form Fields

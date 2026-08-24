@@ -630,7 +630,7 @@
   "jobCategory": "नौकरी की श्रेणी",
   "talentSpecialization": "प्रतिभा विशेषज्ञता",
   "callTalent": "प्रतिभा को कॉल करें",
-  "preferredLocation": "पसंदीदा स्थान (भारत और विदेश)",
+  "preferredLocation": "पसंदीदा स्थान",
   "preferredCallback": "पसंदीदा कॉलबैक समय",
   "preferredLanguage": "पसंदीदा भाषा",
   "chefDashboard": {
@@ -910,7 +910,21 @@
     "removeSavedJob": "पसंदीदा नौकरी हटाएं",
     "removeConfirm": "क्या आप निश्चित रूप से अपने पसंदीदा सूची से \"{{title}}\" को हटाना चाहते हैं?",
     "removedMsg": "सहेजी गई सूची से नौकरी हटा दी गई।",
-    "failedToRemove": "नौकरी हटाने में विफल。"
+    "failedToRemove": "नौकरी हटाने में विफल।"
   },
-  "favoriteJobBadge": "पंसदीदा: {{count}}"
+  "favoriteJobBadge": "पंसदीदा: {{count}}",
+  "viewJobUpper": "नौकरी देखें",
+  "viewDetailsUpper": "विवरण देखें",
+  "trainingDetails": "प्रशिक्षण विवरण",
+  "jobDetailsTitle": "नौकरी का विवरण",
+  "skillsCovered": "कवर किए गए कौशल",
+  "trainingProgramTab": "प्रशिक्षण कार्यक्रम",
+  "trainingProgramNotice": "प्रमाणित प्रशिक्षण कार्यक्रम, कौशल कार्यशालाएं और प्लेसमेंट पाठ्यक्रम।",
+  "handpickedOpportunitiesTip": "इन चुनिंदा अवसरों को न चूकें!",
+  "referralPostTipTalent": "आप प्रति दिन 1 रेफरल नौकरी पोस्ट कर सकते हैं।",
+  "referralPostTipChef": "आप प्रति दिन 5 रेफरल नौकरियां पोस्ट कर सकते हैं।",
+  "oneJobPerDay": "प्रति दिन 1 नौकरी",
+  "fiveJobsPerDay": "प्रति दिन 5 नौकरियां",
+  "postJobAsReferral": "रेफरल के रूप में नौकरी पोस्ट करें",
+  "tipPrefix": "सुझाव:"
 }

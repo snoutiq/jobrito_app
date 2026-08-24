@@ -27,6 +27,7 @@ import colors from "../../constants/colors";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
 const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
+const PRIMARY_GREEN = "#153e69";
 import {
   fetchFeedJobs,
   toggleSaveJob,
@@ -64,7 +65,9 @@ export default function ChefHomeScreen({ navigation }) {
 
   const [toastMessage, setToastMessage] = useState("");
   const [checkingLimit, setCheckingLimit] = useState(false);
-  const [activeTab, setActiveTab] = useState("live"); // "live" or "pinned"
+  const [activeTab, setActiveTab] = useState("live"); // "live", "pinned", or "training"
+  const [selectedDetailsJob, setSelectedDetailsJob] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const checkPostLimitAndNavigate = async (targetScreen) => {
     if (checkingLimit) return;
@@ -308,14 +311,14 @@ export default function ChefHomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Sub Header Tabs */}
+      {/* Sub Header Tabs (3 Tabs Space-Between) */}
       <View style={styles.tabsHeaderRow}>
         <TouchableOpacity
           style={[styles.tabHeaderItem, activeTab === "live" && styles.tabHeaderItemActive]}
           onPress={() => setActiveTab("live")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabHeaderLabel, activeTab === "live" && styles.tabHeaderLabelActive]}>
+          <Text style={[styles.tabHeaderLabel, activeTab === "live" && styles.tabHeaderLabelActive]} numberOfLines={1}>
             {t("liveJobFeed", "Live Job Feed")}
           </Text>
         </TouchableOpacity>
@@ -325,8 +328,18 @@ export default function ChefHomeScreen({ navigation }) {
           onPress={() => setActiveTab("pinned")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabHeaderLabel, activeTab === "pinned" && styles.tabHeaderLabelActive]}>
-            {t("priorityPinnedJobs", "Priority Pinned Jobs")}
+          <Text style={[styles.tabHeaderLabel, activeTab === "pinned" && styles.tabHeaderLabelActive]} numberOfLines={1}>
+            {t("priorityPinnedJobs", "Pinned Jobs")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabHeaderItem, activeTab === "training" && styles.tabHeaderItemActive]}
+          onPress={() => setActiveTab("training")}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.tabHeaderLabel, activeTab === "training" && styles.tabHeaderLabelActive]} numberOfLines={1}>
+            {t("trainingProgramTab", "Training Program")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -344,38 +357,80 @@ export default function ChefHomeScreen({ navigation }) {
           />
         }
       >
-        {/* Top Info Banner */}
+        {/* Top Info Banner 1 */}
         {activeTab === "live" ? (
           <View style={styles.topInfoBanner}>
             <Ionicons name="information-circle-outline" size={normalize(18)} color="#2563eb" style={{ marginRight: normalize(8) }} />
-            <Text style={styles.topInfoBannerText}>
+            <Text style={styles.topInfoBannerText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
               {t("realTimeOpportunities", "Real-time opportunities from employers and community referrals.")}
             </Text>
           </View>
-        ) : (
+        ) : activeTab === "pinned" ? (
           <View style={[styles.topInfoBanner, { backgroundColor: "#fff7ed", borderColor: "#ffedd5" }]}>
             <Ionicons name="shield-checkmark-outline" size={normalize(18)} color="#ea580c" style={{ marginRight: normalize(8) }} />
-            <Text style={[styles.topInfoBannerText, { color: "#c2410c" }]}>
+            <Text style={[styles.topInfoBannerText, { color: "#c2410c" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
               {t("pinnedJobsNotice", "Pinned jobs are priority jobs set by the Jobrito team.")}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.topInfoBanner, { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" }]}>
+            <Ionicons name="school-outline" size={normalize(18)} color="#15803d" style={{ marginRight: normalize(8) }} />
+            <Text style={[styles.topInfoBannerText, { color: "#15803d" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              {t("trainingProgramNotice", "Certified training programs, skill workshops, and placement courses.")}
             </Text>
           </View>
         )}
 
         {(feedJobs || [])
-          .filter((job) => (activeTab === "pinned" ? job.is_pinned : true))
+          .filter((job) => {
+            const isJobTraining =
+              job._type === "training_opportunity" ||
+              job.category === "training" ||
+              Boolean(job.program_name) ||
+              String(job.title || "").toLowerCase().includes("training");
+
+            if (activeTab === "pinned") {
+              return Boolean(job.is_pinned);
+            }
+            if (activeTab === "training") {
+              return isJobTraining;
+            }
+            return !isJobTraining && !job.is_pinned;
+          })
           .map((job) => {
-            const isFav = favorites[job.id] || false;
+            const isFav = savedJobs[job.id] || false;
             const isApplied = job.applied || false;
             const isApplying = applyingJobId === job.id;
             const isPinned = job.is_pinned || false;
-            const isTraining = job._type === "training_opportunity" || (job.title || "").toLowerCase().includes("training");
-            const isReferral = job.category === "referral";
+            const isTraining =
+              job._type === "training_opportunity" ||
+              job.category === "training" ||
+              Boolean(job.program_name) ||
+              String(job.title || "").toLowerCase().includes("training");
+            const isReferral =
+              Boolean(job.is_referral) ||
+              job._type === "referral_job" ||
+              job.category === "referral";
 
-            const effectiveRoleSource = job.creator?.active_role || "";
-            const effectiveRole = effectiveRoleSource.toLowerCase();
-            const normalizedRole = effectiveRole.replace(/[\s_]/g, "");
-            const isChefOrJobSeeker = ["chef", "jobseeker"].includes(normalizedRole);
-            const showApply = !isReferral && !isChefOrJobSeeker;
+            const rawRole =
+              job.creator?.active_role ||
+              job.active_role ||
+              job.posted_by_role ||
+              job.submitted_by_role ||
+              job.creator?.role ||
+              "";
+            const normalizedRole = rawRole.toLowerCase().replace(/[\s_]/g, "");
+            const isEmployerOrAdmin = ["employer", "admin"].includes(normalizedRole);
+            const isChefOrJobSeeker = ["chef", "jobseeker", "talent"].includes(normalizedRole);
+            const showApply = !isTraining && isEmployerOrAdmin;
+
+            const postedByLabelText = isReferral
+              ? t("postedByReferral", "Referral")
+              : isTraining
+              ? t("postedByAcademy", "Admin")
+              : isChefOrJobSeeker
+              ? (normalizedRole === "chef" ? "Chef" : t("postedByReferral", "Referral"))
+              : t("postedByEmployer", "Employer");
 
             const iconConfig = getCategoryCardIconDetails(job);
 
@@ -385,7 +440,7 @@ export default function ChefHomeScreen({ navigation }) {
                 <View style={styles.cardTopRow}>
                   {/* Category Icon Box on Left */}
                   <View style={[styles.cardIconBox, { backgroundColor: iconConfig.bg }]}>
-                    <Ionicons name={iconConfig.icon} size={normalize(22)} color={iconConfig.color} />
+                    <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
                   </View>
 
                   {/* Main Details Column */}
@@ -398,25 +453,27 @@ export default function ChefHomeScreen({ navigation }) {
                     )}
 
                     <Text style={styles.cardJobTitle} numberOfLines={1}>
-                      {job.title}
+                      {job.program_name || job.title}
                     </Text>
 
                     <Text style={styles.cardCompanyName} numberOfLines={1}>
-                      {job.company || (isReferral ? t("referredByCommunity", "Referred by Community Member") : t("jobritoEmployer", "Employer"))}
+                      {job.provider_name || job.company || job.employer_details || (isReferral ? t("referredByCommunity", "Referred by Community Member") : t("jobritoEmployer", "Employer"))}
                     </Text>
 
-                    <View style={styles.cardLocationRow}>
-                      <Ionicons name="location-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" style={{ marginRight: 3 }} />
-                      <Text style={styles.cardLocationText} numberOfLines={1}>
-                        {job.location}
-                      </Text>
-                    </View>
+                    {Boolean(job.location) && (
+                      <View style={styles.cardLocationRow}>
+                        <Ionicons name="location-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" style={{ marginRight: 3 }} />
+                        <Text style={styles.cardLocationText} numberOfLines={1}>
+                          {job.location}
+                        </Text>
+                      </View>
+                    )}
                   </View>
 
                   {/* Top Right Type Badge */}
                   <View style={[styles.cardTypeBadge, isTraining && { backgroundColor: "#f3e8ff" }]}>
                     <Text style={[styles.cardTypeBadgeText, isTraining && { color: "#7e22ce" }]}>
-                      {String(job.job_type || job.type || (isTraining ? "Training Program" : "Full-time"))}
+                      {String(job.duration || job.job_type || job.type || (isTraining ? "Training Program" : "Full-time"))}
                     </Text>
                   </View>
                 </View>
@@ -439,16 +496,19 @@ export default function ChefHomeScreen({ navigation }) {
 
                 {/* Card Footer Actions Row */}
                 <View style={styles.cardFooterRow}>
-                  {/* Left: Posted By */}
+                  {/* Left: Posted By (Column Stack) */}
                   <View style={styles.postedByCol}>
-                    <Ionicons
-                      name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
-                      size={normalize(14)}
-                      color="#2563eb"
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text style={styles.postedByText} numberOfLines={1}>
-                      Posted by: <Text style={styles.postedByBold}>{isReferral ? "Referral" : isTraining ? "Jobrito Academy" : "Employer"}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons
+                        name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
+                        size={normalize(12)}
+                        color="#153e69"
+                        style={{ marginRight: 3 }}
+                      />
+                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by:")}</Text>
+                    </View>
+                    <Text style={styles.postedByBold} numberOfLines={1}>
+                      {postedByLabelText}
                     </Text>
                   </View>
 
@@ -456,10 +516,15 @@ export default function ChefHomeScreen({ navigation }) {
                   <View style={styles.cardActionGroup}>
                     <TouchableOpacity
                       style={styles.cardNavyBtn}
-                      onPress={() => navigation.navigate("JobDetails", { jobId: job.id, job })}
+                      onPress={() => {
+                        setSelectedDetailsJob(job);
+                        setShowDetailsModal(true);
+                      }}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.cardNavyBtnText}>{isTraining ? "VIEW DETAILS" : "VIEW JOB"}</Text>
+                      <Text style={styles.cardNavyBtnText}>
+                        {isTraining ? t("viewDetailsUpper", "VIEW DETAILS") : t("viewJobUpper", "VIEW JOB")}
+                      </Text>
                     </TouchableOpacity>
 
                     {showApply ? (
@@ -514,11 +579,32 @@ export default function ChefHomeScreen({ navigation }) {
           })}
       </ScrollView>
 
+      {/* Bottom Sticky Tip Banner (Fixed at bottom) */}
+      <View style={styles.bottomStickyBannerBar}>
+        {activeTab === "live" ? (
+          <View style={[styles.topInfoBanner, styles.bottomBannerCard]}>
+            <Ionicons name="bulb-outline" size={normalize(18)} color="#2563eb" style={{ marginRight: normalize(8) }} />
+            <Text style={[styles.topInfoBannerText, { color: "#1e40af" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              <Text style={{ fontWeight: "800" }}>{t("tipPrefix", "Tip:")} </Text>
+              {t("referralPostTipChef", "You can post 5 jobs as referral per day.")}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.topInfoBanner, styles.bottomBannerCard]}>
+            <Ionicons name="information-circle-outline" size={normalize(18)} color="#2563eb" style={{ marginRight: normalize(8) }} />
+            <Text style={[styles.topInfoBannerText, { color: "#1e40af" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              <Text style={{ fontWeight: "800" }}>{t("tipPrefix", "Tip:")} </Text>
+              {t("handpickedOpportunitiesTip", "Don't miss these handpicked opportunities!")}
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* Floating Action Button with Referral Tooltip */}
       <View style={styles.fabContainerWrapper}>
         <View style={styles.fabTooltipCard}>
           <Text style={styles.fabTooltipTitle}>{t("postJobAsReferral", "Post a Job as Referral")}</Text>
-          <Text style={styles.fabTooltipSub}>{t("oneJobPerDay", "1 job per day")}</Text>
+          <Text style={styles.fabTooltipSub}>{t("fiveJobsPerDay", "5 jobs per day")}</Text>
         </View>
         <TouchableOpacity
           style={styles.fabBtnCircle}
@@ -527,7 +613,7 @@ export default function ChefHomeScreen({ navigation }) {
         >
           <Ionicons name="add" size={normalize(26)} color="#ffffff" />
         </TouchableOpacity>
-      </View>ity>
+      </View>
 
       {Boolean(toastMessage) && (
         <View style={styles.toastContainer}>
@@ -561,6 +647,261 @@ export default function ChefHomeScreen({ navigation }) {
         }}
       />
 
+      {/* POLISHED JOB / TRAINING DETAILS MODAL */}
+      <Modal
+        visible={showDetailsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDetailsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.detailsModalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8), flex: 1 }}>
+                <View style={styles.modalHeaderIconBadge}>
+                  <Ionicons
+                    name={selectedDetailsJob?._type === "training_opportunity" ? "school" : "briefcase"}
+                    size={normalize(16)}
+                    color="#153e69"
+                  />
+                </View>
+                <Text style={styles.modalHeaderTitle} numberOfLines={1}>
+                  {selectedDetailsJob?._type === "training_opportunity"
+                    ? t("trainingDetails", "Training Details")
+                    : t("jobDetailsTitle", "Job Details")}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowDetailsModal(false)}
+                style={styles.modalCloseBtnCircle}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={normalize(18)} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: normalize(16) }}
+            >
+              {/* Hero Header Card */}
+              <View style={styles.modalHeroCard}>
+                <View style={styles.modalHeroTop}>
+                  <View style={[styles.modalCardIconBox, { backgroundColor: getCategoryCardIconDetails(selectedDetailsJob || {}).bg }]}>
+                    <Ionicons
+                      name={getCategoryCardIconDetails(selectedDetailsJob || {}).icon}
+                      size={normalize(22)}
+                      color={getCategoryCardIconDetails(selectedDetailsJob || {}).color}
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: normalize(10) }}>
+                    <Text style={styles.modalJobTitle}>
+                      {selectedDetailsJob?.program_name || selectedDetailsJob?.title}
+                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: normalize(2) }}>
+                      <Ionicons name="business-outline" size={normalize(12)} color="#64748b" style={{ marginRight: 4 }} />
+                      <Text style={styles.modalCompanyText} numberOfLines={1}>
+                        {selectedDetailsJob?.provider_name || selectedDetailsJob?.company || selectedDetailsJob?.employer_details || t("jobritoEmployer", "Employer")}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Badges Pill Row */}
+                <View style={styles.modalPillRow}>
+                  <View style={[styles.modalPillBadge, selectedDetailsJob?._type === "training_opportunity" ? { backgroundColor: "#f3e8ff" } : { backgroundColor: "#eff6ff" }]}>
+                    <Text style={[styles.modalPillBadgeText, selectedDetailsJob?._type === "training_opportunity" ? { color: "#7e22ce" } : { color: "#1e40af" }]}>
+                      {String(selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || (selectedDetailsJob?._type === "training_opportunity" ? "Training Program" : "Full-time"))}
+                    </Text>
+                  </View>
+                  {Boolean(selectedDetailsJob?.category) && (
+                    <View style={[styles.modalPillBadge, { backgroundColor: "#f0fdf4" }]}>
+                      <Text style={[styles.modalPillBadgeText, { color: "#15803d" }]}>
+                        {String(selectedDetailsJob.category).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Key Metadata 2x2 Grid */}
+                <View style={styles.modalGridContainer}>
+                  <View style={styles.modalGridRow}>
+                    <View style={styles.modalGridItem}>
+                      <View style={[styles.gridIconCircle, { backgroundColor: "#dbeafe" }]}>
+                        <Ionicons name="location" size={normalize(12)} color="#1d4ed8" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.modalGridLabel}>{t("location", "Location")}</Text>
+                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                          {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.modalGridItem}>
+                      <View style={[styles.gridIconCircle, { backgroundColor: "#dcfce7" }]}>
+                        <Ionicons name="briefcase" size={normalize(12)} color="#15803d" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.modalGridLabel}>{t("jobType", "Job Type / Duration")}</Text>
+                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                          {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {(selectedDetailsJob?.salary || selectedDetailsJob?.experience_range) ? (
+                    <View style={styles.modalGridRow}>
+                      {Boolean(selectedDetailsJob?.salary) && (
+                        <View style={styles.modalGridItem}>
+                          <View style={[styles.gridIconCircle, { backgroundColor: "#fef3c7" }]}>
+                            <Ionicons name="card" size={normalize(12)} color="#b45309" />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
+                            <Text style={styles.modalGridValue} numberOfLines={1}>
+                              {selectedDetailsJob.salary}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      {Boolean(selectedDetailsJob?.experience_range) && (
+                        <View style={styles.modalGridItem}>
+                          <View style={[styles.gridIconCircle, { backgroundColor: "#ffedd5" }]}>
+                            <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
+                            <Text style={styles.modalGridValue} numberOfLines={1}>
+                              {selectedDetailsJob.experience_range}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Skills Covered (If Training) */}
+              {Boolean(selectedDetailsJob?.skills_covered) && (
+                <View style={styles.modalSectionCard}>
+                  <View style={styles.modalSectionHeaderRow}>
+                    <Ionicons name="checkmark-circle-outline" size={normalize(16)} color="#7e22ce" style={{ marginRight: 6 }} />
+                    <Text style={styles.modalSectionTitle}>{t("skillsCovered", "Skills Covered")}</Text>
+                  </View>
+                  <View style={styles.skillsTagContainer}>
+                    {String(selectedDetailsJob.skills_covered).split(",").map((skill, idx) => (
+                      <View key={idx} style={styles.skillPillTag}>
+                        <Text style={styles.skillPillTagText}>{skill.trim()}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Benefits */}
+              {Boolean(selectedDetailsJob?.benefits) && (
+                <View style={styles.modalSectionCard}>
+                  <View style={styles.modalSectionHeaderRow}>
+                    <Ionicons name="gift-outline" size={normalize(16)} color="#16a34a" style={{ marginRight: 6 }} />
+                    <Text style={styles.modalSectionTitle}>{t("benefits", "Benefits & Perks")}</Text>
+                  </View>
+                  <Text style={styles.modalSectionBody}>{selectedDetailsJob.benefits}</Text>
+                </View>
+              )}
+
+              {/* Description */}
+              <View style={[styles.modalSectionCard, { borderLeftWidth: 3, borderLeftColor: "#153e69" }]}>
+                <View style={styles.modalSectionHeaderRow}>
+                  <Ionicons name="document-text-outline" size={normalize(16)} color="#153e69" style={{ marginRight: 6 }} />
+                  <Text style={styles.modalSectionTitle}>{t("description", "Description")}</Text>
+                </View>
+                <Text style={styles.modalSectionBody}>
+                  {selectedDetailsJob?.description || t("noDescription", "No detailed description provided.")}
+                </Text>
+              </View>
+
+              {/* Contact Info (if available) */}
+              {Boolean(selectedDetailsJob?.contact_information || selectedDetailsJob?.contact_info) && (
+                <View style={[styles.modalSectionCard, { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" }]}>
+                  <View style={styles.modalSectionHeaderRow}>
+                    <Ionicons name="call-outline" size={normalize(16)} color="#0284c7" style={{ marginRight: 6 }} />
+                    <Text style={[styles.modalSectionTitle, { color: "#0369a1" }]}>{t("contactInformation", "Contact Information")}</Text>
+                  </View>
+                  <Text style={[styles.modalSectionBody, { color: "#0c4a6e", fontWeight: "700" }]}>
+                    {selectedDetailsJob.contact_information || selectedDetailsJob.contact_info}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Modal Bottom Action Button */}
+            <View style={styles.modalFooterRow}>
+              <TouchableOpacity
+                style={styles.modalCloseFooterBtn}
+                onPress={() => setShowDetailsModal(false)}
+              >
+                <Text style={styles.modalCloseFooterBtnText}>{t("close", "Close")}</Text>
+              </TouchableOpacity>
+              {(() => {
+                if (!selectedDetailsJob) return null;
+                const modalRawRole =
+                  selectedDetailsJob.creator?.active_role ||
+                  selectedDetailsJob.active_role ||
+                  selectedDetailsJob.posted_by_role ||
+                  selectedDetailsJob.submitted_by_role ||
+                  selectedDetailsJob.creator?.role ||
+                  "";
+                const modalRole = modalRawRole.toLowerCase().replace(/[\s_]/g, "");
+                const modalIsEmployerOrAdmin = ["employer", "admin"].includes(modalRole);
+                const modalIsTraining =
+                  selectedDetailsJob._type === "training_opportunity" ||
+                  selectedDetailsJob.category === "training";
+                const modalShowApply = !modalIsTraining && modalIsEmployerOrAdmin;
+
+                if (modalShowApply) {
+                  return (
+                    <TouchableOpacity
+                      style={[styles.modalApplyFooterBtn, selectedDetailsJob.applied && { backgroundColor: "#94a3b8" }]}
+                      onPress={() => {
+                        if (!selectedDetailsJob.applied) {
+                          const target = selectedDetailsJob;
+                          setShowDetailsModal(false);
+                          handleApplyPress(target);
+                        }
+                      }}
+                      disabled={selectedDetailsJob.applied}
+                    >
+                      <Text style={styles.modalApplyFooterBtnText}>
+                        {selectedDetailsJob.applied ? t("applied", "✓ APPLIED") : t("applyNowUpper", "APPLY NOW")}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                } else {
+                  return (
+                    <TouchableOpacity
+                      style={[styles.modalApplyFooterBtn, { backgroundColor: "#153e69" }]}
+                      onPress={() => {
+                        const target = selectedDetailsJob;
+                        setShowDetailsModal(false);
+                        handleCall(target);
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Ionicons name="call" size={normalize(16)} color="#ffffff" />
+                        <Text style={styles.modalApplyFooterBtnText}>{t("callUpper", "CALL NOW")}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }
+              })()}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </ScreenWrapper>
   );
@@ -622,29 +963,41 @@ const styles = StyleSheet.create({
   // Sub Header Tabs
   tabsHeaderRow: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "#e2e8f0",
+    paddingHorizontal: normalize(8),
   },
   tabHeaderItem: {
     flex: 1,
-    paddingVertical: normalize(14),
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(4),
     alignItems: "center",
     justifyContent: "center",
-    borderBottomWidth: 2,
+    borderBottomWidth: 2.5,
     borderBottomColor: "transparent",
   },
   tabHeaderItemActive: {
     borderBottomColor: "#153e69",
   },
   tabHeaderLabel: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontWeight: "600",
     color: "#64748b",
+    textAlign: "center",
   },
   tabHeaderLabelActive: {
     color: "#153e69",
     fontWeight: "800",
+  },
+
+  // Feed Scroll Container
+  feedScroll: {
+    paddingHorizontal: normalize(16),
+    paddingTop: normalize(6),
+    paddingBottom: normalize(140),
   },
 
   // Top Info Banner
@@ -656,15 +1009,29 @@ const styles = StyleSheet.create({
     borderColor: "#dbeafe",
     borderRadius: normalize(10),
     paddingHorizontal: normalize(14),
-    paddingVertical: normalize(10),
-    marginVertical: normalize(12),
+    paddingVertical: normalize(9),
+    marginTop: normalize(6),
+    marginBottom: normalize(10),
   },
   topInfoBannerText: {
     flex: 1,
-    fontSize: normalize(13),
+    fontSize: normalize(11.5),
     fontWeight: "600",
     color: "#1e40af",
-    lineHeight: normalize(17),
+  },
+  bottomStickyBannerBar: {
+    backgroundColor: "#eff6ff",
+    borderTopWidth: 1,
+    borderColor: "#dbeafe",
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
+  },
+  bottomBannerCard: {
+    marginVertical: 0,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 
   // Modern Job Card
@@ -783,15 +1150,20 @@ const styles = StyleSheet.create({
     gap: normalize(8),
   },
   postedByCol: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+    marginRight: normalize(6),
+  },
+  postedByLabel: {
+    fontSize: normalize(10),
+    color: "#64748b",
   },
   postedByText: {
     fontSize: normalize(11),
     color: "#64748b",
   },
   postedByBold: {
+    fontSize: normalize(11),
     fontWeight: "800",
     color: "#0f172a",
   },
@@ -1185,15 +1557,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   poweredRibbon: {
-  alignSelf: "flex-end",
-  marginTop: 10,
-  paddingHorizontal: 12,
-  paddingVertical: 4,
-  borderRadius: 20,
-  backgroundColor: "#fff",
-},
-
-poweredRibbonText: {
+    alignSelf: "flex-end",
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+  },
+  poweredRibbonText: {
     fontSize: 8,
     fontStyle: "italic",
     fontWeight: "600",
@@ -1224,5 +1595,405 @@ poweredRibbonText: {
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: normalize(16),
+  },
+  detailsModalContent: {
+    width: "100%",
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(20),
+    maxHeight: "85%",
+    paddingHorizontal: normalize(18),
+    paddingTop: normalize(16),
+    paddingBottom: normalize(18),
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: normalize(12),
+    borderBottomWidth: 1,
+    borderColor: "#f1f5f9",
+    marginBottom: normalize(14),
+  },
+  modalHeaderIconBadge: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalHeaderTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalCloseBtnCircle: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalHeroCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: normalize(16),
+    padding: normalize(14),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: normalize(12),
+  },
+  modalHeroTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  modalCardIconBox: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(12),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalJobTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+    lineHeight: normalize(20),
+  },
+  modalCompanyText: {
+    fontSize: normalize(13),
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  modalPillRow: {
+    flexDirection: "row",
+    gap: normalize(6),
+    marginTop: normalize(12),
+  },
+  modalPillBadge: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(14),
+  },
+  modalPillBadgeText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+  },
+  modalGridContainer: {
+    marginTop: normalize(12),
+    gap: normalize(8),
+  },
+  modalGridRow: {
+    flexDirection: "row",
+    gap: normalize(8),
+  },
+  modalGridItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    gap: normalize(8),
+  },
+  gridIconCircle: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalGridLabel: {
+    fontSize: normalize(10),
+    fontWeight: "600",
+    color: "#64748b",
+    textTransform: "uppercase",
+  },
+  modalGridValue: {
+    fontSize: normalize(12),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalSectionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: normalize(10),
+  },
+  modalSectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(6),
+  },
+  modalSectionTitle: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalSectionBody: {
+    fontSize: normalize(13),
+    color: "#475569",
+    lineHeight: normalize(19),
+  },
+  skillsTagContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: normalize(6),
+    marginTop: normalize(4),
+  },
+  skillPillTag: {
+    backgroundColor: "#f3e8ff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(12),
+  },
+  skillPillTagText: {
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#7e22ce",
+  },
+  modalFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(10),
+    paddingTop: normalize(12),
+    borderTopWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  modalCloseFooterBtn: {
+    flex: 1,
+shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  toastText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: normalize(16),
+  },
+  detailsModalContent: {
+    width: "100%",
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(20),
+    maxHeight: "85%",
+    paddingHorizontal: normalize(18),
+    paddingTop: normalize(16),
+    paddingBottom: normalize(18),
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: normalize(12),
+    borderBottomWidth: 1,
+    borderColor: "#f1f5f9",
+    marginBottom: normalize(14),
+  },
+  modalHeaderIconBadge: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalHeaderTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalCloseBtnCircle: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalHeroCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: normalize(16),
+    padding: normalize(14),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: normalize(12),
+  },
+  modalHeroTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  modalCardIconBox: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(12),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalJobTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+    lineHeight: normalize(20),
+  },
+  modalCompanyText: {
+    fontSize: normalize(13),
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  modalPillRow: {
+    flexDirection: "row",
+    gap: normalize(6),
+    marginTop: normalize(12),
+  },
+  modalPillBadge: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(14),
+  },
+  modalPillBadgeText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+  },
+  modalGridContainer: {
+    marginTop: normalize(12),
+    gap: normalize(8),
+  },
+  modalGridRow: {
+    flexDirection: "row",
+    gap: normalize(8),
+  },
+  modalGridItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    gap: normalize(8),
+  },
+  gridIconCircle: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalGridLabel: {
+    fontSize: normalize(10),
+    fontWeight: "600",
+    color: "#64748b",
+    textTransform: "uppercase",
+  },
+  modalGridValue: {
+    fontSize: normalize(12),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalSectionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: normalize(14),
+    padding: normalize(12),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: normalize(10),
+  },
+  modalSectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(6),
+  },
+  modalSectionTitle: {
+    fontSize: normalize(13),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalSectionBody: {
+    fontSize: normalize(13),
+    color: "#475569",
+    lineHeight: normalize(19),
+  },
+  skillsTagContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: normalize(6),
+    marginTop: normalize(4),
+  },
+  skillPillTag: {
+    backgroundColor: "#f3e8ff",
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(12),
+  },
+  skillPillTagText: {
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#7e22ce",
+  },
+  modalFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(10),
+    paddingTop: normalize(12),
+    borderTopWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  modalCloseFooterBtn: {
+    flex: 1,
+    backgroundColor: "#f1f5f9",
+    borderRadius: normalize(12),
+    height: normalize(44),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCloseFooterBtnText: {
+    fontSize: normalize(14),
+    fontWeight: "700",
+    color: "#475569",
+  },
+  modalApplyFooterBtn: {
+    flex: 1.5,
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: normalize(12),
+    height: normalize(44),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalApplyFooterBtnText: {
+    fontSize: normalize(14),
+    fontWeight: "700",
+    color: "#ffffff",
   },
 });

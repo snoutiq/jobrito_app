@@ -186,12 +186,6 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.heroDisplayName} numberOfLines={1}>
                   {displayName || t("profile.guestUser", "Guest User")}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate("CompleteProfileScreen", { step: 1 })}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="chevron-forward" size={normalize(18)} color="#64748b" />
-                </TouchableOpacity>
               </View>
 
               {Boolean(displayTitle) && (
@@ -206,7 +200,7 @@ export default function ProfileScreen({ navigation }) {
                     <Ionicons name="location-outline" size={normalize(13)} color="#c2410c" />
                   </View>
                   <View style={styles.metaTextGroup}>
-                    <Text style={styles.metaLabel}>{t("preferredLocation", "Preferred Location")}</Text>
+                    <Text style={styles.metaLabel}>{t("preferredLocation", "Preferred Location")}:</Text>
                     <Text style={styles.metaValue} numberOfLines={1}>
                       {displayCity || displayPrefLocation || t("notSpecified", "Not Specified")}
                     </Text>
@@ -218,7 +212,7 @@ export default function ProfileScreen({ navigation }) {
                     <Ionicons name="briefcase-outline" size={normalize(13)} color="#1e40af" />
                   </View>
                   <View style={styles.metaTextGroup}>
-                    <Text style={styles.metaLabel}>{t("experience", "Experience")}</Text>
+                    <Text style={styles.metaLabel}>{t("experience", "Experience")}:</Text>
                     <Text style={styles.metaValue} numberOfLines={1}>
                       {displayExperience || t("notSpecified", "Not Specified")}
                     </Text>
@@ -230,7 +224,7 @@ export default function ProfileScreen({ navigation }) {
                     <Ionicons name="business-outline" size={normalize(13)} color="#15803d" />
                   </View>
                   <View style={styles.metaTextGroup}>
-                    <Text style={styles.metaLabel}>{t("currentEmployer", "Current Employer")}</Text>
+                    <Text style={styles.metaLabel}>{t("currentEmployer", "Current Employer")}:</Text>
                     <Text style={styles.metaValue} numberOfLines={1}>
                       {displayEmployer || t("notSpecified", "Not Specified")}
                     </Text>
@@ -240,14 +234,6 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.heroBottomTapBar}
-            onPress={() => navigation.navigate("ChefProfileDetails")}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.heroBottomTapText}>{t("tapToViewFullProfile", "Tap to view full profile")}</Text>
-            <Ionicons name="chevron-forward" size={normalize(14)} color="#ea580c" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.completionCard}>
