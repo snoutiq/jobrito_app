@@ -10,11 +10,16 @@ import {
   Platform,
   TextInput,
   KeyboardAvoidingView,
+  Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-const PRIMARY_GREEN = "#153e69";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(scale * size);
+
+const PRIMARY_GREEN = "#047857";
 
 /**
  * ModalPicker — iOS/Android safe dropdown picker using a Modal overlay.
@@ -74,10 +79,10 @@ export default function ModalPicker({
             {getLabel(item)}
           </Text>
           {isSelected && (
-            <Ionicons name={multiSelect ? "checkbox" : "checkmark"} size={18} color={PRIMARY_GREEN} />
+            <Ionicons name={multiSelect ? "checkbox" : "checkmark"} size={normalize(18)} color={PRIMARY_GREEN} />
           )}
           {!isSelected && multiSelect && (
-            <Ionicons name="square-outline" size={18} color="rgba(10,5,4,0.4)" />
+            <Ionicons name="square-outline" size={normalize(18)} color="rgba(10,5,4,0.4)" />
           )}
         </TouchableOpacity>
       );
@@ -86,8 +91,8 @@ export default function ModalPicker({
   );
 
   // Dynamic bottom inset to clear Android software navigation buttons (Back, Home, Recents)
-  const androidBottomGap = Math.max(insets.bottom, 48) + 24;
-  const bottomSheetPadding = Platform.OS === "android" ? androidBottomGap : Math.max(insets.bottom, 16);
+  const androidBottomGap = Math.max(insets.bottom, normalize(40)) + normalize(20);
+  const bottomSheetPadding = Platform.OS === "android" ? androidBottomGap : Math.max(insets.bottom, normalize(14));
 
   return (
     <Modal
@@ -122,7 +127,7 @@ export default function ModalPicker({
                     {hasSelected ? (
                       <Text style={styles.doneBtnText}>Done</Text>
                     ) : (
-                      <Ionicons name="close" size={22} color="rgba(10,5,4,0.6)" />
+                      <Ionicons name="close" size={normalize(20)} color="rgba(10,5,4,0.6)" />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -132,7 +137,7 @@ export default function ModalPicker({
             {/* Search Input */}
             {searchable && (
               <View style={styles.searchContainer}>
-                <Ionicons name="search-outline" size={18} color="rgba(10,5,4,0.5)" style={styles.searchIcon} />
+                <Ionicons name="search-outline" size={normalize(16)} color="rgba(10,5,4,0.5)" style={styles.searchIcon} />
                 <TextInput
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -144,7 +149,7 @@ export default function ModalPicker({
                 />
                 {searchQuery.length > 0 && Platform.OS !== "ios" && (
                   <TouchableOpacity onPress={() => setSearchQuery("")}>
-                    <Ionicons name="close-circle" size={18} color="rgba(10,5,4,0.4)" />
+                    <Ionicons name="close-circle" size={normalize(16)} color="rgba(10,5,4,0.4)" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -167,7 +172,7 @@ export default function ModalPicker({
                 ) : null
               }
               style={styles.list}
-              contentContainerStyle={{ paddingBottom: 60 }}
+              contentContainerStyle={{ paddingBottom: normalize(40) }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             />
@@ -205,9 +210,9 @@ export function ModalPickerTrigger({
       {leftIcon && (
         <Ionicons
           name={leftIcon}
-          size={20}
+          size={normalize(16)}
           color="rgba(10,5,4,0.6)"
-          style={{ marginRight: 8 }}
+          style={{ marginRight: normalize(6) }}
         />
       )}
       <Text
@@ -221,7 +226,7 @@ export function ModalPickerTrigger({
       </Text>
       <Ionicons
         name={isOpen ? "chevron-up" : "chevron-down"}
-        size={18}
+        size={normalize(16)}
         color="rgba(10,5,4,0.6)"
       />
     </TouchableOpacity>
@@ -236,8 +241,8 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: normalize(20),
+    borderTopRightRadius: normalize(20),
     paddingHorizontal: 0,
     width: "100%",
     shadowColor: "#000",
@@ -247,88 +252,88 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   handleBar: {
-    width: 40,
-    height: 4,
+    width: normalize(40),
+    height: normalize(4),
     backgroundColor: "rgba(10,5,4,0.15)",
-    borderRadius: 2,
+    borderRadius: normalize(2),
     alignSelf: "center",
-    marginTop: 10,
-    marginBottom: 8,
+    marginTop: normalize(10),
+    marginBottom: normalize(8),
   },
   sheetHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(10),
     borderBottomWidth: 1,
     borderBottomColor: "rgba(10,5,4,0.08)",
   },
   sheetTitle: {
-    fontSize: 16,
+    fontSize: normalize(15),
     fontWeight: "700",
     color: "#0a0504",
   },
   closeBtn: {
-    padding: 4,
+    padding: normalize(4),
   },
   doneBtn: {
     backgroundColor: PRIMARY_GREEN,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(10),
   },
   doneBtnText: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: normalize(12.5),
     fontWeight: "600",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 4,
-    paddingHorizontal: 12,
+    borderRadius: normalize(10),
+    marginHorizontal: normalize(16),
+    marginTop: normalize(10),
+    marginBottom: normalize(4),
+    paddingHorizontal: normalize(10),
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: normalize(6),
   },
   searchInput: {
     flex: 1,
-    height: 42,
-    fontSize: 14,
+    height: normalize(40),
+    fontSize: normalize(13),
     color: "#0a0504",
   },
   emptyContainer: {
-    padding: 24,
+    padding: normalize(20),
     alignItems: "center",
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: normalize(13),
     color: "rgba(10,5,4,0.5)",
   },
   list: {
-    paddingHorizontal: 8,
+    paddingHorizontal: normalize(6),
   },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    marginVertical: 2,
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(14),
+    borderRadius: normalize(8),
+    marginVertical: normalize(2),
   },
   optionRowSelected: {
-    backgroundColor: "rgba(21, 62, 105, 0.08)",
+    backgroundColor: "#ecfdf5",
   },
   optionText: {
-    fontSize: 15,
+    fontSize: normalize(13.5),
     color: "#0a0504",
     flex: 1,
   },
@@ -346,9 +351,9 @@ const triggerStyles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 14,
+    borderRadius: normalize(10),
+    height: normalize(44),
+    paddingHorizontal: normalize(12),
   },
   containerOpen: {
     borderColor: PRIMARY_GREEN,
@@ -360,7 +365,7 @@ const triggerStyles = StyleSheet.create({
     opacity: 0.7,
   },
   text: {
-    fontSize: 14,
+    fontSize: normalize(12.5),
     color: "#0a0504",
     flex: 1,
   },

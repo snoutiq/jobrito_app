@@ -16,6 +16,7 @@ import {
   Clipboard,
   Linking,
   findNodeHandle,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -35,31 +36,38 @@ import * as ImagePicker from "expo-image-picker";
 import { saveChefOnboarding } from "../../services/chefApi";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
-const PRIMARY_GREEN = "#153e69";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(scale * size);
+
+const PRIMARY_GREEN = "#047857";
 
 const countriesList = [
   "India",
   "Saudi Arabia",
-  "UAE",
-  "Qatar",
-  "Oman",
-  "Kuwait",
-  "Bahrain",
-  "United Kingdom",
-  "United States",
-  "Other"
 ];
 
 const citiesByCountry = {
-  "India": ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Kochi", "Goa", "Other"],
-  "Saudi Arabia": ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Tabuk", "Other"],
-  "UAE": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Other"],
-  "Qatar": ["Doha", "Al Wakrah", "Al Rayyan", "Other"],
-  "Oman": ["Muscat", "Salalah", "Sohar", "Other"],
-  "Kuwait": ["Kuwait City", "Hawally", "Salmiya", "Other"],
-  "Bahrain": ["Manama", "Riffa", "Muharraq", "Other"],
-  "United States": ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco", "Miami", "Other"],
-  "United Kingdom": ["London", "Birmingham", "Manchester", "Edinburgh", "Glasgow", "Other"],
+  "India": [
+    "Mumbai", "Delhi NCR", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", 
+    "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Kanpur", "Nagpur", 
+    "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara", 
+    "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut", 
+    "Rajkot", "Varanasi", "Srinagar", "Aurangabad", "Amritsar", "Navi Mumbai", 
+    "Prayagraj (Allahabad)", "Ranchi", "Coimbatore", "Jabalpur", "Gwalior", 
+    "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota", "Guwahati", 
+    "Chandigarh", "Mysore", "Gurgaon", "Noida", "Jalandhar", "Bhubaneswar", 
+    "Thiruvananthapuram", "Dehradun", "Shimla", "Goa", "Mangalore", "Kochi", 
+    "Kozhikode", "Other"
+  ],
+  "Saudi Arabia": [
+    "Riyadh", "Jeddah", "Mecca (Makkah)", "Medina (Madinah)", "Dammam", 
+    "Khobar", "Tabuk", "Al-Ahsa", "Taif", "Khamis Mushait", "Buraidah", 
+    "Jubail", "Abha", "Najran", "Yanbu", "Al Qunfudhah", "Jizan", "Ha'il", 
+    "Arar", "Sakaka", "Al Bahah", "Dhahran", "Rabigh", "Al Wajh", "Unaizah", 
+    "Other"
+  ],
 };
 
 const commonLanguagesList = [
@@ -115,10 +123,13 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [photoUri, setPhotoUri] = useState(null);
   const [fullName, setFullName] = useState("");
+  const [age, setAge] = useState("");
+  const [showAgeDropdown, setShowAgeDropdown] = useState(false);
   const [professionalTitle, setProfessionalTitle] = useState("");
+  const [showTitleDropdown, setShowTitleDropdown] = useState(false);
   const [currentCity, setCurrentCity] = useState("");
   const [country, setCountry] = useState("");
-  const [languages, setLanguages] = useState([]);
+  const [languages, setLanguages] = useState(["English"]);
   const [newLanguage, setNewLanguage] = useState("");
   const [showLangInput, setShowLangInput] = useState(false);
 
@@ -127,6 +138,24 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  const ageOptions = [
+    "18-25 Years",
+    "25-30 Years",
+    "30-35 Years",
+    "35-40 Years",
+    "40+ Years"
+  ];
+
+  const professionalTitleOptions = [
+    "Executive Chef",
+    "Head Chef",
+    "Sous Chef",
+    "Pastry Chef",
+    "Chef de Partie",
+    "Culinary Consultant",
+    "Kitchen Manager"
+  ];
 
   // --- Step 2 State ---
   const [selectedCuisines, setSelectedCuisines] = useState([]);
@@ -960,43 +989,87 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const progress = getOnboardingCompletionPercent();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, step === 7 && { backgroundColor: "#ffffff" }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
         style={{ flex: 1 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          {step < 7 ? (
+        {step < 7 && (
+          <View style={styles.header}>
             <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
               <Ionicons name="arrow-back" size={24} color="#0a0504" />
             </TouchableOpacity>
-          ) : (
+            <Text style={[styles.headerTitle, step >= 6 && { color: "#153e69" }]}>
+              Professional Profile
+            </Text>
             <View style={{ width: 32 }} />
-          )}
-          <Text style={[styles.headerTitle, step >= 6 && { color: "#153e69" }]}>
-            {step === 7 ? "Jobrito" : "Professional Profile"}
-          </Text>
-          <View style={{ width: 32 }} />
-        </View>
+          </View>
+        )}
 
-        {/* Progress Tracker (only for steps 1 to 6) */}
+        {/* Progress Stepper (only for steps 1 to 6) */}
         {step <= 6 && (
-          <View style={styles.progressSection}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>STEP {step} OF 6</Text>
-              <Text style={[styles.progressPct, { color: PRIMARY_GREEN }]}>{progress}% Complete</Text>
+          <View style={styles.stepperContainer}>
+            <View style={styles.stepperRow}>
+              {[
+                { num: 1, label: t("personalAndBasicInfoStep", "Personal &\nBasic Info") },
+                { num: 2, label: t("experience", "Experience") },
+                { num: 3, label: t("expertiseStep", "Expertise") },
+                { num: 4, label: t("credentialsStep", "Credentials") },
+                { num: 5, label: t("portfolioStep", "Portfolio") },
+                { num: 6, label: t("reviewStep", "Review") },
+              ].map((item, index) => {
+                const isActive = step === item.num;
+                const isCompleted = step > item.num;
+                return (
+                  <React.Fragment key={item.num}>
+                    {index > 0 && (
+                      <View style={[styles.stepperLine, isCompleted && styles.stepperLineCompleted]} />
+                    )}
+                    <View style={styles.stepperItem}>
+                      <View
+                        style={[
+                          styles.stepperCircle,
+                          isActive && styles.stepperCircleActive,
+                          isCompleted && styles.stepperCircleCompleted,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.stepperCircleText,
+                            isActive && styles.stepperCircleTextActive,
+                            isCompleted && styles.stepperCircleTextCompleted,
+                          ]}
+                        >
+                          {item.num}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.stepperLabel,
+                          isActive && styles.stepperLabelActive,
+                        ]}
+                        numberOfLines={2}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  </React.Fragment>
+                );
+              })}
             </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: PRIMARY_GREEN }]} />
-            </View>
+
+            <Text style={styles.stepperSubtitle}>
+              {t("basicInfoSubtitle", "Let's start with your basic information to create your professional identity.")}
+            </Text>
           </View>
         )}
 
         <ScrollView
           ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, step === 7 && { backgroundColor: "#ffffff" }]}
+          style={step === 7 && { backgroundColor: "#ffffff" }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={true}
@@ -1004,422 +1077,522 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
           {/* STEP 1: PERSONAL PROFILE */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              {/* Photo Upload Box */}
-              <View style={styles.photoSection}>
-                <TouchableOpacity
-                  style={styles.avatarCircle}
-                  activeOpacity={0.8}
-                  onPress={selectPhotoSource}
-                >
-                  {photoUri ? (
-                    <Image
-                      source={{ uri: photoUri }}
-                      style={styles.avatarImage}
-                    />
-                  ) : (
-                    <>
-                      <View style={styles.avatarPlaceholder}>
-                        <Ionicons name="person" size={48} color="#153e69" style={{ opacity: 0.6 }} />
+              {/* Card 1: Profile Photo */}
+              <View style={styles.cardContainer}>
+                <View style={styles.photoCardRow}>
+                  <View style={styles.photoTextCol}>
+                    <Text style={styles.cardTitleText}>
+                      {t("profilePhotoTitle", "Profile Photo")}
+                    </Text>
+                    <Text style={styles.cardSubtitleText}>
+                      {t("profilePhotoSub", "A professional photo helps build trust and credibility.")}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.avatarDashedCircle}
+                    activeOpacity={0.8}
+                    onPress={selectPhotoSource}
+                  >
+                    {photoUri ? (
+                      <Image source={{ uri: photoUri }} style={styles.avatarImageCircle} />
+                    ) : (
+                      <View style={styles.avatarPlaceholderCol}>
+                        <Ionicons name="camera" size={normalize(22)} color="#475569" />
+                        <Text style={styles.addPhotoText}>
+                          {t("addPhoto", "Add Photo")}
+                        </Text>
                       </View>
-                      <View style={styles.avatarOverlay}>
-                        <Ionicons name="camera" size={20} color="#fff" />
-                        <Text style={styles.avatarOverlayText}>Add Photo</Text>
-                      </View>
-                    </>
-                  )}
-                  <View style={[styles.plusIcon, { backgroundColor: PRIMARY_GREEN }]}>
-                    <Ionicons name="add" size={16} color="#fff" />
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={[styles.stepTitle, { textAlign: "center" }]}>Personal Identity</Text>
-              <Text style={[styles.stepSubtitle, { textAlign: "center" }]}>
-                First impressions matter in the professional kitchen.
-              </Text>
-
-              {/* Full Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("fullName", "Full Name")}</Text>
-                <View style={[styles.inputWrapper, activeInput === "fullName" && styles.inputWrapperActive]}>
-                  <Ionicons name="person-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={fullName}
-                    onChangeText={setFullName}
-                    placeholder={t("enterFullName", "Enter your full name")}
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "fullName")}
-                    onBlur={() => setActiveInput(null)}
-                  />
+                    )}
+                    <View style={styles.plusGreenBadge}>
+                      <Ionicons name="add" size={normalize(14)} color="#ffffff" />
+                    </View>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Professional Title */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("professionalTitle", "Professional Title")}</Text>
-                <View style={[styles.inputWrapper, activeInput === "professionalTitle" && styles.inputWrapperActive]}>
-                  <Ionicons name="restaurant-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                  <TextInput
-                    value={professionalTitle}
-                    onChangeText={setProfessionalTitle}
-                    placeholder="e.g. Executive Chef, Sous Chef"
-                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                    style={styles.textInput}
-                    onFocus={(e) => handleInputFocus(e, "professionalTitle")}
-                    onBlur={() => setActiveInput(null)}
-                  />
-                </View>
-                <Text style={styles.inputSubtext}>Common: Executive Chef, Culinary Consultant, Pastry Chef</Text>
-              </View>
-
-              {/* Country Selection */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("country", "Country")}</Text>
-                <ModalPickerTrigger
-                  onPress={() => {
-                    setShowCountryDropdown(true);
-                    setShowCityDropdown(false);
-                  }}
-                  label={selectedCountry}
-                  placeholder="Select Country"
-                  isOpen={showCountryDropdown}
-                  leftIcon="globe-outline"
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showCountryDropdown}
-                  onClose={() => setShowCountryDropdown(false)}
-                  title="Select Country"
-                  options={countriesList}
-                  selectedValue={selectedCountry}
-                  onSelect={(opt) => {
-                    setSelectedCountry(opt);
-                    if (opt === "Other") {
-                      setCountry("");
-                    } else {
-                      setCountry(opt);
-                    }
-                    setCurrentCity("");
-                    setSelectedCity("");
-                  }}
-                />
-              </View>
-
-              {/* Custom Country TextInput */}
-              {selectedCountry === "Other" && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Enter Country Name</Text>
-                  <View style={[styles.inputWrapper, activeInput === "customCountry" && styles.inputWrapperActive]}>
-                    <Ionicons name="globe-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                    <TextInput
-                      value={country}
-                      onChangeText={setCountry}
-                      placeholder="Enter country name"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "customCountry")}
-                      onBlur={() => setActiveInput(null)}
-                    />
+              {/* Card 2: Personal Details */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.greenIconCircle}>
+                    <Ionicons name="person-outline" size={normalize(16)} color={PRIMARY_GREEN} />
                   </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("personalDetails", "Personal Details")}
+                  </Text>
                 </View>
-              )}
 
-              {/* City Selection */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Current City</Text>
-                {selectedCountry === "Other" ? (
-                  <View style={[styles.inputWrapper, activeInput === "city" && styles.inputWrapperActive]}>
-                    <Ionicons name="location-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                    <TextInput
-                      value={currentCity}
-                      onChangeText={setCurrentCity}
-                      placeholder="Enter city name"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "city")}
-                      onBlur={() => setActiveInput(null)}
-                    />
+                {/* 2 Column Row: Full Name & Age */}
+                <View style={styles.twoColRow}>
+                  {/* Full Name */}
+                  <View style={styles.halfCol}>
+                    <Text style={styles.fieldLabel}>
+                      {t("fullName", "Full Name")}
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    <View style={[styles.fieldInputWrapper, activeInput === "fullName" && styles.fieldInputActive]}>
+                      <Ionicons name="person-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
+                      <TextInput
+                        value={fullName}
+                        onChangeText={setFullName}
+                        placeholder={t("enterFullName", "Enter your full name")}
+                        placeholderTextColor="#94a3b8"
+                        style={styles.fieldTextInput}
+                        onFocus={(e) => handleInputFocus(e, "fullName")}
+                        onBlur={() => setActiveInput(null)}
+                      />
+                    </View>
                   </View>
-                ) : (
-                  <>
+
+                  {/* Age */}
+                  <View style={styles.halfCol}>
+                    <Text style={styles.fieldLabel}>
+                      {t("age", "Age")}
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
                     <ModalPickerTrigger
-                      onPress={() => {
-                        if (!selectedCountry) {
-                          Alert.alert("Select Country", "Please select a country first.");
-                          return;
-                        }
-                        setShowCityDropdown(true);
-                        setShowCountryDropdown(false);
-                      }}
-                      label={selectedCity === "Other" ? (currentCity || "") : (currentCity || "")}
-                      placeholder={!selectedCountry ? "Select Country First" : "Select City"}
-                      isOpen={showCityDropdown}
-                      leftIcon="location-outline"
-                      style={[styles.inputWrapper, !selectedCountry && { backgroundColor: "#f2f2f3" }]}
+                      onPress={() => setShowAgeDropdown(true)}
+                      label={age}
+                      placeholder={t("selectAge", "Select age")}
+                      isOpen={showAgeDropdown}
+                      leftIcon="calendar-outline"
+                      style={styles.fieldInputWrapper}
                     />
                     <ModalPicker
-                      visible={showCityDropdown}
-                      onClose={() => setShowCityDropdown(false)}
-                      title="Select City"
-                      options={citiesByCountry[selectedCountry] || ["Other"]}
-                      selectedValue={selectedCity}
+                      visible={showAgeDropdown}
+                      onClose={() => setShowAgeDropdown(false)}
+                      title={t("selectAge", "Select age")}
+                      options={ageOptions}
+                      selectedValue={age}
+                      onSelect={(opt) => setAge(opt)}
+                    />
+                  </View>
+                </View>
+
+                {/* Full Width Row: Professional Title */}
+                <View style={styles.fullWidthGroup}>
+                  <Text style={styles.fieldLabel}>
+                    {t("professionalTitle", "Professional Title")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                  <ModalPickerTrigger
+                    onPress={() => setShowTitleDropdown(true)}
+                    label={professionalTitle}
+                    placeholder={t("selectProfessionalTitle", "Select your professional title")}
+                    isOpen={showTitleDropdown}
+                    leftIcon="briefcase-outline"
+                    style={styles.fieldInputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showTitleDropdown}
+                    onClose={() => setShowTitleDropdown(false)}
+                    title={t("selectProfessionalTitle", "Select your professional title")}
+                    options={professionalTitleOptions}
+                    selectedValue={professionalTitle}
+                    onSelect={(opt) => setProfessionalTitle(opt)}
+                  />
+                  <Text style={styles.fieldHelperText}>
+                    {t("titleExamples", "Examples: Executive Chef, Sous Chef, Culinary Consultant")}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Card 3: Your Current Location */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.greenIconCircle}>
+                    <Ionicons name="location-outline" size={normalize(16)} color={PRIMARY_GREEN} />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("yourCurrentLocation", "Your Current Location")}
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("whereAreYouBased", "Where are you currently based?")}
+                </Text>
+
+                {/* 2 Column Row: Country & Current City */}
+                <View style={styles.twoColRow}>
+                  {/* Country */}
+                  <View style={styles.halfCol}>
+                    <Text style={styles.fieldLabel}>
+                      {t("country", "Country")}
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    <ModalPickerTrigger
+                      onPress={() => {
+                        setShowCountryDropdown(true);
+                        setShowCityDropdown(false);
+                      }}
+                      label={selectedCountry}
+                      placeholder={t("selectCountry", "Select Country")}
+                      isOpen={showCountryDropdown}
+                      leftIcon="globe-outline"
+                      style={styles.fieldInputWrapper}
+                    />
+                    <ModalPicker
+                      visible={showCountryDropdown}
+                      onClose={() => setShowCountryDropdown(false)}
+                      title={t("selectCountry", "Select Country")}
+                      options={countriesList}
+                      selectedValue={selectedCountry}
                       onSelect={(opt) => {
-                        setSelectedCity(opt);
+                        setSelectedCountry(opt);
                         if (opt === "Other") {
-                          setCurrentCity("");
+                          setCountry("");
                         } else {
-                          setCurrentCity(opt);
+                          setCountry(opt);
                         }
+                        setCurrentCity("");
+                        setSelectedCity("");
                       }}
                     />
-                    {selectedCity === "Other" && (
-                      <View style={[styles.inputWrapper, { marginTop: 8 }, activeInput === "customCity" && styles.inputWrapperActive]}>
+                  </View>
+
+                  {/* Current City */}
+                  <View style={styles.halfCol}>
+                    <Text style={styles.fieldLabel}>
+                      {t("currentCity", "Current City")}
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    {selectedCountry === "Other" ? (
+                      <View style={[styles.fieldInputWrapper, activeInput === "city" && styles.fieldInputActive]}>
+                        <Ionicons name="location-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
                         <TextInput
                           value={currentCity}
                           onChangeText={setCurrentCity}
-                          placeholder="Type your city name"
-                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                          style={styles.textInput}
-                          onFocus={(e) => handleInputFocus(e, "customCity")}
+                          placeholder={t("selectCity", "Select City")}
+                          placeholderTextColor="#94a3b8"
+                          style={styles.fieldTextInput}
+                          onFocus={(e) => handleInputFocus(e, "city")}
                           onBlur={() => setActiveInput(null)}
                         />
                       </View>
+                    ) : (
+                      <>
+                        <ModalPickerTrigger
+                          onPress={() => {
+                            if (!selectedCountry) {
+                              Alert.alert("Select Country", "Please select a country first.");
+                              return;
+                            }
+                            setShowCityDropdown(true);
+                            setShowCountryDropdown(false);
+                          }}
+                          label={selectedCity === "Other" ? (currentCity || "") : (currentCity || "")}
+                          placeholder={t("selectCity", "Select City")}
+                          isOpen={showCityDropdown}
+                          leftIcon="location-outline"
+                          style={[styles.fieldInputWrapper, !selectedCountry && { backgroundColor: "#f8fafc" }]}
+                        />
+                        <ModalPicker
+                          visible={showCityDropdown}
+                          onClose={() => setShowCityDropdown(false)}
+                          title={t("selectCity", "Select City")}
+                          options={citiesByCountry[selectedCountry] || ["Other"]}
+                          selectedValue={selectedCity}
+                          searchable={true}
+                          searchPlaceholder={t("searchCity", "Search city...")}
+                          onSelect={(opt) => {
+                            setSelectedCity(opt);
+                            if (opt === "Other") {
+                              setCurrentCity("");
+                            } else {
+                              setCurrentCity(opt);
+                            }
+                          }}
+                        />
+                      </>
                     )}
-                  </>
-                )}
-              </View>
-
-
-
-              {/* Languages Spoken */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Languages Spoken</Text>
-                
-                <Text style={[styles.inputSubtext, { paddingLeft: 0, marginBottom: 8 }]}>Tap to select languages you speak:</Text>
-                <View style={[styles.pillsRow, { paddingLeft: 0, marginTop: 4, marginBottom: 12 }]}>
-                  {commonLanguagesList.map((lang) => {
-                    const isSelected = languages.includes(lang);
-                    return (
-                      <TouchableOpacity
-                        key={lang}
-                        style={[styles.pill, isSelected && styles.pillSelected]}
-                        onPress={() => {
-                          if (isSelected) {
-                            setLanguages(languages.filter((l) => l !== lang));
-                          } else {
-                            setLanguages([...languages, lang]);
-                          }
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                          {lang}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                  </View>
                 </View>
 
-                {languages.length > 0 && (
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={[styles.inputSubtext, { paddingLeft: 0, marginBottom: 6 }]}>Selected Languages:</Text>
-                    <View style={styles.tagWrapper}>
-                      {languages.map((lang) => (
-                        <View key={lang} style={styles.languageTag}>
-                          <Text style={styles.languageTagText}>{lang}</Text>
-                          <TouchableOpacity onPress={() => handleRemoveLanguage(lang)} style={styles.languageTagClose}>
-                            <Ionicons name="close" size={14} color="rgba(10, 5, 4, 0.6)" />
-                          </TouchableOpacity>
-                        </View>
-                      ))}
+                {selectedCountry === "Other" && (
+                  <View style={[styles.fullWidthGroup, { marginTop: normalize(8) }]}>
+                    <Text style={styles.fieldLabel}>
+                      Enter Country Name
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    <View style={[styles.fieldInputWrapper, activeInput === "customCountry" && styles.fieldInputActive]}>
+                      <Ionicons name="globe-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
+                      <TextInput
+                        value={country}
+                        onChangeText={setCountry}
+                        placeholder="Enter country name"
+                        placeholderTextColor="#94a3b8"
+                        style={styles.fieldTextInput}
+                        onFocus={(e) => handleInputFocus(e, "customCountry")}
+                        onBlur={() => setActiveInput(null)}
+                      />
                     </View>
                   </View>
                 )}
+              </View>
 
-                <View>
-                  {showLangInput ? (
-                    <View style={[styles.inputWrapper, { borderColor: PRIMARY_GREEN }]}>
-                      <TextInput
-                        value={newLanguage}
-                        onChangeText={setNewLanguage}
-                        placeholder="Type custom language (e.g. German)"
-                        placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                        style={styles.textInput}
-                        autoFocus
-                        onSubmitEditing={handleAddLanguage}
-                      />
-                      <TouchableOpacity onPress={handleAddLanguage} style={{ padding: 4 }}>
-                        <Ionicons name="checkmark-circle" size={24} color={PRIMARY_GREEN} />
+              {/* Card 4: Languages Spoken */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.greenIconCircle}>
+                    <Ionicons name="chatbubble-ellipses-outline" size={normalize(16)} color={PRIMARY_GREEN} />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("languagesSpokenTitle", "Languages Spoken")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("languagesSpokenSub", "Select the languages you speak fluently.")}
+                </Text>
+
+                {/* Language Selectable Cards Row */}
+                <View style={styles.langPillsRow}>
+                  {[
+                    { key: "English", label: "English", icon: "chatbubble-outline" },
+                    { key: "Hindi", label: "Hindi", icon: "language-outline", nativeLabel: "हिं" },
+                    { key: "Arabic", label: "Arabic", icon: "language-outline", nativeLabel: "أمي" },
+                  ].map((item) => {
+                    const isSelected = languages.includes(item.key);
+                    return (
+                      <TouchableOpacity
+                        key={item.key}
+                        style={[
+                          styles.langCardItem,
+                          isSelected && styles.langCardItemSelected,
+                        ]}
+                        onPress={() => {
+                          if (isSelected) {
+                            setLanguages(languages.filter((l) => l !== item.key));
+                          } else {
+                            setLanguages([...languages, item.key]);
+                          }
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={styles.langCardLeft}>
+                          {item.nativeLabel ? (
+                            <Text style={styles.langNativeBadgeText}>{item.nativeLabel}</Text>
+                          ) : (
+                            <Ionicons name={item.icon} size={normalize(15)} color={isSelected ? PRIMARY_GREEN : "#64748b"} />
+                          )}
+                          <Text style={[styles.langCardLabelText, isSelected && styles.langCardLabelSelected]}>
+                            {item.label}
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+                          size={normalize(16)}
+                          color={isSelected ? PRIMARY_GREEN : "#cbd5e1"}
+                        />
                       </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={[
-                        styles.inputWrapper,
-                        {
-                          justifyContent: "center",
-                          borderStyle: "dashed",
-                          borderColor: PRIMARY_GREEN,
-                          backgroundColor: "transparent"
-                        }
-                      ]}
-                      onPress={() => setShowLangInput(true)}
-                    >
-                      <Ionicons name="add" size={20} color={PRIMARY_GREEN} style={{ marginRight: 6 }} />
-                      <Text style={{ color: PRIMARY_GREEN, fontWeight: "700", fontSize: 14 }}>
-                        Add Other Language
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                    );
+                  })}
                 </View>
               </View>
 
               {/* Continue Button */}
               <TouchableOpacity
                 style={[
-                  styles.continueButton,
+                  styles.continueGreenButton,
                   (!fullName.trim() || !professionalTitle.trim() || !currentCity.trim() || !country.trim() || languages.length === 0) && styles.continueButtonDisabled
                 ]}
                 onPress={next}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
+
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
+                </Text>
+              </View>
             </View>
           )}
 
           {/* STEP 2: PROFESSIONAL EXPERTISE */}
           {step === 2 && (
             <View style={styles.stepContainer}>
-              {/* Banner Mock with Solid Color */}
-              <View style={[styles.bannerContainer, { backgroundColor: PRIMARY_GREEN, justifyContent: "center", alignItems: "center" }]}>
-                <Ionicons name="sparkles" size={32} color="#f2c879" style={{ marginBottom: 6 }} />
-                <Text style={styles.bannerText}>Showcase your skills</Text>
-              </View>
-
-              {/* Cuisine Specialization */}
-              <View style={styles.sectionHeader}>
-                <Ionicons name="restaurant-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Cuisine Specialization</Text>
-              </View>
-              <Text style={styles.sectionSubtitleText}>
-                Select the cuisines you have mastered in your career.
-              </Text>
-              
-              <View style={styles.inputGroup}>
-                <ModalPickerTrigger
-                  onPress={() => setShowCuisineDropdown(true)}
-                  label={selectedCuisines.length > 0 ? selectedCuisines.map(c => c === "Other" && customCuisine ? `${c} (${customCuisine})` : c).join(", ") : ""}
-                  placeholder="Select Cuisines"
-                  isOpen={showCuisineDropdown}
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showCuisineDropdown}
-                  onClose={() => setShowCuisineDropdown(false)}
-                  title="Cuisine Specialization"
-                  options={cuisinesList}
-                  selectedValue={selectedCuisines}
-                  onSelect={toggleCuisine}
-                  multiSelect={true}
-                />
-              </View>
-
-              {/* Custom Cuisine Input if Other is selected */}
-              {selectedCuisines.includes("Other") && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Enter Other Cuisine(s)</Text>
-                  <View style={[styles.inputWrapper, activeInput === "customCuisine" && styles.inputWrapperActive]}>
-                    <Ionicons name="create-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                    <TextInput
-                      value={customCuisine}
-                      onChangeText={setCustomCuisine}
-                      placeholder="e.g. French, Japanese"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "customCuisine")}
-                      onBlur={() => setActiveInput(null)}
-                    />
-                  </View>
+              {/* Section Header Title */}
+              <View style={styles.stepHeaderRow}>
+                <View style={styles.chefHatIconCircle}>
+                  <Ionicons name="restaurant-outline" size={normalize(22)} color={PRIMARY_GREEN} />
                 </View>
-              )}
-
-              {/* Operational Expertise */}
-              <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-                <Ionicons name="document-text-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Operational Expertise</Text>
-              </View>
-              <Text style={styles.sectionSubtitleText}>
-                What management skills do you bring to the kitchen?
-              </Text>
-              
-              <View style={styles.inputGroup}>
-                <ModalPickerTrigger
-                  onPress={() => setShowOperationsDropdown(true)}
-                  label={selectedOperations.length > 0 ? selectedOperations.map(o => o === "Other" && customOperation ? `${o} (${customOperation})` : o).join(", ") : ""}
-                  placeholder="Select Operational Expertise"
-                  isOpen={showOperationsDropdown}
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showOperationsDropdown}
-                  onClose={() => setShowOperationsDropdown(false)}
-                  title="Operational Expertise"
-                  options={operationsList}
-                  selectedValue={selectedOperations}
-                  onSelect={toggleOperation}
-                  multiSelect={true}
-                />
-              </View>
-
-              {/* Custom Operation Input if Other is selected */}
-              {selectedOperations.includes("Other") && (
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Enter Other Operational Expertise</Text>
-                  <View style={[styles.inputWrapper, activeInput === "customOperation" && styles.inputWrapperActive]}>
-                    <Ionicons name="create-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
-                    <TextInput
-                      value={customOperation}
-                      onChangeText={setCustomOperation}
-                      placeholder="e.g. Menu Development, Staffing"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.textInput}
-                      onFocus={(e) => handleInputFocus(e, "customOperation")}
-                      onBlur={() => setActiveInput(null)}
-                    />
-                  </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.stepHeaderTitle}>
+                    {t("showcaseSkillsTitle", "Showcase Your Skills")}
+                  </Text>
+                  <Text style={styles.stepHeaderSubtitle}>
+                    {t("showcaseSkillsSub", "Highlight your culinary strengths and management capabilities.")}
+                  </Text>
                 </View>
-              )}
-
-              {/* Years of Experience */}
-              <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-                <Ionicons name="briefcase-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Years of Experience</Text>
               </View>
-              <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                <ModalPickerTrigger
-                  onPress={() => setShowExpDropdown(true)}
-                  label={experienceYears}
-                  placeholder="Select total years in industry"
-                  isOpen={showExpDropdown}
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showExpDropdown}
-                  onClose={() => setShowExpDropdown(false)}
-                  title="Years of Experience"
-                  options={experienceOptions}
-                  selectedValue={experienceYears}
-                  onSelect={(val) => setExperienceYears(val)}
-                />
+
+              {/* Card 1: Cuisine Specialization */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#fff7ed" }]}>
+                    <Ionicons name="restaurant-outline" size={normalize(16)} color="#f59e0b" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("cuisineSpecializationTitle", "Cuisine Specialization")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("cuisineSpecializationSub", "Select the cuisines you have mastered in your career.")}
+                </Text>
+
+                <View style={styles.fullWidthGroup}>
+                  <ModalPickerTrigger
+                    onPress={() => setShowCuisineDropdown(true)}
+                    label={selectedCuisines.length > 0 ? selectedCuisines.map(c => c === "Other" && customCuisine ? `${c} (${customCuisine})` : c).join(", ") : ""}
+                    placeholder={t("selectCuisines", "Select cuisines")}
+                    isOpen={showCuisineDropdown}
+                    leftIcon="restaurant-outline"
+                    style={styles.fieldInputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showCuisineDropdown}
+                    onClose={() => setShowCuisineDropdown(false)}
+                    title={t("cuisineSpecializationTitle", "Cuisine Specialization")}
+                    options={cuisinesList}
+                    selectedValue={selectedCuisines}
+                    onSelect={toggleCuisine}
+                    multiSelect={true}
+                    searchable={true}
+                  />
+                  <Text style={styles.fieldHelperText}>
+                    {t("cuisineExamples", "Examples: Continental, Indian, Chinese, Italian, Japanese")}
+                  </Text>
+                </View>
+
+                {/* Custom Cuisine Input if Other is selected */}
+                {selectedCuisines.includes("Other") && (
+                  <View style={[styles.fullWidthGroup, { marginTop: normalize(8) }]}>
+                    <Text style={styles.fieldLabel}>
+                      Enter Other Cuisine(s)
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    <View style={[styles.fieldInputWrapper, activeInput === "customCuisine" && styles.fieldInputActive]}>
+                      <Ionicons name="create-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
+                      <TextInput
+                        value={customCuisine}
+                        onChangeText={setCustomCuisine}
+                        placeholder="e.g. French, Japanese"
+                        placeholderTextColor="#94a3b8"
+                        style={styles.fieldTextInput}
+                        onFocus={(e) => handleInputFocus(e, "customCuisine")}
+                        onBlur={() => setActiveInput(null)}
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Card 2: Operational Expertise */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.greenIconCircle}>
+                    <Ionicons name="briefcase-outline" size={normalize(16)} color={PRIMARY_GREEN} />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("operationalExpertiseTitle", "Operational Expertise")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("operationalExpertiseSub", "Select the key areas where you have strong management experience across operations.")}
+                </Text>
+
+                <View style={styles.fullWidthGroup}>
+                  <ModalPickerTrigger
+                    onPress={() => setShowOperationsDropdown(true)}
+                    label={selectedOperations.length > 0 ? selectedOperations.map(o => o === "Other" && customOperation ? `${o} (${customOperation})` : o).join(", ") : ""}
+                    placeholder={t("selectOperationalExpertise", "Select Operational Expertise")}
+                    isOpen={showOperationsDropdown}
+                    leftIcon="briefcase-outline"
+                    style={styles.fieldInputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showOperationsDropdown}
+                    onClose={() => setShowOperationsDropdown(false)}
+                    title={t("operationalExpertiseTitle", "Operational Expertise")}
+                    options={operationsList}
+                    selectedValue={selectedOperations}
+                    onSelect={toggleOperation}
+                    multiSelect={true}
+                    searchable={true}
+                  />
+                </View>
+
+                {/* Custom Operation Input if Other is selected */}
+                {selectedOperations.includes("Other") && (
+                  <View style={[styles.fullWidthGroup, { marginTop: normalize(8) }]}>
+                    <Text style={styles.fieldLabel}>
+                      Enter Other Operational Expertise
+                      <Text style={styles.requiredStar}> *</Text>
+                    </Text>
+                    <View style={[styles.fieldInputWrapper, activeInput === "customOperation" && styles.fieldInputActive]}>
+                      <Ionicons name="create-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
+                      <TextInput
+                        value={customOperation}
+                        onChangeText={setCustomOperation}
+                        placeholder="e.g. Menu Development, Staffing"
+                        placeholderTextColor="#94a3b8"
+                        style={styles.fieldTextInput}
+                        onFocus={(e) => handleInputFocus(e, "customOperation")}
+                        onBlur={() => setActiveInput(null)}
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Card 3: Years of Experience */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="calendar-outline" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("yearsOfExperienceTitle", "Years of Experience")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("yearsOfExperienceSub", "Select your total professional experience.")}
+                </Text>
+
+                <View style={styles.fullWidthGroup}>
+                  <ModalPickerTrigger
+                    onPress={() => setShowExpDropdown(true)}
+                    label={experienceYears}
+                    placeholder={t("selectExperienceRange", "Select experience range")}
+                    isOpen={showExpDropdown}
+                    leftIcon="calendar-outline"
+                    style={styles.fieldInputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showExpDropdown}
+                    onClose={() => setShowExpDropdown(false)}
+                    title={t("yearsOfExperienceTitle", "Years of Experience")}
+                    options={experienceOptions}
+                    selectedValue={experienceYears}
+                    onSelect={(val) => setExperienceYears(val)}
+                  />
+                  <Text style={styles.fieldHelperText}>
+                    {t("experienceHelperText", "This helps us match you with the right opportunities.")}
+                  </Text>
+                </View>
               </View>
 
               {/* Continue Button */}
               <TouchableOpacity
                 style={[
-                  styles.continueButton,
+                  styles.continueGreenButton,
                   (!selectedCuisines.length || 
                    (selectedCuisines.includes("Other") && !customCuisine.trim()) ||
                    !selectedOperations.length || 
@@ -1427,289 +1600,435 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                    !experienceYears) && styles.continueButtonDisabled
                 ]}
                 onPress={next}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
+
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
+                </Text>
+              </View>
             </View>
           )}
 
           {/* STEP 3: EXPERIENCE & AVAILABILITY */}
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Experience & Availability</Text>
-              <Text style={styles.stepSubtitle}>
-                Help us match you with the right culinary opportunities across the globe.
-              </Text>
-
-              {/* Regional Experience */}
-              <View style={styles.sectionHeader}>
-                <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>{t("regionalExperience", "Regional Experience")}</Text>
-              </View>
-              <View style={styles.pillsRow}>
-                {regionalOptions.map((r) => {
-                  const isSelected = regionalExperience.includes(r);
-                  return (
-                    <TouchableOpacity
-                      key={r}
-                      style={[styles.pill, isSelected && styles.pillSelected]}
-                      onPress={() => toggleRegionalExp(r)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                        {r}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              {/* Section Header Title */}
+              <View style={styles.stepHeaderRow}>
+                <View style={[styles.chefHatIconCircle, { backgroundColor: "#eff6ff" }]}>
+                  <Ionicons name="globe-outline" size={normalize(22)} color="#3b82f6" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.stepHeaderTitle}>
+                    {t("experienceAvailabilityTitle", "Experience & Availability")}
+                  </Text>
+                  <Text style={styles.stepHeaderSubtitle}>
+                    {t("experienceAvailabilitySub", "Help us match you with the right culinary opportunities across the globe.")}
+                  </Text>
+                </View>
               </View>
 
-              {/* Job Location Preference */}
-              <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-                <Ionicons name="globe-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>{t("jobLocationPreference", "Job Location Preference")} <Text style={{ color: "red" }}>*</Text></Text>
-              </View>
-              <View style={styles.pillsRow}>
-                {locationPrefOptions.map((lp) => {
-                  const isSelected = locationPreference === lp;
-                  return (
-                    <TouchableOpacity
-                      key={lp}
-                      style={[styles.pill, isSelected && styles.pillSelected]}
-                      onPress={() => setLocationPreference(lp)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                        {lp}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              {/* Card 1: Regional Experience */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#eff6ff" }]}>
+                    <Ionicons name="globe-outline" size={normalize(16)} color="#3b82f6" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("regionalExperienceTitle", "Regional Experience")}
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("regionalExperienceSub", "Where have you worked? Select all that apply.")}
+                </Text>
+
+                <View style={styles.pillsRowWrap}>
+                  {regionalOptions.map((r) => {
+                    const isSelected = regionalExperience.includes(r);
+                    return (
+                      <TouchableOpacity
+                        key={r}
+                        style={[styles.roundedPillCard, isSelected && styles.roundedPillCardSelected]}
+                        onPress={() => toggleRegionalExp(r)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.roundedPillCardText, isSelected && styles.roundedPillCardTextSelected]}>
+                          {r}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={normalize(15)} color="#ffffff" style={{ marginLeft: normalize(4) }} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  {t("regionalExamples", "Examples: Riyadh, Dubai, Muscat, Doha, United States, United Kingdom")}
+                </Text>
               </View>
 
-              {/* Employment Preference */}
-              <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-                <Ionicons name="briefcase-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>{t("employmentPreference", "Employment Preference")} <Text style={{ color: "red" }}>*</Text></Text>
-              </View>
-              <View style={styles.pillsRow}>
-                {employmentOptions.map((ep) => {
-                  const isSelected = employmentPreference.includes(ep);
-                  return (
-                    <TouchableOpacity
-                      key={ep}
-                      style={[styles.pill, isSelected && styles.pillSelected]}
-                      onPress={() => toggleEmploymentPref(ep)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
-                        {ep}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              {/* Card 2: Job Location Preference */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#fff1f2" }]}>
+                    <Ionicons name="location-outline" size={normalize(16)} color="#f43f5e" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("jobLocationPrefTitle", "Job Location Preference")}
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("whereOpenToWork", "Where are you open to work?")}
+                </Text>
+
+                <View style={styles.pillsRowWrap}>
+                  {locationPrefOptions.map((lp) => {
+                    const isSelected = locationPreference === lp;
+                    return (
+                      <TouchableOpacity
+                        key={lp}
+                        style={[styles.roundedPillCard, isSelected && styles.roundedPillCardSelected]}
+                        onPress={() => setLocationPreference(lp)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.roundedPillCardText, isSelected && styles.roundedPillCardTextSelected]}>
+                          {lp}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={normalize(15)} color="#ffffff" style={{ marginLeft: normalize(4) }} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  {t("prefHelperText", "Choose the locations you prefer for future opportunities.")}
+                </Text>
               </View>
 
-              {/* Availability */}
-              <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-                <Ionicons name="calendar-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Availability</Text>
-              </View>
-              <View style={[styles.inputGroup, { marginTop: 8 }]}>
-                <ModalPickerTrigger
-                  onPress={() => setShowAvailDropdown(true)}
-                  label={availability}
-                  placeholder="Select availability"
-                  isOpen={showAvailDropdown}
-                  style={styles.inputWrapper}
-                />
-                <ModalPicker
-                  visible={showAvailDropdown}
-                  onClose={() => setShowAvailDropdown(false)}
-                  title="Availability"
-                  options={availabilityOptions}
-                  selectedValue={availability}
-                  onSelect={(val) => setAvailability(val)}
-                />
+              {/* Card 3: Employment Preference */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#fff7ed" }]}>
+                    <Ionicons name="briefcase-outline" size={normalize(16)} color="#f59e0b" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("employmentPrefTitle", "Employment Preference")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("employmentPrefSub", "What type of work arrangement suits you best?")}
+                </Text>
+
+                <View style={styles.pillsRowWrap}>
+                  {employmentOptions.map((ep) => {
+                    const isSelected = employmentPreference.includes(ep);
+                    return (
+                      <TouchableOpacity
+                        key={ep}
+                        style={[styles.roundedPillCard, isSelected && styles.roundedPillCardSelected]}
+                        onPress={() => toggleEmploymentPref(ep)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.roundedPillCardText, isSelected && styles.roundedPillCardTextSelected]}>
+                          {ep}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={normalize(15)} color="#ffffff" style={{ marginLeft: normalize(4) }} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
-              {/* Professional Bio */}
-              <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-                <Ionicons name="document-text-outline" size={20} color={PRIMARY_GREEN} />
-                <Text style={styles.sectionTitleText}>Professional Bio</Text>
+              {/* Card 4: Availability */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="calendar-outline" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("availabilityTitle", "Availability")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("currentWorkStatus", "What is your current work status?")}
+                </Text>
+
+                <View style={styles.fullWidthGroup}>
+                  <ModalPickerTrigger
+                    onPress={() => setShowAvailDropdown(true)}
+                    label={availability}
+                    placeholder={t("selectAvailabilityStatus", "Select current status")}
+                    isOpen={showAvailDropdown}
+                    leftIcon="document-text-outline"
+                    style={styles.fieldInputWrapper}
+                  />
+                  <ModalPicker
+                    visible={showAvailDropdown}
+                    onClose={() => setShowAvailDropdown(false)}
+                    title={t("availabilityTitle", "Availability")}
+                    options={availabilityOptions}
+                    selectedValue={availability}
+                    onSelect={(val) => setAvailability(val)}
+                  />
+                </View>
               </View>
-              <View style={[styles.inputWrapper, styles.multilineWrapper, activeInput === "bio" && styles.inputWrapperActive]}>
-                <TextInput
-                  value={bio}
-                  onChangeText={(text) => {
-                    if (text.length <= 500) {
-                      setBio(text);
-                    }
-                  }}
-                  placeholder="Briefly describe your expertise, career highlights, and what you bring to the kitchen..."
-                  placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                  multiline
-                  numberOfLines={5}
-                  style={[styles.textInput, styles.multilineInput]}
-                  maxLength={500}
-                  onFocus={(e) => handleInputFocus(e, "bio")}
-                  onBlur={() => setActiveInput(null)}
-                />
+
+              {/* Card 5: Professional Bio */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#eff6ff" }]}>
+                    <Ionicons name="create-outline" size={normalize(16)} color="#3b82f6" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("professionalBioTitle", "Professional Bio")}
+                    <Text style={styles.requiredStar}> *</Text>
+                  </Text>
+                </View>
+                <Text style={styles.cardSubtextBelowHeader}>
+                  {t("professionalBioSub", "Tell us about your role, expertise, key achievements and how you create value for your clients and partners.")}
+                </Text>
+
+                <View style={[styles.fieldInputWrapper, { height: normalize(100), alignItems: "flex-start", paddingTop: normalize(8) }, activeInput === "bio" && styles.fieldInputActive]}>
+                  <TextInput
+                    value={bio}
+                    onChangeText={(text) => {
+                      if (text.length <= 500) {
+                        setBio(text);
+                      }
+                    }}
+                    placeholder={t("bioPlaceholder", "Share your professional journey...")}
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    numberOfLines={4}
+                    style={[styles.fieldTextInput, { textAlignVertical: "top" }]}
+                    maxLength={500}
+                    onFocus={(e) => handleInputFocus(e, "bio")}
+                    onBlur={() => setActiveInput(null)}
+                  />
+                </View>
+                <Text style={styles.charCountText}>
+                  {bio.length} / 500 characters
+                </Text>
               </View>
-              <Text style={styles.charCountText}>
-                {bio.length} / 500 characters
-              </Text>
 
               {/* Continue Button */}
               <TouchableOpacity
                 style={[
-                  styles.continueButton,
+                  styles.continueGreenButton,
                   (regionalExperience.length === 0 || !locationPreference || employmentPreference.length === 0 || !bio.trim()) && styles.continueButtonDisabled
                 ]}
                 onPress={next}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
+
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
+                </Text>
+              </View>
             </View>
           )}
 
           {/* STEP 4: CALENDLY INTEGRATION */}
           {step === 4 && (
             <View style={styles.stepContainer}>
-              {/* Top Sync Card */}
-              <View style={styles.syncIllustrationCard}>
-                <View style={styles.syncLogosRow}>
-                  <View style={styles.syncLogoBox}>
-                    <Ionicons name="calendar" size={24} color={PRIMARY_GREEN} />
-                  </View>
-                  <Ionicons name="repeat-outline" size={20} color="rgba(10, 5, 4, 0.4)" style={{ marginHorizontal: 12 }} />
-                  <View style={[styles.syncLogoBox, { backgroundColor: "#153e69" }]}>
-                    <Text style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>C</Text>
-                  </View>
+              {/* Section Header Title */}
+              <View style={styles.stepHeaderRow}>
+                <View style={[styles.chefHatIconCircle, { backgroundColor: "#eff6ff" }]}>
+                  <Ionicons name="calendar-outline" size={normalize(22)} color="#3b82f6" />
                 </View>
-                <Text style={styles.illustrationTitle}>Schedule Faster</Text>
-                <Text style={styles.illustrationSubtitle}>
-                  Connect your calendar to let employers book interviews instantly.
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.stepHeaderTitle}>
+                    {t("schedulingCalendlyTitle", "Scheduling with Calendly")}
+                  </Text>
+                  <Text style={styles.stepHeaderSubtitle}>
+                    {t("schedulingCalendlySub", "Let employers book interviews or consultation slots based on your availability.")}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Banner Card: Connect & Get Booked */}
+              <View style={[styles.cardContainer, { backgroundColor: "#f5f3ff", borderColor: "#e0e7ff" }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(8) }}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#ede9fe", width: normalize(32), height: normalize(32), borderRadius: normalize(16) }]}>
+                    <Ionicons name="sparkles" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={[styles.cardHeaderTitle, { color: "#4c1d95", fontSize: normalize(14) }]}>
+                    {t("connectGetBookedTitle", "Connect & Get Booked")}
+                  </Text>
+                </View>
+                <Text style={[styles.cardSubtextBelowHeader, { color: "#6b21a8", marginTop: normalize(2), paddingLeft: normalize(18) }]}>
+                  {t("connectGetBookedSub", "Connect your Calendly and share your availability with employers and businesses.")}
                 </Text>
               </View>
 
-              {/* Calendly Details Card */}
+              {/* Card 1: Calendly Integration */}
               <View style={styles.cardContainer}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-                    <View style={styles.calendarIconBg}>
-                      <Ionicons name="calendar-outline" size={24} color="#153e69" />
+                <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={[styles.greenIconCircle, { backgroundColor: "#eff6ff" }]}>
+                      <Ionicons name="calendar-outline" size={normalize(16)} color="#3b82f6" />
                     </View>
-                    <View style={{ marginLeft: 12 }}>
-                      <Text style={styles.cardSectionTitle}>Calendly Integration</Text>
-                      <Text style={styles.cardSectionSubtitle}>Sync your availability</Text>
+                    <View style={{ marginLeft: normalize(6) }}>
+                      <Text style={styles.cardHeaderTitle}>
+                        {t("calendlyIntegrationTitle", "Calendly Integration")}
+                      </Text>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: 0 }]}>
+                        {t("syncYourAvailability", "Sync your availability")}
+                      </Text>
                     </View>
                   </View>
-                  <View style={[
-                    styles.connectBadge, 
-                    calendlyLink.trim() ? styles.connectBadgeSuccess : styles.connectBadgePending
-                  ]}>
-                    <View style={[
-                      styles.connectBadgeDot, 
-                      calendlyLink.trim() ? { backgroundColor: "#153e69" } : { backgroundColor: "rgba(10, 5, 4, 0.4)" }
-                    ]} />
-                    <Text style={[
-                      styles.connectBadgeText,
-                      calendlyLink.trim() ? { color: "#153e69" } : { color: "rgba(10, 5, 4, 0.6)" }
-                    ]}>
-                      {calendlyLink.trim() ? "Link Added" : "Not Connected"}
+                  <View
+                    style={[
+                      styles.statusBadgeCapsule,
+                      calendlyLink.trim() ? styles.statusBadgeCapsuleSuccess : styles.statusBadgeCapsulePending,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusBadgeCapsuleText,
+                        calendlyLink.trim() ? styles.statusBadgeCapsuleTextSuccess : styles.statusBadgeCapsuleTextPending,
+                      ]}
+                    >
+                      {calendlyLink.trim() ? t("linked", "Linked") : t("notLinked", "Not Linked")}
                     </Text>
                   </View>
                 </View>
 
+                <View style={styles.horizontalDivider} />
+
                 {/* Input Field */}
-                <View style={[styles.inputGroup, { marginTop: 20 }]}>
-                  <Text style={styles.inputLabel}>Your Calendly Link</Text>
-                  <View style={[styles.inputWrapper, activeInput === "calendly" && styles.inputWrapperActive]}>
-                    <Ionicons name="link-outline" size={20} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
+                <View style={styles.fullWidthGroup}>
+                  <Text style={styles.fieldLabel}>
+                    {t("yourCalendlyLink", "Your Calendly Link")}
+                  </Text>
+                  <View style={[styles.fieldInputWrapper, activeInput === "calendly" && styles.fieldInputActive]}>
+                    <Ionicons name="link-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
                     <TextInput
                       value={calendlyLink}
                       onChangeText={(val) => setCalendlyLink(val.replace(/\s+/g, ""))}
-                      placeholder="calendly.com/your-name"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                      placeholder="https://calendly.com/yourusername"
+                      placeholderTextColor="#94a3b8"
                       autoCapitalize="none"
-                      style={styles.textInput}
+                      style={styles.fieldTextInput}
                       onFocus={(e) => handleInputFocus(e, "calendly")}
                       onBlur={() => setActiveInput(null)}
                     />
                   </View>
-                  <Text style={styles.inputSubtext}>
-                    Paste your personal Calendly scheduling link to enable direct booking for hospitality shifts.
+                  <Text style={styles.fieldHelperText}>
+                    {t("calendlySubtext", "Paste your Calendly scheduling link to enable direct booking for interviews or consultations.")}
                   </Text>
 
-                  {/* Calendly Helper Actions */}
-                  <View style={styles.calendlyPromptRow}>
-                    <Text style={styles.calendlyPromptText}>
-                      Don't have an account?{" "}
-                      <Text
-                        style={styles.calendlyLinkText}
-                        onPress={() => Linking.openURL("https://calendly.com/signup")}
-                      >
-                        Create Account
-                      </Text>
-                      {" "}or{" "}
-                      <Text
-                        style={styles.calendlyLinkText}
-                        onPress={() => Linking.openURL("https://calendly.com/login")}
-                      >
-                        Login
-                      </Text>
+                  {/* Account CTA Box inside Card */}
+                  <View style={styles.accountPromptCard}>
+                    <Ionicons name="open-outline" size={normalize(20)} color="#6366f1" style={{ marginBottom: normalize(4) }} />
+                    <Text style={styles.accountPromptTitle}>
+                      {t("dontHaveAccount", "Don't have an account?")}
                     </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: normalize(4) }}>
+                      <TouchableOpacity onPress={() => Linking.openURL("https://calendly.com/signup")}>
+                        <Text style={styles.accountPromptLinkText}>
+                          {t("createAccount", "Create Account")}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={styles.accountPromptTextSmall}> or </Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("https://calendly.com/login")}>
+                        <Text style={styles.accountPromptLinkText}>
+                          {t("loginLink", "Login")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
 
-              {/* Why Connect Info Card */}
-              <View style={styles.whyConnectCard}>
-                <Ionicons name="bulb-outline" size={20} color="#153e69" style={{ marginRight: 10, marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.whyConnectTitle}>Why connect?</Text>
-                  <Text style={styles.whyConnectText}>
-                    Chef with connected calendars receive 4x more interview requests. It's the fastest way to land your next shift.
+              {/* Card 2: Why connect? */}
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="bulb-outline" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={styles.cardHeaderTitle}>
+                    {t("whyConnectTitle", "Why connect?")}
                   </Text>
                 </View>
-              </View>
-
-              {/* Bottom Continue Button */}
-              <TouchableOpacity
-                style={[styles.continueButton, { marginTop: 24 }]}
-                onPress={next}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* STEP 5: SYNC YOUR PROFILE */}
-          {step === 5 && (
-            <View style={styles.stepContainer}>
-              {/* Top Sync Icon Box */}
-              <View style={styles.syncIllustrationCard}>
-                <View style={styles.shareIconCircle}>
-                  <Ionicons name="share-social" size={32} color="#fff" />
-                </View>
-                <Text style={styles.illustrationTitle}>Sync Your Profile</Text>
-                <Text style={styles.illustrationSubtitle}>
-                  Connect your social accounts to import your hospitality experience and stand out to top employers.
+                <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(4), lineHeight: normalize(16) }]}>
+                  {t("whyConnectSub", "Chefs with connected Calendly receive 4x more interview requests. It's the fastest way to land your next opportunity.")}
                 </Text>
               </View>
 
-              {/* List of Social Connect Options */}
-              <View style={styles.socialListCard}>
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueGreenButton}
+                onPress={next}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.continueButtonText}>{t("continue", "Continue")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
+              </TouchableOpacity>
+
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 5: MEDIA & PORTFOLIO */}
+          {step === 5 && (
+            <View style={styles.stepContainer}>
+              {/* Card 1: Top Hero Box */}
+              <View style={[styles.cardContainer, { alignItems: "center", paddingVertical: normalize(16) }]}>
+                <View style={styles.shareHeroCircle}>
+                  <Ionicons name="share-social-outline" size={normalize(24)} color="#0f172a" />
+                </View>
+                <Text style={[styles.stepHeaderTitle, { marginTop: normalize(10), textAlign: "center" }]}>
+                  {t("showcaseYourWorkTitle", "Showcase Your Work")}
+                </Text>
+                <Text style={[styles.stepHeaderSubtitle, { textAlign: "center", paddingHorizontal: normalize(12), marginTop: normalize(4) }]}>
+                  {t("showcaseYourWorkSub", "Showcase your creativity and culinary journey. Connect your social media accounts to stand out to top employers.")}
+                </Text>
+
+                {/* Inner Banner Box */}
+                <View style={styles.innerBannerPurpleBox}>
+                  <View style={{ flexDirection: "row", alignItems: "flex-start", gap: normalize(8) }}>
+                    <Ionicons name="sparkles" size={normalize(16)} color="#8b5cf6" style={{ marginTop: normalize(2) }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.innerBannerPurpleTitle}>
+                        {t("weRecommendConnect", "We recommend you connect")}
+                      </Text>
+                      <Text style={styles.innerBannerPurpleSub}>
+                        {t("weRecommendConnectSub", "Link your social media to highlight your culinary creations, videos and achievements.")}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Card 2: Social Media Links List */}
+              <View style={styles.cardContainer}>
                 {/* LinkedIn */}
                 <TouchableOpacity
-                  style={styles.socialRow}
+                  style={styles.socialListItemRow}
                   activeOpacity={0.7}
                   onPress={() => {
                     setEditingPlatform("LinkedIn");
@@ -1717,38 +2036,30 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     setSocialModalVisible(true);
                   }}
                 >
-                  <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#153e69" }]}>
-                      <Ionicons name="logo-linkedin" size={20} color="#fff" />
+                  <View style={styles.socialListItemLeft}>
+                    <View style={[styles.socialSquareIconBox, { backgroundColor: "#0077b5" }]}>
+                      <Ionicons name="logo-linkedin" size={normalize(18)} color="#ffffff" />
                     </View>
-                    <View style={{ marginLeft: 12 }}>
-                      <Text style={styles.socialPlatformTitle}>LinkedIn</Text>
-                      <Text style={styles.socialPlatformSubtitle}>Work History & Certificates</Text>
+                    <View style={{ marginLeft: normalize(10) }}>
+                      <Text style={styles.socialItemTitle}>{t("linkedin", "LinkedIn")}</Text>
+                      <Text style={styles.socialItemSub}>{t("linkedinSub", "Work History & Certificates")}</Text>
                     </View>
                   </View>
-                  <View style={styles.socialRowRight}>
-                    <View style={[
-                      styles.socialStatusBadge,
-                      linkedinLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
-                    ]}>
-                      {linkedinLink ? (
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
-                      )}
+                  <View style={styles.socialListItemRight}>
+                    <View style={[styles.socialStatusPill, linkedinLink ? styles.socialStatusPillConnected : styles.socialStatusPillNotConnected]}>
+                      <Text style={[styles.socialStatusPillText, linkedinLink ? styles.socialStatusPillTextConnected : styles.socialStatusPillTextNotConnected]}>
+                        {linkedinLink ? t("connected", "Connected") : t("notConnected", "Not Connected")}
+                      </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </TouchableOpacity>
 
-                <View style={styles.socialRowDivider} />
+                <View style={styles.horizontalDividerLight} />
 
                 {/* Instagram */}
                 <TouchableOpacity
-                  style={styles.socialRow}
+                  style={styles.socialListItemRow}
                   activeOpacity={0.7}
                   onPress={() => {
                     setEditingPlatform("Instagram");
@@ -1756,38 +2067,30 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     setSocialModalVisible(true);
                   }}
                 >
-                  <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#E1306C" }]}>
-                      <Ionicons name="logo-instagram" size={20} color="#fff" />
+                  <View style={styles.socialListItemLeft}>
+                    <View style={[styles.socialSquareIconBox, { backgroundColor: "#e1306c" }]}>
+                      <Ionicons name="logo-instagram" size={normalize(18)} color="#ffffff" />
                     </View>
-                    <View style={{ marginLeft: 12 }}>
-                      <Text style={styles.socialPlatformTitle}>Instagram</Text>
-                      <Text style={styles.socialPlatformSubtitle}>Visual Portfolio</Text>
+                    <View style={{ marginLeft: normalize(10) }}>
+                      <Text style={styles.socialItemTitle}>{t("instagram", "Instagram")}</Text>
+                      <Text style={styles.socialItemSub}>{t("instagramSub", "Photos & Videos")}</Text>
                     </View>
                   </View>
-                  <View style={styles.socialRowRight}>
-                    <View style={[
-                      styles.socialStatusBadge,
-                      instagramLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
-                    ]}>
-                      {instagramLink ? (
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
-                      )}
+                  <View style={styles.socialListItemRight}>
+                    <View style={[styles.socialStatusPill, instagramLink ? styles.socialStatusPillConnected : styles.socialStatusPillNotConnected]}>
+                      <Text style={[styles.socialStatusPillText, instagramLink ? styles.socialStatusPillTextConnected : styles.socialStatusPillTextNotConnected]}>
+                        {instagramLink ? t("connected", "Connected") : t("notConnected", "Not Connected")}
+                      </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </TouchableOpacity>
 
-                <View style={styles.socialRowDivider} />
+                <View style={styles.horizontalDividerLight} />
 
                 {/* Facebook */}
                 <TouchableOpacity
-                  style={styles.socialRow}
+                  style={styles.socialListItemRow}
                   activeOpacity={0.7}
                   onPress={() => {
                     setEditingPlatform("Facebook");
@@ -1795,344 +2098,533 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     setSocialModalVisible(true);
                   }}
                 >
-                  <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "#1877F2" }]}>
-                      <Ionicons name="logo-facebook" size={20} color="#fff" />
+                  <View style={styles.socialListItemLeft}>
+                    <View style={[styles.socialSquareIconBox, { backgroundColor: "#1877f2" }]}>
+                      <Ionicons name="logo-facebook" size={normalize(18)} color="#ffffff" />
                     </View>
-                    <View style={{ marginLeft: 12 }}>
-                      <Text style={styles.socialPlatformTitle}>Facebook</Text>
-                      <Text style={styles.socialPlatformSubtitle}>Community Badges</Text>
+                    <View style={{ marginLeft: normalize(10) }}>
+                      <Text style={styles.socialItemTitle}>{t("facebook", "Facebook")}</Text>
+                      <Text style={styles.socialItemSub}>{t("facebookSub", "Community & Badges")}</Text>
                     </View>
                   </View>
-                  <View style={styles.socialRowRight}>
-                    <View style={[
-                      styles.socialStatusBadge,
-                      facebookLink ? styles.socialStatusBadgeConnected : styles.socialStatusBadgeConnect
-                    ]}>
-                      {facebookLink ? (
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Ionicons name="checkmark-circle" size={12} color="#153e69" style={{ marginRight: 4 }} />
-                          <Text style={[styles.socialStatusBadgeText, { color: "#153e69" }]}>Connected</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.socialStatusBadgeText}>Not Connected</Text>
-                      )}
+                  <View style={styles.socialListItemRight}>
+                    <View style={[styles.socialStatusPill, facebookLink ? styles.socialStatusPillConnected : styles.socialStatusPillNotConnected]}>
+                      <Text style={[styles.socialStatusPillText, facebookLink ? styles.socialStatusPillTextConnected : styles.socialStatusPillTextNotConnected]}>
+                        {facebookLink ? t("connected", "Connected") : t("notConnected", "Not Connected")}
+                      </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
+                    <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </TouchableOpacity>
 
-                <View style={styles.socialRowDivider} />
-                {/* Dynamically Rendered Custom Links */}
-                {customSocialLinks.map((item) => (
-                  <View key={item.id}>
-                    <View style={styles.socialRowDivider} />
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        style={[styles.socialRowLeft, { flex: 1 }]}
-                        activeOpacity={0.7}
-                        onPress={() => {
-                          setEditingPlatform(item.platform);
-                          setTempLink(item.link);
-                          setSocialModalVisible(true);
-                        }}
-                      >
-                        <View style={[styles.socialIconBox, { backgroundColor: PRIMARY_GREEN }]}>
-                          <Ionicons 
-                            name={item.platform.toLowerCase() === "twitter" ? "logo-twitter" : "link-outline"} 
-                            size={20} 
-                            color="#fff" 
-                          />
-                        </View>
-                        <View style={{ marginLeft: 12, flex: 1 }}>
-                          <Text style={styles.socialPlatformTitle}>{item.platform}</Text>
-                          <Text style={styles.socialPlatformSubtitle} numberOfLines={1}>{item.link}</Text>
-                        </View>
-                      </TouchableOpacity>
-                      <View style={styles.socialRowRight}>
-                        <TouchableOpacity
-                          style={{ padding: 6 }}
-                          onPress={() => {
-                            setCustomSocialLinks(prev => prev.filter(l => l.id !== item.id));
-                            if (item.platform.toLowerCase() === "twitter") {
-                              setTwitterLink("");
-                              setMoreConnected(false);
-                            }
-                          }}
-                        >
-                          <Ionicons name="trash-outline" size={18} color="rgba(10, 5, 4, 0.4)" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                ))}
+                <View style={styles.horizontalDividerLight} />
 
-                <View style={styles.socialRowDivider} />
-
-                {/* Add More button */}
+                {/* Add More */}
                 <TouchableOpacity
-                  style={styles.socialRow}
+                  style={styles.socialListItemRow}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setEditingPlatform("Add More");
-                    setCustomPlatformName("");
+                    setEditingPlatform("");
                     setTempLink("");
                     setSocialModalVisible(true);
                   }}
                 >
-                  <View style={styles.socialRowLeft}>
-                    <View style={[styles.socialIconBox, { backgroundColor: "rgba(21, 62, 105, 0.08)" }]}>
-                      <Ionicons name="add-outline" size={20} color={PRIMARY_GREEN} />
+                  <View style={styles.socialListItemLeft}>
+                    <View style={[styles.socialSquareIconBox, { backgroundColor: "#f1f5f9" }]}>
+                      <Ionicons name="add" size={normalize(20)} color="#0f172a" />
                     </View>
-                    <View style={{ marginLeft: 12 }}>
-                      <Text style={styles.socialPlatformTitle}>Add More</Text>
-                      <Text style={styles.socialPlatformSubtitle}>Website, Portfolio or other links</Text>
+                    <View style={{ marginLeft: normalize(10) }}>
+                      <Text style={styles.socialItemTitle}>{t("addMore", "Add More")}</Text>
+                      <Text style={styles.socialItemSub}>{t("addMoreSub", "Website, Portfolio or other links")}</Text>
                     </View>
                   </View>
-                  <View style={styles.socialRowRight}>
-                    <Ionicons name="chevron-forward" size={16} color="rgba(10, 5, 4, 0.6)" style={{ marginLeft: 6 }} />
+                  <View style={styles.socialListItemRight}>
+                    <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </TouchableOpacity>
               </View>
 
-              {/* Finish Setup Button */}
+              {/* Next: Review & Submit Button */}
               <TouchableOpacity
-                style={[styles.finishSetupButton, { backgroundColor: "#153e69" }]}
+                style={styles.continueGreenButton}
                 onPress={next}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Text style={styles.continueButtonText}>Finish Setup</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>{t("nextReviewSubmit", "Next: Review & Submit")}</Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
+
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("informationSecureSub", "Your information is secure and will never be shared without your consent.")}
+                </Text>
+              </View>
             </View>
           )}
 
           {/* STEP 6: FINAL REVIEW */}
           {step === 6 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.reviewMainTitle}>{t("chefOnboarding.reviewTitle")}</Text>
-              <Text style={styles.reviewMainSubtitle}>
-                {t("chefOnboarding.reviewSubtitle")}
-              </Text>
+              {/* Section Header Title */}
+              <View style={styles.stepHeaderRow}>
+                <View style={[styles.chefHatIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                  <Ionicons name="search-outline" size={normalize(22)} color="#8b5cf6" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.stepHeaderTitle}>
+                    {t("finalReviewTitle", "Final Review")}
+                  </Text>
+                  <Text style={styles.stepHeaderSubtitle}>
+                    {t("finalReviewSub", "Please review your information below. You can edit any section to make changes before submitting.")}
+                  </Text>
+                </View>
+              </View>
 
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewProfileSection}>
-                  {photoUri ? (
-                    <View style={styles.reviewAvatarContainer}>
-                      <Image
-                        source={{ uri: photoUri }}
-                        style={styles.reviewAvatarImage}
-                        resizeMode="cover"
-                      />
-                    </View>
-                  ) : (
-                    <View style={[styles.reviewAvatarContainer, styles.reviewAvatarPlaceholder]}>
-                      <Ionicons name="person" size={28} color="#153e69" style={{ opacity: 0.6 }} />
-                    </View>
-                  )}
-                  <View style={styles.reviewInfo}>
-                    <Text style={styles.reviewName}>{fullName || "Marcus V."}</Text>
-                    {Boolean(professionalTitle) && (
-                      <Text style={styles.reviewTitleText}>Current Role: {professionalTitle}</Text>
+              {/* Main Card: All User Review Data in ONE Single Card */}
+              <View style={styles.cardContainer}>
+                {/* Top Profile Header Section */}
+                <View style={[styles.photoCardRow, { alignItems: "flex-start" }]}>
+                  <TouchableOpacity
+                    style={styles.photoAvatarWrapper}
+                    onPress={() => setStep(1)}
+                    activeOpacity={0.8}
+                  >
+                    {photoUri ? (
+                      <Image source={{ uri: photoUri }} style={styles.photoAvatarImage} />
+                    ) : (
+                      <View style={styles.blankAvatarCircle} />
                     )}
-                    
-                    <View style={styles.reviewDetailsList}>
-                      <Text numberOfLines={1} style={styles.detailRowText}>
-                        <Text style={styles.detailLabel}>Current Location: </Text>
-                        <Text style={styles.detailValue}>
-                          {currentCity && country ? `${currentCity}, ${country}` : currentCity || country || "N/A"}
-                        </Text>
-                      </Text>
-                      
-                      <Text numberOfLines={1} style={styles.detailRowText}>
-                        <Text style={styles.detailLabel}>Preferred Job Location: </Text>
-                        <Text style={styles.detailValue}>
-                          {locationPreference === "Both" || locationPreference === "Both (India & Overseas)"
-                            ? "India & Overseas"
-                            : locationPreference || "N/A"}
-                        </Text>
-                      </Text>
-                      
-                      <Text numberOfLines={1} style={styles.detailRowText}>
-                        <Text style={styles.detailLabel}>Experience: </Text>
-                        <Text style={styles.detailValue}>{experienceYears || "N/A"}</Text>
-                      </Text>
-                      
-                      <Text numberOfLines={1} style={styles.detailRowText}>
-                        <Text style={styles.detailLabel}>Regional Experience: </Text>
-                        <Text style={styles.detailValue}>{regionalExperience.join(", ") || "N/A"}</Text>
-                      </Text>
-                      
-                      <Text numberOfLines={1} style={styles.detailRowText}>
-                        <Text style={styles.detailLabel}>Availability: </Text>
-                        <Text style={styles.detailValue}>
-                          {availability === "Available Immediately" || availability === "Immediately Available"
-                            ? "Immediately Available"
-                            : availability || "N/A"}
-                        </Text>
+                    <View style={styles.plusGreenBadge}>
+                      <Ionicons name="pencil" size={normalize(11)} color="#ffffff" />
+                    </View>
+                  </TouchableOpacity>
+
+                  <View style={{ flex: 1, marginLeft: normalize(12) }}>
+                    {Boolean(fullName) && <Text style={[styles.reviewNameText, { textAlign: "left" }]}>{fullName}</Text>}
+                    {Boolean(professionalTitle) && <Text style={[styles.reviewTitleSubtext, { textAlign: "left" }]}>{professionalTitle}</Text>}
+
+                    {employmentPreference.length > 0 && (
+                      <View style={styles.statusPillSmall}>
+                        <Text style={styles.statusPillSmallText}>{employmentPreference.join(", ")}</Text>
+                      </View>
+                    )}
+
+                    <View style={{ marginTop: normalize(6) }}>
+                      {(Boolean(currentCity) || Boolean(country)) && (
+                        <View style={{ paddingVertical: normalize(3) }}>
+                          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                            <Ionicons name="location-outline" size={normalize(13)} color="#64748b" style={{ marginRight: normalize(5), marginTop: normalize(2) }} />
+                            <Text style={{ flex: 1 }}>
+                              <Text style={styles.reviewMetaLabel}>Current Location: </Text>
+                              <Text style={styles.reviewMetaVal}>{currentCity && country ? `${currentCity}, ${country}` : currentCity || country}</Text>
+                            </Text>
+                          </View>
+                          <View style={styles.horizontalDividerLight} />
+                        </View>
+                      )}
+                      {Boolean(locationPreference) && (
+                        <View style={{ paddingVertical: normalize(3) }}>
+                          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                            <Ionicons name="briefcase-outline" size={normalize(13)} color="#64748b" style={{ marginRight: normalize(5), marginTop: normalize(2) }} />
+                            <Text style={{ flex: 1 }}>
+                              <Text style={styles.reviewMetaLabel}>Preferred Job Location: </Text>
+                              <Text style={styles.reviewMetaVal}>{locationPreference}</Text>
+                            </Text>
+                          </View>
+                          <View style={styles.horizontalDividerLight} />
+                        </View>
+                      )}
+                      {Boolean(experienceYears) && (
+                        <View style={{ paddingVertical: normalize(3) }}>
+                          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                            <Ionicons name="calendar-outline" size={normalize(13)} color="#64748b" style={{ marginRight: normalize(5), marginTop: normalize(2) }} />
+                            <Text style={{ flex: 1 }}>
+                              <Text style={styles.reviewMetaLabel}>Experience: </Text>
+                              <Text style={styles.reviewMetaVal}>{experienceYears}</Text>
+                            </Text>
+                          </View>
+                          <View style={styles.horizontalDividerLight} />
+                        </View>
+                      )}
+                      {regionalExperience.length > 0 && (
+                        <View style={{ paddingVertical: normalize(3) }}>
+                          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                            <Ionicons name="globe-outline" size={normalize(13)} color="#64748b" style={{ marginRight: normalize(5), marginTop: normalize(2) }} />
+                            <Text style={{ flex: 1 }}>
+                              <Text style={styles.reviewMetaLabel}>Regional Experience: </Text>
+                              <Text style={styles.reviewMetaVal}>{regionalExperience.join(", ")}</Text>
+                            </Text>
+                          </View>
+                          <View style={styles.horizontalDividerLight} />
+                        </View>
+                      )}
+                      {Boolean(availability) && (
+                        <View style={{ paddingVertical: normalize(3) }}>
+                          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                            <Ionicons name="time-outline" size={normalize(13)} color="#64748b" style={{ marginRight: normalize(5), marginTop: normalize(2) }} />
+                            <Text style={{ flex: 1 }}>
+                              <Text style={styles.reviewMetaLabel}>Availability: </Text>
+                              <Text style={styles.reviewMetaVal}>{availability}</Text>
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Horizontal Line below Top Profile Block */}
+                <View style={styles.horizontalDivider} />
+
+                {/* Section Details Rows inside the SAME Card */}
+                {/* 1. Professional Bio */}
+                {Boolean(bio) && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="document-text-outline" size={normalize(15)} color="#3b82f6" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("professionalBioTitle", "Professional Bio")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(3)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]} numberOfLines={2}>
+                        {bio}
                       </Text>
                     </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 2. Cuisine Specialization */}
+                {selectedCuisines.length > 0 && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="restaurant-outline" size={normalize(15)} color="#f59e0b" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("cuisineSpecializationTitle", "Cuisine Specialization")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(2)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={[styles.pillsRowWrap, { marginTop: normalize(4) }]}>
+                        {selectedCuisines.map((c) => (
+                          <View key={c} style={[styles.roundedPillCard, { paddingVertical: normalize(3), paddingHorizontal: normalize(8), backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }]}>
+                            <Text style={[styles.roundedPillCardText, { color: "#1d4ed8", fontSize: normalize(11) }]}>{c}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 3. Operational Expertise */}
+                {selectedOperations.length > 0 && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="stats-chart-outline" size={normalize(15)} color={PRIMARY_GREEN} style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("operationalExpertiseTitle", "Operational Expertise")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(2)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {selectedOperations.join(", ")}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 4. Years of Experience */}
+                {Boolean(experienceYears) && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="briefcase-outline" size={normalize(15)} color="#8b5cf6" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("yearsOfExperienceTitle", "Years of Experience")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(2)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {experienceYears}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 5. Regional Experience */}
+                {regionalExperience.length > 0 && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="globe-outline" size={normalize(15)} color="#3b82f6" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("regionalExperienceTitle", "Regional Experience")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(3)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {regionalExperience.join(", ")}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 6. Job Location Preference */}
+                {Boolean(locationPreference) && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="location-outline" size={normalize(15)} color="#f43f5e" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("jobLocationPrefTitle", "Job Location Preference")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(3)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {locationPreference}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 7. Employment Preference */}
+                {employmentPreference.length > 0 && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="briefcase-outline" size={normalize(15)} color="#f59e0b" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("employmentPrefTitle", "Employment Preference")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(3)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {employmentPreference.join(", ")}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 8. Availability */}
+                {Boolean(availability) && (
+                  <>
+                    <View style={{ paddingVertical: normalize(4) }}>
+                      <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="calendar-outline" size={normalize(15)} color="#8b5cf6" style={{ marginRight: normalize(6) }} />
+                          <Text style={styles.cardHeaderTitle}>{t("availabilityTitle", "Availability")}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setStep(3)} style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                          <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                        {availability}
+                      </Text>
+                    </View>
+                    <View style={styles.horizontalDividerLight} />
+                  </>
+                )}
+
+                {/* 9. Scheduling (Calendly) */}
+                <View style={{ paddingVertical: normalize(4) }}>
+                  <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="calendar-outline" size={normalize(15)} color="#3b82f6" style={{ marginRight: normalize(6) }} />
+                      <Text style={styles.cardHeaderTitle}>Scheduling (Calendly)</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setStep(4)} style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                      <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left" }]}>
+                    {calendlyLink ? "Connected" : "Not Linked"}
+                  </Text>
+                </View>
+
+                {/* 10. Media & Social Links */}
+                <View style={styles.horizontalDividerLight} />
+                <View style={{ paddingVertical: normalize(4) }}>
+                  <View style={[styles.cardHeaderRow, { justifyContent: "space-between" }]}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="share-social-outline" size={normalize(15)} color="#0f172a" style={{ marginRight: normalize(6) }} />
+                      <Text style={styles.cardHeaderTitle}>Media & Social Links</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setStep(5)} style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="pencil-outline" size={normalize(13)} color="#3b82f6" />
+                      <Text style={{ fontSize: normalize(11.5), color: "#3b82f6", fontWeight: "600", marginLeft: normalize(2) }}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6), marginTop: normalize(4) }}>
+                    {linkedinLink ? <Ionicons name="logo-linkedin" size={normalize(16)} color="#0077b5" /> : null}
+                    {instagramLink ? <Ionicons name="logo-instagram" size={normalize(16)} color="#e1306c" /> : null}
+                    {facebookLink ? <Ionicons name="logo-facebook" size={normalize(16)} color="#1877f2" /> : null}
+                    {customSocialLinks.length > 0 ? <Ionicons name="link-outline" size={normalize(16)} color="#64748b" /> : null}
+                    {!linkedinLink && !instagramLink && !facebookLink && customSocialLinks.length === 0 && (
+                      <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left" }]}>No social links connected</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.horizontalDividerLight} />
+              </View>
+
+              {/* Privacy Banner Card */}
+              <View style={[styles.cardContainer, { backgroundColor: "#f5f3ff", borderColor: "#e0e7ff" }]}>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: normalize(8) }}>
+                  <Ionicons name="shield-checkmark-outline" size={normalize(18)} color="#4f46e5" style={{ marginTop: normalize(2) }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.cardHeaderTitle, { color: "#3730a3" }]}>
+                      {t("privacyPriorityTitle", "Your privacy is our priority")}
+                    </Text>
+                    <Text style={[styles.cardSubtextBelowHeader, { color: "#4338ca", marginTop: normalize(2) }]}>
+                      {t("privacyPrioritySub", "Your information will only be shared with verified employers and businesses on JobRito.")}
+                    </Text>
                   </View>
                 </View>
               </View>
 
-              {/* Professional Bio Card */}
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="document-text" size={18} color="#153e69" />
-                  <Text style={styles.reviewSecTitle}>{t("chefOnboarding.professionalBio")}</Text>
-                </View>
-                <Text style={styles.reviewSecBioText}>
-                  {bio || "Dedicated culinary professional with experience in high-volume, luxury hospitality environments."}
-                </Text>
-              </View>
-
-              {/* Cuisine Specialization Card */}
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="restaurant" size={18} color="#153e69" />
-                  <Text style={styles.reviewSecTitle}>{t("chefOnboarding.cuisineSpecialization")}</Text>
-                </View>
-                <View style={styles.reviewPillContainer}>
-                  {selectedCuisines.map((cuisine) => (
-                    <View key={cuisine} style={styles.reviewPill}>
-                      <Text style={styles.reviewPillText}>{cuisine}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* Operational Expertise Card */}
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewSecTitleRow}>
-                  <Ionicons name="stats-chart" size={18} color="#153e69" />
-                  <Text style={styles.reviewSecTitle}>{t("chefOnboarding.operationalExpertise")}</Text>
-                </View>
-                <View style={styles.reviewPillContainer}>
-                  {selectedOperations.map((op) => (
-                    <View key={op} style={styles.reviewPill}>
-                      <Text style={styles.reviewPillText}>{op}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* Calendly & Social Links Card */}
-              {(calendlyLink || linkedinLink || instagramLink || facebookLink || customSocialLinks.length > 0) ? (
-                <View style={styles.reviewCard}>
-                  <View style={styles.reviewSecTitleRow}>
-                    <Ionicons name="link-sharp" size={18} color="#153e69" />
-                    <Text style={styles.reviewSecTitle}>Booking & Social Profiles</Text>
-                  </View>
-                  
-                  {calendlyLink ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                      <Ionicons name="calendar-outline" size={16} color="#153e69" style={{ marginRight: 8 }} />
-                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{calendlyLink}</Text>
-                    </View>
-                  ) : null}
-
-                  {linkedinLink ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="logo-linkedin" size={16} color="#0077B5" style={{ marginRight: 8 }} />
-                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{linkedinLink}</Text>
-                    </View>
-                  ) : null}
-
-                  {instagramLink ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="logo-instagram" size={16} color="#E1306C" style={{ marginRight: 8 }} />
-                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{instagramLink}</Text>
-                    </View>
-                  ) : null}
-
-                  {facebookLink ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="logo-facebook" size={16} color="#1877F2" style={{ marginRight: 8 }} />
-                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>{facebookLink}</Text>
-                    </View>
-                  ) : null}
-
-                  {customSocialLinks.map((item) => (
-                    <View key={item.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons 
-                        name={item.platform.toLowerCase() === "twitter" ? "logo-twitter" : "link-outline"} 
-                        size={16} 
-                        color={item.platform.toLowerCase() === "twitter" ? "#1DA1F2" : "#153e69"} 
-                        style={{ marginRight: 8 }} 
-                      />
-                      <Text style={{ fontSize: 13, color: "rgba(10, 5, 4, 0.8)", fontWeight: "500" }} numberOfLines={1}>
-                        <Text style={{ fontWeight: "700" }}>{item.platform}:</Text> {item.link}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-
-              {/* Complete Profile Button */}
+              {/* Submit Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { backgroundColor: "#153e69" }, submitting && styles.continueButtonDisabled]}
+                style={[styles.continueGreenButton, submitting && styles.continueButtonDisabled]}
                 onPress={handleCompleteProfile}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
                 disabled={submitting}
               >
                 {submitting ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
                   <>
-                    <Text style={styles.continueButtonText}>{t("chefOnboarding.completeProfile")}</Text>
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                    <Text style={styles.continueButtonText}>{t("submitProfile", "Submit Profile")}</Text>
+                    <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
                   </>
                 )}
               </TouchableOpacity>
 
-              {/* Edit Information Link */}
-              <TouchableOpacity
-                style={styles.editInfoBtn}
-                onPress={() => setStep(1)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.editInfoBtnText}>{t("chefOnboarding.editInformation")}</Text>
-              </TouchableOpacity>
+              {/* Security Subtext */}
+              <View style={styles.securityRow}>
+                <Ionicons name="lock-closed-outline" size={normalize(13)} color="#64748b" />
+                <Text style={styles.securityText}>
+                  {t("agreeTermsPolicySub", "By submitting, you agree to our Terms & Conditions and Privacy Policy.")}
+                </Text>
+              </View>
             </View>
           )}
 
           {/* STEP 7: CONGRATULATIONS (SUCCESS SCREEN) */}
           {step === 7 && (
-            <View style={[styles.stepContainer, { alignItems: "center", paddingTop: 40 }]}>
-              {/* Success Circle Icon */}
-              <View style={styles.successIconBox}>
-                <Ionicons name="checkmark-circle" size={80} color="#153e69" />
-              </View>
+            <View style={[styles.stepContainer, { alignItems: "center", paddingTop: normalize(20) }]}>
+              {/* Top Banner Image replacing checkmark icon */}
+              <Image
+                source={require("../../assets/talentprofile.png")}
+                style={{
+                  width: SCREEN_WIDTH,
+                  height: normalize(200),
+                  marginTop: -16,
+                  marginBottom: normalize(12),
+                  alignSelf: "center",
+                }}
+                resizeMode="cover"
+              />
 
               {/* Heading & Subheading */}
-              <Text style={styles.successTitle}>{t("chefOnboarding.congratulations")}</Text>
-              <Text style={styles.successSubtitle}>
-                {t("chefOnboarding.submittedSuccess")}
+              <Text style={styles.successTitleLarge}>
+                {t("congratulations", "Congratulations!")}
+              </Text>
+              <Text style={styles.successSubtitleText}>
+                {t("congratulationsSub", "Your Chef Connect profile has been submitted successfully.")}
               </Text>
 
               {/* Status Pending Approval Pill */}
-              <View style={styles.statusPill}>
-                <Ionicons name="time-outline" size={14} color="rgba(10, 5, 4, 0.6)" style={{ marginRight: 4 }} />
-                <Text style={styles.statusPillText}>{t("chefOnboarding.statusPending")}</Text>
-              </View>
-
-              {/* What Happens Next Card */}
-              <View style={styles.nextStepsCard}>
-                <Text style={styles.nextStepsTitle}>{t("chefOnboarding.whatHappensNext")}</Text>
-                <Text style={styles.nextStepsText}>
-                  {t("chefOnboarding.whatHappensNextBody")}
+              <View style={styles.statusPendingPill}>
+                <Ionicons name="time-outline" size={normalize(14)} color="#047857" style={{ marginRight: normalize(4) }} />
+                <Text style={styles.statusPendingPillText}>
+                  {t("statusPendingApproval", "Status: Pending Approval")}
                 </Text>
               </View>
 
-              {/* Action Buttons */}
+              {/* What Happens Next Card */}
+              <View style={[styles.cardContainer, { width: "100%", marginTop: normalize(16) }]}>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: normalize(10) }}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="people-outline" size={normalize(18)} color="#8b5cf6" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardHeaderTitle}>
+                      {t("whatHappensNextTitle", "What happens next?")}
+                    </Text>
+                    <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(4), marginLeft: 0 }]}>
+                      {t("nextStep1", "Jobrito team will review your submission and set it to publish.")}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.horizontalDividerLight} />
+
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: normalize(10) }}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="call-outline" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={[styles.cardSubtextBelowHeader, { flex: 1, marginTop: normalize(2), marginLeft: 0 }]}>
+                    {t("nextStep2", "If we need any further clarifications, we will contact you on your registered mobile number.")}
+                  </Text>
+                </View>
+
+                <View style={styles.horizontalDividerLight} />
+
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: normalize(10) }}>
+                  <View style={[styles.greenIconCircle, { backgroundColor: "#f3e8ff" }]}>
+                    <Ionicons name="megaphone-outline" size={normalize(16)} color="#8b5cf6" />
+                  </View>
+                  <Text style={[styles.cardSubtextBelowHeader, { flex: 1, marginTop: normalize(2), marginLeft: 0 }]}>
+                    {t("nextStep3", "Once approved, your profile will be visible to employers and businesses across the Jobrito network.")}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Return to Feed Button */}
               <TouchableOpacity
-                style={[styles.continueButton, { width: "100%", backgroundColor: "#153e69" }]}
+                style={[styles.continueGreenButton, { width: "100%", marginTop: normalize(14) }]}
                 onPress={() => handleFinishOnboarding("Home")}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Text style={styles.continueButtonText}>{t("chefOnboarding.returnToFeed")}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.continueButtonText}>
+                  {t("returnToCommunityFeed", "Return to Community Feed")}
+                </Text>
+                <Ionicons name="arrow-forward" size={normalize(18)} color="#ffffff" style={{ marginLeft: normalize(6) }} />
               </TouchableOpacity>
             </View>
           )}
@@ -3202,5 +3694,645 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     marginTop: 4,
     marginRight: 4,
+  },
+
+  // Stepper Progress Bar
+  stepperContainer: {
+    paddingHorizontal: normalize(12),
+    paddingTop: normalize(10),
+    paddingBottom: normalize(12),
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  stepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  stepperItem: {
+    alignItems: "center",
+    width: normalize(52),
+  },
+  stepperCircle: {
+    width: normalize(26),
+    height: normalize(26),
+    borderRadius: normalize(13),
+    borderWidth: 1.5,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: normalize(4),
+  },
+  stepperCircleActive: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
+  },
+  stepperCircleCompleted: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
+  },
+  stepperCircleText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  stepperCircleTextActive: {
+    color: "#ffffff",
+  },
+  stepperCircleTextCompleted: {
+    color: "#ffffff",
+  },
+  stepperLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: "#e2e8f0",
+    marginTop: normalize(-16),
+  },
+  stepperLineCompleted: {
+    backgroundColor: PRIMARY_GREEN,
+  },
+  stepperLabel: {
+    fontSize: normalize(8.5),
+    fontWeight: "500",
+    color: "#64748b",
+    textAlign: "center",
+    height: normalize(24),
+  },
+  stepperLabelActive: {
+    fontWeight: "700",
+    color: PRIMARY_GREEN,
+  },
+  stepperSubtitle: {
+    fontSize: normalize(11.5),
+    fontWeight: "400",
+    color: "#64748b",
+    textAlign: "center",
+    marginTop: normalize(8),
+  },
+
+  // Card Styling
+  cardContainer: {
+    backgroundColor: "#f4f6f9",
+    borderRadius: normalize(10),
+    padding: normalize(12),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: normalize(10),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  photoCardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  photoTextCol: {
+    flex: 1,
+    marginRight: normalize(12),
+  },
+  cardTitleText: {
+    fontSize: normalize(15),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: normalize(4),
+  },
+  cardSubtitleText: {
+    fontSize: normalize(11.5),
+    fontWeight: "400",
+    color: "#64748b",
+    lineHeight: normalize(16),
+  },
+  avatarDashedCircle: {
+    position: "relative",
+    width: normalize(80),
+    height: normalize(80),
+    borderRadius: normalize(40),
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: "#cbd5e1",
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarImageCircle: {
+    width: normalize(76),
+    height: normalize(76),
+    borderRadius: normalize(38),
+  },
+  avatarPlaceholderCol: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addPhotoText: {
+    fontSize: normalize(10),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginTop: normalize(2),
+  },
+  plusGreenBadge: {
+    position: "absolute",
+    bottom: normalize(2),
+    right: normalize(2),
+    width: normalize(22),
+    height: normalize(22),
+    borderRadius: normalize(11),
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#ffffff",
+  },
+
+  // Card Headers
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(2),
+  },
+  greenIconCircle: {
+    width: normalize(28),
+    height: normalize(28),
+    borderRadius: normalize(14),
+    backgroundColor: "#ecfdf5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(8),
+  },
+  cardHeaderTitle: {
+    fontSize: normalize(14.5),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  cardSubtextBelowHeader: {
+    fontSize: normalize(11),
+    color: "#64748b",
+    marginBottom: normalize(10),
+    marginLeft: normalize(36),
+  },
+
+  // Form Fields
+  twoColRow: {
+    flexDirection: "row",
+    gap: normalize(10),
+    marginTop: normalize(6),
+  },
+  halfCol: {
+    flex: 1,
+  },
+  fullWidthGroup: {
+    marginTop: normalize(10),
+  },
+  fieldLabel: {
+    fontSize: normalize(11.5),
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: normalize(4),
+  },
+  fieldInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: normalize(42),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(10),
+  },
+  fieldInputActive: {
+    borderColor: PRIMARY_GREEN,
+    borderWidth: 1.5,
+  },
+  fieldIconLeft: {
+    marginRight: normalize(6),
+  },
+  fieldTextInput: {
+    flex: 1,
+    fontSize: normalize(12),
+    fontWeight: "500",
+    color: "#0f172a",
+    paddingVertical: 0,
+  },
+  fieldHelperText: {
+    fontSize: normalize(10),
+    fontWeight: "400",
+    color: "#94a3b8",
+    marginTop: normalize(4),
+  },
+
+  // Languages Spoken Cards (Horizontal Row)
+  langPillsRow: {
+    flexDirection: "row",
+    gap: normalize(8),
+    marginTop: normalize(8),
+  },
+  langCardItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: normalize(40),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: normalize(8),
+  },
+  langCardItemSelected: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#10b981",
+  },
+  langCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(4),
+  },
+  langNativeBadgeText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  langCardLabelText: {
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#334155",
+  },
+  langCardLabelSelected: {
+    color: PRIMARY_GREEN,
+    fontWeight: "700",
+  },
+  addLanguageBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: normalize(40),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: PRIMARY_GREEN,
+    marginTop: normalize(10),
+    gap: normalize(4),
+  },
+  addLanguageBtnText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: PRIMARY_GREEN,
+  },
+
+  // Continue Button & Security
+  continueGreenButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: normalize(50),
+    borderRadius: normalize(12),
+    backgroundColor: PRIMARY_GREEN,
+    marginTop: normalize(8),
+    marginBottom: normalize(8),
+  },
+  securityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: normalize(4),
+    marginTop: normalize(2),
+    marginBottom: normalize(16),
+  },
+  securityText: {
+    fontSize: normalize(10.5),
+    color: "#64748b",
+    fontWeight: "400",
+    textAlign: "center",
+  },
+  requiredStar: {
+    color: "#ef4444",
+    fontWeight: "700",
+    fontSize: normalize(13),
+  },
+
+  // Step Header
+  stepHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: normalize(12),
+    gap: normalize(10),
+  },
+  chefHatIconCircle: {
+    width: normalize(42),
+    height: normalize(42),
+    borderRadius: normalize(12),
+    backgroundColor: "#ecfdf5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepHeaderTitle: {
+    fontSize: normalize(16),
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  stepHeaderSubtitle: {
+    fontSize: normalize(11.5),
+    color: "#64748b",
+    marginTop: normalize(2),
+  },
+  skillsBadgeSubtext: {
+    fontSize: normalize(10.5),
+    color: "#64748b",
+    fontWeight: "500",
+  },
+
+  // Skills Grid (3 Columns)
+  skillsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: normalize(8),
+    marginTop: normalize(10),
+  },
+  skillGridCardItem: {
+    width: "31%",
+    height: normalize(56),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    padding: normalize(8),
+    justifyContent: "space-between",
+  },
+  skillGridCardSelected: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#10b981",
+  },
+  skillGridCardText: {
+    fontSize: normalize(10.5),
+    fontWeight: "600",
+    color: "#334155",
+    lineHeight: normalize(13),
+  },
+  skillGridCardTextSelected: {
+    color: PRIMARY_GREEN,
+    fontWeight: "700",
+  },
+
+  // Step 3 Rounded Pill Cards
+  pillsRowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: normalize(8),
+    marginTop: normalize(8),
+  },
+  roundedPillCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(8),
+    borderRadius: normalize(20),
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+  },
+  roundedPillCardSelected: {
+    backgroundColor: "#0f172a",
+    borderColor: "#0f172a",
+  },
+  roundedPillCardText: {
+    fontSize: normalize(12),
+    fontWeight: "600",
+    color: "#334155",
+  },
+  roundedPillCardTextSelected: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+
+  // Step 4 Calendly Styles
+  statusBadgeCapsule: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(14),
+  },
+  statusBadgeCapsuleSuccess: {
+    backgroundColor: "#ecfdf5",
+  },
+  statusBadgeCapsulePending: {
+    backgroundColor: "#fff7ed",
+  },
+  statusBadgeCapsuleText: {
+    fontSize: normalize(11),
+    fontWeight: "700",
+  },
+  statusBadgeCapsuleTextSuccess: {
+    color: "#047857",
+  },
+  statusBadgeCapsuleTextPending: {
+    color: "#ea580c",
+  },
+  horizontalDivider: {
+    height: 1,
+    backgroundColor: "#e2e8f0",
+    marginVertical: normalize(12),
+  },
+  accountPromptCard: {
+    backgroundColor: "#f5f3ff",
+    borderRadius: normalize(10),
+    padding: normalize(12),
+    alignItems: "center",
+    marginTop: normalize(12),
+  },
+  accountPromptTitle: {
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+    color: "#4c1d95",
+  },
+  accountPromptLinkText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#6366f1",
+    textDecorationLine: "underline",
+  },
+  accountPromptTextSmall: {
+    fontSize: normalize(12),
+    color: "#6b21a8",
+  },
+
+  // Step 5 Media & Portfolio Styles
+  shareHeroCircle: {
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  innerBannerPurpleBox: {
+    backgroundColor: "#f5f3ff",
+    borderRadius: normalize(10),
+    padding: normalize(12),
+    width: "100%",
+    marginTop: normalize(14),
+  },
+  innerBannerPurpleTitle: {
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+    color: "#4c1d95",
+  },
+  innerBannerPurpleSub: {
+    fontSize: normalize(11),
+    color: "#6b21a8",
+    marginTop: normalize(2),
+  },
+  socialListItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: normalize(10),
+    paddingHorizontal: normalize(8),
+  },
+  socialListItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  socialSquareIconBox: {
+    width: normalize(38),
+    height: normalize(38),
+    borderRadius: normalize(10),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  socialItemTitle: {
+    fontSize: normalize(13),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  socialItemSub: {
+    fontSize: normalize(11),
+    color: "#64748b",
+    marginTop: normalize(1),
+  },
+  socialListItemRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(6),
+  },
+  socialStatusPill: {
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(4),
+    borderRadius: normalize(14),
+  },
+  socialStatusPillNotConnected: {
+    backgroundColor: "#f1f5f9",
+  },
+  socialStatusPillConnected: {
+    backgroundColor: "#ecfdf5",
+  },
+  socialStatusPillText: {
+    fontSize: normalize(11),
+    fontWeight: "600",
+  },
+  socialStatusPillTextNotConnected: {
+    color: "#64748b",
+  },
+  socialStatusPillTextConnected: {
+    color: "#047857",
+  },
+  horizontalDividerLight: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: normalize(2),
+  },
+
+  // Step 6 & Step 7 Review & Success Styles
+  photoAvatarWrapper: {
+    width: normalize(70),
+    height: normalize(70),
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  blankAvatarCircle: {
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(35),
+    backgroundColor: "#e2e8f0",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+  },
+  photoAvatarImage: {
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(35),
+  },
+  reviewNameText: {
+    fontSize: normalize(16),
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  reviewTitleSubtext: {
+    fontSize: normalize(12),
+    color: "#64748b",
+    marginTop: normalize(1),
+  },
+  statusPillSmall: {
+    backgroundColor: "#e0f2fe",
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(12),
+    alignSelf: "flex-start",
+    marginTop: normalize(4),
+  },
+  statusPillSmallText: {
+    fontSize: normalize(10.5),
+    fontWeight: "700",
+    color: "#0284c7",
+  },
+  reviewMetaLabel: {
+    fontSize: normalize(11.5),
+    color: "#64748b",
+  },
+  reviewMetaVal: {
+    fontSize: normalize(11.5),
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  successDarkCircle: {
+    width: normalize(64),
+    height: normalize(64),
+    borderRadius: normalize(32),
+    backgroundColor: "#0f172a",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successTitleLarge: {
+    fontSize: normalize(22),
+    fontWeight: "800",
+    color: "#0f172a",
+    marginTop: normalize(12),
+  },
+  successSubtitleText: {
+    fontSize: normalize(13),
+    color: "#64748b",
+    textAlign: "center",
+    marginTop: normalize(4),
+    paddingHorizontal: normalize(16),
+  },
+  statusPendingPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ecfdf5",
+    borderColor: "#a7f3d0",
+    borderWidth: 1,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(16),
+    marginTop: normalize(10),
+  },
+  statusPendingPillText: {
+    fontSize: normalize(12),
+    fontWeight: "700",
+    color: "#047857",
   },
 });
