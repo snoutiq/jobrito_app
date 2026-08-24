@@ -146,6 +146,7 @@ export const updateProfile = async (data) => {
   const formData = new FormData();
   formData.append("full_name", pickValue(data, ["full_name", "fullName", "name"]));
   formData.append("email", pickValue(data, ["email"]));
+  formData.append("age", pickValue(data, ["age"]));
   formData.append("city", pickValue(data, ["city"]));
   formData.append("experience_range", pickValue(data, ["experience_range", "experienceRange"]));
   formData.append("preferred_role", pickValue(data, ["preferred_role", "preferredRole"]));
