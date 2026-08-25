@@ -308,7 +308,7 @@ export default function JobDetailsScreen({ navigation, route }) {
 
               <View style={styles.metaItem}>
                 <Ionicons name="person-outline" size={normalize(14)} color="#64748b" />
-                <Text style={styles.metaLabel}>{t("postedBy", "POSTED BY")}</Text>
+                <Text style={styles.metaLabel}>{t("postedBy", "Posted by")}</Text>
                 <Text style={styles.metaValueGreen}>{t("employer", "EMPLOYER")}</Text>
               </View>
             </View>

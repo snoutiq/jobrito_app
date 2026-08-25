@@ -825,13 +825,13 @@ export default function HomeScreen({ navigation }) {
                   {/* Left: Posted By (Column Stack) */}
                   <View style={styles.postedByCol}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      <Ionicons
+                      {/* <Ionicons
                         name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
                         size={normalize(12)}
                         color="#153e69"
                         style={{ marginRight: 3 }}
-                      />
-                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by:")}</Text>
+                      /> */}
+                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}</Text>
                     </View>
                     <Text style={styles.postedByBold} numberOfLines={1}>
                       {postedByLabelText}
@@ -1894,9 +1894,9 @@ const styles = StyleSheet.create({
     gap: normalize(12),
   },
   cardIconBox: {
-    width: normalize(52),
-    height: normalize(52),
-    borderRadius: normalize(12),
+    width: normalize(38),
+    height: normalize(38),
+    borderRadius: normalize(8),
     alignItems: "center",
     justifyContent: "center",
   },
