@@ -621,23 +621,13 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <Text style={styles.primaryLocTitle}>
                       {editingLocId
                         ? t("editLocation", "Edit Location")
-                        : additionalLocations.length === 0
-                        ? t("primaryBusinessLocation", "Primary Business Location")
-                        : additionalLocations.length === 1
-                        ? t("secondaryBusinessLocation", "Secondary Location (Location #2)")
-                        : additionalLocations.length === 2
-                        ? t("tertiaryBusinessLocation", "Tertiary Location (Location #3)")
-                        : t("additionalLocationTitle", `Location #${additionalLocations.length + 1}`, { num: additionalLocations.length + 1 })}
+                        : t("businessLocationTitle", "Business Location")}
                       {!editingLocId && <Text style={styles.required}>*</Text>}
                     </Text>
                     <Text style={styles.primaryLocSubtitle}>
                       {editingLocId
                         ? t("editLocationHint", "Update the state and city for this location.")
-                        : additionalLocations.length === 0
-                        ? t("primaryLocationDefaultHint", "This location will be used by default when posting a job.")
-                        : additionalLocations.length === 1
-                        ? t("secondaryLocationHint", "Add your secondary location for hiring Talent.")
-                        : t("additionalLocationHint", "Add additional location for hiring Talent.")}
+                        : t("businessLocationHint", "Add your business location for hiring Talent.")}
                     </Text>
                   </View>
                   {editingLocId && (
@@ -766,11 +756,6 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                     <View style={styles.locationListTextWrap}>
                       <View style={styles.locationListTitleRow}>
                         <Text style={styles.locationListTitle}>{t("location", "Location")} #{idx + 1}</Text>
-                        {idx === 0 && (
-                          <View style={styles.primaryBadge}>
-                            <Text style={styles.primaryBadgeText}>{t("primaryTag", "Primary")}</Text>
-                          </View>
-                        )}
                       </View>
                       <Text style={styles.locationListSub}>{[loc.city, loc.state, loc.country].filter(Boolean).join(", ")}</Text>
                     </View>
@@ -943,7 +928,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                 <View style={styles.summaryLocList}>
                   {buildFinalLocations().map((l, idx) => (
                     <Text key={`compiled_loc_summary_${idx}_${l.city}`} style={styles.summaryLocItem}>
-                      {idx + 1}. {[l.city, l.state, l.country].filter(Boolean).join(", ")}{idx === 0 ? ` (${t("primaryTag", "Primary")})` : ""}
+                      {idx + 1}. {[l.city, l.state, l.country].filter(Boolean).join(", ")}
                     </Text>
                   ))}
                 </View>

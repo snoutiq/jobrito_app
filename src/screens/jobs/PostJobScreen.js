@@ -119,7 +119,7 @@ export default function PostJobScreen({ navigation, route }) {
   const [experience, setExperience] = useState("Mid Level (3-5 Years)");
   const [showExperienceModal, setShowExperienceModal] = useState(false);
 
-  const [openPositions, setOpenPositions] = useState("2");
+  const [openPositions, setOpenPositions] = useState("1");
   const [positionsError, setPositionsError] = useState("");
   const [jobType, setJobType] = useState("Full-Time");
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
@@ -429,7 +429,7 @@ export default function PostJobScreen({ navigation, route }) {
     setSalaryMin("");
     setSalaryMax("");
     setExperience("Mid Level (3-5 Years)");
-    setOpenPositions("2");
+    setOpenPositions("1");
     setJobType("Full-Time");
     setJobDescription("");
     setStep(1);

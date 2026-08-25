@@ -199,9 +199,43 @@ export default function JobDetailsScreen({ navigation, route }) {
   const title = String(job?.title || job?.job_title || job?.name || "").trim();
   const company = String(job?.company || job?.company_name || job?.business_name || "").trim();
   const location = String(job?.location || job?.city || job?.country || "").trim() || t("notMentioned", "Not Mentioned");
-  const rawSalary = job?.salary || job?.salary_range || job?.offered_salary || job?.salary_display;
-  const salaryStr = rawSalary && String(rawSalary).trim() ? String(rawSalary).trim() : t("notMentioned", "Not Mentioned");
-  const rawExp = job?.experience || job?.experience_range || job?.experience_level;
+
+  const formatSalaryDisplay = () => {
+    if (!job) return t("notMentioned", "Not Mentioned");
+    const currency = String(job.currency || job.salary_currency || "SAR").trim();
+    const min = job.salary_min ?? job.min_salary ?? job.salaryMin;
+    const max = job.salary_max ?? job.max_salary ?? job.salaryMax;
+
+    if (min !== undefined && min !== null && min !== "" && max !== undefined && max !== null && max !== "") {
+      const minNum = Number(min);
+      const maxNum = Number(max);
+      if (!isNaN(minNum) && !isNaN(maxNum)) {
+        if (minNum === maxNum) return `${currency} ${minNum.toLocaleString()}`;
+        return `${currency} ${minNum.toLocaleString()} - ${maxNum.toLocaleString()}`;
+      }
+    }
+
+    const raw = job.salary || job.salary_range || job.offered_salary || job.salary_display;
+    if (raw && String(raw).trim()) {
+      const s = String(raw).trim();
+      const match = s.match(/^(?:([A-Za-z]{2,4})\s*)?(\d+)(?:\s*-\s*(?:([A-Za-z]{2,4})\s*)?(\d+))?$/i);
+      if (match) {
+        const curr = match[1] || match[3] || currency;
+        const v1 = Number(match[2]);
+        const v2 = match[4] ? Number(match[4]) : null;
+        if (v2 !== null) {
+          if (v1 === v2) return `${curr} ${v1.toLocaleString()}`;
+          return `${curr} ${v1.toLocaleString()} - ${v2.toLocaleString()}`;
+        }
+        return `${curr} ${v1.toLocaleString()}`;
+      }
+      return s;
+    }
+    return t("notMentioned", "Not Mentioned");
+  };
+
+  const salaryStr = formatSalaryDisplay();
+  const rawExp = job?.experience || job?.experience_range || job?.experience_level || job?.experience_years;
   const experienceStr = rawExp && String(rawExp).trim() ? String(rawExp).trim() : t("notSpecified", "Not Specified");
   const openings = job?.open_positions ?? job?.openings ?? job?.vacancies ?? 1;
   const rawType = job?.job_type || job?.type || "";
@@ -293,7 +327,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("location", "LOCATION")}</Text>
-                <Text style={styles.gridValue} numberOfLines={1}>{location}</Text>
+                <Text style={styles.gridValue} numberOfLines={2}>{location}</Text>
               </View>
             </View>
 
@@ -319,7 +353,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("salary", "SALARY")}</Text>
-                <Text style={styles.gridValue} numberOfLines={1}>{salaryStr}</Text>
+                <Text style={styles.gridValue} numberOfLines={2}>{salaryStr}</Text>
               </View>
             </View>
 
@@ -329,7 +363,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("experience", "EXPERIENCE")}</Text>
-                <Text style={styles.gridValue} numberOfLines={1}>{experienceStr}</Text>
+                <Text style={styles.gridValue} numberOfLines={2}>{experienceStr}</Text>
               </View>
             </View>
           </View>
@@ -584,16 +618,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gridLabel: {
-    fontSize: normalize(9.5),
-    fontWeight: "800",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
     color: "#64748b",
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
     marginBottom: 2,
   },
   gridValue: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#0d2b52",
+    lineHeight: normalize(16),
   },
   callIconBtn: {
     width: normalize(30),
