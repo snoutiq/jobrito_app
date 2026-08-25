@@ -125,6 +125,10 @@ export default function ProfileScreen({ navigation }) {
     dispatch(resetUser());
   };
 
+  const handleLogoutPress = () => {
+    setShowLogoutModal(true);
+  };
+
   const getLanguageLabel = () => {
     const lang = i18n.language;
     if (lang === "hi") return "Hindi (हिंदी)";
@@ -398,8 +402,8 @@ export default function ProfileScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.logoutBtnCard}
-          onPress={() => setShowLogoutModal(true)}
-          activeOpacity={0.85}
+          onPress={handleLogoutPress}
+          activeOpacity={0.7}
         >
           <View style={styles.logoutBtnIconBox}>
             <Ionicons name="exit-outline" size={normalize(18)} color="#ea580c" />
@@ -779,9 +783,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ffedd5",
     borderRadius: normalize(14),
-    paddingVertical: normalize(12),
+    paddingVertical: normalize(14),
+    marginHorizontal: normalize(16),
+    marginTop: normalize(16),
+    marginBottom: normalize(40),
     gap: normalize(8),
-    marginTop: normalize(4),
   },
   logoutBtnIconBox: {
     width: normalize(28),
