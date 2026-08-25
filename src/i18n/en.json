@@ -1,5 +1,6 @@
 {
   "appName": "Jobrito",
+  "totalChefsCount": "{{count}} Chefs Available",
   "loading": "Loading",
   "loginTitle": "OTP Login",
   "phoneNumber": "Phone Number",

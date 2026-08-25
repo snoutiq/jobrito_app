@@ -325,17 +325,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     return loc || chef?.job_location || chef?.current_location || "Mumbai, India";
   };
 
-  const getDisplayRating = (chef) => {
-    if (chef?.rating) return chef.rating;
-    // Generate stable rating from ID if missing
-    const base = 4.6 + ((chef.id || 50) % 4) * 0.1;
-    return base.toFixed(1);
-  };
 
-  const getDisplayReviewsCount = (chef) => {
-    if (chef?.reviews_count) return chef.reviews_count;
-    return 70 + ((chef.id || 50) * 7) % 60;
-  };
 
   const getPreferredLocationFlags = (chef) => {
     const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
@@ -417,7 +407,15 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   };
 
   const fallbackDates = ["Mon, Aug 31", "Tue, Sep 1", "Wed, Sep 2", "Thu, Sep 3", "Fri, Sep 4"];
-  const fallbackTimes = ["10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM", "05:00 PM"];
+  const hasActiveFilters = Boolean(
+    (searchQuery && searchQuery.trim().length > 0) ||
+    (activeQuickFilter && activeQuickFilter !== "all") ||
+    (activeFilters && Object.values(activeFilters).some((val) => {
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === "boolean") return val;
+      return Boolean(val);
+    }))
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -533,8 +531,16 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
           </ScrollView>
         </View>
 
-        {/* Right-Aligned Advanced Filters Outline Button */}
+        {/* Total Chefs Count & Advanced Filters Row */}
         <View style={styles.advFilterBtnRow}>
+          {hasActiveFilters ? (
+            <Text style={styles.totalChefsCountText}>
+              {t("totalChefsCount", "{{count}} Chefs Available", { count: filteredChefs.length })}
+            </Text>
+          ) : (
+            <View />
+          )}
+
           <TouchableOpacity
             style={styles.advFilterOutlineBtn}
             onPress={() => navigation.navigate("ChefConnectFilters", { filters: activeFilters })}
@@ -564,8 +570,6 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
               const chefTitle = getDisplayTitle(chef);
               const location = getDisplayLocation(chef);
               const experience = getDisplayExperience(chef);
-              const rating = getDisplayRating(chef);
-              const reviews = getDisplayReviewsCount(chef);
               const cuisines = chef.cuisine_specialty || chef.specialties || "Indian Cuisine, Fine Dining";
               const skillsList = getSkillsList(chef);
               const visibleSkills = skillsList.slice(0, 2);
@@ -611,23 +615,27 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 
                       {/* Meta Row 1: Location & Experience */}
                       <View style={styles.metaRow}>
-                        <Ionicons name="location-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2) }} />
+                        <Ionicons name="location-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2), flexShrink: 0 }} />
                         <Text style={styles.metaText} numberOfLines={1}>
                           {location}
                         </Text>
                         <Text style={styles.metaDivider}>|</Text>
-                        <Ionicons name="briefcase-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2) }} />
-                        <Text style={styles.metaText}>{experience}</Text>
+                        <Ionicons name="briefcase-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2), flexShrink: 0 }} />
+                        <Text style={styles.metaText} numberOfLines={1}>{experience}</Text>
                       </View>
 
                       {/* Meta Row 2: Rating & Cuisines */}
                       <View style={styles.metaRow}>
-                        <Ionicons name="star" size={normalize(12)} color="#f59e0b" style={{ marginRight: normalize(2) }} />
-                        <Text style={styles.metaText}>
-                          {rating} ({reviews})
-                        </Text>
-                        <Text style={styles.metaDivider}>|</Text>
-                        <Ionicons name="restaurant-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2) }} />
+                        {chef?.rating ? (
+                          <>
+                            <Ionicons name="star" size={normalize(12)} color="#f59e0b" style={{ marginRight: normalize(2), flexShrink: 0 }} />
+                            <Text style={styles.metaText}>
+                              {chef.rating} {chef.reviews_count ? `(${chef.reviews_count})` : ""}
+                            </Text>
+                            <Text style={styles.metaDivider}>|</Text>
+                          </>
+                        ) : null}
+                        <Ionicons name="restaurant-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(2), flexShrink: 0 }} />
                         <Text style={styles.metaText} numberOfLines={1}>
                           {cuisines}
                         </Text>
@@ -1017,8 +1025,14 @@ const styles = StyleSheet.create({
   // Advanced Filters Outline Button Row
   advFilterBtnRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: normalize(12),
+  },
+  totalChefsCountText: {
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+    color: "#1e293b",
   },
   advFilterOutlineBtn: {
     flexDirection: "row",
@@ -1103,16 +1117,19 @@ const styles = StyleSheet.create({
   // Chef Info Column
   chefInfoCol: {
     flex: 1,
-    marginRight: normalize(6),
+    minWidth: 0,
+    marginRight: normalize(8),
   },
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
+    minWidth: 0,
   },
   chefNameText: {
     fontSize: normalize(14),
     fontWeight: "800",
     color: "#0f172a",
+    flexShrink: 1,
   },
   chefRoleText: {
     fontSize: normalize(12),
@@ -1125,22 +1142,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: normalize(2),
+    minWidth: 0,
   },
   metaText: {
     fontSize: normalize(10.5),
     color: "#475569",
+    flexShrink: 1,
   },
   metaDivider: {
     fontSize: normalize(10.5),
     color: "#cbd5e1",
     marginHorizontal: normalize(4),
+    flexShrink: 0,
   },
 
   // Actions Row (Right Side Buttons in 1 Row without border & bg)
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: normalize(12),
+    gap: normalize(10),
+    flexShrink: 0,
+    marginLeft: normalize(4),
   },
   actionCircleBtn: {
     alignItems: "center",

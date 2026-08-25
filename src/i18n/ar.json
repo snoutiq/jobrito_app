@@ -1,5 +1,6 @@
 {
   "appName": "جوب كونيكت",
+  "totalChefsCount": "{{count}} طباخ متوفر",
   "loading": "جاري التحميل",
   "loginTitle": "تسجيل الدخول برمز التحقق",
   "phoneNumber": "رقم الهاتف",

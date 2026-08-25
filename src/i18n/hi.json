@@ -1,5 +1,6 @@
 {
   "appName": "Jobrito",
+  "totalChefsCount": "{{count}} शेफ उपलब्ध हैं",
   "loading": "लोड हो रहा है",
   "loginTitle": "ओटीपी लॉगिन",
   "phoneNumber": "फोन नंबर",
