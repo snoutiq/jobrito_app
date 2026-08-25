@@ -327,7 +327,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("location", "LOCATION")}</Text>
-                <Text style={styles.gridValue} numberOfLines={2}>{location}</Text>
+                <Text style={styles.gridValue} numberOfLines={3}>{location}</Text>
               </View>
             </View>
 
@@ -353,7 +353,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("salary", "SALARY")}</Text>
-                <Text style={styles.gridValue} numberOfLines={2}>{salaryStr}</Text>
+                <Text style={styles.gridValue} numberOfLines={3}>{salaryStr}</Text>
               </View>
             </View>
 
@@ -363,7 +363,7 @@ export default function JobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("experience", "EXPERIENCE")}</Text>
-                <Text style={styles.gridValue} numberOfLines={2}>{experienceStr}</Text>
+                <Text style={styles.gridValue} numberOfLines={3}>{experienceStr}</Text>
               </View>
             </View>
           </View>

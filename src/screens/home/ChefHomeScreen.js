@@ -521,7 +521,7 @@ export default function ChefHomeScreen({ navigation }) {
                       activeOpacity={0.8}
                     >
                       <Text style={styles.cardNavyBtnText}>
-                        {isTraining ? t("viewDetailsUpper", "VIEW DETAILS") : t("viewJobUpper", "VIEW JOB")}
+                        {t("viewUpper", "VIEW")}
                       </Text>
                     </TouchableOpacity>
 
@@ -726,7 +726,7 @@ export default function ChefHomeScreen({ navigation }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                        <Text style={styles.modalGridValue} numberOfLines={2}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
                       </View>
@@ -738,43 +738,81 @@ export default function ChefHomeScreen({ navigation }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                        <Text style={styles.modalGridValue} numberOfLines={2}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
                       </View>
                     </View>
                   </View>
 
-                  {(selectedDetailsJob?.salary || selectedDetailsJob?.experience_range) ? (
-                    <View style={styles.modalGridRow}>
-                      {Boolean(selectedDetailsJob?.salary) && (
-                        <View style={styles.modalGridItem}>
-                          <View style={[styles.gridIconCircle, { backgroundColor: "#fef3c7" }]}>
-                            <Ionicons name="card" size={normalize(12)} color="#b45309" />
+                  {(() => {
+                    const salVal = (() => {
+                      if (!selectedDetailsJob) return null;
+                      const currency = String(selectedDetailsJob.currency || selectedDetailsJob.salary_currency || "SAR").trim();
+                      const min = selectedDetailsJob.salary_min ?? selectedDetailsJob.min_salary ?? selectedDetailsJob.salaryMin;
+                      const max = selectedDetailsJob.salary_max ?? selectedDetailsJob.max_salary ?? selectedDetailsJob.salaryMax;
+                      if (min !== undefined && min !== null && min !== "" && max !== undefined && max !== null && max !== "") {
+                        const minNum = Number(min);
+                        const maxNum = Number(max);
+                        if (!isNaN(minNum) && !isNaN(maxNum)) {
+                          if (minNum === maxNum) return `${currency} ${minNum.toLocaleString()}`;
+                          return `${currency} ${minNum.toLocaleString()} - ${maxNum.toLocaleString()}`;
+                        }
+                      }
+                      const raw = selectedDetailsJob.salary || selectedDetailsJob.salary_range || selectedDetailsJob.offered_salary || selectedDetailsJob.salary_display;
+                      if (raw && String(raw).trim()) {
+                        const s = String(raw).trim();
+                        const match = s.match(/^(?:([A-Za-z]{2,4})\s*)?(\d+)(?:\s*-\s*(?:([A-Za-z]{2,4})\s*)?(\d+))?$/i);
+                        if (match) {
+                          const curr = match[1] || match[3] || currency;
+                          const v1 = Number(match[2]);
+                          const v2 = match[4] ? Number(match[4]) : null;
+                          if (v2 !== null) {
+                            if (v1 === v2) return `${curr} ${v1.toLocaleString()}`;
+                            return `${curr} ${v1.toLocaleString()} - ${v2.toLocaleString()}`;
+                          }
+                          return `${curr} ${v1.toLocaleString()}`;
+                        }
+                        return s;
+                      }
+                      return null;
+                    })();
+
+                    const expVal = selectedDetailsJob?.experience_range || selectedDetailsJob?.experience || selectedDetailsJob?.experience_level || null;
+
+                    if (!salVal && !expVal) return null;
+
+                    return (
+                      <View style={styles.modalGridRow}>
+                        {Boolean(salVal) && (
+                          <View style={styles.modalGridItem}>
+                            <View style={[styles.gridIconCircle, { backgroundColor: "#fef3c7" }]}>
+                              <Ionicons name="card" size={normalize(12)} color="#b45309" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                                {salVal}
+                              </Text>
+                            </View>
                           </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
-                            <Text style={styles.modalGridValue} numberOfLines={1}>
-                              {selectedDetailsJob.salary}
-                            </Text>
+                        )}
+                        {Boolean(expVal) && (
+                          <View style={styles.modalGridItem}>
+                            <View style={[styles.gridIconCircle, { backgroundColor: "#ffedd5" }]}>
+                              <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                                {expVal}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                      )}
-                      {Boolean(selectedDetailsJob?.experience_range) && (
-                        <View style={styles.modalGridItem}>
-                          <View style={[styles.gridIconCircle, { backgroundColor: "#ffedd5" }]}>
-                            <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
-                            <Text style={styles.modalGridValue} numberOfLines={1}>
-                              {selectedDetailsJob.experience_range}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  ) : null}
+                        )}
+                      </View>
+                    );
+                  })()}
                 </View>
               </View>
 
@@ -1714,15 +1752,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalGridLabel: {
-    fontSize: normalize(10),
-    fontWeight: "600",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
     color: "#64748b",
-    textTransform: "uppercase",
+    marginBottom: 2,
   },
   modalGridValue: {
     fontSize: normalize(12),
     fontWeight: "800",
     color: "#0f172a",
+    lineHeight: normalize(16),
   },
   modalSectionCard: {
     backgroundColor: "#ffffff",
@@ -1908,15 +1947,16 @@ shadowColor: "#000",
     justifyContent: "center",
   },
   modalGridLabel: {
-    fontSize: normalize(10),
-    fontWeight: "600",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
     color: "#64748b",
-    textTransform: "uppercase",
+    marginBottom: 2,
   },
   modalGridValue: {
     fontSize: normalize(12),
     fontWeight: "800",
     color: "#0f172a",
+    lineHeight: normalize(16),
   },
   modalSectionCard: {
     backgroundColor: "#ffffff",

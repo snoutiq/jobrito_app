@@ -178,7 +178,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           <View style={styles.heroLeftWrap}>
             <View style={styles.heroTitleWrap}>
               <View style={styles.companyRow}>
-                <Text style={styles.companyNameText}>{companyName}</Text>
+                <Text style={styles.companyNameText} numberOfLines={3}>{companyName}</Text>
                 <Ionicons
                   name="checkmark-circle"
                   size={normalize(15)}
@@ -186,7 +186,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
                   style={{ marginLeft: normalize(4) }}
                 />
               </View>
-              <Text style={styles.jobTitleText}>{jobTitle}</Text>
+              <Text style={styles.jobTitleText} numberOfLines={3}>{jobTitle}</Text>
             </View>
           </View>
 
@@ -209,7 +209,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
-                <Text style={styles.gridValueBold}>{salaryVal}</Text>
+                <Text style={styles.gridValueBold} numberOfLines={3}>{salaryVal}</Text>
                 {Boolean(salarySub) && <Text style={styles.gridSubText}>{salarySub}</Text>}
               </View>
             </View>
@@ -220,7 +220,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("location", "Location")}</Text>
-                <Text style={styles.gridValueBold} numberOfLines={2}>{locationVal}</Text>
+                <Text style={styles.gridValueBold} numberOfLines={3}>{locationVal}</Text>
               </View>
             </View>
           </View>
@@ -233,7 +233,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("experience", "Experience")}</Text>
-                <Text style={styles.gridValueBold}>{experienceVal}</Text>
+                <Text style={styles.gridValueBold} numberOfLines={3}>{experienceVal}</Text>
                 {Boolean(experienceSub) && <Text style={styles.gridSubText}>{experienceSub}</Text>}
               </View>
             </View>
@@ -244,7 +244,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("employmentTypeLabel", "Employment Type")}</Text>
-                <Text style={styles.gridValueBold}>{employmentTypeVal}</Text>
+                <Text style={styles.gridValueBold} numberOfLines={3}>{employmentTypeVal}</Text>
               </View>
             </View>
           </View>
@@ -255,7 +255,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           <View style={styles.fullWidthIconCircle}>
             <Ionicons name="business-outline" size={normalize(18)} color="#153e69" />
           </View>
-          <Text style={styles.fullWidthText}>{postedByVal}</Text>
+          <Text style={styles.fullWidthText} numberOfLines={3}>{postedByVal}</Text>
         </View>
 
         {/* Job Description Section */}
@@ -263,7 +263,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           <Text style={styles.sectionHeading}>{t("jobDescription", "Job Description")}</Text>
           <Text
             style={styles.descriptionText}
-            numberOfLines={showFullDesc ? undefined : 3}
+            numberOfLines={showFullDesc ? undefined : 4}
             onTextLayout={handleTextLayout}
           >
             {fullDescription}
@@ -512,9 +512,10 @@ const styles = StyleSheet.create({
   // Hero Section
   heroSection: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     marginTop: normalize(4),
+    gap: normalize(10),
   },
   heroLeftWrap: {
     flexDirection: "row",
@@ -536,20 +537,23 @@ const styles = StyleSheet.create({
   companyRow: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
   },
   companyNameText: {
-    fontSize: normalize(16.5),
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0f2942",
+    flexShrink: 1,
   },
   jobTitleText: {
-    fontSize: normalize(14),
+    fontSize: normalize(13.5),
     fontWeight: "600",
     color: "#475569",
     marginTop: normalize(2),
   },
   postedWrap: {
     alignItems: "flex-end",
+    flexShrink: 0,
   },
   postedHeaderRow: {
     flexDirection: "row",
@@ -599,15 +603,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gridLabel: {
-    fontSize: normalize(10.5),
-    fontWeight: "600",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
     color: "#64748b",
-    marginBottom: normalize(1),
+    marginBottom: normalize(2),
   },
   gridValueBold: {
-    fontSize: normalize(12.5),
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#0f2942",
+    lineHeight: normalize(16),
   },
   gridSubText: {
     fontSize: normalize(10),
@@ -636,9 +641,11 @@ const styles = StyleSheet.create({
     marginRight: normalize(10),
   },
   fullWidthText: {
-    fontSize: normalize(12.5),
+    fontSize: normalize(12),
     fontWeight: "800",
     color: "#0f2942",
+    flex: 1,
+    lineHeight: normalize(16),
   },
 
   // Section Wraps

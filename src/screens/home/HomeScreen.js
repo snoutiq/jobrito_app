@@ -300,18 +300,13 @@ export default function HomeScreen({ navigation }) {
           const userRole = profile?.role || profile?.active_role || profile?.user_role;
           const isEligibleRole = ["job_seeker", "candidate", "chef", "talent"].includes(String(userRole).toLowerCase());
           
-          if (!isEligibleRole) {
-            setCompletionModalVisible(false);
-            return;
-          }
-
-          if (completionPercent >= 80) {
+          if (!isEligibleRole || completionPercent >= 80) {
             setCompletionModalVisible(false);
             return;
           }
 
           const now = Date.now();
-          const TWO_MINUTES = 2 * 60 * 1000;
+          const THIRTY_MINUTES = 30 * 60 * 1000;
 
           // Initialize first_seen_at if not present
           let firstSeenStr = await AsyncStorage.getItem("@first_seen_at");
@@ -320,47 +315,12 @@ export default function HomeScreen({ navigation }) {
             await AsyncStorage.setItem("@first_seen_at", firstSeenStr);
           }
           const firstSeen = parseInt(firstSeenStr, 10);
+          const timeSinceFirstSeen = now - firstSeen;
 
-          // Fetch phase completion times
-          const phase1CompStr = await AsyncStorage.getItem("@phase1_completed_at");
-          const phase2CompStr = await AsyncStorage.getItem("@phase2_completed_at");
-
-          const phase1Time = phase1CompStr ? parseInt(phase1CompStr, 10) : firstSeen;
-          const phase2Time = phase2CompStr ? parseInt(phase2CompStr, 10) : firstSeen;
-
-          if (isPhase1Incomplete) {
-            setCurrentProgressStep(1);
+          if (timeSinceFirstSeen >= THIRTY_MINUTES) {
             setCompletionModalVisible(true);
           } else {
-            if (!phase1CompStr) {
-              await AsyncStorage.setItem("@phase1_completed_at", String(now));
-            }
-
-            if (isPhase2Incomplete) {
-              const timeSincePhase1 = now - phase1Time;
-              if (timeSincePhase1 >= TWO_MINUTES) {
-                setCurrentProgressStep(2);
-                setCompletionModalVisible(true);
-              } else {
-                setCompletionModalVisible(false);
-              }
-            } else {
-              if (!phase2CompStr) {
-                await AsyncStorage.setItem("@phase2_completed_at", String(now));
-              }
-
-              if (isPhase3Incomplete) {
-                const timeSincePhase2 = now - phase2Time;
-                if (timeSincePhase2 >= TWO_MINUTES) {
-                  setCurrentProgressStep(3);
-                  setCompletionModalVisible(true);
-                } else {
-                  setCompletionModalVisible(false);
-                }
-              } else {
-                setCompletionModalVisible(false);
-              }
-            }
+            setCompletionModalVisible(false);
           }
         }
       };
@@ -855,7 +815,7 @@ export default function HomeScreen({ navigation }) {
                       activeOpacity={0.8}
                     >
                       <Text style={styles.cardNavyBtnText}>
-                        {isTraining ? t("viewDetailsUpper", "VIEW DETAILS") : t("viewJobUpper", "VIEW JOB")}
+                        {t("viewUpper", "VIEW")}
                       </Text>
                     </TouchableOpacity>
 
@@ -980,10 +940,10 @@ export default function HomeScreen({ navigation }) {
           return false;
         }}
       />
-      {/* Profile Completion Modal Wizard */}
+      {/* Profile Completion Prompt Modal (Shows after 30 minutes) */}
       <Modal
         visible={completionModalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => {
           setCompletionModalVisible(false);
@@ -991,416 +951,88 @@ export default function HomeScreen({ navigation }) {
         }}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {t("completeProfileModalTitle", "Complete your profile")}
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setCompletionModalVisible(false);
-                  setHasModalBeenDismissedThisSession(true);
-                }}
-                style={styles.modalCloseBtn}
-              >
-                <Ionicons
-                  name="close"
-                  size={22}
-                  color="rgba(10, 5, 4, 0.6)"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Progress Bar */}
-            <View style={styles.progressBarContainer}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${(currentProgressStep / 3) * 100}%` },
-                ]}
-              />
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          <View style={[styles.modalContainer, { padding: normalize(20), alignItems: "center" }]}>
+            <TouchableOpacity
+              onPress={() => {
+                setCompletionModalVisible(false);
+                setHasModalBeenDismissedThisSession(true);
+              }}
+              style={{ position: "absolute", top: 12, right: 12, zIndex: 10, padding: 6 }}
             >
-              {currentProgressStep === 1 && (
-                <View>
-                  <Text style={styles.inputLabel}>
-                    {t("personalInfoPhotoTitle", "Personal Info & Photo")}
-                  </Text>
-                  <Text style={styles.modalSubtitle}>
-                    {t("personalInfoPhotoSubtitle", "A professional photo and profile details help recruiters find you.")}
-                  </Text>
+              <Ionicons name="close" size={22} color="#64748b" />
+            </TouchableOpacity>
 
-                  <View style={styles.wizardRow}>
-                    {/* Left Column: Photo */}
-                    <View style={styles.wizardLeftCol}>
-                      <View style={{ alignSelf: "center", position: "relative" }}>
-                        <TouchableOpacity
-                          style={styles.photoUploadCircleCompact}
-                          onPress={() => {
-                            Alert.alert(
-                              "Profile Photo",
-                              "Select profile photo source:",
-                              [
-                                { text: "Camera", onPress: handleTakePhoto },
-                                { text: "Gallery", onPress: handleUploadPhoto },
-                                { text: "Cancel", style: "cancel" }
-                              ]
-                            );
-                          }}
-                          activeOpacity={0.8}
-                        >
-                          {photo ? (
-                            <Image source={{ uri: photo }} style={styles.photoUploadImage} />
-                          ) : (
-                            <Ionicons name="person" size={36} color="rgba(10, 5, 4, 0.15)" />
-                          )}
-                        </TouchableOpacity>
+            <View
+              style={{
+                width: normalize(60),
+                height: normalize(60),
+                borderRadius: normalize(30),
+                backgroundColor: "#eef2ff",
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: normalize(10),
+                marginBottom: normalize(14),
+              }}
+            >
+              <Ionicons name="person-circle-outline" size={normalize(36)} color="#153e69" />
+            </View>
 
-                        {/* Side edit/add badge icon */}
-                        <TouchableOpacity
-                          style={styles.photoUploadBadgeCompact}
-                          onPress={() => {
-                            Alert.alert(
-                              "Profile Photo",
-                              "Select profile photo source:",
-                              [
-                                { text: "Camera", onPress: handleTakePhoto },
-                                { text: "Gallery", onPress: handleUploadPhoto },
-                                { text: "Cancel", style: "cancel" }
-                              ]
-                            );
-                          }}
-                          activeOpacity={0.8}
-                        >
-                          <Ionicons 
-                            name={photo ? "pencil" : "add"} 
-                            size={12} 
-                            color="#ffffff" 
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+            <Text style={{ fontSize: normalize(16), fontWeight: "800", color: "#0d2b52", textAlign: "center", marginBottom: normalize(8) }}>
+              {t("pleaseCompleteProfileTitle", "Please Complete Your Profile")}
+            </Text>
 
-                    {/* Right Column: Name & Gender */}
-                    <View style={styles.wizardRightCol}>
-                      <View style={styles.inputGroup}>
-                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("fullName", "Full Name")}</Text>
-                        <View style={[styles.inputWrapper, { height: 42, paddingHorizontal: 10 }]}>
-                          <Ionicons name="person-outline" size={16} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
-                          <TextInput
-                            style={[styles.textInputWithIcon, { fontSize: 13 }]}
-                            value={fullName}
-                            onChangeText={setFullName}
-                            placeholder={t("enterFullName", "Enter full name")}
-                            placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                          />
-                        </View>
-                      </View>
+            <Text style={{ fontSize: normalize(12.5), color: "#64748b", textAlign: "center", lineHeight: normalize(18), marginBottom: normalize(16) }}>
+              {t("pleaseCompleteProfileSub", "Complete your profile to unlock full features, apply for top jobs, and connect with recruiters.")}
+            </Text>
 
-                      <View style={[styles.inputGroup, { marginBottom: 0 }]}>
-                        <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("genderLabel", "Gender")}</Text>
-                        <View style={[styles.genderSelectRow, { gap: 6 }]}>
-                          {["Male", "Female", "Other"].map((g) => {
-                            const isSelected = gender.toLowerCase() === g.toLowerCase();
-                            return (
-                              <TouchableOpacity
-                                key={g}
-                                style={[
-                                  styles.genderSelectBtnCompact,
-                                  isSelected && styles.genderSelectBtnActive,
-                                ]}
-                                onPress={() => setGender(g.toLowerCase())}
-                              >
-                                <Text
-                                  style={[
-                                    styles.genderSelectTextCompact,
-                                    isSelected && styles.genderSelectTextActive,
-                                  ]}
-                                >
-                                  {g}
-                                </Text>
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
-                      </View>
-                    </View>
-                  </View>
+            <View style={{ width: "100%", backgroundColor: "#f1f5f9", borderRadius: normalize(10), padding: normalize(10), marginBottom: normalize(18) }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                <Text style={{ fontSize: normalize(11), fontWeight: "700", color: "#475569" }}>
+                  {t("profileCompleteness", "Profile Completeness")}
+                </Text>
+                <Text style={{ fontSize: normalize(11), fontWeight: "800", color: "#153e69" }}>
+                  {completionPercent}%
+                </Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
+                <View style={{ width: `${completionPercent}%`, height: "100%", backgroundColor: "#153e69", borderRadius: 3 }} />
+              </View>
+            </View>
 
-                  <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 16 }, !fullName.trim() && { opacity: 0.5 }]}
-                    disabled={!fullName.trim() || submittingProfile}
-                    onPress={async () => {
-                      const ok = await saveProgressStep({
-                        full_name: fullName.trim(),
-                        gender: gender,
-                        profile_photo_path: photo,
-                      });
-                      if (ok) {
-                        try {
-                          await AsyncStorage.setItem("@phase1_completed_at", String(Date.now()));
-                        } catch (err) {}
-                        setCompletionModalVisible(false);
-                        setSuccessModalVisible(true);
-                      }
-                    }}
-                  >
-                    {submittingProfile ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : (
-                      <Text style={styles.modalConfirmBtnText}>{t("saveAndContinue", "Save & Continue")}</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
+            <TouchableOpacity
+              style={{
+                width: "100%",
+                backgroundColor: "#153e69",
+                paddingVertical: normalize(12),
+                borderRadius: normalize(12),
+                alignItems: "center",
+                marginBottom: normalize(10),
+              }}
+              onPress={() => {
+                setCompletionModalVisible(false);
+                setHasModalBeenDismissedThisSession(true);
+                const userRole = (profile?.role || profile?.active_role || profile?.user_role || "").toLowerCase();
+                const targetScreen = userRole === "chef" ? "ChefCompleteProfile" : "CompleteProfileScreen";
+                navigation.navigate(targetScreen);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: normalize(14), fontWeight: "700", color: "#ffffff" }}>
+                {t("completeProfileNow", "Complete Profile Now")}
+              </Text>
+            </TouchableOpacity>
 
-              {currentProgressStep === 2 && (
-                <View>
-                  <Text style={styles.inputLabel}>
-                    {t("workExperienceLocationTitle", "Work Experience & Location")}
-                  </Text>
-                  <Text style={styles.modalSubtitle}>
-                    {t("workExperienceLocationSubtitle", "Share your experience and the place where you want to work.")}
-                  </Text>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("experienceLabel", "Experience")}</Text>
-                    <View style={styles.experienceOptionsRow}>
-                      {["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"].map((r) => {
-                        const isSelected = experienceRange === r;
-                        return (
-                          <TouchableOpacity
-                            key={r}
-                            style={[
-                              styles.experienceOptionBtn,
-                              isSelected && styles.experienceOptionBtnActive,
-                            ]}
-                            onPress={() => setExperienceRange(r)}
-                          >
-                            <Text
-                              style={[
-                                styles.experienceOptionText,
-                                isSelected && styles.experienceOptionTextActive,
-                              ]}
-                            >
-                              {r}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("currentEmployerLabel", "Current Employer")}</Text>
-                    <View style={styles.inputWrapper}>
-                      <Ionicons name="business-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.textInputWithIcon}
-                        value={currentEmployer}
-                        onChangeText={setCurrentEmployer}
-                        placeholder="e.g. Self-Employed or hotel name"
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("jobPreferenceLabel", "Job Preference")}</Text>
-                    <View style={styles.jobTypeRow}>
-                      {["Full Time", "Part Time", ].map((t) => {
-                        const isSelected = jobType === t;
-                        const iconName = t === "Full Time" ? "briefcase-outline" : t === "Part Time" ? "time-outline" : "restaurant-outline";
-                        return (
-                          <TouchableOpacity
-                            key={t}
-                            style={[
-                              styles.jobTypeBtn,
-                              isSelected && styles.jobTypeBtnActive,
-                            ]}
-                            onPress={() => setJobType(t)}
-                          >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                              <Ionicons
-                                name={iconName}
-                                size={14}
-                                color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.5)"}
-                              />
-                              <Text
-                                style={[
-                                  styles.jobTypeText,
-                                  isSelected && styles.jobTypeTextActive,
-                                ]}
-                              >
-                                {t}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("preferredRegionLabel", "Preferred Region")}</Text>
-                    <View style={styles.locationPreferenceRow}>
-                      {["India", "Overseas", "Both"].map((p) => {
-                        const isSelected = locationPreference === p;
-                        const iconName = p === "India" ? "pin-outline" : p === "Overseas" ? "globe-outline" : "earth-outline";
-                        return (
-                          <TouchableOpacity
-                            key={p}
-                            style={[
-                              styles.locationPreferenceBtn,
-                              isSelected && styles.locationPreferenceBtnActive,
-                            ]}
-                            onPress={() => setLocationPreference(p)}
-                          >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                              <Ionicons
-                                name={iconName}
-                                size={14}
-                                color={isSelected ? PRIMARY_GREEN : "rgba(10, 5, 4, 0.5)"}
-                              />
-                              <Text
-                                style={[
-                                  styles.locationPreferenceText,
-                                  isSelected && styles.locationPreferenceTextActive,
-                                ]}
-                              >
-                                {p}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: "rgba(10, 5, 4, 0.6)", marginBottom: 4 }]}>{t("preferredCityLabel", "Preferred City / State")}</Text>
-                    <View style={styles.inputWrapper}>
-                      <Ionicons name="location-outline" size={18} color="rgba(10, 5, 4, 0.4)" style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.textInputWithIcon}
-                        value={city}
-                        onChangeText={setCity}
-                        placeholder="e.g. Mumbai, Dubai"
-                        placeholderTextColor="rgba(10, 5, 4, 0.3)"
-                      />
-                    </View>
-                  </View>
-
-                  <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, (!experienceRange || !currentEmployer.trim() || !city.trim()) && { opacity: 0.5 }]}
-                    disabled={!experienceRange || !currentEmployer.trim() || !city.trim() || submittingProfile}
-                    onPress={async () => {
-                      const ok = await saveProgressStep({
-                        experience_range: experienceRange,
-                        current_employer: currentEmployer.trim(),
-                        job_type: jobType,
-                        location_preference: locationPreference,
-                        city: city.trim(),
-                      });
-                      if (ok) {
-                        try {
-                          await AsyncStorage.setItem("@phase2_completed_at", String(Date.now()));
-                        } catch (err) {}
-                        setCurrentProgressStep(3);
-                      }
-                    }}
-                  >
-                    {submittingProfile ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : (
-                      <Text style={styles.modalConfirmBtnText}>{t("continue", "Continue")}</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {currentProgressStep === 3 && (
-                <View>
-                  <Text style={styles.inputLabel}>
-                    {t("positionBestMatchesTitle", "Which position best matches your experience?")}
-                  </Text>
-                  <Text style={styles.modalSubtitle}>
-                    {t("positionBestMatchesSubtitle", "Select the role that defines your expertise in the hospitality industry.")}
-                  </Text>
-
-                  <View style={{ gap: 12, marginBottom: 20 }}>
-                    {categories.map((item) => {
-                      const isSelected = selectedCategory === item.id;
-                      return (
-                        <View key={item.id}>
-                          <TouchableOpacity
-                            style={[styles.roleCard, isSelected && styles.roleCardSelected]}
-                            onPress={() => {
-                              setSelectedCategory(item.id);
-                              if (selectedCategory !== item.id) {
-                                setPreferredRole("");
-                              }
-                            }}
-                            activeOpacity={0.9}
-                          >
-                            <View style={styles.roleCardLeft}>
-                              <View style={[styles.roleIconCircle, isSelected && styles.roleIconCircleActive]}>
-                                <Ionicons name={item.icon} size={20} color={PRIMARY_GREEN} />
-                              </View>
-                              <Text style={styles.roleCardTitle}>{item.title}</Text>
-                            </View>
-                            <View style={[styles.radioOutline, isSelected && styles.radioActive]}>
-                              {isSelected && <View style={styles.radioDotInner} />}
-                            </View>
-                          </TouchableOpacity>
-
-                          {isSelected && (
-                            <Pressable
-                              style={styles.inlineDropdownTrigger}
-                              onPress={() => {
-                                setJobTitleSearch("");
-                                setJobTitleModalVisible(true);
-                              }}
-                            >
-                              <Text style={[styles.inlineDropdownTriggerText, !preferredRole && { color: "rgba(10, 5, 4, 0.4)" }]}>
-                                {preferredRole || t("selectSpecificJobTitle", "Select specific job title...")}
-                              </Text>
-                              <Ionicons name="chevron-down" size={18} color="rgba(10, 5, 4, 0.6)" />
-                            </Pressable>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-
-                  <TouchableOpacity
-                    style={[styles.modalConfirmBtn, { marginTop: 20 }, !preferredRole.trim() && { opacity: 0.5 }]}
-                    disabled={!preferredRole.trim() || submittingProfile}
-                    onPress={async () => {
-                      const ok = await saveProgressStep({
-                        preferred_role: preferredRole.trim(),
-                      });
-                      if (ok) {
-                        setCompletionModalVisible(false);
-                        setSuccessModalVisible(true);
-                      }
-                    }}
-                  >
-                    {submittingProfile ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : (
-                      <Text style={styles.modalConfirmBtnText}>{t("saveAndContinue", "Save & Continue")}</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
-            </ScrollView>
+            <TouchableOpacity
+              onPress={() => {
+                setCompletionModalVisible(false);
+                setHasModalBeenDismissedThisSession(true);
+              }}
+              style={{ paddingVertical: normalize(6) }}
+            >
+              <Text style={{ fontSize: normalize(12.5), fontWeight: "600", color: "#64748b" }}>
+                {t("maybeLater", "Maybe Later")}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1590,7 +1222,7 @@ export default function HomeScreen({ navigation }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                        <Text style={styles.modalGridValue} numberOfLines={2}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
                       </View>
@@ -1602,43 +1234,81 @@ export default function HomeScreen({ navigation }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={1}>
+                        <Text style={styles.modalGridValue} numberOfLines={2}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
                       </View>
                     </View>
                   </View>
 
-                  {(selectedDetailsJob?.salary || selectedDetailsJob?.experience_range) ? (
-                    <View style={styles.modalGridRow}>
-                      {Boolean(selectedDetailsJob?.salary) && (
-                        <View style={styles.modalGridItem}>
-                          <View style={[styles.gridIconCircle, { backgroundColor: "#fef3c7" }]}>
-                            <Ionicons name="card" size={normalize(12)} color="#b45309" />
+                  {(() => {
+                    const salVal = (() => {
+                      if (!selectedDetailsJob) return null;
+                      const currency = String(selectedDetailsJob.currency || selectedDetailsJob.salary_currency || "SAR").trim();
+                      const min = selectedDetailsJob.salary_min ?? selectedDetailsJob.min_salary ?? selectedDetailsJob.salaryMin;
+                      const max = selectedDetailsJob.salary_max ?? selectedDetailsJob.max_salary ?? selectedDetailsJob.salaryMax;
+                      if (min !== undefined && min !== null && min !== "" && max !== undefined && max !== null && max !== "") {
+                        const minNum = Number(min);
+                        const maxNum = Number(max);
+                        if (!isNaN(minNum) && !isNaN(maxNum)) {
+                          if (minNum === maxNum) return `${currency} ${minNum.toLocaleString()}`;
+                          return `${currency} ${minNum.toLocaleString()} - ${maxNum.toLocaleString()}`;
+                        }
+                      }
+                      const raw = selectedDetailsJob.salary || selectedDetailsJob.salary_range || selectedDetailsJob.offered_salary || selectedDetailsJob.salary_display;
+                      if (raw && String(raw).trim()) {
+                        const s = String(raw).trim();
+                        const match = s.match(/^(?:([A-Za-z]{2,4})\s*)?(\d+)(?:\s*-\s*(?:([A-Za-z]{2,4})\s*)?(\d+))?$/i);
+                        if (match) {
+                          const curr = match[1] || match[3] || currency;
+                          const v1 = Number(match[2]);
+                          const v2 = match[4] ? Number(match[4]) : null;
+                          if (v2 !== null) {
+                            if (v1 === v2) return `${curr} ${v1.toLocaleString()}`;
+                            return `${curr} ${v1.toLocaleString()} - ${v2.toLocaleString()}`;
+                          }
+                          return `${curr} ${v1.toLocaleString()}`;
+                        }
+                        return s;
+                      }
+                      return null;
+                    })();
+
+                    const expVal = selectedDetailsJob?.experience_range || selectedDetailsJob?.experience || selectedDetailsJob?.experience_level || null;
+
+                    if (!salVal && !expVal) return null;
+
+                    return (
+                      <View style={styles.modalGridRow}>
+                        {Boolean(salVal) && (
+                          <View style={styles.modalGridItem}>
+                            <View style={[styles.gridIconCircle, { backgroundColor: "#fef3c7" }]}>
+                              <Ionicons name="card" size={normalize(12)} color="#b45309" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                                {salVal}
+                              </Text>
+                            </View>
                           </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
-                            <Text style={styles.modalGridValue} numberOfLines={1}>
-                              {selectedDetailsJob.salary}
-                            </Text>
+                        )}
+                        {Boolean(expVal) && (
+                          <View style={styles.modalGridItem}>
+                            <View style={[styles.gridIconCircle, { backgroundColor: "#ffedd5" }]}>
+                              <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                                {expVal}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                      )}
-                      {Boolean(selectedDetailsJob?.experience_range) && (
-                        <View style={styles.modalGridItem}>
-                          <View style={[styles.gridIconCircle, { backgroundColor: "#ffedd5" }]}>
-                            <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
-                            <Text style={styles.modalGridValue} numberOfLines={1}>
-                              {selectedDetailsJob.experience_range}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  ) : null}
+                        )}
+                      </View>
+                    );
+                  })()}
                 </View>
               </View>
 
@@ -2796,15 +2466,16 @@ poweredRibbonText: {
     justifyContent: "center",
   },
   modalGridLabel: {
-    fontSize: normalize(10),
-    fontWeight: "600",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
     color: "#64748b",
-    textTransform: "uppercase",
+    marginBottom: 2,
   },
   modalGridValue: {
     fontSize: normalize(12),
     fontWeight: "800",
     color: "#0f172a",
+    lineHeight: normalize(16),
   },
   modalSectionCard: {
     backgroundColor: "#ffffff",
