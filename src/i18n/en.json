@@ -1244,5 +1244,6 @@
   "understood": "Understood",
   "deploymentLocation": "Deployment Location",
   "trainingDuration": "Training Duration",
-  "postReferralJobStep1Subtitle": "Post a referral job in just 3 simple steps"
+  "postReferralJobStep1Subtitle": "Post a referral job in just 3 simple steps",
+  "whatsNextNotice": "Once the employer takes action on your application. You will be notified"
 }

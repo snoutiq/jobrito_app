@@ -97,7 +97,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
   const rawCreator = getProp("created_by_name", "created_by_user", "created_by", "creator", "posted_by", "company");
   const creatorName = typeof rawCreator === "string" ? rawCreator : (rawCreator?.name || rawCreator?.username || companyName || "Employer");
 
-  const postedByVal = `Post by: ${creatorName}`;
+  const postedByVal = `${t("postedBy", "Posted by")}: ${creatorName}`;
 
   const fullDescription =
     getProp("description", "job_description", "summary") ||
@@ -239,7 +239,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Full Width Card: Post by */}
+        {/* Full Width Card: Posted by */}
         <View style={styles.fullWidthCard}>
           <View style={styles.fullWidthIconCircle}>
             <Ionicons name="business-outline" size={normalize(18)} color="#153e69" />
@@ -343,10 +343,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           <View style={styles.whatsNextTextWrap}>
             <Text style={styles.whatsNextTitle}>{t("whatsNextTitle", "What's Next?")}</Text>
             <Text style={styles.whatsNextSub}>
-              {t("whatsNextSub1", "The employer has viewed your application.")}
-            </Text>
-            <Text style={styles.whatsNextSub}>
-              {t("whatsNextSub2", "You will be notified as they move forward.")}
+              {t("whatsNextNotice", "Once the employer takes action on your application. You will be notified")}
             </Text>
           </View>
         </View>

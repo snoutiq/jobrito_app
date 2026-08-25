@@ -293,10 +293,10 @@ export default function ApplicationHistoryScreen({ navigation }) {
               />
               <View style={styles.noticeTextWrap}>
                 <Text style={styles.noticeTitle}>
-                  {t("cantFindApplication", "Can’t find an application?")}
+                  {t("cantFindApplication", "Can't find an application?")}
                 </Text>
                 <Text style={styles.noticeSub}>
-                  {t("makeSureLoggedIn", "Make sure you’re logged in with the correct account.")}
+                  {t("makeSureLoggedIn", "Make sure you're logged in with the correct account.")}
                 </Text>
               </View>
             </View>
