@@ -37,7 +37,6 @@ import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchProfile, updateProfile, setUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppLoader from "../../components/common/AppLoader";
-import WelcomeModal, { hasWelcomeModalBeenSeen } from "../../components/common/WelcomeModal";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getEmployerNotifications } from "../../services/notificationApi";
@@ -150,19 +149,6 @@ export default function ChefHomeScreen({ navigation }) {
   // Modals state
   const [showCallModal, setShowCallModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-
-  useEffect(() => {
-    if (!profile?.id) return; // Wait until real profile is loaded
-    const checkWelcomeModal = async () => {
-      const uRole = profile?.role || "chef";
-      const seen = await hasWelcomeModalBeenSeen(profile.id, uRole);
-      if (!seen) {
-        setShowWelcomeModal(true);
-      }
-    };
-    checkWelcomeModal();
-  }, [profile?.id, profile?.role]);
 
   // Favorites, copy link states (local UI feedback overlays)
   const [favorites, setFavorites] = useState({});
@@ -938,14 +924,6 @@ export default function ChefHomeScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* First Time Welcome Modal */}
-      <WelcomeModal
-        visible={showWelcomeModal}
-        role={profile?.role || "chef"}
-        userId={profile?.id || "guest"}
-        onClose={() => setShowWelcomeModal(false)}
-        onExplore={() => setShowWelcomeModal(false)}
-      />
     </ScreenWrapper>
   );
 }

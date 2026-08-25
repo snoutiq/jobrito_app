@@ -288,15 +288,12 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 
     const statusStr = String(
       info.availability_status || info.status || chef.availability_status || chef.status || chef.availability || ""
-    ).toLowerCase();
+    ).toLowerCase().trim();
 
-    const isAvailBool = info.is_available ?? chef.is_available ?? chef.isAvailable;
-
-    if (isAvailBool === false) return false;
-    if (statusStr.includes("not") || statusStr.includes("busy") || statusStr.includes("unavailable") || statusStr.includes("offline")) {
+    if (statusStr.includes("employed") || statusStr.includes("not") || statusStr.includes("busy") || statusStr.includes("unavailable") || statusStr.includes("offline")) {
       return false;
     }
-    if (statusStr.includes("available") || isAvailBool === true) {
+    if (statusStr.includes("available")) {
       return true;
     }
     return false;
@@ -1090,14 +1087,14 @@ const styles = StyleSheet.create({
     marginRight: normalize(10),
   },
   avatarImg: {
-    width: normalize(66),
-    height: normalize(66),
-    borderRadius: normalize(33),
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
   },
   avatarPlaceholder: {
-    width: normalize(66),
-    height: normalize(66),
-    borderRadius: normalize(33),
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(26),
     backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",

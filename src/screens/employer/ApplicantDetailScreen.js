@@ -140,10 +140,18 @@ export default function ApplicantDetailScreen({ route, navigation }) {
     return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
   };
 
-  // Dynamic API Availability mapping, now considering localStatus
-  const displayAvailability = getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available" || getAvailabilityStatus() === "Available"
-    ? "🟢 Available Immediately"
-    : getAvailabilityStatus() ? `🔴 ${getAvailabilityStatus()}` : "N/A";
+  const rawAvailStatus = String(getAvailabilityStatus()).trim();
+  const isAvailableStatus =
+    rawAvailStatus.toLowerCase().includes("available") &&
+    !rawAvailStatus.toLowerCase().includes("not") &&
+    !rawAvailStatus.toLowerCase().includes("un") &&
+    !rawAvailStatus.toLowerCase().includes("employed");
+
+  const displayAvailability = isAvailableStatus
+    ? `🟢 ${rawAvailStatus}`
+    : rawAvailStatus && rawAvailStatus !== "N/A"
+      ? rawAvailStatus
+      : "N/A";
 
   const getActiveSocials = () => {
     const list = [];

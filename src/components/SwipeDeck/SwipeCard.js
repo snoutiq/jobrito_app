@@ -127,9 +127,18 @@ export default function SwipeCard({
     return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
   };
 
-  const displayAvailability = getAvailabilityStatus() === "Available Immediately" || getAvailabilityStatus() === "Immediately Available" || getAvailabilityStatus() === "Available"
-    ? "🟢 Available Immediately"
-    : getAvailabilityStatus() ? `🔴 ${getAvailabilityStatus()}` : "N/A";
+  const rawAvailStatus = String(getAvailabilityStatus()).trim();
+  const isAvailableStatus =
+    rawAvailStatus.toLowerCase().includes("available") &&
+    !rawAvailStatus.toLowerCase().includes("not") &&
+    !rawAvailStatus.toLowerCase().includes("un") &&
+    !rawAvailStatus.toLowerCase().includes("employed");
+
+  const displayAvailability = isAvailableStatus
+    ? `🟢 ${rawAvailStatus}`
+    : rawAvailStatus && rawAvailStatus !== "N/A"
+      ? rawAvailStatus
+      : "N/A";
   
   const getActiveSocials = () => {
     const list = [];
@@ -425,12 +434,6 @@ export default function SwipeCard({
                       <Text style={styles.profileInfoValue}>{displayExperience}</Text>
                     </Text>
                   ) : null}
-                  {preferredCallTime && preferredCallTime !== "N/A" ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Call Time: </Text>
-                      <Text style={styles.profileInfoValue}>{preferredCallTime}</Text>
-                    </Text>
-                  ) : null}
                   {getAvailabilityStatus() && getAvailabilityStatus() !== "N/A" ? (
                     <Text numberOfLines={1} style={styles.detailRowText}>
                       <Text style={styles.profileInfoLabel}>Availability: </Text>
@@ -601,8 +604,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
+    width: 66,
+    height: 66,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: "#153e69",
