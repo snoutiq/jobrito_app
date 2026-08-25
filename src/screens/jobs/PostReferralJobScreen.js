@@ -207,6 +207,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
     "Mid-Level (3-5 years)",
   );
   const [requirements, setRequirements] = useState("");
+  const [benefits, setBenefits] = useState("");
   const [openPositions, setOpenPositions] = useState("1");
   const [positionsError, setPositionsError] = useState("");
 
@@ -648,7 +649,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
               </View>
 
               <Text style={styles.mainSubtitle}>
-                {t("postJobStep1Subtitle", "Post your job in just 3 simple steps.")}
+                {t("postReferralJobStep1Subtitle", "Post a referral job in just 3 simple steps")}
               </Text>
 
               {/* BASIC INFORMATION */}
@@ -670,10 +671,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     <TextInput
                       value={company}
                       onChangeText={setCompany}
-                      placeholder={t(
-                        "postJob.businessNamePlaceholder",
-                        "e.g. The Grand Bistro",
-                      )}
+                      placeholder=""
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={(e) => handleInputFocus(e, "company")}
@@ -795,7 +793,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                {/* 3. Contact Person Name */}
+                {/* 3. Contact Person */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
                     {t("postJob.contactPerson", "Contact Person Name")}<Text style={styles.required}> *</Text>
@@ -810,10 +808,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     <TextInput
                       value={contactPerson}
                       onChangeText={setContactPerson}
-                      placeholder={t(
-                        "postJob.contactPersonPlaceholder",
-                        "Full name of hiring manager",
-                      )}
+                      placeholder=""
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       onFocus={(e) => handleInputFocus(e, "contactPerson")}
@@ -856,10 +851,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={phoneNumber}
                         onChangeText={setPhoneNumber}
-                        placeholder={t(
-                          "postJob.phonePlaceholder",
-                          "9876543210",
-                        )}
+                        placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="phone-pad"
@@ -868,14 +860,6 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         onBlur={() => setActiveField(null)}
                       />
                     </View>
-                  </View>
-
-                  {/* Verified Text below Phone Field */}
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 }}>
-                    <Text style={{ fontSize: normalize(12), fontWeight: "700", color: "#16a34a" }}>
-                      {t("verified", "Verified")}
-                    </Text>
-                    <Ionicons name="checkmark-circle" size={normalize(14)} color="#16a34a" />
                   </View>
                 </View>
               </View>
@@ -964,7 +948,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={customRole}
                         onChangeText={setCustomRole}
-                        placeholder={t("enterCustomRolePlaceholder", "e.g. Executive Barista")}
+                        placeholder=""
                         placeholderTextColor="#94a3b8"
                         maxLength={20}
                         style={styles.textInput}
@@ -1030,7 +1014,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={salaryMin}
                         onChangeText={setSalaryMin}
-                        placeholder={t("postJob.salaryMinPlaceholder", "Min")}
+                        placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
@@ -1052,7 +1036,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={salaryMax}
                         onChangeText={setSalaryMax}
-                        placeholder={t("postJob.salaryMaxPlaceholder", "Max")}
+                        placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
@@ -1088,7 +1072,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                           setPositionsError(errMsg);
                         }
                       }}
-                      placeholder="1"
+                      placeholder=""
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       style={styles.textInput}
                       keyboardType="numeric"
@@ -1183,10 +1167,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     <TextInput
                       value={description}
                       onChangeText={setDescription}
-                      placeholder={t(
-                        "postJob.jobDescriptionPlaceholder",
-                        "Describe the job role and responsibilities...",
-                      )}
+                      placeholder=""
                       placeholderTextColor="rgba(10, 5, 4, 0.4)"
                       multiline
                       numberOfLines={4}

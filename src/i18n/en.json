@@ -1243,5 +1243,6 @@
   "viewProfile": "View Profile",
   "understood": "Understood",
   "deploymentLocation": "Deployment Location",
-  "trainingDuration": "Training Duration"
+  "trainingDuration": "Training Duration",
+  "postReferralJobStep1Subtitle": "Post a referral job in just 3 simple steps"
 }
