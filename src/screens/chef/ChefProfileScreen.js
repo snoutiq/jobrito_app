@@ -379,15 +379,8 @@ ${shareUrl}
           {t("chefProfileTitle", "Chef Profile")}
         </Text>
 
-        {/* Bell Icon with Red Dot Indicator */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate("EmployerNotifications")}
-          style={styles.headerBellBtn}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="notifications-outline" size={normalize(22)} color="#002b5c" />
-          <View style={styles.bellRedDot} />
-        </TouchableOpacity>
+        {/* Right Spacer for Header Title Centering */}
+        <View style={{ width: normalize(22) }} />
       </View>
 
       {/* Horizontal Divider Line Below Header */}
@@ -456,36 +449,36 @@ ${shareUrl}
           <View style={styles.metricsRow}>
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="location-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
-                <Text style={styles.metricValueText} numberOfLines={1}>
+                <Ionicons name="location-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2), marginTop: normalize(1) }} />
+                <Text style={styles.metricValueText} numberOfLines={2}>
                   {displayCity}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText} numberOfLines={1}>{t("currentLocation", "Current Location")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={2}>{t("currentLocation", "Current Location")}</Text>
             </View>
 
             <View style={styles.metricVerticalDivider} />
 
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="briefcase-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
-                <Text style={styles.metricValueText} numberOfLines={1}>
+                <Ionicons name="briefcase-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2), marginTop: normalize(1) }} />
+                <Text style={styles.metricValueText} numberOfLines={2}>
                   {displayExperience}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText} numberOfLines={1}>{t("experience", "Experience")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={2}>{t("experience", "Experience")}</Text>
             </View>
 
             <View style={styles.metricVerticalDivider} />
 
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="time-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
-                <Text style={styles.metricValueText} numberOfLines={1}>
+                <Ionicons name="time-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2), marginTop: normalize(1) }} />
+                <Text style={styles.metricValueText} numberOfLines={2}>
                   {displayAvailability}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText} numberOfLines={1}>{t("availability", "Availability")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={2}>{t("availability", "Availability")}</Text>
             </View>
           </View>
         </View>
@@ -983,7 +976,7 @@ const styles = StyleSheet.create({
   // 3 Metrics Row
   metricsRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     width: "100%",
   },
@@ -995,7 +988,7 @@ const styles = StyleSheet.create({
   },
   metricTitleRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     width: "100%",
     marginBottom: normalize(2),
   },
@@ -1004,6 +997,7 @@ const styles = StyleSheet.create({
     fontSize: normalize(11.5),
     fontWeight: "700",
     color: "#0f172a",
+    lineHeight: normalize(14),
   },
   metricLabelText: {
     fontSize: normalize(9.5),
@@ -1012,7 +1006,8 @@ const styles = StyleSheet.create({
   },
   metricVerticalDivider: {
     width: 1,
-    height: normalize(20),
+    height: "100%",
+    minHeight: normalize(24),
     backgroundColor: "#cbd5e1",
     marginHorizontal: normalize(4),
   },
