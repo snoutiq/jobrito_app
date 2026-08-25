@@ -327,10 +327,10 @@ export default function PostJobScreen({ navigation, route }) {
     }
     const parsedPositions = parseInt(openPositions, 10);
     if (!openPositions || isNaN(parsedPositions) || parsedPositions <= 0) {
-      const errMsg = t("invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+      const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
       setPositionsError(errMsg);
       Alert.alert(
-        t("invalidPositionsTitle", "Invalid Open Positions"),
+        t("postJob.invalidPositionsTitle", "Invalid Open Positions"),
         errMsg
       );
       return;
@@ -719,7 +719,7 @@ export default function PostJobScreen({ navigation, route }) {
 
               {/* Open Positions */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("openPositions", "Open Positions")}</Text>
+                <Text style={styles.inputLabel}>{t("postJob.openPositions", "Open Positions")}</Text>
                 <View style={[styles.inputWrapper, activeField === "openPositions" && styles.inputWrapperActive, Boolean(positionsError) && { borderColor: "#ef4444" }]}>
                   <TextInput
                     value={openPositions}
@@ -728,14 +728,24 @@ export default function PostJobScreen({ navigation, route }) {
                       const p = parseInt(val, 10);
                       if (val && (!isNaN(p) && p > 0)) {
                         setPositionsError("");
+                      } else if (val === "0" || (val && isNaN(p)) || (val && p <= 0)) {
+                        const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+                        setPositionsError(errMsg);
                       }
                     }}
                     placeholder="1"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     keyboardType="numeric"
                     style={styles.textInput}
                     onFocus={(e) => handleInputFocus(e, "openPositions")}
-                    onBlur={() => setActiveField(null)}
+                    onBlur={() => {
+                      setActiveField(null);
+                      const p = parseInt(openPositions, 10);
+                      if (!openPositions || isNaN(p) || p <= 0) {
+                        const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+                        setPositionsError(errMsg);
+                      }
+                    }}
                   />
                 </View>
                 {Boolean(positionsError) && (

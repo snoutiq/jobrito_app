@@ -1083,6 +1083,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         const p = parseInt(val, 10);
                         if (val && (!isNaN(p) && p > 0)) {
                           setPositionsError("");
+                        } else if (val === "0" || (val && isNaN(p)) || (val && p <= 0)) {
+                          const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+                          setPositionsError(errMsg);
                         }
                       }}
                       placeholder="1"
@@ -1090,7 +1093,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       style={styles.textInput}
                       keyboardType="numeric"
                       onFocus={(e) => handleInputFocus(e, "openPositions")}
-                      onBlur={() => setActiveField(null)}
+                      onBlur={() => {
+                        setActiveField(null);
+                        const p = parseInt(openPositions, 10);
+                        if (!openPositions || isNaN(p) || p <= 0) {
+                          const errMsg = t("postJob.invalidOpenPositions", "Please enter a valid number of open positions (at least 1).");
+                          setPositionsError(errMsg);
+                        }
+                      }}
                     />
                   </View>
                   {Boolean(positionsError) && (

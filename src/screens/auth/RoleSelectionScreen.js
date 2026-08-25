@@ -172,7 +172,7 @@ export default function RoleSelectionScreen({ navigation }) {
       </View>
 
       {/* One Mobile Number Notice Card */}
-      <View style={styles.noticeCard}>
+      {/* <View style={styles.noticeCard}>
         <View style={styles.shieldIconCircle}>
           <Ionicons name="shield-checkmark" size={normalize(20)} color="#ffffff" />
         </View>
@@ -188,7 +188,7 @@ export default function RoleSelectionScreen({ navigation }) {
             )}
           </Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Footer Card */}
       <View style={styles.footerCard}>
