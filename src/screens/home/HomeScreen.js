@@ -811,20 +811,20 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.cardFooterRow}>
                   {/* Left: Posted By (Column Stack) */}
                   <View style={styles.postedByCol}>
-                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}:</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 1 }}>
                       {isTraining && (
-                        <Ionicons name="business" size={normalize(14)} color="#6b21a8" style={{ marginRight: 6 }} />
+                        <Ionicons name="business" size={normalize(12)} color="#6b21a8" style={{ marginRight: 4 }} />
                       )}
-                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}: </Text>
                       <Text style={[styles.postedByBold, isTraining && { color: "#6b21a8" }]} numberOfLines={1}>
                         {postedByLabelText}
                       </Text>
                     </View>
-                    {isTraining ? (
-                      <Text style={{ fontSize: normalize(9.5), color: "#64748b", marginTop: 1 }}>
+                    {isTraining && (
+                      <Text style={{ fontSize: normalize(9), color: "#64748b", marginTop: 1 }} numberOfLines={1}>
                         (Hospitality Training Agency)
                       </Text>
-                    ) : null}
+                    )}
                   </View>
 
                   {/* Right: Action Buttons */}
@@ -1867,7 +1867,7 @@ const styles = StyleSheet.create({
   modernJobCard: {
     backgroundColor: "#ffffff",
     borderRadius: normalize(14),
-    padding: normalize(14),
+    padding: normalize(12),
     marginBottom: normalize(14),
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -1876,6 +1876,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+    overflow: "hidden",
   },
   cardTopRow: {
     flexDirection: "row",
@@ -1977,12 +1978,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: normalize(4),
-    flexWrap: "wrap",
   },
   postedByCol: {
     flexDirection: "column",
     justifyContent: "center",
-    flexShrink: 1,
+    flex: 1,
   },
   postedByLabel: {
     fontSize: normalize(9.5),
@@ -2000,20 +2000,20 @@ const styles = StyleSheet.create({
   cardActionGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: normalize(4),
+    gap: normalize(3),
     flexShrink: 0,
   },
   cardNavyBtn: {
     backgroundColor: "#153e69",
     borderRadius: normalize(6),
-    paddingHorizontal: normalize(8),
-    paddingVertical: normalize(6),
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(5),
     alignItems: "center",
     justifyContent: "center",
   },
   cardNavyBtnText: {
     color: "#ffffff",
-    fontSize: normalize(10),
+    fontSize: normalize(9.5),
     fontWeight: "800",
   },
   cardOutlineBtn: {
@@ -2021,15 +2021,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#153e69",
     borderRadius: normalize(6),
-    paddingHorizontal: normalize(7),
-    paddingVertical: normalize(6),
+    paddingHorizontal: normalize(5),
+    paddingVertical: normalize(5),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
   cardOutlineBtnText: {
     color: "#153e69",
-    fontSize: normalize(10),
+    fontSize: normalize(9.5),
     fontWeight: "800",
   },
   cardAppliedBtn: {
@@ -2040,8 +2040,8 @@ const styles = StyleSheet.create({
     color: "#64748b",
   },
   cardSquareIconBtn: {
-    width: normalize(28),
-    height: normalize(28),
+    width: normalize(26),
+    height: normalize(26),
     borderRadius: normalize(6),
     borderWidth: 1,
     borderColor: "#cbd5e1",
