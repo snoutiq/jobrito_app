@@ -160,7 +160,8 @@ export default function EmployerHomeScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const totalApplicants = metrics?.total_applicants ?? 0;
+  const totalApplicants = metrics?.total_applicants ?? metrics?.new ?? 0;
+  const viewedCount = metrics?.viewed ?? metrics?.viewed_count ?? 0;
   const shortlistedCount = metrics?.shortlisted ?? 0;
   const rejectedCount = metrics?.rejected ?? 0;
   const contactedCount = metrics?.contacted ?? 0;
@@ -276,33 +277,20 @@ export default function EmployerHomeScreen({ navigation }) {
 
             <View style={styles.gridDivider} />
 
-            {/* Shortlisted Selected */}
+            {/* Viewed Applications */}
             <View style={styles.gridColItem}>
               <View style={[styles.statIconCircle, { backgroundColor: "#eff6ff" }]}>
-                <Ionicons name="bookmark-outline" size={normalize(18)} color="#2563eb" />
+                <Ionicons name="eye-outline" size={normalize(18)} color="#2563eb" />
               </View>
               <Text style={[styles.statNumberText, { color: "#1d4ed8" }]}>
-                {shortlistedCount}
+                {viewedCount}
               </Text>
-              <Text style={styles.statLine1}>{t("shortlisted", "Shortlisted")}</Text>
-              <Text style={styles.statLine2}>{t("selected", "Selected")}</Text>
+              <Text style={styles.statLine1}>{t("viewed", "Viewed")}</Text>
+              <Text style={styles.statLine2}>{t("applications", "Applications")}</Text>
             </View>
 
             <View style={styles.gridDivider} />
 
-            {/* Rejected Declined */}
-            <View style={styles.gridColItem}>
-              <View style={[styles.statIconCircle, { backgroundColor: "#fff7ed" }]}>
-                <Ionicons name="close-circle-outline" size={normalize(18)} color="#f97316" />
-              </View>
-              <Text style={[styles.statNumberText, { color: "#c2410c" }]}>
-                {rejectedCount}
-              </Text>
-              <Text style={styles.statLine1}>{t("rejected", "Rejected")}</Text>
-              <Text style={styles.statLine2}>{t("declined", "Declined")}</Text>
-            </View>
-
-            <View style={styles.gridDivider} />
 
             {/* Contacted Connected */}
             <View style={styles.gridColItem}>
@@ -314,6 +302,19 @@ export default function EmployerHomeScreen({ navigation }) {
               </Text>
               <Text style={styles.statLine1}>{t("contacted", "Contacted")}</Text>
               <Text style={styles.statLine2}>{t("connected", "Connected")}</Text>
+            </View>
+             <View style={styles.gridDivider} />
+
+                   {/* Rejected Declined */}
+            <View style={styles.gridColItem}>
+              <View style={[styles.statIconCircle, { backgroundColor: "#fff7ed" }]}>
+                <Ionicons name="close-circle-outline" size={normalize(18)} color="#f97316" />
+              </View>
+              <Text style={[styles.statNumberText, { color: "#c2410c" }]}>
+                {rejectedCount}
+              </Text>
+              <Text style={styles.statLine1}>{t("rejected", "Rejected")}</Text>
+              <Text style={styles.statLine2}>{t("declined", "Declined")}</Text>
             </View>
           </View>
         </View>

@@ -95,35 +95,48 @@ export default function MyJobsScreen({ navigation, route }) {
       ? job.applications
       : [];
 
+    const statsObj = job?.stats || {};
+
+    const viewed =
+      statsObj.viewed ??
+      job?.viewed_count ??
+      job?.viewed ??
+      applicants.filter((a) => String(a?.status).toLowerCase() === "viewed").length;
+
     const shortlisted =
+      statsObj.shortlisted ??
       job?.shortlisted_count ??
       job?.shortlisted ??
       job?.shortlist_count ??
       applicants.filter((a) => String(a?.status).toLowerCase() === "shortlisted").length;
 
     const contacted =
+      statsObj.contacted ??
       job?.contacted_count ??
       job?.contacted ??
       applicants.filter((a) => String(a?.status).toLowerCase() === "contacted").length;
 
     const rejected =
+      statsObj.rejected ??
       job?.rejected_count ??
       job?.rejected ??
       applicants.filter((a) => String(a?.status).toLowerCase() === "rejected").length;
 
     const pending =
+      statsObj.new ??
       job?.pending_count ??
       job?.new_count ??
       job?.under_review_count ??
       applicants.filter((a) => ["new", "pending", "under_review", "under review"].includes(String(a?.status).toLowerCase())).length;
 
     const total =
+      statsObj.total ??
       job?.total_applicants ??
       job?.applicants_count ??
       job?.applicant_count ??
       applicants.length;
 
-    return { shortlisted, contacted, rejected, pending, total };
+    return { viewed, shortlisted, contacted, rejected, pending, total };
   };
 
   const checkPostLimitAndNavigate = async () => {
@@ -446,13 +459,13 @@ export default function MyJobsScreen({ navigation, route }) {
                   navigation.navigate("ApplicantList", {
                     jobId: job.id,
                     jobTitle: jobTitle || job.title,
-                    initialFilter: "shortlisted",
+                    initialFilter: "viewed",
                   });
                 }}
                 activeOpacity={0.85}
               >
-                <Text style={[styles.statsBadgeNum, { color: "#137333" }]}>{stats.shortlisted}</Text>
-                <Text style={[styles.statsBadgeLabel, { color: "#137333" }]}>{t("shortlisted", "Shortlisted")}</Text>
+                <Text style={[styles.statsBadgeNum, { color: "#137333" }]}>{stats.viewed}</Text>
+                <Text style={[styles.statsBadgeLabel, { color: "#137333" }]}>{t("viewed", "Viewed")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

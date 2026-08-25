@@ -69,3 +69,13 @@ export const getMatchScore = async (applicationId) => {
   return response.data;
 };
 
+export const markApplicationViewed = async (applicationId) => {
+  if (!applicationId) return;
+  try {
+    const response = await apiClient.post(`/employer/applications/${applicationId}/view`);
+    return response.data;
+  } catch (error) {
+    console.warn("Failed to mark application as viewed:", error?.message || error);
+  }
+};
+

@@ -6,8 +6,22 @@ import { useTranslation } from "react-i18next";
 export default function ApplicantPreview({ applicant }) {
   const { t } = useTranslation();
 
+  const isChef = !!(
+    applicant.chef_profile ||
+    applicant.chef_profile_details ||
+    applicant.role?.toLowerCase() === "chef" ||
+    applicant.user?.role?.toLowerCase() === "chef"
+  );
+  const isJobSeeker =
+    !isChef ||
+    applicant.role?.toLowerCase() === "job_seeker" ||
+    applicant.role?.toLowerCase() === "talent" ||
+    applicant.user?.role?.toLowerCase() === "job_seeker" ||
+    applicant.user?.role?.toLowerCase() === "talent" ||
+    applicant.user_type === "job_seeker";
+
   const displayCuisine = applicant.cuisine_specialty || "";
-  const displayAvailability = applicant.availability_status || "";
+  const displayAvailability = isJobSeeker ? "" : (applicant.availability_status || "");
   const displayExperience = applicant.experience_range || "";
 
   const checklistItems = [];

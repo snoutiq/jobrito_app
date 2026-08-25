@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
-import { getMatchScore } from "../../services/employerApi";
+import { getMatchScore, markApplicationViewed } from "../../services/employerApi";
 import CardStack from "../../components/SwipeDeck/CardStack";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -68,10 +68,10 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   // Tab counts
   const totalApplied = applicants.length;
-  const shortlistedCount = applicants.filter((a) => a.status?.toLowerCase() === "shortlisted").length;
-  const contactedCount = applicants.filter((a) => a.status?.toLowerCase() === "contacted").length;
-  const rejectedCount = applicants.filter((a) => a.status?.toLowerCase() === "rejected").length;
-  const pendingCount = applicants.filter((a) => ["new", "pending"].includes(a.status?.toLowerCase())).length;
+  const viewedCount = applicants.filter((a) => String(a.status)?.toLowerCase() === "viewed" || String(a.status)?.toLowerCase() === "shortlisted").length;
+  const contactedCount = applicants.filter((a) => String(a.status)?.toLowerCase() === "contacted").length;
+  const rejectedCount = applicants.filter((a) => String(a.status)?.toLowerCase() === "rejected").length;
+  const pendingCount = applicants.filter((a) => ["new", "pending"].includes(String(a.status)?.toLowerCase())).length;
 
   // Filtered list
   const filteredApplicants = useMemo(() => {
@@ -79,6 +79,7 @@ export default function ApplicantListScreen({ route, navigation }) {
       const status = item.status?.toLowerCase();
       if (activeFilter === "all") return true;
       if (activeFilter === "new") return status === "new" || status === "pending";
+      if (activeFilter === "viewed" || activeFilter === "shortlisted") return status === "viewed" || status === "shortlisted";
       return status === activeFilter;
     });
   }, [applicants, activeFilter]);
@@ -90,6 +91,10 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   const handleDetailsPress = (applicant) => {
     if (!applicant) return;
+    const appId = applicant.application_id || applicant.id;
+    if (appId) {
+      markApplicationViewed(appId);
+    }
     navigation.navigate("ApplicantDetail", {
       applicantId: applicant.id,
       jobId,
@@ -100,7 +105,7 @@ export default function ApplicantListScreen({ route, navigation }) {
   const filterTabs = [
     { key: "all", label: t("all", "All"), count: totalApplied, activeColor: "#153e69" },
     { key: "new", label: t("new", "New"), count: pendingCount, activeColor: "#153e69" },
-    { key: "shortlisted", label: t("shortlisted", "Shortlisted"), count: shortlistedCount, activeColor: "#1b8755" },
+    { key: "viewed", label: t("viewed", "Viewed"), count: viewedCount, activeColor: "#1b8755" },
     { key: "contacted", label: t("contacted", "Contacted"), count: contactedCount, activeColor: "#153e69" },
     { key: "rejected", label: t("rejected", "Rejected"), count: rejectedCount, activeColor: "#f57f20" },
   ];

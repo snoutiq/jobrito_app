@@ -105,19 +105,30 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
 
   const rawAppliedAt = getProp("applied_at", "appliedOn", "created_at");
 
+  const rawFormatted = getProp("applied_at_formatted");
   const appliedDateStr =
-    getProp("applied_at_formatted") ||
+    (rawFormatted ? String(rawFormatted).split(",")[0] : null) ||
     formatCreatedDate(rawAppliedAt) ||
     "";
 
   const rawViewedAt = getProp("viewed_at", "viewedOn", "viewed_date");
 
+  const currentStatus = String(
+    getProp("application_status", "status", "app_status") || "applied"
+  ).toLowerCase().trim();
+
   const isViewedActive = Boolean(
     rawViewedAt ||
     getProp("viewed_at_formatted") ||
     getProp("is_viewed") ||
-    String(getProp("status") || "").toLowerCase() === "viewed"
+    ["viewed", "shortlisted", "contacted", "rejected", "hired", "accepted"].includes(currentStatus)
   );
+
+  const isShortlisted = currentStatus === "shortlisted";
+  const isContacted = currentStatus === "contacted";
+  const isRejected = currentStatus === "rejected";
+  const isHired = currentStatus === "hired" || currentStatus === "accepted";
+  const hasActionStatus = isShortlisted || isContacted || isRejected || isHired;
 
   const viewedDateStr = isViewedActive
     ? (getProp("viewed_at_formatted") || formatCreatedDate(rawViewedAt) || "-")
@@ -280,7 +291,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           <Text style={styles.sectionHeading}>{t("applicationStatus", "Application Status")}</Text>
 
           <View style={styles.timelineStepperContainer}>
-            {/* Step 1: Applied (Completed) */}
+            {/* Step 1: Applied */}
             <View style={styles.stepperItem}>
               <View style={[styles.stepperNode, styles.stepperNodeActive]}>
                 <Ionicons name="checkmark" size={normalize(14)} color="#16a34a" />
@@ -296,40 +307,126 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
 
             {/* Step 2: Viewed */}
             <View style={styles.stepperItem}>
-              <View style={[styles.stepperNode, isViewedActive ? styles.stepperNodeCurrent : styles.stepperNodeDefault]}>
+              <View
+                style={[
+                  styles.stepperNode,
+                  isViewedActive
+                    ? (isShortlisted || isContacted ? styles.stepperNodeActive : styles.stepperNodeCurrent)
+                    : styles.stepperNodeDefault,
+                ]}
+              >
                 <Ionicons
-                  name="eye-outline"
+                  name={isShortlisted || isContacted ? "checkmark" : "eye-outline"}
                   size={normalize(14)}
-                  color={isViewedActive ? "#153e69" : "#94a3b8"}
+                  color={isViewedActive ? (isShortlisted || isContacted ? "#16a34a" : "#153e69") : "#94a3b8"}
                 />
               </View>
-              <Text style={[styles.stepperLabel, isViewedActive ? styles.stepperLabelCurrent : styles.stepperLabelDefault]}>
+              <Text
+                style={[
+                  styles.stepperLabel,
+                  isViewedActive
+                    ? (isShortlisted || isContacted ? styles.stepperLabelActive : styles.stepperLabelCurrent)
+                    : styles.stepperLabelDefault,
+                ]}
+              >
                 {t("status.viewed", "Viewed")}
               </Text>
               <Text style={styles.stepperDate}>{viewedDateStr}</Text>
             </View>
 
-            {/* Connecting Line 2 (Dashed Blue) */}
-            <View style={styles.lineDashedBlue} />
+            {/* Connecting Line 2 */}
+            <View
+              style={
+                isShortlisted || isContacted
+                  ? styles.lineSolidGreen
+                  : (isRejected ? styles.lineSolidRed : (isViewedActive ? styles.lineDashedBlue : styles.lineSolidGray))
+              }
+            />
 
-            {/* Step 3: In Review */}
+            {/* Step 3: In Review / Shortlisted */}
             <View style={styles.stepperItem}>
-              <View style={styles.stepperNodeDefault}>
-                <Ionicons name="time-outline" size={normalize(14)} color="#94a3b8" />
+              <View
+                style={[
+                  styles.stepperNode,
+                  isContacted
+                    ? styles.stepperNodeActive
+                    : isShortlisted
+                    ? styles.stepperNodeCurrent
+                    : styles.stepperNodeDefault,
+                ]}
+              >
+                <Ionicons
+                  name={
+                    isContacted
+                      ? "checkmark"
+                      : isShortlisted
+                      ? "heart-outline"
+                      : "time-outline"
+                  }
+                  size={normalize(14)}
+                  color={
+                    isContacted
+                      ? "#16a34a"
+                      : isShortlisted
+                      ? "#153e69"
+                      : "#94a3b8"
+                  }
+                />
               </View>
-              <Text style={styles.stepperLabelDefault}>{t("status.inReview", "In Review")}</Text>
+              <Text
+                style={[
+                  styles.stepperLabel,
+                  isContacted
+                    ? styles.stepperLabelActive
+                    : isShortlisted
+                    ? styles.stepperLabelCurrent
+                    : styles.stepperLabelDefault,
+                ]}
+              >
+                {isShortlisted ? t("shortlisted", "Shortlisted") : t("status.inReview", "In Review")}
+              </Text>
               <Text style={styles.stepperDate}>-</Text>
             </View>
 
-            {/* Connecting Line 3 (Solid Gray) */}
-            <View style={styles.lineSolidGray} />
+            {/* Connecting Line 3 */}
+            <View
+              style={
+                isContacted
+                  ? styles.lineSolidGreen
+                  : (isRejected ? styles.lineSolidRed : styles.lineSolidGray)
+              }
+            />
 
-            {/* Step 4: Contacted */}
+            {/* Step 4: Contacted / Rejected */}
             <View style={styles.stepperItem}>
-              <View style={styles.stepperNodeDefault}>
-                <Ionicons name="call-outline" size={normalize(14)} color="#94a3b8" />
+              <View
+                style={[
+                  styles.stepperNode,
+                  isRejected
+                    ? styles.stepperNodeRed
+                    : isContacted
+                    ? styles.stepperNodeCurrent
+                    : styles.stepperNodeDefault,
+                ]}
+              >
+                <Ionicons
+                  name={isRejected ? "close-circle-outline" : "call-outline"}
+                  size={normalize(14)}
+                  color={isRejected ? "#dc2626" : isContacted ? "#153e69" : "#94a3b8"}
+                />
               </View>
-              <Text style={styles.stepperLabelDefault}>{t("status.contacted", "Contacted")}</Text>
+              <Text
+                style={[
+                  styles.stepperLabel,
+                  isRejected
+                    ? styles.stepperLabelRed
+                    : isContacted
+                    ? styles.stepperLabelCurrent
+                    : styles.stepperLabelDefault,
+                ]}
+              >
+                {isRejected ? t("rejected", "Rejected") : t("status.contacted", "Contacted")}
+              </Text>
               <Text style={styles.stepperDate}>-</Text>
             </View>
           </View>
@@ -589,6 +686,7 @@ const styles = StyleSheet.create({
   },
   stepperItem: {
     alignItems: "center",
+    justifyContent: "flex-start",
     flex: 1,
   },
   stepperNode: {
@@ -607,6 +705,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#153e69",
   },
+  stepperNodeRed: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1.5,
+    borderColor: "#dc2626",
+  },
   stepperNodeDefault: {
     width: normalize(34),
     height: normalize(34),
@@ -620,6 +723,7 @@ const styles = StyleSheet.create({
     fontSize: normalize(11),
     fontWeight: "700",
     marginBottom: 2,
+    textAlign: "center",
   },
   stepperLabelActive: {
     color: "#16a34a",
@@ -627,21 +731,32 @@ const styles = StyleSheet.create({
   stepperLabelCurrent: {
     color: "#153e69",
   },
+  stepperLabelRed: {
+    color: "#dc2626",
+  },
   stepperLabelDefault: {
     fontSize: normalize(11),
     fontWeight: "600",
     color: "#94a3b8",
     marginBottom: 2,
+    textAlign: "center",
   },
   stepperDate: {
     fontSize: normalize(9.5),
     color: "#64748b",
     fontWeight: "500",
+    textAlign: "center",
   },
   lineSolidGreen: {
     height: 2,
     flex: 0.4,
     backgroundColor: "#16a34a",
+    marginTop: -normalize(20),
+  },
+  lineSolidRed: {
+    height: 2,
+    flex: 0.4,
+    backgroundColor: "#dc2626",
     marginTop: -normalize(20),
   },
   lineDashedBlue: {

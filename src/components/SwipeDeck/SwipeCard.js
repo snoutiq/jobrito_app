@@ -108,6 +108,22 @@ export default function SwipeCard({
   };
 
   const getAvailabilityStatus = () => {
+    const isChef = !!(
+      applicant.chef_profile ||
+      applicant.chef_profile_details ||
+      applicant.role?.toLowerCase() === "chef" ||
+      applicant.user?.role?.toLowerCase() === "chef"
+    );
+    const isJobSeeker =
+      !isChef ||
+      applicant.role?.toLowerCase() === "job_seeker" ||
+      applicant.role?.toLowerCase() === "talent" ||
+      applicant.user?.role?.toLowerCase() === "job_seeker" ||
+      applicant.user?.role?.toLowerCase() === "talent" ||
+      applicant.user_type === "job_seeker";
+
+    if (isJobSeeker) return "";
+
     return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
   };
 

@@ -121,6 +121,22 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   };
 
   const getAvailabilityStatus = () => {
+    const isChef = !!(
+      applicant.chef_profile ||
+      applicant.chef_profile_details ||
+      applicant.role?.toLowerCase() === "chef" ||
+      applicant.user?.role?.toLowerCase() === "chef"
+    );
+    const isJobSeeker =
+      !isChef ||
+      applicant.role?.toLowerCase() === "job_seeker" ||
+      applicant.role?.toLowerCase() === "talent" ||
+      applicant.user?.role?.toLowerCase() === "job_seeker" ||
+      applicant.user?.role?.toLowerCase() === "talent" ||
+      applicant.user_type === "job_seeker";
+
+    if (isJobSeeker) return "";
+
     return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
   };
 
@@ -568,36 +584,28 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         )}
       </ScrollView>
 
-      {/* Sticky Bottom Actions Bar */}
+      {/* Sticky Bottom Actions Bar (2 Buttons: Call & Reject) */}
       <View style={styles.stickyFooter}>
-        {/* Shortlist (Accept) Button */}
+        {/* Call Button */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnAccept, (isShortlisted || isRejected) && styles.btnDisabled]}
-          onPress={handleHire}
-          activeOpacity={0.8}
-          disabled={isShortlisted || isRejected}
-        >
-          <Ionicons name="heart" size={28} color={(isShortlisted || isRejected) ? "#a0a0a0" : "#4CAF50"} />
-        </TouchableOpacity>
-
-        {/* Call (Contacted) Button */}
-        <TouchableOpacity
-          style={[styles.btn, styles.btnCall, (isContacted || isRejected) && styles.btnDisabled]}
+          style={[styles.actionBtn, styles.btnCall, (isContacted || isRejected) && styles.btnDisabled]}
           onPress={handleCall}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
           disabled={isContacted || isRejected}
         >
-          <Ionicons name="call" size={28} color={(isContacted || isRejected) ? "#a0a0a0" : "#153e69"} />
+          <Ionicons name="call" size={normalize(18)} color="#ffffff" />
+          <Text style={styles.btnCallText}>{t("call", "Call")}</Text>
         </TouchableOpacity>
 
         {/* Reject Button */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnReject, isRejected && styles.btnDisabled]}
+          style={[styles.actionBtn, styles.btnReject, isRejected && styles.btnDisabled]}
           onPress={handleReject}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
           disabled={isRejected}
         >
-          <Ionicons name="close" size={28} color={isRejected ? "#a0a0a0" : "#f57f20"} />
+          <Ionicons name="close-circle" size={normalize(18)} color="#dc2626" />
+          <Text style={styles.btnRejectText}>{t("reject", "Reject")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -937,48 +945,45 @@ const styles = StyleSheet.create({
     borderColor: "rgba(10, 5, 4, 0.08)",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    gap: 20,
+    justifyContent: "space-between",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
+    gap: normalize(12),
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 10,
   },
-  btn: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    justifyContent: "center",
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    borderWidth: 2,
-    shadowColor: "rgba(10, 5, 4, 0.08)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    justifyContent: "center",
+    height: normalize(46),
+    borderRadius: normalize(12),
+    gap: normalize(8),
   },
   btnCall: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderColor: "rgba(21, 62, 105, 0.15)",
+    backgroundColor: "#153e69",
+  },
+  btnCallText: {
+    fontSize: normalize(15),
+    fontWeight: "700",
+    color: "#ffffff",
   },
   btnReject: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderColor: "#f57f20",
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fca5a5",
   },
-  btnAccept: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderColor: "#4CAF50",
+  btnRejectText: {
+    fontSize: normalize(15),
+    fontWeight: "700",
+    color: "#dc2626",
   },
   btnDisabled: {
-    opacity: 0.35,
-    backgroundColor: "#eaeaea",
-    borderColor: "#cccccc",
+    opacity: 0.4,
   },
   centered: {
     flex: 1,
