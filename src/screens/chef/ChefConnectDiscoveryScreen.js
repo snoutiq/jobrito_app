@@ -129,48 +129,111 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
       const q = searchQuery.toLowerCase().replace("id:", "").replace("#", "").trim();
       const matchName = (chef.full_name || chef.name || "").toLowerCase().includes(q);
       const matchCuisine = (chef.cuisine_specialty || "").toLowerCase().includes(q);
-      const matchCity = (chef.city || "").toLowerCase().includes(q);
+      const matchCity = (chef.city || chef.location || "").toLowerCase().includes(q);
       const matchId = chef.id ? chef.id.toString() === q : false;
       if (!matchName && !matchCuisine && !matchCity && !matchId) return false;
     }
 
     // 2. Quick filters
     const empPrefs = getEmploymentList(chef);
-    const empPrefsLower = empPrefs.map(x => x.toLowerCase());
+    const empPrefsLower = empPrefs.map((x) => String(x).toLowerCase());
 
     if (activeQuickFilter === "freelance") {
-      const isFreelancer = empPrefsLower.some(x => x.includes("freelance") || x.includes("consultant"));
+      const isFreelancer = empPrefsLower.some((x) => x.includes("freelance") || x.includes("consultant"));
       if (!isFreelancer) return false;
     } else if (activeQuickFilter === "full_time") {
-      const isFullTimer = empPrefsLower.some(x => x.includes("full time"));
+      const isFullTimer = empPrefsLower.some((x) => x.includes("full") || x.includes("full_time"));
       if (!isFullTimer) return false;
     } else if (activeQuickFilter === "part_time") {
-      const isPartTimer = empPrefsLower.some(x => x.includes("part time"));
+      const isPartTimer = empPrefsLower.some((x) => x.includes("part") || x.includes("part_time"));
       if (!isPartTimer) return false;
     }
 
-    // 3. Advanced filters (Accordion params)
+    // 3. Advanced filters (from ChefConnectFiltersScreen)
     if (activeFilters) {
-      if (activeFilters.employment?.length > 0) {
-        const matches = empPrefs.some(x => activeFilters.employment.includes(x));
+      // 3a. Employment Preference
+      if (Array.isArray(activeFilters.employment) && activeFilters.employment.length > 0) {
+        const matches = empPrefsLower.some((p) =>
+          activeFilters.employment.some((filterOpt) => {
+            const f = filterOpt.toLowerCase();
+            return p.includes(f) || f.includes(p);
+          })
+        );
         if (!matches) return false;
       }
-      if (activeFilters.experience) {
-        const matches = chef.experience_range === activeFilters.experience;
+
+      // 3b. Experience Level
+      const expList = Array.isArray(activeFilters.experienceList) && activeFilters.experienceList.length > 0
+        ? activeFilters.experienceList
+        : activeFilters.experience
+        ? [activeFilters.experience]
+        : [];
+      if (expList.length > 0) {
+        const chefExp = String(
+          chef.experience_range || chef.experienceYears || chef.experience || ""
+        ).toLowerCase();
+        const matches = expList.some((f) => {
+          const filterExp = f.toLowerCase();
+          return chefExp.includes(filterExp) || filterExp.includes(chefExp);
+        });
         if (!matches) return false;
       }
-      if (activeFilters.cuisines?.length > 0) {
-        const matches = activeFilters.cuisines.includes(chef.cuisine_specialty);
+
+      // 3c. Cuisine Specialization
+      if (Array.isArray(activeFilters.cuisines) && activeFilters.cuisines.length > 0) {
+        const chefCuisine = String(chef.cuisine_specialty || chef.cuisines || chef.category || "").toLowerCase();
+        const matches = activeFilters.cuisines.some((c) => {
+          const filterCuisine = c.toLowerCase();
+          return chefCuisine.includes(filterCuisine) || filterCuisine.includes(chefCuisine);
+        });
         if (!matches) return false;
       }
-      if (activeFilters.operations?.length > 0) {
-        const skillsList = getSkillsList(chef) || [];
-        const matches = skillsList.some(x => activeFilters.operations.includes(x));
+
+      // 3d. Operational Expertise / Skills
+      if (Array.isArray(activeFilters.operations) && activeFilters.operations.length > 0) {
+        const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
+        const matches = skillsList.some((s) =>
+          activeFilters.operations.some((op) => {
+            const filterOp = op.toLowerCase();
+            return s.includes(filterOp) || filterOp.includes(s);
+          })
+        );
         if (!matches) return false;
       }
-      if (activeFilters.regional?.length > 0) {
-        const regionalList = getRegionalList(chef);
-        const matches = regionalList.some(x => activeFilters.regional.includes(x));
+
+      // 3e. Business & Brand Development
+      if (Array.isArray(activeFilters.business) && activeFilters.business.length > 0) {
+        const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
+        const matches = skillsList.some((s) =>
+          activeFilters.business.some((b) => {
+            const filterB = b.toLowerCase();
+            return s.includes(filterB) || filterB.includes(s);
+          })
+        );
+        if (!matches) return false;
+      }
+
+      // 3f. Regional Experience
+      if (Array.isArray(activeFilters.regional) && activeFilters.regional.length > 0) {
+        const regionalList = getRegionalList(chef).map((r) => String(r).toLowerCase());
+        const matches = regionalList.some((r) =>
+          activeFilters.regional.some((reg) => {
+            const filterReg = reg.toLowerCase();
+            return r.includes(filterReg) || filterReg.includes(r);
+          })
+        );
+        if (!matches) return false;
+      }
+
+      // 3g. Location Preference
+      if (Array.isArray(activeFilters.locationPreference) && activeFilters.locationPreference.length > 0) {
+        const chefLocPref = String(
+          chef.locationPreference || chef.location_preference || chef.preferred_location || chef.city || ""
+        ).toLowerCase();
+        const matches = activeFilters.locationPreference.some((loc) => {
+          const filterLoc = loc.toLowerCase();
+          return chefLocPref.includes(filterLoc) || filterLoc.includes(chefLocPref);
+        });
         if (!matches) return false;
       }
     }
