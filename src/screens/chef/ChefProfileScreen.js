@@ -428,20 +428,23 @@ ${shareUrl}
 
             <View style={styles.heroTextCol}>
               <View style={styles.nameRow}>
-                <Text style={styles.heroNameText}>{displayName}</Text>
-                <View style={styles.activePillBadge}>
-                  <View style={styles.greenActiveDot} />
-                  <Text style={styles.activePillText}>{t("active", "Active")}</Text>
-                </View>
+                <Text style={styles.heroNameText} numberOfLines={1}>{displayName}</Text>
+            
               </View>
 
-              <Text style={styles.heroRoleText}>{displayTitle}</Text>
-
-              <View style={styles.jobTypePillBadge}>
-                <Text style={styles.jobTypePillText}>
-                  {profile?.job_type || "Freelance"}
+              {!!displayTitle && (
+                <Text style={styles.heroRoleText} numberOfLines={1}>
+                  {displayTitle}
                 </Text>
-              </View>
+              )}
+
+              {!!profile?.job_type && profile?.job_type !== displayTitle && (
+                <View style={styles.jobTypePillBadge}>
+                  <Text style={styles.jobTypePillText} numberOfLines={1}>
+                    {profile?.job_type}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <Ionicons name="chevron-forward" size={normalize(20)} color="#94a3b8" />
@@ -453,36 +456,36 @@ ${shareUrl}
           <View style={styles.metricsRow}>
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="location-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Ionicons name="location-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
                 <Text style={styles.metricValueText} numberOfLines={1}>
                   {displayCity}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText}>{t("currentLocation", "Current Location")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={1}>{t("currentLocation", "Current Location")}</Text>
             </View>
 
             <View style={styles.metricVerticalDivider} />
 
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="briefcase-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Ionicons name="briefcase-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
                 <Text style={styles.metricValueText} numberOfLines={1}>
                   {displayExperience}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText}>{t("experience", "Experience")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={1}>{t("experience", "Experience")}</Text>
             </View>
 
             <View style={styles.metricVerticalDivider} />
 
             <View style={styles.metricItemCol}>
               <View style={styles.metricTitleRow}>
-                <Ionicons name="time-outline" size={normalize(15)} color="#002b5c" style={{ marginRight: normalize(3) }} />
+                <Ionicons name="time-outline" size={normalize(14)} color="#002b5c" style={{ marginRight: normalize(2) }} />
                 <Text style={styles.metricValueText} numberOfLines={1}>
                   {displayAvailability}
                 </Text>
               </View>
-              <Text style={styles.metricLabelText}>{t("availability", "Availability")}</Text>
+              <Text style={styles.metricLabelText} numberOfLines={1}>{t("availability", "Availability")}</Text>
             </View>
           </View>
         </View>
@@ -699,7 +702,7 @@ ${shareUrl}
               <View style={[styles.menuIconCircle, { backgroundColor: "#f1f5f9" }]}>
                 <Ionicons name="language-outline" size={normalize(18)} color="#64748b" />
               </View>
-              <Text style={styles.menuRowLabel}>{t("language", "Language")}</Text>
+              <Text style={styles.menuRowLabel}>{t("preferredLanguage", "Preferred Language")}</Text>
             </View>
             <View style={styles.menuRowRight}>
               <Text style={styles.langValueText}>{currentLanguageName}</Text>
@@ -711,14 +714,30 @@ ${shareUrl}
 
           <TouchableOpacity
             style={styles.menuRowItem}
-            onPress={() => navigation.navigate("TalentSettings")}
+            onPress={() => navigation.navigate("FAQ")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuRowLeft}>
+              <View style={[styles.menuIconCircle, { backgroundColor: "#e0f2fe" }]}>
+                <Ionicons name="help-circle-outline" size={normalize(18)} color="#0284c7" />
+              </View>
+              <Text style={styles.menuRowLabel}>{t("faq.screenTitle", "Frequently Asked Questions (FAQ)")}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
+          </TouchableOpacity>
+
+          <View style={styles.menuRowDivider} />
+
+          <TouchableOpacity
+            style={styles.menuRowItem}
+            onPress={() => navigation.navigate("PrivacySecurity")}
             activeOpacity={0.7}
           >
             <View style={styles.menuRowLeft}>
               <View style={[styles.menuIconCircle, { backgroundColor: "#f1f5f9" }]}>
-                <Ionicons name="settings-outline" size={normalize(18)} color="#64748b" />
+                <Ionicons name="shield-checkmark-outline" size={normalize(18)} color="#64748b" />
               </View>
-              <Text style={styles.menuRowLabel}>{t("settingsTitle", "Settings")}</Text>
+              <Text style={styles.menuRowLabel}>{t("privacyAndSecurity", "Privacy & Security")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
@@ -966,31 +985,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    width: "100%",
   },
   metricItemCol: {
     flex: 1,
     alignItems: "flex-start",
+    minWidth: 0,
+    paddingHorizontal: normalize(2),
   },
   metricTitleRow: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
     marginBottom: normalize(2),
   },
   metricValueText: {
-    fontSize: normalize(12),
+    flex: 1,
+    fontSize: normalize(11.5),
     fontWeight: "700",
     color: "#0f172a",
   },
   metricLabelText: {
-    fontSize: normalize(10),
+    fontSize: normalize(9.5),
     fontWeight: "500",
     color: "#94a3b8",
   },
   metricVerticalDivider: {
     width: 1,
-    height: normalize(22),
+    height: normalize(20),
     backgroundColor: "#cbd5e1",
-    marginHorizontal: normalize(6),
+    marginHorizontal: normalize(4),
   },
 
   // Profile Completion Card
