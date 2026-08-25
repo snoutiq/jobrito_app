@@ -976,13 +976,14 @@ const styles = StyleSheet.create({
   // 3 Metrics Row
   metricsRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "stretch",
     justifyContent: "space-between",
     width: "100%",
   },
   metricItemCol: {
     flex: 1,
     alignItems: "flex-start",
+    justifyContent: "space-between",
     minWidth: 0,
     paddingHorizontal: normalize(2),
   },
@@ -990,7 +991,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     width: "100%",
-    marginBottom: normalize(2),
+    marginBottom: normalize(4),
   },
   metricValueText: {
     flex: 1,
@@ -1003,11 +1004,11 @@ const styles = StyleSheet.create({
     fontSize: normalize(9.5),
     fontWeight: "500",
     color: "#94a3b8",
+    marginTop: "auto",
   },
   metricVerticalDivider: {
     width: 1,
-    height: "100%",
-    minHeight: normalize(24),
+    alignSelf: "stretch",
     backgroundColor: "#cbd5e1",
     marginHorizontal: normalize(4),
   },

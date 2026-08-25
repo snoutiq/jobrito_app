@@ -113,6 +113,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const [activeInput, setActiveInput] = useState(null);
 
   const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+  const bioInputRef = useRef(null);
 
   const handleInputFocus = (e, key) => {
     if (key) setActiveInput(key);
@@ -995,8 +996,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   return (
     <SafeAreaView style={[styles.container, step === 7 && { backgroundColor: "#ffffff" }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+        behavior={undefined}
         style={{ flex: 1 }}
       >
         {/* Header */}
@@ -1805,8 +1805,13 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   {t("professionalBioSub", "Tell us about your role, expertise, key achievements and how you create value for your clients and partners.")}
                 </Text>
 
-                <View style={[styles.fieldInputWrapper, { height: normalize(100), alignItems: "flex-start", paddingTop: normalize(8) }, activeInput === "bio" && styles.fieldInputActive]}>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={() => bioInputRef.current?.focus()}
+                  style={[styles.fieldInputWrapper, { height: normalize(100), alignItems: "flex-start", paddingTop: normalize(8) }, activeInput === "bio" && styles.fieldInputActive]}
+                >
                   <TextInput
+                    ref={bioInputRef}
                     value={bio}
                     onChangeText={(text) => {
                       if (text.length <= 500) {
@@ -1817,12 +1822,12 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     placeholderTextColor="#94a3b8"
                     multiline
                     numberOfLines={4}
-                    style={[styles.fieldTextInput, { textAlignVertical: "top" }]}
+                    style={[styles.fieldTextInput, { height: "100%", width: "100%", textAlignVertical: "top" }]}
                     maxLength={500}
                     onFocus={(e) => handleInputFocus(e, "bio")}
                     onBlur={() => setActiveInput(null)}
                   />
-                </View>
+                </TouchableOpacity>
                 <Text style={styles.charCountText}>
                   {bio.length} / 500 characters
                 </Text>

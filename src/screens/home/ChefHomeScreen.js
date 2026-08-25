@@ -201,6 +201,14 @@ export default function ChefHomeScreen({ navigation }) {
         ? jobOrId
         : feedJobs.find((j) => String(j.id) === String(jobOrId));
     const rawId = job ? job.id : jobOrId;
+    const keyStr = String(rawId);
+
+    // Guard: Applied jobs cannot be saved
+    const isApplied = Boolean(job?.applied || job?.is_applied);
+    if (isApplied) {
+      return;
+    }
+
     const isTraining =
       job &&
       (job.is_training ||
@@ -219,7 +227,6 @@ export default function ChefHomeScreen({ navigation }) {
       }
     }
 
-    const keyStr = String(rawId);
     const isFav = !favorites[keyStr];
     setFavorites((prev) => ({ ...prev, [keyStr]: isFav }));
 
@@ -637,6 +644,14 @@ export default function ChefHomeScreen({ navigation }) {
               await dispatch(
                 applyJob(payload),
               ).unwrap();
+              // Auto-unsave job if it was saved
+              const jobKey = String(selectedJob.id);
+              if (favorites[jobKey] || (savedJobs || []).some((sj) => String(sj.id) === jobKey || String(sj.job_post_id) === jobKey || String(sj.id) === `training_${jobKey}`)) {
+                setFavorites((prev) => ({ ...prev, [jobKey]: false }));
+                const isTraining = selectedJob._type === "training_opportunity" || selectedJob.category === "training";
+                const targetSaveId = isTraining ? (String(jobKey).startsWith("training_") ? jobKey : `training_${jobKey}`) : jobKey;
+                dispatch(toggleSaveJob(targetSaveId)).unwrap().catch(() => null);
+              }
               return true;
             } catch (err) {
               Alert.alert("Application Error", err || "Failed to apply to job");
