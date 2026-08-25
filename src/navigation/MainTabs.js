@@ -191,6 +191,13 @@ function HomeOnlyStack() {
         }}
       />
       <Stack.Screen
+        name="PrivacySecurity"
+        component={PrivacySecurityScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="TalentSettings"
         component={TalentSettingsScreen}
         options={{

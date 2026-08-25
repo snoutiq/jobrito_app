@@ -326,7 +326,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeaderLabel}>{t("preferencesAndAccount", "PREFERENCES & ACCOUNT")}</Text>
+          <Text style={styles.sectionHeaderLabel}>{t("settingsAndSupport", "SETTINGS & SUPPORT")}</Text>
           <View style={styles.sectionMenuCard}>
             <TouchableOpacity
               style={styles.sectionMenuItem}
@@ -337,8 +337,8 @@ export default function ProfileScreen({ navigation }) {
                 <Ionicons name="globe-outline" size={normalize(18)} color="#7e22ce" />
               </View>
               <View style={styles.sectionMenuTextGroup}>
-                <Text style={styles.sectionMenuTitle}>{t("language", "Language")}</Text>
-                <Text style={styles.sectionMenuSub}>{getLanguageLabel()}</Text>
+                <Text style={styles.sectionMenuTitle}>{t("preferredLanguage", "Preferred Language")}</Text>
+                {/* <Text style={styles.sectionMenuSub}>{getLanguageLabel()}</Text> */}
               </View>
               <Ionicons name="chevron-forward" size={normalize(16)} color="#cbd5e1" />
             </TouchableOpacity>
@@ -347,18 +347,36 @@ export default function ProfileScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.sectionMenuItem}
-              onPress={() => navigation.navigate("TalentSettings")}
+                onPress={() => navigation.navigate("PrivacySecurity")}
               activeOpacity={0.7}
             >
               <View style={[styles.sectionIconBox, { backgroundColor: "#ede9fe" }]}>
-                <Ionicons name="settings-outline" size={normalize(18)} color="#6d28d9" />
+                <Ionicons name="shield-checkmark-outline" size={normalize(18)} color="#6d28d9" />
               </View>
               <View style={styles.sectionMenuTextGroup}>
-                <Text style={styles.sectionMenuTitle}>{t("settingsAndSupport", "Settings & Support")}</Text>
-                <Text style={styles.sectionMenuSub}>{t("manageAccountSupport", "Manage your account, privacy and support.")}</Text>
+                <Text style={styles.sectionMenuTitle}>{t("privacyAndSecurity", "Privacy & Security")}</Text>
+                {/* <Text style={styles.sectionMenuSub}>{t("manageAccountSupport", "Manage your account, privacy and support.")}</Text> */}
               </View>
               <Ionicons name="chevron-forward" size={normalize(16)} color="#cbd5e1" />
             </TouchableOpacity>
+
+             <View style={styles.sectionDividerLine} />
+
+            <TouchableOpacity
+              style={styles.sectionMenuItem}
+              onPress={() => navigation.navigate("HelpSupport")}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.sectionIconBox, { backgroundColor: "#ede9fe" }]}>
+                <Ionicons name="help-circle-outline" size={normalize(18)} color="#6d28d9" />
+              </View>
+              <View style={styles.sectionMenuTextGroup}>
+                <Text style={styles.sectionMenuTitle}>{t("helpAndSupport", "Help & Support")}</Text>
+                {/* <Text style={styles.sectionMenuSub}>{t("manageAccountSupport", "Manage your account, privacy and support.")}</Text> */}
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(16)} color="#cbd5e1" />
+            </TouchableOpacity>
+    
           </View>
         </View>
 
