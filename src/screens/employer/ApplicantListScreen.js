@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, PixelRatio } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +23,22 @@ export default function ApplicantListScreen({ route, navigation }) {
   const [activeFilter, setActiveFilter] = useState(initialFilterParam);
   const [activeIndex, setActiveIndex] = useState(0);
   const [matchScores, setMatchScores] = useState({});
+
+  const filterScrollViewRef = useRef(null);
+  const [tabLayouts, setTabLayouts] = useState({});
+
+  const handleTabLayout = (key, event) => {
+    const { x, width } = event.nativeEvent.layout;
+    setTabLayouts((prev) => ({ ...prev, [key]: { x, width } }));
+  };
+
+  useEffect(() => {
+    if (activeFilter && filterScrollViewRef.current && tabLayouts[activeFilter]) {
+      const tab = tabLayouts[activeFilter];
+      const scrollX = Math.max(0, tab.x - SCREEN_WIDTH / 2 + tab.width / 2);
+      filterScrollViewRef.current.scrollTo({ x: scrollX, animated: true });
+    }
+  }, [activeFilter, tabLayouts]);
 
   useEffect(() => {
     if (route?.params?.initialFilter) {
@@ -134,12 +150,18 @@ export default function ApplicantListScreen({ route, navigation }) {
 
       {/* Filter Tabs */}
       <View style={styles.filterSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScrollContent}>
+        <ScrollView
+          ref={filterScrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
           {filterTabs.map((tab) => {
             const isActive = activeFilter === tab.key;
             return (
               <TouchableOpacity
                 key={tab.key}
+                onLayout={(e) => handleTabLayout(tab.key, e)}
                 activeOpacity={0.8}
                 onPress={() => setActiveFilter(tab.key)}
                 style={[
