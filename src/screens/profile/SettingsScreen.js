@@ -352,8 +352,8 @@ export default function SettingsScreen({ navigation }) {
                   <Ionicons name={item.icon} size={18} color={PRIMARY_GREEN} />
                 </View>
                 <View style={styles.infoTextWrap}>
-                  <Text style={styles.infoLabel}>{item.label}</Text>
-                  <Text style={styles.infoValue}>{item.value}</Text>
+                  <Text style={styles.menuText}>{item.label}</Text>
+                  <Text style={styles.menuSubText}>{item.value}</Text>
                 </View>
               </View>
               {index !== accountRows.length - 1 ? <View style={styles.divider} /> : null}
