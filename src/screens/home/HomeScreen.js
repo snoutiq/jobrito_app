@@ -37,6 +37,7 @@ import { applyJob } from "../../redux/slices/applicationSlice";
 import { fetchProfile, updateProfile, setUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppLoader from "../../components/common/AppLoader";
+import WelcomeModal, { hasWelcomeModalBeenSeen } from "../../components/common/WelcomeModal";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getEmployerNotifications } from "../../services/notificationApi";
@@ -164,8 +165,23 @@ export default function HomeScreen({ navigation }) {
   const [selectedDetailsJob, setSelectedDetailsJob] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [welcomeCheckDone, setWelcomeCheckDone] = useState(false);
   const scrollViewRef = useRef(null);
   const jobPositions = useRef({});
+
+  useEffect(() => {
+    if (!profile?.id) return; // Wait until profile is loaded
+    const checkWelcomeModal = async () => {
+      const uRole = profile?.role || "talent";
+      const seen = await hasWelcomeModalBeenSeen(profile.id, uRole);
+      if (!seen) {
+        setShowWelcomeModal(true);
+      }
+      setWelcomeCheckDone(true);
+    };
+    checkWelcomeModal();
+  }, [profile?.id, profile?.role]);
 
   // Profile Wizard States
   const [hasModalBeenDismissedThisSession, setHasModalBeenDismissedThisSession] = useState(false);
@@ -279,6 +295,7 @@ export default function HomeScreen({ navigation }) {
       const isPhase3Incomplete = !isRoleFilled;
 
       const checkModalDelayAndShow = async () => {
+        if (!welcomeCheckDone || showWelcomeModal) return; // Sequence: let Welcome Modal finish first
         if (isInitialProfileLoadComplete && !hasModalBeenDismissedThisSession) {
           const userRole = profile?.role || profile?.active_role || profile?.user_role;
           const isEligibleRole = ["job_seeker", "candidate", "chef", "talent"].includes(String(userRole).toLowerCase());
@@ -349,7 +366,7 @@ export default function HomeScreen({ navigation }) {
       };
       checkModalDelayAndShow();
     }
-  }, [profile, isInitialProfileLoadComplete, hasModalBeenDismissedThisSession, completionPercent]);
+  }, [profile, isInitialProfileLoadComplete, hasModalBeenDismissedThisSession, completionPercent, welcomeCheckDone, showWelcomeModal]);
 
   const saveProgressStep = async (fieldsToUpdate) => {
     setSubmittingProfile(true);
@@ -1732,6 +1749,15 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* First Time Welcome Modal */}
+      <WelcomeModal
+        visible={showWelcomeModal}
+        role={profile?.role || "talent"}
+        userId={profile?.id || "guest"}
+        onClose={() => setShowWelcomeModal(false)}
+        onExplore={() => setShowWelcomeModal(false)}
+      />
     </ScreenWrapper>
   );
 }

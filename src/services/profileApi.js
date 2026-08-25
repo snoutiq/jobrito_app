@@ -30,11 +30,13 @@ const pickValue = (data, keys) => {
 export const normalizeProfile = (u) => {
   if (!u) return null;
 
-  const root = u.user || u.profile ? u : {};
-  const userObj = u.user || u.profile || u;
+  const rawData = u.data || u;
+  const root = rawData.user || rawData.profile ? rawData : {};
+  const userObj = rawData.user || rawData.profile || rawData;
 
-  const emp = userObj.employer_profile || root.employer_profile || {};
-  const chef = userObj.chef_profile || userObj.chef_profile_details || root.chef_profile || root.chef_profile_details || {};
+  const emp = userObj.employer_profile || root.employer_profile || rawData.employer_profile || {};
+  const chef = userObj.chef_profile || userObj.chef_profile_details || root.chef_profile || root.chef_profile_details || rawData.chef_profile || {};
+  const talent = userObj.talent_profile || userObj.talent_profile_details || userObj.job_seeker_profile || root.talent_profile || root.talent_profile_details || root.job_seeker_profile || rawData.talent_profile || rawData.job_seeker_profile || {};
 
   let availability = chef.availability_info || {};
   if (typeof availability === "string") {
@@ -54,32 +56,35 @@ export const normalizeProfile = (u) => {
 
   return {
     id: userObj.id,
-    name: userObj.full_name || userObj.name || "",
-    full_name: userObj.full_name || userObj.name,
-    email: userObj.email,
-    phone: userObj.mobile_number || userObj.phone,
-    profile_photo_path: userObj.profile_photo_path,
-    city: userObj.city || "",
-    country: userObj.country || "",
-    experience_range: userObj.experience_range || mapExperienceYears(userObj.experience_years) || "",
-    experience_years: userObj.experience_years,
-    preferred_role: userObj.preferred_role || "",
-    professionalTitle: userObj.preferred_role || "",
-    current_employer: userObj.current_employer,
-    skills: Array.isArray(userObj.skills) ? userObj.skills.join(", ") : userObj.skills || "",
-    completionPercentage: userObj.completeness || userObj.profile_completeness || userObj.completionPercentage || 0,
-    completeness: userObj.completeness || userObj.profile_completeness || 0,
-    profile_completeness: userObj.profile_completeness || userObj.completeness || 0,
-    selected_language: userObj.selected_language,
-    gender: userObj.gender,
-    job_type: userObj.job_type || userObj.preference || "",
-    location_preference: userObj.location_preference || availability.location_preference || userObj.job_location || "",
-    locationPreference: userObj.location_preference || availability.location_preference || userObj.job_location || "",
+    name: userObj.full_name || userObj.name || talent.full_name || talent.name || "",
+    full_name: userObj.full_name || userObj.name || talent.full_name || talent.name,
+    email: userObj.email || talent.email,
+    phone: userObj.mobile_number || userObj.phone || talent.mobile_number,
+    profile_photo_path: userObj.profile_photo_path || talent.profile_photo_path,
+    city: userObj.city || talent.city || "",
+    country: userObj.country || talent.country || "",
+    age: userObj.age || talent.age || chef.age || "",
+    overseas_work_experience: userObj.overseas_work_experience || talent.overseas_work_experience || "",
+    experience_range: userObj.experience_range || talent.experience_range || mapExperienceYears(userObj.experience_years || talent.experience_years) || "",
+    experience_years: userObj.experience_years || talent.experience_years,
+    preferred_role: userObj.preferred_role || talent.preferred_role || userObj.preference || "",
+    professionalTitle: userObj.preferred_role || talent.preferred_role || userObj.preference || "",
+    current_employer: userObj.current_employer || talent.current_employer,
+    skills: Array.isArray(userObj.skills || talent.skills) ? (userObj.skills || talent.skills).join(", ") : userObj.skills || talent.skills || "",
+    completionPercentage: userObj.completeness || userObj.profile_completeness || talent.completeness || 0,
+    completeness: userObj.completeness || userObj.profile_completeness || talent.completeness || 0,
+    profile_completeness: userObj.profile_completeness || userObj.completeness || talent.completeness || 0,
+    selected_language: userObj.selected_language || talent.selected_language,
+    gender: userObj.gender || talent.gender,
+    job_type: userObj.job_type || talent.job_type || "",
+    location_preference: userObj.location_preference || talent.location_preference || availability.location_preference || userObj.job_location || talent.city || "",
+    locationPreference: userObj.location_preference || talent.location_preference || availability.location_preference || userObj.job_location || talent.city || "",
     employerOnboardingCompleted: !!(userObj.employerOnboardingCompleted || userObj.has_completed_onboarding || emp.is_completed),
     chefOnboardingCompleted: !!(userObj.chefOnboardingCompleted || userObj.has_completed_onboarding || chef.approval_status),
     role: userObj.role || userObj.active_role || userObj.user_role || "",
     active_role: userObj.active_role || userObj.role || userObj.user_role || "",
     user_role: userObj.user_role || userObj.active_role || userObj.role || "",
+    talent_profile: talent,
     
     // Employer-specific profile details autofill
     business_name: emp.business_name || emp.company_name || "",
@@ -130,8 +135,15 @@ export const normalizeProfile = (u) => {
 
 export const getProfile = async () => {
   const response = await apiClient.get(API_ENDPOINTS.PROFILE, { cancelDuplicate: false });
+  console.log("====================================");
+  console.log("=== GET PROFILE API (http://178.16.138.159/backend/api/profile) RAW RESPONSE DATA ===");
+  console.log(JSON.stringify(response?.data, null, 2));
+  console.log("====================================");
   if (response.data) {
     const profile = normalizeProfile(response.data);
+    console.log("=== NORMALIZED PROFILE DATA ===");
+    console.log(JSON.stringify(profile, null, 2));
+    console.log("====================================");
     return { success: true, profile };
   }
   return response.data;
@@ -147,6 +159,7 @@ export const updateProfile = async (data) => {
   formData.append("full_name", pickValue(data, ["full_name", "fullName", "name"]));
   formData.append("email", pickValue(data, ["email"]));
   formData.append("age", pickValue(data, ["age"]));
+  formData.append("overseas_work_experience", pickValue(data, ["overseas_work_experience", "overseasWorkExperience", "has_overseas_exp"]));
   formData.append("city", pickValue(data, ["city"]));
   formData.append("experience_range", pickValue(data, ["experience_range", "experienceRange"]));
   formData.append("preferred_role", pickValue(data, ["preferred_role", "preferredRole"]));

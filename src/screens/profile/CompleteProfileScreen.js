@@ -129,6 +129,7 @@ export default function CompleteProfileScreen({ navigation, route }) {
   const [city, setCity] = useState("");
   const [preferredRole, setPreferredRole] = useState("");
   const [skills, setSkills] = useState("");
+  const [hasOverseasExp, setHasOverseasExp] = useState(null);
 
   useLayoutEffect(() => {
     if (navigation && navigation.setOptions) {
@@ -162,9 +163,17 @@ export default function CompleteProfileScreen({ navigation, route }) {
       if (profileName && !isPhoneLike) setFullName(profileName);
 
       const ageVal = toTrimmedString(
-        pUser.age || pUser.user_age || pTalent.age || profile.age || profile.user_age || profile.chef_profile?.age || ""
+        profile.age || pUser.age || pUser.user_age || pTalent.age || profile.user_age || profile.chef_profile?.age || ""
       );
       if (ageVal) setAge(ageVal);
+
+      const overseasExpVal = toTrimmedString(
+        profile.overseas_work_experience || pUser.overseas_work_experience || pTalent.overseas_work_experience || ""
+      );
+      if (overseasExpVal) {
+        const isYes = overseasExpVal.toLowerCase().includes("yes") || overseasExpVal === "1" || overseasExpVal === "true";
+        setHasOverseasExp(isYes ? "Yes" : "No");
+      }
 
       const emailValue = toTrimmedString(
         pUser.email || pUser.contact_email || pTalent.email || profile.email || profile.contact_email
@@ -200,7 +209,7 @@ export default function CompleteProfileScreen({ navigation, route }) {
       if (genderValue) setGender(toTrimmedString(genderValue).toLowerCase());
 
       const jobTypeValue = toTrimmedString(
-        pUser.job_type || pUser.jobType || pTalent.job_type || profile.job_type
+        profile.job_type || pUser.job_type || pUser.jobType || pTalent.job_type || ""
       );
       if (jobTypeValue) setJobType(jobTypeValue);
 
@@ -290,6 +299,9 @@ export default function CompleteProfileScreen({ navigation, route }) {
     if (trimmedEmployer) payload.current_employer = trimmedEmployer;
     if (gender) payload.gender = gender;
     if (age) payload.age = age;
+    if (hasOverseasExp !== null && hasOverseasExp !== undefined) {
+      payload.overseas_work_experience = (hasOverseasExp === true || hasOverseasExp === "Yes") ? "Yes" : "No";
+    }
     if (trimmedJobType) payload.job_type = trimmedJobType;
     if (trimmedLocation) payload.location_preference = trimmedLocation;
     if (trimmedCity) payload.city = trimmedLocation === "Both" ? trimmedCity || "Both (Global & Domestic)" : trimmedCity;
@@ -512,6 +524,8 @@ export default function CompleteProfileScreen({ navigation, route }) {
             setLocationPreference={setLocationPreference}
             city={city}
             setCity={setCity}
+            hasOverseasExp={hasOverseasExp}
+            setHasOverseasExp={setHasOverseasExp}
           />
         )}
         {step === 5 && (
@@ -1067,11 +1081,10 @@ const overseasRegions = [
   "Sydney, Australia", "Melbourne, Australia", "Toronto, Canada", "Vancouver, Canada"
 ];
 
-function LocationStep({ next, t, locationPreference, setLocationPreference, city, setCity }) {
+function LocationStep({ next, t, locationPreference, setLocationPreference, city, setCity, hasOverseasExp, setHasOverseasExp }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("state"); // "state" or "region"
   const [searchText, setSearchText] = useState("");
-  const [hasOverseasExp, setHasOverseasExp] = useState(null);
 
   const handleSelectPref = (pref) => {
     setLocationPreference(pref);
@@ -1114,6 +1127,9 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
     },
   ];
 
+  const isOverseasYes = hasOverseasExp === true || hasOverseasExp === "Yes";
+  const isOverseasNo = hasOverseasExp === false || hasOverseasExp === "No";
+
   return (
     <View style={styles.modernStepContent}>
       {/* Title & Subtitle */}
@@ -1144,15 +1160,15 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           <TouchableOpacity
             style={[
               styles.yesNoToggleBtn,
-              hasOverseasExp === true && styles.yesNoToggleBtnActive,
+              isOverseasYes && styles.yesNoToggleBtnActive,
             ]}
-            onPress={() => setHasOverseasExp(true)}
+            onPress={() => setHasOverseasExp("Yes")}
             activeOpacity={0.8}
           >
             <Text
               style={[
                 styles.yesNoToggleBtnText,
-                hasOverseasExp === true && styles.yesNoToggleBtnTextActive,
+                isOverseasYes && styles.yesNoToggleBtnTextActive,
               ]}
             >
               {t("yes", "Yes")}
@@ -1162,15 +1178,15 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           <TouchableOpacity
             style={[
               styles.yesNoToggleBtn,
-              hasOverseasExp === false && styles.yesNoToggleBtnActive,
+              isOverseasNo && styles.yesNoToggleBtnActive,
             ]}
-            onPress={() => setHasOverseasExp(false)}
+            onPress={() => setHasOverseasExp("No")}
             activeOpacity={0.8}
           >
             <Text
               style={[
                 styles.yesNoToggleBtnText,
-                hasOverseasExp === false && styles.yesNoToggleBtnTextActive,
+                isOverseasNo && styles.yesNoToggleBtnTextActive,
               ]}
             >
               {t("no", "No")}
