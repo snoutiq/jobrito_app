@@ -427,7 +427,7 @@ export default function ChefHomeScreen({ navigation }) {
             const postedByLabelText = isReferral
               ? t("postedByReferral", "Referral")
               : isTraining
-              ? t("postedByAcademy", "Admin")
+              ? t("postedByAcademy", "Jobrito Academy")
               : isChefOrJobSeeker
               ? (normalizedRole === "chef" ? "Chef" : t("postedByReferral", "Referral"))
               : t("postedByEmployer", "Employer");
@@ -473,7 +473,6 @@ export default function ChefHomeScreen({ navigation }) {
                   </View>
                 </View>
 
-
                 {/* Horizontal Card Divider */}
                 <View style={styles.cardDividerLine} />
 
@@ -482,17 +481,19 @@ export default function ChefHomeScreen({ navigation }) {
                   {/* Left: Posted By (Column Stack) */}
                   <View style={styles.postedByCol}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      {/* <Ionicons
-                        name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
-                        size={normalize(12)}
-                        color="#153e69"
-                        style={{ marginRight: 3 }}
-                      /> */}
-                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}</Text>
+                      {isTraining && (
+                        <Ionicons name="business" size={normalize(14)} color="#6b21a8" style={{ marginRight: 6 }} />
+                      )}
+                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}: </Text>
+                      <Text style={[styles.postedByBold, isTraining && { color: "#6b21a8" }]} numberOfLines={1}>
+                        {postedByLabelText}
+                      </Text>
                     </View>
-                    <Text style={styles.postedByBold} numberOfLines={1}>
-                      {postedByLabelText}
-                    </Text>
+                    {isTraining ? (
+                      <Text style={{ fontSize: normalize(9.5), color: "#64748b", marginTop: 1 }}>
+                        (Hospitality Training Agency)
+                      </Text>
+                    ) : null}
                   </View>
 
                   {/* Right: Action Buttons */}

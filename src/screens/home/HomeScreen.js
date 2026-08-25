@@ -804,19 +804,6 @@ export default function HomeScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* Inner Banner for Training Cards */}
-                {isTraining && (
-                  <View style={styles.cardInnerBanner}>
-                    <View style={styles.cardInnerBannerIconCircle}>
-                      <Ionicons name="school" size={normalize(16)} color="#7e22ce" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardInnerBannerTitle}>Build your skills. Boost your career.</Text>
-                      <Text style={styles.cardInnerBannerSub}>Join our certified training program designed for hospitality professionals.</Text>
-                    </View>
-                  </View>
-                )}
-
                 {/* Horizontal Card Divider */}
                 <View style={styles.cardDividerLine} />
 
