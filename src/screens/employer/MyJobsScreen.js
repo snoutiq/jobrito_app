@@ -409,7 +409,7 @@ export default function MyJobsScreen({ navigation, route }) {
             {isEmployer && activeTab !== "pending" && normalizeStatus(job.status) !== "pending" && (
               <View style={styles.savedBadge}>
                 <Text style={styles.savedBadgeText}>
-                  {t("favoriteJobBadge", "Favorite: {{count}}", { count: savedCount })}
+                  {t("savedJobBadge", "Saved: {{count}}", { count: savedCount })}
                 </Text>
               </View>
             )}

@@ -18,10 +18,17 @@ export default function ApplicantListScreen({ route, navigation }) {
 
   const jobId = route?.params?.jobId;
   const jobTitle = route?.params?.jobTitle || "Applicants";
+  const initialFilterParam = route?.params?.initialFilter || route?.params?.filter || "all";
 
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState(initialFilterParam);
   const [activeIndex, setActiveIndex] = useState(0);
   const [matchScores, setMatchScores] = useState({});
+
+  useEffect(() => {
+    if (route?.params?.initialFilter) {
+      setActiveFilter(route.params.initialFilter);
+    }
+  }, [route?.params?.initialFilter]);
 
   const selectedJob = useSelector((state) =>
     state.employer.submittedJobs?.find((j) => String(j.id) === String(jobId))

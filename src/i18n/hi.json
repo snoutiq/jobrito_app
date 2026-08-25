@@ -1197,7 +1197,8 @@
     "removedMsg": "सहेजी गई सूची से नौकरी हटा दी गई।",
     "failedToRemove": "नौकरी हटाने में विफल।"
   },
-  "favoriteJobBadge": "पंसदीदा: {{count}}",
+  "favoriteJobBadge": "सहेजे गए: {{count}}",
+  "savedJobBadge": "सहेजे गए: {{count}}",
   "viewJobUpper": "नौकरी देखें",
   "viewDetailsUpper": "विवरण देखें",
   "trainingDetails": "प्रशिक्षण विवरण",
@@ -1263,5 +1264,19 @@
   "selectedTotal": "कुल चुने गए",
   "noFiltersSelected": "अभी तक कोई फिल्टर नहीं चुना गया",
   "selectFiltersHint": "शेफ खोज को रिफाइन करने के लिए स्क्रीन पर विकल्पों पर टैप करें।",
-  "clearAll": "सभी साफ़ करें"
+  "clearAll": "सभी साफ़ करें",
+  "approvedChefProfilesCount": "{{count}} स्वीकृत शेफ प्रोफाइल",
+  "connectWithVerifiedCulinary": "अपने व्यवसाय के लिए सत्यापित पाक विशेषज्ञों से जुड़ें।",
+  "searchChefPlaceholder": "नाम, व्यंजन या स्थान से खोजें",
+  "notViewed": "नहीं देखा",
+  "viewed": "देखा गया",
+  "schedule": "शेड्यूल",
+  "preferredLocations": "पसंदीदा स्थान",
+  "allChefsVerifiedApproved": "सभी शेफ सत्यापित और स्वीकृत हैं",
+  "everyProfileReviewedQuality": "प्रामाणिकता और गुणवत्ता सुनिश्चित करने के लिए प्रत्येक प्रोफ़ाइल की समीक्षा की जाती है।",
+  "calendlyNotLinkedTitle": "कैलेंडली शेड्यूलिंग अनुपलब्ध",
+  "calendlyNotIntegrated": "कैलेंडली एकीकृत नहीं है",
+  "calendlyNotLinkedNotice": "इस शेफ ने अभी तक तत्काल बुकिंग के लिए अपना कैलेंडली कैलेंडर लिंक नहीं किया है। आप उनकी पूरी प्रोफ़ाइल देख सकते हैं या उनसे सीधे संपर्क कर सकते हैं।",
+  "viewProfile": "प्रोफ़ाइल देखें",
+  "understood": "समझ गया"
 }

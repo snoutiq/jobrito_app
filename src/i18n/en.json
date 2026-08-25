@@ -1159,7 +1159,8 @@
     "removedMsg": "Job removed from saved list.",
     "failedToRemove": "Failed to remove job."
   },
-  "favoriteJobBadge": "Favorite: {{count}}",
+  "favoriteJobBadge": "Saved: {{count}}",
+  "savedJobBadge": "Saved: {{count}}",
   "viewJobUpper": "VIEW JOB",
   "viewDetailsUpper": "VIEW DETAILS",
   "trainingDetails": "Training Details",
@@ -1225,5 +1226,19 @@
   "selectedTotal": "selected in total",
   "noFiltersSelected": "No filters selected yet",
   "selectFiltersHint": "Tap options on the screen to refine your chef search.",
-  "clearAll": "Clear All"
+  "clearAll": "Clear All",
+  "approvedChefProfilesCount": "{{count}} Approved Chef Profiles",
+  "connectWithVerifiedCulinary": "Connect with verified culinary experts for your business.",
+  "searchChefPlaceholder": "Search by name, cuisine, or location",
+  "notViewed": "Not Viewed",
+  "viewed": "Viewed",
+  "schedule": "Schedule",
+  "preferredLocations": "Preferred Location(s)",
+  "allChefsVerifiedApproved": "All chefs are verified & approved",
+  "everyProfileReviewedQuality": "Every profile is carefully reviewed to ensure authenticity and quality.",
+  "calendlyNotLinkedTitle": "Calendly Schedule Unavailable",
+  "calendlyNotIntegrated": "Calendly Not Integrated",
+  "calendlyNotLinkedNotice": "This chef has not linked their Calendly calendar for instant booking yet. You can view their full profile or contact them directly.",
+  "viewProfile": "View Profile",
+  "understood": "Understood"
 }
