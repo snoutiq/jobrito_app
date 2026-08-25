@@ -1934,7 +1934,24 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     <Ionicons name="link-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
                     <TextInput
                       value={calendlyLink}
-                      onChangeText={(val) => setCalendlyLink(val.replace(/\s+/g, ""))}
+                      onChangeText={(val) => {
+                        const cleanVal = val.replace(/\s+/g, "");
+                        if (!cleanVal) {
+                          setCalendlyLink("https://calendly.com/");
+                          return;
+                        }
+                        if (!cleanVal.startsWith("https://calendly.com/")) {
+                          if (cleanVal.startsWith("https://")) {
+                            setCalendlyLink(cleanVal);
+                          } else if (cleanVal.includes("calendly.com/")) {
+                            setCalendlyLink("https://" + cleanVal.replace(/^https?:\/\//, ""));
+                          } else {
+                            setCalendlyLink("https://calendly.com/" + cleanVal.replace(/^\/+/, ""));
+                          }
+                        } else {
+                          setCalendlyLink(cleanVal);
+                        }
+                      }}
                       placeholder="https://calendly.com/yourusername"
                       placeholderTextColor="#94a3b8"
                       autoCapitalize="none"

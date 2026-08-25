@@ -199,12 +199,14 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     // 3. Advanced filters (from ChefConnectFiltersScreen)
     if (activeFilters) {
       if (Array.isArray(activeFilters.employment) && activeFilters.employment.length > 0) {
-        const matches = empPrefsLower.some((p) =>
-          activeFilters.employment.some((filterOpt) => {
-            const f = filterOpt.toLowerCase();
-            return p.includes(f) || f.includes(p);
-          })
-        );
+        const matches = activeFilters.employment.some((filterOpt) => {
+          const f = filterOpt.replace(/chef/gi, "").trim().toLowerCase();
+          if (f.includes("overseas")) {
+            const locPref = String(chef.location_preference || chef.locationPreference || "").toLowerCase();
+            return locPref.includes("overseas") || locPref.includes("both") || locPref.includes("international");
+          }
+          return empPrefsLower.some((p) => p.includes(f) || f.includes(p));
+        });
         if (!matches) return false;
       }
 
@@ -218,7 +220,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
           chef.experience_range || chef.experienceYears || chef.experience || ""
         ).toLowerCase();
         const matches = expList.some((f) => {
-          const filterExp = f.toLowerCase();
+          const filterExp = f.toLowerCase().trim();
           return chefExp.includes(filterExp) || filterExp.includes(chefExp);
         });
         if (!matches) return false;
@@ -227,42 +229,39 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
       if (Array.isArray(activeFilters.cuisines) && activeFilters.cuisines.length > 0) {
         const chefCuisine = String(chef.cuisine_specialty || chef.specialties || chef.cuisines || chef.category || "").toLowerCase();
         const matches = activeFilters.cuisines.some((c) => {
-          const filterCuisine = c.toLowerCase();
-          return chefCuisine.includes(filterCuisine) || filterCuisine.includes(chefCuisine);
+          const cleanCuisine = c.replace(/chef/gi, "").trim().toLowerCase();
+          return chefCuisine.includes(cleanCuisine) || cleanCuisine.includes(chefCuisine);
         });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.operations) && activeFilters.operations.length > 0) {
         const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
-        const matches = skillsList.some((s) =>
-          activeFilters.operations.some((op) => {
-            const filterOp = op.toLowerCase();
-            return s.includes(filterOp) || filterOp.includes(s);
-          })
-        );
+        const rawSkillsStr = skillsList.join(" ");
+        const matches = activeFilters.operations.some((op) => {
+          const cleanOp = op.replace(/(consultant|expert|specialist|analyst|writer|creator|development)/gi, "").trim().toLowerCase();
+          return skillsList.some((s) => s.includes(cleanOp) || cleanOp.includes(s)) || rawSkillsStr.includes(cleanOp);
+        });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.business) && activeFilters.business.length > 0) {
         const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
-        const matches = skillsList.some((s) =>
-          activeFilters.business.some((b) => {
-            const filterB = b.toLowerCase();
-            return s.includes(filterB) || filterB.includes(s);
-          })
-        );
+        const rawSkillsStr = skillsList.join(" ");
+        const matches = activeFilters.business.some((b) => {
+          const cleanB = b.replace(/(consultant|expert|specialist|analyst|writer|creator|development|specialities)/gi, "").trim().toLowerCase();
+          return skillsList.some((s) => s.includes(cleanB) || cleanB.includes(s)) || rawSkillsStr.includes(cleanB);
+        });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.regional) && activeFilters.regional.length > 0) {
         const regionalList = getRegionalList(chef).map((r) => String(r).toLowerCase());
-        const matches = regionalList.some((r) =>
-          activeFilters.regional.some((reg) => {
-            const filterReg = reg.toLowerCase();
-            return r.includes(filterReg) || filterReg.includes(r);
-          })
-        );
+        const rawRegionalStr = regionalList.join(" ");
+        const matches = activeFilters.regional.some((reg) => {
+          const cleanReg = reg.replace(/experience/gi, "").trim().toLowerCase();
+          return regionalList.some((r) => r.includes(cleanReg) || cleanReg.includes(r)) || rawRegionalStr.includes(cleanReg);
+        });
         if (!matches) return false;
       }
 
