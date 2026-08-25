@@ -19,6 +19,7 @@ import SettingsScreen from "../screens/profile/SettingsScreen";
 import TalentSettingsScreen from "../screens/profile/TalentSettingsScreen";
 import HelpSupportScreen from "../screens/profile/HelpSupportScreen";
 import PrivacySecurityScreen from "../screens/profile/PrivacySecurityScreen";
+import FaqScreen from "../screens/profile/FaqScreen";
 import JobDetailsScreen from "../screens/jobs/JobDetailsScreen";
 import ApplicantListScreen from "../screens/employer/ApplicantListScreen";
 import ApplicantDetailScreen from "../screens/employer/ApplicantDetailScreen";
@@ -193,6 +194,13 @@ function HomeOnlyStack() {
       <Stack.Screen
         name="PrivacySecurity"
         component={PrivacySecurityScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="FAQ"
+        component={FaqScreen}
         options={{
           headerShown: false,
         }}
@@ -516,6 +524,11 @@ export default function MainTabs() {
       <Stack.Screen
         name="PrivacySecurity"
         component={PrivacySecurityScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FAQ"
+        component={FaqScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

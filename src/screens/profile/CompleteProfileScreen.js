@@ -1441,7 +1441,7 @@ const businessTypeCategories = [
 ];
 
 function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, skills, setSkills, loading }) {
-  const [selectedCategory, setSelectedCategory] = useState("Café & Beverage");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [jobTitleModalVisible, setJobTitleModalVisible] = useState(false);
   const [jobTitleSearch, setJobTitleSearch] = useState("");
 
@@ -1455,7 +1455,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
     }
   }, [preferredRole]);
 
-  const jobTitlesList = categoryJobTitles[selectedCategory] || categoryJobTitles["Kitchen Production"] || [];
+  const jobTitlesList = selectedCategory ? (categoryJobTitles[selectedCategory] || []) : [];
   const filteredJobTitles = jobTitlesList.filter((title) =>
     title.toLowerCase().includes(jobTitleSearch.toLowerCase())
   );

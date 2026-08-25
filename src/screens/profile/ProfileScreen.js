@@ -347,6 +347,22 @@ export default function ProfileScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.sectionMenuItem}
+              onPress={() => navigation.navigate("FAQ")}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.sectionIconBox, { backgroundColor: "#e0f2fe" }]}>
+                <Ionicons name="help-circle-outline" size={normalize(18)} color="#0284c7" />
+              </View>
+              <View style={styles.sectionMenuTextGroup}>
+                <Text style={styles.sectionMenuTitle}>{t("faq.screenTitle", "Frequently Asked Questions (FAQ)")}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={normalize(16)} color="#cbd5e1" />
+            </TouchableOpacity>
+
+            <View style={styles.sectionDividerLine} />
+
+            <TouchableOpacity
+              style={styles.sectionMenuItem}
                 onPress={() => navigation.navigate("PrivacySecurity")}
               activeOpacity={0.7}
             >
