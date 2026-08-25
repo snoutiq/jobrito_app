@@ -696,6 +696,7 @@
   "savedNoticeSub2": "You can also share this opportunity with others.",
   "backToSavedJobs": "Back to Saved Jobs",
   "postedBy": "Posted by",
+  "postedByAcademy": "Jobrito Academy",
   "employmentTypeLabel": "Employment Type",
   "openPositionsLabel": "Open Positions",
   "preferencesAndAccount": "PREFERENCES & ACCOUNT",
@@ -1240,5 +1241,7 @@
   "calendlyNotIntegrated": "Calendly Not Integrated",
   "calendlyNotLinkedNotice": "This chef has not linked their Calendly calendar for instant booking yet. You can view their full profile or contact them directly.",
   "viewProfile": "View Profile",
-  "understood": "Understood"
+  "understood": "Understood",
+  "deploymentLocation": "Deployment Location",
+  "trainingDuration": "Training Duration"
 }

@@ -753,12 +753,12 @@ export default function HomeScreen({ navigation }) {
             const normalizedRole = rawRole.toLowerCase().replace(/[\s_]/g, "");
             const isEmployerOrAdmin = ["employer", "admin"].includes(normalizedRole);
             const isChefOrJobSeeker = ["chef", "jobseeker", "talent"].includes(normalizedRole);
-            const showApply = !isTraining && isEmployerOrAdmin;
+            const showApply = isEmployerOrAdmin || isTraining;
 
             const postedByLabelText = isReferral
               ? t("postedByReferral", "Referral")
               : isTraining
-              ? t("postedByAcademy", "Admin")
+              ? t("postedByAcademy", "Jobrito Academy")
               : isChefOrJobSeeker
               ? (normalizedRole === "chef" ? "Chef" : t("postedByReferral", "Referral"))
               : t("postedByEmployer", "Employer");
@@ -790,7 +790,7 @@ export default function HomeScreen({ navigation }) {
                       <View style={styles.cardLocationRow}>
                         <Ionicons name="location-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" style={{ marginRight: 3 }} />
                         <Text style={styles.cardLocationText} numberOfLines={1}>
-                          {job.location}
+                          {isTraining ? `${t("deploymentLocation", "Deployment Location")}: ${job.location}` : job.location}
                         </Text>
                       </View>
                     )}
@@ -825,17 +825,19 @@ export default function HomeScreen({ navigation }) {
                   {/* Left: Posted By (Column Stack) */}
                   <View style={styles.postedByCol}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      {/* <Ionicons
-                        name={isReferral ? "people-outline" : isTraining ? "school-outline" : "business-outline"}
-                        size={normalize(12)}
-                        color="#153e69"
-                        style={{ marginRight: 3 }}
-                      /> */}
-                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}</Text>
+                      {isTraining && (
+                        <Ionicons name="business" size={normalize(14)} color="#6b21a8" style={{ marginRight: 6 }} />
+                      )}
+                      <Text style={styles.postedByLabel}>{t("postedBy", "Posted by")}: </Text>
+                      <Text style={[styles.postedByBold, isTraining && { color: "#6b21a8" }]} numberOfLines={1}>
+                        {postedByLabelText}
+                      </Text>
                     </View>
-                    <Text style={styles.postedByBold} numberOfLines={1}>
-                      {postedByLabelText}
-                    </Text>
+                    {isTraining ? (
+                      <Text style={{ fontSize: normalize(9.5), color: "#64748b", marginTop: 1 }}>
+                        (Hospitality Training Agency)
+                      </Text>
+                    ) : null}
                   </View>
 
                   {/* Right: Action Buttons */}
@@ -868,7 +870,7 @@ export default function HomeScreen({ navigation }) {
                           </Text>
                         )}
                       </TouchableOpacity>
-                    ) : (
+                    ) : !isTraining ? (
                       <TouchableOpacity
                         style={styles.cardOutlineBtn}
                         onPress={() => handleCall(job)}
@@ -877,7 +879,7 @@ export default function HomeScreen({ navigation }) {
                         <Ionicons name="call-outline" size={normalize(13)} color="#153e69" style={{ marginRight: 3 }} />
                         <Text style={styles.cardOutlineBtnText}>CALL</Text>
                       </TouchableOpacity>
-                    )}
+                    ) : null}
 
                     <TouchableOpacity
                       style={styles.cardSquareIconBtn}
@@ -1583,7 +1585,7 @@ export default function HomeScreen({ navigation }) {
                         <Ionicons name="location" size={normalize(12)} color="#1d4ed8" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{t("location", "Location")}</Text>
+                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={1}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
@@ -1595,7 +1597,7 @@ export default function HomeScreen({ navigation }) {
                         <Ionicons name="briefcase" size={normalize(12)} color="#15803d" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{t("jobType", "Job Type / Duration")}</Text>
+                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={1}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
@@ -1701,7 +1703,7 @@ export default function HomeScreen({ navigation }) {
                 const modalIsTraining =
                   selectedDetailsJob._type === "training_opportunity" ||
                   selectedDetailsJob.category === "training";
-                const modalShowApply = !modalIsTraining && modalIsEmployerOrAdmin;
+                const modalShowApply = modalIsEmployerOrAdmin || modalIsTraining;
 
                 if (modalShowApply) {
                   return (

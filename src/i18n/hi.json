@@ -735,6 +735,7 @@
   "savedNoticeSub2": "आप इस अवसर को दूसरों के साथ भी साझा कर सकते हैं।",
   "backToSavedJobs": "सहेजी गई नौकरियों पर वापस जाएँ",
   "postedBy": "द्वारा पोस्ट किया गया",
+  "postedByAcademy": "जोब्रितो अकादमी",
   "employmentTypeLabel": "रोजगार का प्रकार",
   "openPositionsLabel": "खुले पद",
   "preferencesAndAccount": "प्राथमिकताएं और खाता",
@@ -1278,5 +1279,7 @@
   "calendlyNotIntegrated": "कैलेंडली एकीकृत नहीं है",
   "calendlyNotLinkedNotice": "इस शेफ ने अभी तक तत्काल बुकिंग के लिए अपना कैलेंडली कैलेंडर लिंक नहीं किया है। आप उनकी पूरी प्रोफ़ाइल देख सकते हैं या उनसे सीधे संपर्क कर सकते हैं।",
   "viewProfile": "प्रोफ़ाइल देखें",
-  "understood": "समझ गया"
+  "understood": "समझ गया",
+  "deploymentLocation": "तैनाती का स्थान",
+  "trainingDuration": "प्रशिक्षण अवधि"
 }

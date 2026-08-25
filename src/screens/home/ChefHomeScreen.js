@@ -422,7 +422,7 @@ export default function ChefHomeScreen({ navigation }) {
             const normalizedRole = rawRole.toLowerCase().replace(/[\s_]/g, "");
             const isEmployerOrAdmin = ["employer", "admin"].includes(normalizedRole);
             const isChefOrJobSeeker = ["chef", "jobseeker", "talent"].includes(normalizedRole);
-            const showApply = !isTraining && isEmployerOrAdmin;
+            const showApply = isEmployerOrAdmin || isTraining;
 
             const postedByLabelText = isReferral
               ? t("postedByReferral", "Referral")
@@ -459,7 +459,7 @@ export default function ChefHomeScreen({ navigation }) {
                       <View style={styles.cardLocationRow}>
                         <Ionicons name="location-outline" size={normalize(13)} color="rgba(10, 5, 4, 0.55)" style={{ marginRight: 3 }} />
                         <Text style={styles.cardLocationText} numberOfLines={1}>
-                          {job.location}
+                          {isTraining ? `${t("deploymentLocation", "Deployment Location")}: ${job.location}` : job.location}
                         </Text>
                       </View>
                     )}
@@ -473,18 +473,6 @@ export default function ChefHomeScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* Inner Banner for Training Cards */}
-                {isTraining && (
-                  <View style={styles.cardInnerBanner}>
-                    <View style={styles.cardInnerBannerIconCircle}>
-                      <Ionicons name="school" size={normalize(16)} color="#7e22ce" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardInnerBannerTitle}>Build your skills. Boost your career.</Text>
-                      <Text style={styles.cardInnerBannerSub}>Join our certified training program designed for hospitality professionals.</Text>
-                    </View>
-                  </View>
-                )}
 
                 {/* Horizontal Card Divider */}
                 <View style={styles.cardDividerLine} />
@@ -537,7 +525,7 @@ export default function ChefHomeScreen({ navigation }) {
                           </Text>
                         )}
                       </TouchableOpacity>
-                    ) : (
+                    ) : !isTraining ? (
                       <TouchableOpacity
                         style={styles.cardOutlineBtn}
                         onPress={() => handleCall(job)}
@@ -546,7 +534,7 @@ export default function ChefHomeScreen({ navigation }) {
                         <Ionicons name="call-outline" size={normalize(13)} color="#153e69" style={{ marginRight: 3 }} />
                         <Text style={styles.cardOutlineBtnText}>CALL</Text>
                       </TouchableOpacity>
-                    )}
+                    ) : null}
 
                     <TouchableOpacity
                       style={styles.cardSquareIconBtn}
@@ -722,7 +710,7 @@ export default function ChefHomeScreen({ navigation }) {
                         <Ionicons name="location" size={normalize(12)} color="#1d4ed8" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{t("location", "Location")}</Text>
+                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={1}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
@@ -734,7 +722,7 @@ export default function ChefHomeScreen({ navigation }) {
                         <Ionicons name="briefcase" size={normalize(12)} color="#15803d" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{t("jobType", "Job Type / Duration")}</Text>
+                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={1}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
@@ -839,7 +827,7 @@ export default function ChefHomeScreen({ navigation }) {
                 const modalIsTraining =
                   selectedDetailsJob._type === "training_opportunity" ||
                   selectedDetailsJob.category === "training";
-                const modalShowApply = !modalIsTraining && modalIsEmployerOrAdmin;
+                const modalShowApply = modalIsEmployerOrAdmin || modalIsTraining;
 
                 if (modalShowApply) {
                   return (
