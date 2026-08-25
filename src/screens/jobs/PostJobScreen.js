@@ -57,7 +57,7 @@ export default function PostJobScreen({ navigation, route }) {
     let list = [];
     const bizLoc = profile?.business_location || profile?.employer_profile?.business_location;
     if (bizLoc && typeof bizLoc === "string") {
-      list.push(`Primary (${bizLoc})`);
+      list.push(bizLoc);
     }
 
     let opLocs =
@@ -75,20 +75,19 @@ export default function PostJobScreen({ navigation, route }) {
     }
 
     if (Array.isArray(opLocs)) {
-      opLocs.forEach((locStr, idx) => {
+      opLocs.forEach((locStr) => {
         const strVal = typeof locStr === "string" ? locStr : [locStr.city, locStr.state, locStr.country].filter(Boolean).join(", ");
         if (strVal) {
-          const alreadyAdded = list.some((item) => item.includes(strVal));
+          const alreadyAdded = list.some((item) => item === strVal);
           if (!alreadyAdded) {
-            const label = list.length === 0 ? `Primary (${strVal})` : `Secondary (${strVal})`;
-            list.push(label);
+            list.push(strVal);
           }
         }
       });
     }
 
     if (list.length === 0) {
-      list.push("Primary (Riyadh, Central, Saudi Arabia)");
+      list.push("Riyadh, Central, Saudi Arabia");
     }
     return list;
   }, [profile]);

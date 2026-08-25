@@ -253,10 +253,44 @@ ${shareUrl}
   const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || "";
 
   const getSkillsList = () => {
+    if (!chef) return [];
     const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    const list = chef.skills || chef.user?.skills || chefProfileObj.skills || chefProfileObj.operational_experties || chefProfileObj.operational_expertise || chef.operations || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    const availInfo = chef.availability_info || chefProfileObj.availability_info || {};
+
+    let list =
+      chef.operational_expertise ||
+      chef.operational_experties ||
+      chef.core_skills ||
+      chef.skills ||
+      chefProfileObj.operational_expertise ||
+      chefProfileObj.operational_experties ||
+      chefProfileObj.core_skills ||
+      chefProfileObj.skills ||
+      availInfo.operational_expertise ||
+      availInfo.operational_experties ||
+      availInfo.core_skills ||
+      availInfo.skills ||
+      chef.user?.skills ||
+      chef.operations ||
+      [];
+
+    if (typeof list === "string") {
+      const trimmed = list.trim();
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          list = JSON.parse(trimmed);
+        } catch (e) {
+          // fallback to comma split
+        }
+      }
+    }
+
+    if (Array.isArray(list)) {
+      return list.map((x) => (typeof x === "string" ? x.trim() : String(x))).filter(Boolean);
+    }
+    if (typeof list === "string" && list.trim()) {
+      return list.split(",").map((x) => x.trim()).filter(Boolean);
+    }
     return [];
   };
 

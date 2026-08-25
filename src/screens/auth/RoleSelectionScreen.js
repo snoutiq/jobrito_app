@@ -381,12 +381,16 @@ const styles = StyleSheet.create({
   footerCard: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#f8fafc",
     borderRadius: normalize(12),
     padding: normalize(10),
     paddingHorizontal: normalize(14),
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: "#e2e8f0",
+    marginTop: "auto",
+    marginBottom: normalize(4),
+    width: "100%",
   },
   footerIconCircle: {
     width: normalize(34),
