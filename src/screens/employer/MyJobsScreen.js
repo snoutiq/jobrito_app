@@ -32,6 +32,9 @@ const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * sca
 
 const PRIMARY_GREEN = "#153e69";
 
+// Module-level — screen mount/unmount se survive karta hai (sirf app-restart pe reset)
+const seenStatsSignatures = {};
+
 const normalizeStatus = (status) => String(status || "").toLowerCase();
 
 const formatDate = (dateStr) => {
@@ -87,6 +90,29 @@ export default function MyJobsScreen({ navigation, route }) {
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedStatsJobId, setExpandedStatsJobId] = useState(null);
+
+  // Seen-stats tracking
+  const [statsDotMap, setStatsDotMap] = useState({}); // jobId -> dot dikhana hai ya nahi
+
+  const getStatsSignature = (stats) =>
+    `${stats.pending}|${stats.viewed}|${stats.contacted}|${stats.rejected}|${stats.shortlisted}`;
+
+  const checkIsReferralJob = (job) => {
+    if (!job) return false;
+    return Boolean(
+      job.is_referral ||
+      job.isReferral ||
+      job._type === "referral_job" ||
+      job.category === "referral" ||
+      job.submitted_by_role === "candidate" ||
+      job.submitted_by_role === "chef" ||
+      job.posted_by_role === "candidate" ||
+      job.posted_by_role === "chef" ||
+      job.active_role === "chef" ||
+      job.creator?.active_role === "chef" ||
+      job.user_role === "chef"
+    );
+  };
 
   const getJobApplicantStats = (job) => {
     const applicants = Array.isArray(job?.applicants)
@@ -240,6 +266,27 @@ export default function MyJobsScreen({ navigation, route }) {
     return Array.from(map.values());
   }, [isEmployer, employerDashboardRaw, submittedJobs, myJobs]);
 
+  useEffect(() => {
+    if (!isEmployer) return;
+
+    setStatsDotMap(() => {
+      const next = {};
+      jobsToShow.forEach((job) => {
+        const jobId = String(job.id);
+        const signature = getStatsSignature(getJobApplicantStats(job));
+        const seenSignature = seenStatsSignatures[jobId];
+
+        if (seenSignature === undefined) {
+          // Pehli baar — sirf tab dot dikhao jab koi activity ho
+          next[jobId] = signature !== "0|0|0|0|0";
+        } else {
+          next[jobId] = seenSignature !== signature;
+        }
+      });
+      return next;
+    });
+  }, [jobsToShow, isEmployer]);
+
   const fetchAllData = React.useCallback(() => {
     dispatch(fetchEmployerDashboard());
     dispatch(fetchMyJobs());
@@ -324,6 +371,8 @@ export default function MyJobsScreen({ navigation, route }) {
   );
 
   const renderJobCard = (job) => {
+    console.log("SINGLE JOB DATA:", JSON.stringify(job, null, 2));
+    console.log("isReferral result:", checkIsReferralJob(job));
     const jobTitle = String(job.title || job.job_title || "").trim();
     const companyName = String(job.company || job.company_name || "").trim();
     const locationStr = String(job.location || job.city || job.country || "").trim();
@@ -336,7 +385,7 @@ export default function MyJobsScreen({ navigation, route }) {
       ? formatDate(job.created_at)
       : job.date_posted || job.date || "";
 
-    const isReferral = Boolean(job.is_referral || job.isReferral || job.submitted_by_role === "candidate" || job.submitted_by_role === "chef");
+    const isReferral = checkIsReferralJob(job);
     const statusConfig = getStatusBadgeConfig(job.status);
     const iconConfig = getCategoryIconDetails(job);
     const logoUrl = job.company_logo_url || job.company_logo || job.logo || null;
@@ -545,7 +594,14 @@ export default function MyJobsScreen({ navigation, route }) {
                 style={[styles.statsFilterIconBtn, isStatsExpanded && styles.statsFilterIconBtnActive]}
                 onPress={(e) => {
                   e.stopPropagation();
+                  const jobId = String(job.id);
+                  const willExpand = expandedStatsJobId !== job.id;
                   setExpandedStatsJobId((prev) => (prev === job.id ? null : job.id));
+
+                  if (willExpand) {
+                    seenStatsSignatures[jobId] = getStatsSignature(stats);
+                    setStatsDotMap((prev) => ({ ...prev, [jobId]: false }));
+                  }
                 }}
                 activeOpacity={0.8}
               >
@@ -560,6 +616,7 @@ export default function MyJobsScreen({ navigation, route }) {
                   color={isStatsExpanded ? "#ffffff" : "#153e69"}
                   style={{ marginLeft: 2 }}
                 />
+                {statsDotMap[String(job.id)] && <View style={styles.statsDot} />}
               </TouchableOpacity>
             )}
 
@@ -1034,6 +1091,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: normalize(6),
     paddingVertical: normalize(2),
     borderRadius: normalize(4),
+    position: "relative",
+  },
+  statsDot: {
+    position: "absolute",
+    top: -3,
+    right: -3,
+    width: normalize(8),
+    height: normalize(8),
+    borderRadius: normalize(4),
+    backgroundColor: "#ea4335",
+    borderWidth: 1,
+    borderColor: "#ffffff",
   },
   statsFilterIconBtnActive: {
     backgroundColor: "#153e69",
