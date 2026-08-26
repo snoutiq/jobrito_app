@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, PixelRatio } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, PixelRatio, Platform } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -247,8 +247,8 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#ffffff",
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 14,
+    paddingTop: Platform.OS === "android" ? 8 : 4,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.08)",
   },
@@ -257,25 +257,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButton: {
-    marginRight: 14,
+    marginRight: 10,
+    padding: 4,
   },
   headerTitleContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: normalize(16),
+    fontSize: normalize(15),
     fontWeight: "800",
     color: "#0a0504",
     letterSpacing: 0.3,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 2,
+    marginTop: 1,
   },
   filterSection: {
     backgroundColor: "#ffffff",
-    paddingVertical: 10,
+    paddingVertical: 6,
     borderBottomWidth: 1,
     borderColor: "rgba(10, 5, 4, 0.06)",
   },
@@ -286,26 +287,27 @@ const styles = StyleSheet.create({
   filterPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
     gap: 6,
   },
   filterLabel: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: "600",
   },
   countBadge: {
-    paddingHorizontal: 7,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
   },
   countText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "700",
   },
   deckContainer: {
     flex: 1,
+    paddingTop: 0,
   },
 });

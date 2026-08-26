@@ -6,6 +6,16 @@ import { useTranslation } from "react-i18next";
 import SwipeCard from "./SwipeCard";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
+const IS_LARGE_DEVICE = SCREEN_HEIGHT > 840;
+
+const STACK_HEIGHT = IS_SMALL_DEVICE
+  ? SCREEN_HEIGHT * 0.55
+  : IS_LARGE_DEVICE
+  ? SCREEN_HEIGHT * 0.62
+  : SCREEN_HEIGHT * 0.59;
+
+const STACK_WIDTH = Math.min(SCREEN_WIDTH - 64, 380);
 
 export default function CardStack({
   applicants = [],
@@ -215,8 +225,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   stackContainer: {
-    width: SCREEN_WIDTH - 84, // Reduced width for slightly narrower card
-    height: SCREEN_HEIGHT * 0.61,
+    width: STACK_WIDTH,
+    height: STACK_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",

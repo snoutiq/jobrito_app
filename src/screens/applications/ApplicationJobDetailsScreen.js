@@ -155,12 +155,16 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f2942" />
         </TouchableOpacity>
+
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Text style={[styles.headerTitle, { textAlign: "center" }]}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]} numberOfLines={1}>
             {t("myApplicationsJobDetails", "My Applications - Job Details")}
           </Text>
         </View>
-        <View style={{ width: normalize(22) }} />
+
+        <TouchableOpacity onPress={handleShare} style={styles.headerShareBtn} activeOpacity={0.7}>
+          <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -450,14 +454,9 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
 
       {/* Bottom Fixed Action Bar */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.appliedBtn} disabled activeOpacity={1}>
+        <TouchableOpacity style={[styles.appliedBtn, { flex: 1 }]} disabled activeOpacity={1}>
           <Ionicons name="checkmark" size={normalize(16)} color="#ffffff" style={{ marginRight: 6 }} />
           <Text style={styles.appliedBtnText}>{t("applied", "Applied")}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleShare} style={styles.shareJobBtn} activeOpacity={0.8}>
-          <Ionicons name="share-outline" size={normalize(16)} color="#153e69" style={{ marginRight: 6 }} />
-          <Text style={styles.shareJobBtnText}>{t("shareJob", "Share Job")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -842,20 +841,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#ffffff",
   },
-  shareJobBtn: {
-    flex: 1,
-    height: normalize(44),
-    backgroundColor: "#ffffff",
-    borderRadius: normalize(12),
-    borderWidth: 1.5,
-    borderColor: "#153e69",
-    flexDirection: "row",
+  headerShareBtn: {
+    padding: normalize(6),
+    borderRadius: normalize(20),
+    backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
-  },
-  shareJobBtnText: {
-    fontSize: normalize(13.5),
-    fontWeight: "800",
-    color: "#153e69",
   },
 });

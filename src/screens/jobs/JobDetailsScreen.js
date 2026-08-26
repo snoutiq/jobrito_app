@@ -285,14 +285,18 @@ export default function JobDetailsScreen({ navigation, route }) {
               navigation.goBack();
             }
           }}
-          style={styles.backBtnRow}
+          style={styles.backBtn}
           activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
-          <Text style={styles.backBtnText}>
+        </TouchableOpacity>
+
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={styles.headerTitleText} numberOfLines={1}>
             {t("backToSavedJobs", "Back to Saved Jobs")}
           </Text>
-        </TouchableOpacity>
+        </View>
+
         <TouchableOpacity
           onPress={handleShare}
           style={styles.headerShareBtn}
@@ -489,9 +493,9 @@ export default function JobDetailsScreen({ navigation, route }) {
         </View>
       ) : !isEmployer ? (
         <View style={styles.bottomBar}>
-          {!isApplied && (
+          {!isApplied ? (
             <TouchableOpacity
-              style={styles.applyBtnPrimary}
+              style={[styles.applyBtnPrimary, { flex: 1 }]}
               activeOpacity={0.8}
               onPress={() => setShowCallModal(true)}
             >
@@ -500,12 +504,18 @@ export default function JobDetailsScreen({ navigation, route }) {
                 {t("applyNow", "APPLY NOW")}
               </Text>
             </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.applyBtnPrimary, { flex: 1, backgroundColor: "#16a34a" }]}
+              disabled
+              activeOpacity={1}
+            >
+              <Ionicons name="checkmark-circle" size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
+              <Text style={styles.applyBtnPrimaryText}>
+                {t("applied", "APPLIED")}
+              </Text>
+            </TouchableOpacity>
           )}
-
-          <TouchableOpacity onPress={handleShare} style={[styles.shareBtnOutline, isApplied && { flex: 1 }]} activeOpacity={0.8}>
-            <Ionicons name="share-social-outline" size={normalize(16)} color="#1d4ed8" style={{ marginRight: normalize(6) }} />
-            <Text style={styles.shareBtnOutlineText}>{t("share", "SHARE")}</Text>
-          </TouchableOpacity>
         </View>
       ) : null}
 
@@ -581,15 +591,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backBtnRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: normalize(8),
+  backBtn: {
+    padding: normalize(4),
   },
-  backBtnText: {
+  headerTitleText: {
     fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
+    letterSpacing: 0.2,
   },
   scrollContent: {
     padding: normalize(16),
