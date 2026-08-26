@@ -94,10 +94,36 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
     getProp("job_type", "type", "employment_type") ||
     "Full Time";
 
-  const rawCreator = getProp("created_by_name", "created_by_user", "created_by", "creator", "posted_by", "company");
-  const creatorName = typeof rawCreator === "string" ? rawCreator : (rawCreator?.name || rawCreator?.username || companyName || "Employer");
+  const rawCreator = getProp("created_by_name", "created_by_user", "created_by", "creator", "posted_by", "postedby", "posted_by_user", "company");
+  const creatorName = typeof rawCreator === "string" ? rawCreator : (rawCreator?.name || rawCreator?.full_name || rawCreator?.username || companyName || "Employer");
 
-  const postedByVal = `${t("postedBy", "Posted by")}: ${creatorName}`;
+  const rawRole = String(
+    getProp("posted_by_role", "submitted_by_role", "active_role", "user_role", "role") ||
+    (typeof rawCreator === "object" ? (rawCreator?.active_role || rawCreator?.role) : "") ||
+    ""
+  ).toLowerCase().replace(/[\s_]/g, "");
+
+  const isAdmin =
+    Boolean(getProp("is_admin_created")) ||
+    rawRole === "admin" ||
+    (typeof rawCreator === "object" && (rawCreator?.role === "admin" || rawCreator?.active_role === "admin"));
+
+  const isReferral =
+    Boolean(getProp("is_referral")) ||
+    getProp("_type") === "referral_job" ||
+    getProp("category") === "referral";
+
+  const isChef = rawRole === "chef" || (typeof rawCreator === "object" && (rawCreator?.role === "chef" || rawCreator?.active_role === "chef"));
+
+  const postedByRoleLabel = isAdmin
+    ? t("admin", "Admin")
+    : isReferral
+    ? t("referral", "Referral")
+    : isChef
+    ? t("chef", "Chef")
+    : t("employer", "Employer");
+
+  const postedByVal = `${t("postedBy", "Posted by")}: ${postedByRoleLabel}`;
 
   const fullDescription =
     getProp("description", "job_description", "summary") ||

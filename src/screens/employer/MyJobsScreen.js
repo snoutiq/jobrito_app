@@ -75,12 +75,14 @@ export default function MyJobsScreen({ navigation, route }) {
   const myJobs = useSelector((state) => state.job.myJobs);
   const jobLoading = useSelector((state) => state.job.loading);
   const employerLoading = useSelector((state) => state.employer.loading);
+  const user = useSelector((state) => state.auth.user || state.user?.profile);
   const activeRole = useSelector(
-    (state) => state.auth.user?.active_role ?? state.user?.activeRole,
+    (state) => state.auth.user?.active_role ?? state.user?.activeRole ?? user?.active_role ?? user?.role
   );
 
-  const isEmployer =
-    activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
+  const normalizedRole = String(activeRole || "").toLowerCase().replace(/[\s_]/g, "");
+  const isEmployer = normalizedRole === "employer";
+  const isChef = normalizedRole.includes("chef");
 
   const [activeTab, setActiveTab] = useState(
     route?.params?.activeTab || route?.params?.initialTab || "active"
@@ -812,7 +814,7 @@ export default function MyJobsScreen({ navigation, route }) {
           <View style={styles.fabTooltipCard}>
             <Text style={styles.fabTooltipTitle}>{t("postJobAsReferral", "Post a Job as Referral")}</Text>
             <Text style={styles.fabTooltipSub}>
-              {activeRole?.toLowerCase().includes("chef") || true
+              {isChef
                 ? t("fiveJobsPerDay", "5 jobs per day")
                 : t("oneJobPerDay", "1 job per day")}
             </Text>

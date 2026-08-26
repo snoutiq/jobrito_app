@@ -20,46 +20,104 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { CustomAlert } from "../../components/common/CustomAlert";
 import { closeEmployerJob } from "../../redux/slices/employerSlice";
-import { applyJob, fetchApplicationHistory } from "../../redux/slices/applicationSlice";
-import { fetchJobDetails, toggleSaveJob, fetchSavedJobs } from "../../redux/slices/jobSlice";
+import {
+  applyJob,
+  fetchApplicationHistory,
+} from "../../redux/slices/applicationSlice";
+import {
+  fetchJobDetails,
+  toggleSaveJob,
+  fetchSavedJobs,
+} from "../../redux/slices/jobSlice";
 import { getJobDetails } from "../../services/jobApi";
 import CallbackModal from "../../components/common/CallbackModal";
 import AppButton from "../../components/buttons/AppButton";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
-const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
+const normalize = (size) =>
+  Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
 
 const normalizeStatus = (status) => String(status || "").toLowerCase();
 
 const getCategoryIconDetails = (job) => {
-  const title = (job?.title || job?.job_title || job?.category || "").toLowerCase();
+  const title = (
+    job?.title ||
+    job?.job_title ||
+    job?.category ||
+    ""
+  ).toLowerCase();
   if (title.includes("packer") || title.includes("pack")) {
-    return { icon: "cube-outline", bg: "rgba(27, 77, 255, 0.08)", color: "#1b4dff" };
+    return {
+      icon: "cube-outline",
+      bg: "rgba(27, 77, 255, 0.08)",
+      color: "#1b4dff",
+    };
   }
-  if (title.includes("baker") || title.includes("chef") || title.includes("cook")) {
-    return { icon: "restaurant-outline", bg: "rgba(245, 127, 32, 0.08)", color: "#f57f20" };
+  if (
+    title.includes("baker") ||
+    title.includes("chef") ||
+    title.includes("cook")
+  ) {
+    return {
+      icon: "restaurant-outline",
+      bg: "rgba(245, 127, 32, 0.08)",
+      color: "#f57f20",
+    };
   }
-  if (title.includes("barista") || title.includes("cafe") || title.includes("coffee")) {
-    return { icon: "cafe-outline", bg: "rgba(10, 185, 129, 0.08)", color: "#10b981" };
+  if (
+    title.includes("barista") ||
+    title.includes("cafe") ||
+    title.includes("coffee")
+  ) {
+    return {
+      icon: "cafe-outline",
+      bg: "rgba(10, 185, 129, 0.08)",
+      color: "#10b981",
+    };
   }
-  return { icon: "briefcase-outline", bg: "rgba(21, 62, 105, 0.08)", color: "#153e69" };
+  return {
+    icon: "briefcase-outline",
+    bg: "rgba(21, 62, 105, 0.08)",
+    color: "#153e69",
+  };
 };
 
 const getStatusBadgeConfig = (status, t) => {
   const s = normalizeStatus(status);
   if (s === "approved" || s === "active") {
-    return { label: t("status.approved", "APPROVED"), bg: "#e6f4ea", color: "#137333" };
+    return {
+      label: t("status.approved", "APPROVED"),
+      bg: "#e6f4ea",
+      color: "#137333",
+    };
   }
-  if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
-    return { label: t("status.pending", "PENDING"), bg: "#feefc3", color: "#b06000" };
+  if (
+    s === "pending" ||
+    s === "new" ||
+    s === "under_review" ||
+    s === "under review"
+  ) {
+    return {
+      label: t("status.pending", "PENDING"),
+      bg: "#feefc3",
+      color: "#b06000",
+    };
   }
   if (s === "closed") {
-    return { label: t("status.closed", "CLOSED"), bg: "#f1f3f4", color: "#5f6368" };
+    return {
+      label: t("status.closed", "CLOSED"),
+      bg: "#f1f3f4",
+      color: "#5f6368",
+    };
   }
-  return { label: (status || "APPROVED").toUpperCase(), bg: "#e6f4ea", color: "#137333" };
+  return {
+    label: (status || "APPROVED").toUpperCase(),
+    bg: "#e6f4ea",
+    color: "#137333",
+  };
 };
 
 export default function JobDetailsScreen({ navigation, route }) {
@@ -122,14 +180,25 @@ export default function JobDetailsScreen({ navigation, route }) {
     const foundMy = (myJobs || []).find((j) => String(j.id) === targetId);
     if (foundMy) return foundMy;
 
-    const foundSub = (submittedJobs || []).find((j) => String(j.id) === targetId);
+    const foundSub = (submittedJobs || []).find(
+      (j) => String(j.id) === targetId,
+    );
     if (foundSub) return foundSub;
 
     const foundSaved = (savedJobs || []).find((j) => String(j.id) === targetId);
     if (foundSaved) return foundSaved;
 
     return passedJob || directJob || jobDetails || null;
-  }, [passedJob, jobDetails, directJob, feedJobs, myJobs, submittedJobs, savedJobs, jobId]);
+  }, [
+    passedJob,
+    jobDetails,
+    directJob,
+    feedJobs,
+    myJobs,
+    submittedJobs,
+    savedJobs,
+    jobId,
+  ]);
 
   const handleShare = async () => {
     try {
@@ -145,7 +214,10 @@ export default function JobDetailsScreen({ navigation, route }) {
   const closeJob = (jobIdToClose) => {
     CustomAlert.show(
       t("areYouSure", "Are you sure?"),
-      t("closeJobConfirmMsg", "Closing this job will stop new Talent applications."),
+      t(
+        "closeJobConfirmMsg",
+        "Closing this job will stop new Talent applications.",
+      ),
       [
         { text: t("cancel", "Cancel"), style: "cancel" },
         {
@@ -179,7 +251,9 @@ export default function JobDetailsScreen({ navigation, route }) {
       Boolean(job.applied) ||
       Boolean(job.is_applied) ||
       (applicationHistory || []).some(
-        (app) => String(app.jobId || app.job_id || app.job_post_id || app.job?.id) === String(job.id),
+        (app) =>
+          String(app.jobId || app.job_id || app.job_post_id || app.job?.id) ===
+          String(job.id),
       )
     );
   }, [applicationHistory, job]);
@@ -188,33 +262,53 @@ export default function JobDetailsScreen({ navigation, route }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+          >
             <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: "center" }}>
-            <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+            <Text style={[styles.headerTitle, { textAlign: "center" }]}>
+              {t("jobDetails.title", "JOB DETAILS")}
+            </Text>
           </View>
           <View style={{ width: normalize(22) }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={PRIMARY_GREEN} />
-          <Text style={styles.loadingText}>{t("loading", "Loading job details...")}</Text>
+          <Text style={styles.loadingText}>
+            {t("loading", "Loading job details...")}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   const title = String(job?.title || job?.job_title || job?.name || "").trim();
-  const company = String(job?.company || job?.company_name || job?.business_name || "").trim();
-  const location = String(job?.location || job?.city || job?.country || "").trim() || t("notMentioned", "Not Mentioned");
+  const company = String(
+    job?.company || job?.company_name || job?.business_name || "",
+  ).trim();
+  const location =
+    String(job?.location || job?.city || job?.country || "").trim() ||
+    t("notMentioned", "Not Mentioned");
 
   const formatSalaryDisplay = () => {
     if (!job) return t("notMentioned", "Not Mentioned");
-    const currency = String(job.currency || job.salary_currency || "SAR").trim();
+    const currency = String(
+      job.currency || job.salary_currency || "SAR",
+    ).trim();
     const min = job.salary_min ?? job.min_salary ?? job.salaryMin;
     const max = job.salary_max ?? job.max_salary ?? job.salaryMax;
 
-    if (min !== undefined && min !== null && min !== "" && max !== undefined && max !== null && max !== "") {
+    if (
+      min !== undefined &&
+      min !== null &&
+      min !== "" &&
+      max !== undefined &&
+      max !== null &&
+      max !== ""
+    ) {
       const minNum = Number(min);
       const maxNum = Number(max);
       if (!isNaN(minNum) && !isNaN(maxNum)) {
@@ -223,10 +317,16 @@ export default function JobDetailsScreen({ navigation, route }) {
       }
     }
 
-    const raw = job.salary || job.salary_range || job.offered_salary || job.salary_display;
+    const raw =
+      job.salary ||
+      job.salary_range ||
+      job.offered_salary ||
+      job.salary_display;
     if (raw && String(raw).trim()) {
       const s = String(raw).trim();
-      const match = s.match(/^(?:([A-Za-z]{2,4})\s*)?(\d+)(?:\s*-\s*(?:([A-Za-z]{2,4})\s*)?(\d+))?$/i);
+      const match = s.match(
+        /^(?:([A-Za-z]{2,4})\s*)?(\d+)(?:\s*-\s*(?:([A-Za-z]{2,4})\s*)?(\d+))?$/i,
+      );
       if (match) {
         const curr = match[1] || match[3] || currency;
         const v1 = Number(match[2]);
@@ -243,17 +343,29 @@ export default function JobDetailsScreen({ navigation, route }) {
   };
 
   const salaryStr = formatSalaryDisplay();
-  const rawExp = job?.experience || job?.experience_range || job?.experience_level || job?.experience_years;
-  const experienceStr = rawExp && String(rawExp).trim() ? String(rawExp).trim() : t("notSpecified", "Not Specified");
+  const rawExp =
+    job?.experience ||
+    job?.experience_range ||
+    job?.experience_level ||
+    job?.experience_years;
+  const experienceStr =
+    rawExp && String(rawExp).trim()
+      ? String(rawExp).trim()
+      : t("notSpecified", "Not Specified");
   const openings = job?.open_positions ?? job?.openings ?? job?.vacancies ?? 1;
   const rawType = job?.job_type || job?.type || "";
-  const jobType = rawType ? String(rawType).toUpperCase() : t("fullTime", "FULL-TIME");
-  const description = job?.description || job?.job_description || job?.summary || "";
+  const jobType = rawType
+    ? String(rawType).toUpperCase()
+    : t("fullTime", "FULL-TIME");
+  const description =
+    job?.description || job?.job_description || job?.summary || "";
   const statusConfig = getStatusBadgeConfig(job?.status, t);
   const iconConfig = getCategoryIconDetails(job);
-  const logoUrl = job?.company_logo_url || job?.company_logo || job?.logo || null;
+  const logoUrl =
+    job?.company_logo_url || job?.company_logo || job?.logo || null;
   const formattedJobId = job?.job_id || (job?.id ? `#${job.id}` : "");
-  const contactInfo = job?.contact_info || job?.phone || job?.contact_person_phone;
+  const contactInfo =
+    job?.contact_info || job?.phone || job?.contact_person_phone;
 
   const isJobPending =
     Boolean(route?.params?.isSubmitted) ||
@@ -266,13 +378,19 @@ export default function JobDetailsScreen({ navigation, route }) {
   const jobRequirements = Array.isArray(job?.requirements)
     ? job.requirements.filter(Boolean)
     : typeof job?.requirements === "string"
-      ? job.requirements.split("\n").map((r) => r.trim()).filter(Boolean)
+      ? job.requirements
+          .split("\n")
+          .map((r) => r.trim())
+          .filter(Boolean)
       : [];
 
   const jobBenefits = Array.isArray(job?.benefits)
     ? job.benefits.filter(Boolean)
     : typeof job?.benefits === "string"
-      ? job.benefits.split("\n").map((b) => b.trim()).filter(Boolean)
+      ? job.benefits
+          .split("\n")
+          .map((b) => b.trim())
+          .filter(Boolean)
       : [];
 
   return (
@@ -302,11 +420,18 @@ export default function JobDetailsScreen({ navigation, route }) {
           style={styles.headerShareBtn}
           activeOpacity={0.7}
         >
-          <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
+          <Ionicons
+            name="share-social-outline"
+            size={normalize(20)}
+            color="#153e69"
+          />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Saved Job Top Blue Notice Banner */}
         <View style={styles.savedNoticeBanner}>
           <View style={styles.savedNoticeIconWrap}>
@@ -320,47 +445,75 @@ export default function JobDetailsScreen({ navigation, route }) {
               {t("savedNoticeSub1", "If you're still interested, tap Apply.")}
             </Text>
             <Text style={styles.savedNoticeSub}>
-              {t("savedNoticeSub2", "You can also share this opportunity with others.")}
+              {t(
+                "savedNoticeSub2",
+                "You can also share this opportunity with others.",
+              )}
             </Text>
           </View>
         </View>
 
         {/* Hero Card */}
         <View style={styles.heroCard}>
-          <View style={[styles.heroIconBox, { backgroundColor: iconConfig.bg }]}>
+          <View
+            style={[styles.heroIconBox, { backgroundColor: iconConfig.bg }]}
+          >
             {logoUrl ? (
               <Image source={{ uri: logoUrl }} style={styles.logoImage} />
             ) : (
-              <Ionicons name={iconConfig.icon} size={normalize(24)} color={iconConfig.color} />
+              <Ionicons
+                name={iconConfig.icon}
+                size={normalize(24)}
+                color={iconConfig.color}
+              />
             )}
           </View>
 
           <View style={styles.heroInfoWrap}>
             {Boolean(company) && (
               <View style={styles.companyRow}>
-                <Text style={styles.companyNameText} numberOfLines={1}>
-                  {company}
-                </Text>
-                <Ionicons name="checkmark-circle" size={normalize(16)} color="#3b82f6" style={{ marginLeft: normalize(4) }} />
+                {Boolean(title) && (
+                  <Text style={styles.companyNameText} numberOfLines={1}>
+                    {title}
+                  </Text>
+                )}
+
+                <Ionicons
+                  name="checkmark-circle"
+                  size={normalize(16)}
+                  color="#3b82f6"
+                  style={{ marginLeft: normalize(4) }}
+                />
               </View>
             )}
-
-            {Boolean(title) && (
-              <Text style={styles.jobTitleText} numberOfLines={1}>
-                {title}
-              </Text>
-            )}
+            <Text style={styles.jobTitleText} numberOfLines={1}>
+              {company}
+            </Text>
 
             <View style={styles.metaRowInfo}>
               <View style={styles.metaItem}>
-                <Ionicons name="card-outline" size={normalize(14)} color="#64748b" />
-                <Text style={styles.metaLabel}>{t("jobDetails.jobId", "JOB ID")}</Text>
-                <Text style={styles.metaValueBlue}>{formattedJobId || "JR2026082101"}</Text>
+                <Ionicons
+                  name="card-outline"
+                  size={normalize(14)}
+                  color="#64748b"
+                />
+                <Text style={styles.metaLabel}>
+                  {t("jobDetails.jobId", "JOB ID")}
+                </Text>
+                <Text style={styles.metaValueBlue}>
+                  {formattedJobId || "JR2026082101"}
+                </Text>
               </View>
 
               <View style={styles.metaItem}>
-                <Ionicons name="person-outline" size={normalize(14)} color="#64748b" />
-                <Text style={styles.metaLabel}>{t("postedBy", "Posted by")}</Text>
+                <Ionicons
+                  name="person-outline"
+                  size={normalize(14)}
+                  color="#64748b"
+                />
+                <Text style={styles.metaLabel}>
+                  {t("postedBy", "Posted by")}
+                </Text>
                 <Text style={styles.metaValueGreen}>
                   {(() => {
                     const rawRole = (
@@ -370,7 +523,9 @@ export default function JobDetailsScreen({ navigation, route }) {
                       job?.submitted_by_role ||
                       job?.creator?.role ||
                       ""
-                    ).toLowerCase().replace(/[\s_]/g, "");
+                    )
+                      .toLowerCase()
+                      .replace(/[\s_]/g, "");
 
                     const isAdmin =
                       Boolean(job?.is_admin_created) ||
@@ -390,10 +545,10 @@ export default function JobDetailsScreen({ navigation, route }) {
                     return isAdmin
                       ? t("admin", "ADMIN")
                       : isReferral
-                      ? t("referral", "REFERRAL")
-                      : isChef
-                      ? t("chef", "CHEF")
-                      : t("employer", "EMPLOYER");
+                        ? t("referral", "REFERRAL")
+                        : isChef
+                          ? t("chef", "CHEF")
+                          : t("employer", "EMPLOYER");
                   })()}
                 </Text>
               </View>
@@ -407,21 +562,37 @@ export default function JobDetailsScreen({ navigation, route }) {
           <View style={styles.gridRow}>
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="briefcase-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons
+                  name="briefcase-outline"
+                  size={normalize(18)}
+                  color="#153e69"
+                />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("employmentTypeLabel", "Employment Type")}</Text>
-                <Text style={styles.gridValue} numberOfLines={3}>{jobType}</Text>
+                <Text style={styles.gridLabel}>
+                  {t("employmentTypeLabel", "Employment Type")}
+                </Text>
+                <Text style={styles.gridValue} numberOfLines={3}>
+                  {jobType}
+                </Text>
               </View>
             </View>
 
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="location-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons
+                  name="location-outline"
+                  size={normalize(18)}
+                  color="#153e69"
+                />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("location", "Location")}</Text>
-                <Text style={styles.gridValue} numberOfLines={3}>{location}</Text>
+                <Text style={styles.gridLabel}>
+                  {t("location", "Location")}
+                </Text>
+                <Text style={styles.gridValue} numberOfLines={3}>
+                  {location}
+                </Text>
               </View>
             </View>
           </View>
@@ -430,21 +601,35 @@ export default function JobDetailsScreen({ navigation, route }) {
           <View style={styles.gridRow}>
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="card-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons
+                  name="card-outline"
+                  size={normalize(18)}
+                  color="#153e69"
+                />
               </View>
               <View style={styles.gridTextContainer}>
                 <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
-                <Text style={styles.gridValue} numberOfLines={3}>{salaryStr}</Text>
+                <Text style={styles.gridValue} numberOfLines={3}>
+                  {salaryStr}
+                </Text>
               </View>
             </View>
 
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="bag-handle-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons
+                  name="bag-handle-outline"
+                  size={normalize(18)}
+                  color="#153e69"
+                />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("experience", "Experience")}</Text>
-                <Text style={styles.gridValue} numberOfLines={3}>{experienceStr}</Text>
+                <Text style={styles.gridLabel}>
+                  {t("experience", "Experience")}
+                </Text>
+                <Text style={styles.gridValue} numberOfLines={3}>
+                  {experienceStr}
+                </Text>
               </View>
             </View>
           </View>
@@ -453,10 +638,16 @@ export default function JobDetailsScreen({ navigation, route }) {
           <View style={styles.gridRow}>
             <View style={[styles.gridCard, { flex: 0.485 }]}>
               <View style={styles.gridIconCircle}>
-                <Ionicons name="people-outline" size={normalize(18)} color="#153e69" />
+                <Ionicons
+                  name="people-outline"
+                  size={normalize(18)}
+                  color="#153e69"
+                />
               </View>
               <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("openPositionsLabel", "Open Positions")}</Text>
+                <Text style={styles.gridLabel}>
+                  {t("openPositionsLabel", "Open Positions")}
+                </Text>
                 <Text style={styles.gridValue}>{openings}</Text>
               </View>
             </View>
@@ -465,21 +656,30 @@ export default function JobDetailsScreen({ navigation, route }) {
 
         {/* Section: About the Role */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t("aboutTheRole", "About the Role")}</Text>
+          <Text style={styles.sectionTitle}>
+            {t("aboutTheRole", "About the Role")}
+          </Text>
           <View style={styles.sectionTitleUnderline} />
           <Text style={styles.bodyDescription}>
-            {description || t("noDescription", "No description available for this role.")}
+            {description ||
+              t("noDescription", "No description available for this role.")}
           </Text>
         </View>
 
         {jobRequirements.length > 0 && (
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("jobDetails.keyRequirements", "KEY REQUIREMENTS")}</Text>
+            <Text style={styles.sectionTitle}>
+              {t("jobDetails.keyRequirements", "KEY REQUIREMENTS")}
+            </Text>
             <View style={styles.sectionTitleUnderline} />
             <View style={styles.requirementList}>
               {jobRequirements.map((item) => (
                 <View key={item} style={styles.requirementRow}>
-                  <Ionicons name="checkmark-circle" size={normalize(16)} color="#10b981" />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={normalize(16)}
+                    color="#10b981"
+                  />
                   <Text style={styles.requirementText}>{item}</Text>
                 </View>
               ))}
@@ -489,7 +689,9 @@ export default function JobDetailsScreen({ navigation, route }) {
 
         {jobBenefits.length > 0 && (
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("jobDetails.benefitsPerks", "BENEFITS & PERKS")}</Text>
+            <Text style={styles.sectionTitle}>
+              {t("jobDetails.benefitsPerks", "BENEFITS & PERKS")}
+            </Text>
             <View style={styles.sectionTitleUnderline} />
             <View style={styles.benefitWrap}>
               {jobBenefits.map((item) => (
@@ -514,7 +716,9 @@ export default function JobDetailsScreen({ navigation, route }) {
               })
             }
           >
-            <Text style={styles.viewTalentBtnText}>{t("viewTalent", "View Talent")}</Text>
+            <Text style={styles.viewTalentBtnText}>
+              {t("viewTalent", "View Talent")}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -522,7 +726,9 @@ export default function JobDetailsScreen({ navigation, route }) {
             activeOpacity={0.8}
             onPress={() => closeJob(job?.id)}
           >
-            <Text style={styles.closeJobBtnText}>{t("completed", "Completed")}</Text>
+            <Text style={styles.closeJobBtnText}>
+              {t("completed", "Completed")}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : !isEmployer ? (
@@ -533,18 +739,31 @@ export default function JobDetailsScreen({ navigation, route }) {
               activeOpacity={0.8}
               onPress={() => setShowCallModal(true)}
             >
-              <Ionicons name="send" size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
+              <Ionicons
+                name="send"
+                size={normalize(16)}
+                color="#ffffff"
+                style={{ marginRight: normalize(6) }}
+              />
               <Text style={styles.applyBtnPrimaryText}>
                 {t("applyNow", "APPLY NOW")}
               </Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[styles.applyBtnPrimary, { flex: 1, backgroundColor: "#16a34a" }]}
+              style={[
+                styles.applyBtnPrimary,
+                { flex: 1, backgroundColor: "#16a34a" },
+              ]}
               disabled
               activeOpacity={1}
             >
-              <Ionicons name="checkmark-circle" size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
+              <Ionicons
+                name="checkmark-circle"
+                size={normalize(16)}
+                color="#ffffff"
+                style={{ marginRight: normalize(6) }}
+              />
               <Text style={styles.applyBtnPrimaryText}>
                 {t("applied", "APPLIED")}
               </Text>
@@ -570,20 +789,22 @@ export default function JobDetailsScreen({ navigation, route }) {
             if (isTraining) {
               payload.is_training = 1;
             }
-            await dispatch(
-              applyJob(payload),
-            ).unwrap();
+            await dispatch(applyJob(payload)).unwrap();
 
             const isFromSaved =
               Boolean(route?.params?.isSaved) ||
               Boolean(job?.saved) ||
               Boolean(job?.is_saved) ||
-              (savedJobs || []).some((sj) => String(sj.id || sj.job_post_id) === String(targetJobId));
+              (savedJobs || []).some(
+                (sj) => String(sj.id || sj.job_post_id) === String(targetJobId),
+              );
 
             if (isFromSaved && targetJobId) {
               const jobKey = String(targetJobId);
               const targetSaveId = isTraining
-                ? (String(jobKey).startsWith("training_") ? jobKey : `training_${jobKey}`)
+                ? String(jobKey).startsWith("training_")
+                  ? jobKey
+                  : `training_${jobKey}`
                 : jobKey;
               try {
                 await dispatch(toggleSaveJob(targetSaveId)).unwrap();
