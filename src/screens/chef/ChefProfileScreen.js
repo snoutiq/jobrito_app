@@ -584,11 +584,7 @@ ${shareUrl}
 
           <View style={styles.menuRowDivider} />
 
-          <TouchableOpacity
-            style={styles.menuRowItem}
-            onPress={() => navigation.navigate("ProfileViews")}
-            activeOpacity={0.7}
-          >
+          <View style={styles.menuRowItem}>
             <View style={styles.menuRowLeft}>
               <View style={styles.menuIconCircle}>
                 <Ionicons name="eye-outline" size={normalize(18)} color="#002b5c" />
@@ -599,9 +595,8 @@ ${shareUrl}
               <View style={styles.badgeOrangePill}>
                 <Text style={styles.badgeOrangeText}>{stats.profile_views}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Section 2: PROFESSIONAL TOOLS */}

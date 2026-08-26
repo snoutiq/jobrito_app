@@ -203,6 +203,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
           setFullName(profileName);
         }
       }
+      if (profile.age) {
+        setAge(profile.age);
+      }
       if (profile.profile_photo_path) {
         setPhotoUri(profile.profile_photo_path);
         setPhotoUploaded(true);
@@ -326,66 +329,85 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
       // Regional Experience loading
       let loadedReg = [];
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.regional_experience)) {
-        loadedReg = profile.availability_info.regional_experience;
-      } else if (Array.isArray(profile.regionalExperience)) {
-        loadedReg = profile.regionalExperience;
-      } else if (Array.isArray(profile.regional_experience)) {
-        loadedReg = profile.regional_experience;
-      } else if (typeof profile.regionalExperience === "string") {
-        loadedReg = profile.regionalExperience.split(",").map(x => x.trim()).filter(Boolean);
-      } else if (typeof profile.regional_experience === "string") {
-        loadedReg = profile.regional_experience.split(",").map(x => x.trim()).filter(Boolean);
+      const rawReg =
+        (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && profile.availability_info.regional_experience) ||
+        (profile.chef_profile?.availability_info && typeof profile.chef_profile.availability_info === "object" && !Array.isArray(profile.chef_profile.availability_info) && profile.chef_profile.availability_info.regional_experience) ||
+        profile.chef_profile?.regional_experience ||
+        profile.regionalExperience ||
+        profile.regional_experience;
+
+      if (Array.isArray(rawReg)) {
+        loadedReg = rawReg;
+      } else if (typeof rawReg === "string") {
+        loadedReg = rawReg.split(",").map(x => x.trim()).filter(Boolean);
       }
       setRegionalExperience(loadedReg);
 
       // Location Preference loading
-      if (profile.locationPreference || profile.location_preference) {
-        const val = profile.locationPreference || profile.location_preference;
-        if (val === "Both") {
+      const rawLocPref =
+        (profile.availability_info && typeof profile.availability_info === "object" && profile.availability_info.location_preference) ||
+        (profile.chef_profile?.availability_info && typeof profile.chef_profile.availability_info === "object" && profile.chef_profile.availability_info.location_preference) ||
+        profile.chef_profile?.location_preference ||
+        profile.locationPreference ||
+        profile.location_preference;
+
+      if (rawLocPref) {
+        if (rawLocPref === "Both" || rawLocPref.toLowerCase().includes("both")) {
           setLocationPreference("Both (India & Overseas)");
-        } else if (val === "India") {
+        } else if (rawLocPref === "India" || rawLocPref.toLowerCase() === "india") {
           setLocationPreference("India");
-        } else if (val === "Overseas") {
+        } else if (rawLocPref === "Overseas" || rawLocPref.toLowerCase() === "overseas") {
           setLocationPreference("Overseas");
         } else {
-          setLocationPreference(val);
+          setLocationPreference(rawLocPref);
         }
       }
 
       // Employment Preference loading
       let loadedEmp = [];
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && Array.isArray(profile.availability_info.employment_preference)) {
-        loadedEmp = profile.availability_info.employment_preference;
-      } else if (Array.isArray(profile.employmentPreference)) {
-        loadedEmp = profile.employmentPreference;
-      } else if (Array.isArray(profile.employment_preference)) {
-        loadedEmp = profile.employment_preference;
-      } else if (typeof profile.employmentPreference === "string") {
-        loadedEmp = profile.employmentPreference.split(",").map(x => x.trim()).filter(Boolean);
-      } else if (typeof profile.employment_preference === "string") {
-        loadedEmp = profile.employment_preference.split(",").map(x => x.trim()).filter(Boolean);
+      const rawEmp =
+        (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info) && profile.availability_info.employment_preference) ||
+        (profile.chef_profile?.availability_info && typeof profile.chef_profile.availability_info === "object" && !Array.isArray(profile.chef_profile.availability_info) && profile.chef_profile.availability_info.employment_preference) ||
+        profile.chef_profile?.employment_preference ||
+        profile.employmentPreference ||
+        profile.employment_preference;
+
+      if (Array.isArray(rawEmp)) {
+        loadedEmp = rawEmp;
+      } else if (typeof rawEmp === "string") {
+        loadedEmp = rawEmp.split(",").map(x => x.trim()).filter(Boolean);
       }
       setEmploymentPreference(loadedEmp);
 
       // Availability loading
-      if (profile.availability_info && typeof profile.availability_info === "object" && !Array.isArray(profile.availability_info)) {
-        setAvailability(profile.availability_info.availability_status || "");
-      } else if (profile.availability) {
-        setAvailability(profile.availability);
+      const rawAvail =
+        (profile.availability_info && typeof profile.availability_info === "object" && (profile.availability_info.availability_status || profile.availability_info.status)) ||
+        (profile.chef_profile?.availability_info && typeof profile.chef_profile.availability_info === "object" && (profile.chef_profile.availability_info.availability_status || profile.chef_profile.availability_info.status)) ||
+        profile.chef_profile?.availability ||
+        profile.availability;
+
+      if (rawAvail) {
+        setAvailability(rawAvail);
       }
 
       // Bio loading
-      if (profile.bio) {
-        setBio(profile.bio);
+      const rawBio = profile.bio || profile.chef_profile?.bio;
+      if (rawBio) {
+        setBio(rawBio);
       }
 
       // Languages loading
       let loadedLangs = [];
-      if (Array.isArray(profile.languages)) {
-        loadedLangs = profile.languages;
-      } else if (typeof profile.languages === "string") {
-        loadedLangs = profile.languages.split(",").map(x => x.trim()).filter(Boolean);
+      const rawLangs =
+        (profile.availability_info && typeof profile.availability_info === "object" && profile.availability_info.languages) ||
+        (profile.chef_profile?.availability_info && typeof profile.chef_profile.availability_info === "object" && profile.chef_profile.availability_info.languages) ||
+        profile.languages ||
+        profile.chef_profile?.languages;
+
+      if (Array.isArray(rawLangs)) {
+        loadedLangs = rawLangs;
+      } else if (typeof rawLangs === "string") {
+        loadedLangs = rawLangs.split(",").map(x => x.trim()).filter(Boolean);
       }
       setLanguages(loadedLangs);
       setIsProfileInitialized(true);
@@ -731,6 +753,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     try {
       const formData = new FormData();
       formData.append("full_name", fullName);
+      formData.append("age", age || "");
       formData.append("preferred_role", professionalTitle);
       formData.append("city", currentCity);
       formData.append("country", country);
@@ -849,6 +872,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         name: fullName,
         city: currentCity,
         country,
+        age: age || "",
         experience_range: experienceYears,
         preferred_role: professionalTitle,
         profile_photo_path: photoUri,
@@ -858,6 +882,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       const profilePayload = {
         ...profile,
         name: fullName || "Chef User",
+        age,
         professionalTitle,
         city: currentCity,
         country,
@@ -1676,9 +1701,6 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     );
                   })}
                 </View>
-                <Text style={styles.fieldHelperText}>
-                  {t("regionalExamples", "Examples: Riyadh, Dubai, Muscat, Doha, United States, United Kingdom")}
-                </Text>
               </View>
 
               {/* Card 2: Job Location Preference */}
