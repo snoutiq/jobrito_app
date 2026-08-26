@@ -116,6 +116,8 @@ export const normalizeProfile = (u) => {
     cuisine_specialty: chef.cuisine_specialty || chef.specialties || "",
     specialties: chef.specialties || chef.cuisine_specialty || "",
     cuisines: chef.cuisine_specialty || chef.specialties || "",
+    operational_expertise: chef.operational_expertise || chef.operational_experties || "",
+    operational_experties: chef.operational_experties || chef.operational_expertise || "",
     bio: chef.bio || "",
     calendly_link: chef.calendly_link || "",
     availability_info: availability,

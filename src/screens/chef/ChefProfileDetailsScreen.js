@@ -184,47 +184,52 @@ ${shareUrl}
   };
 
   const getAvailabilityInfo = () => {
-    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    return chef.availability_info || chefProfileObj.availability_info || {};
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    let info = chef.availability_info || chefProfileObj.availability_info || chef.user?.availability_info || {};
+    if (typeof info === "string") {
+      try {
+        info = JSON.parse(info);
+      } catch (e) {
+        info = {};
+      }
+    }
+    return info || {};
   };
 
   const availabilityInfo = getAvailabilityInfo();
 
   const getDisplayTitle = () => {
-    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const talentObj = chef.talent_profile || chef.job_seeker_profile || chef.user?.talent_profile || chef.user?.job_seeker_profile || {};
     return (
-      chef.professionalTitle ||
       chef.preferred_role ||
+      chef.preference ||
+      chef.professionalTitle ||
       chef.current_role ||
       chef.currentRole ||
-      chef.role ||
       chef.professional_title ||
-      chef.cuisine_specialty ||
+      talentObj.preferred_role ||
       chefProfileObj.preferred_role ||
       chefProfileObj.cuisine_specialty ||
+      chef.cuisine_specialty ||
+      (chef.role !== "chef" ? chef.role : "") ||
       ""
     );
   };
 
   const getDisplayCurrentLocation = () => {
-    return (
-      chef.current_location ||
-      chef.currentLocation ||
-      chef.job_location ||
-      chef.city ||
-      chef.country ||
-      chef.user?.city ||
-      chef.user?.country ||
-      ""
-    );
+    const city = chef.city || chef.current_location || chef.currentLocation || chef.user?.city || chef.user?.job_location || "";
+    const country = chef.country || chef.user?.country || "";
+    if (city && country && !city.toLowerCase().includes(country.toLowerCase())) {
+      return `${city}, ${country}`;
+    }
+    return city || country || chef.job_location || chef.location_preference || "";
   };
 
   const getDisplayPreferredLocation = () => {
-    // 1. Get base location preference
-    const basePref = availabilityInfo.location_preference || chef.locationPreference || chef.location_preference || "";
+    const basePref = availabilityInfo.location_preference || chef.locationPreference || chef.location_preference || chef.job_location || "";
     let displayBase = basePref === "Both" || basePref === "Both (India & Overseas)" ? "Both (India & Overseas)" : basePref;
 
-    // 2. Get specific location
     const specificLoc = chef.job_location || chef.preferred_location || chef.user?.job_location || "";
 
     if (displayBase && specificLoc && displayBase.toLowerCase() !== specificLoc.toLowerCase()) {
@@ -234,18 +239,38 @@ ${shareUrl}
   };
 
   const getDisplayExperience = () => {
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const talentObj = chef.talent_profile || chef.job_seeker_profile || chef.user?.talent_profile || {};
     return (
-      chef.experienceYears ||
       chef.experience_range ||
+      chef.experience_years ||
+      chef.experienceYears ||
       chef.experience ||
+      talentObj.experience_range ||
+      talentObj.experience_years ||
+      chefProfileObj.experience_range ||
       chef.user?.experience_range ||
       ""
     );
   };
 
+  const getDisplayAge = () => {
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const talentObj = chef.talent_profile || chef.job_seeker_profile || chef.user?.talent_profile || {};
+    const availInfo = availabilityInfo || {};
+    return (
+      chef.age ||
+      talentObj.age ||
+      chefProfileObj.age ||
+      availInfo.age ||
+      chef.user?.age ||
+      ""
+    );
+  };
+
   const getDisplayBio = () => {
-    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    return chef.bio || chefProfileObj.bio || chef.user?.bio || "";
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    return chef.bio || chefProfileObj.bio || chef.user?.bio || chef.user?.chef_profile?.bio || "";
   };
 
   const displayName = chef?.full_name || chef?.name || chef?.user?.full_name || chef?.user?.name || "Chef User";
@@ -253,10 +278,11 @@ ${shareUrl}
   const displayCity = getDisplayCurrentLocation();
   const displayPrefLocation = getDisplayPreferredLocation();
   const displayExperience = getDisplayExperience();
+  const displayAge = getDisplayAge();
   const displayBio = getDisplayBio();
 
   const getLogoSource = () => {
-    const chefProfile = chef.chef_profile || chef.chef_profile_details || chef;
+    const chefProfile = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef;
     const uri = chef?.profile_photo_path || chef?.profile_photo || chefProfile?.profile_photo_path || chefProfile?.profile_photo || chef?.user?.profile_photo_path;
     if (!uri) return null;
     if (
@@ -271,19 +297,20 @@ ${shareUrl}
   };
 
   const logoSource = getLogoSource();
-  const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef;
-  const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || "";
+  const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef;
+  const displayCalendly = chef.calendly_link || chefProfileObj.calendly_link || chef.calendlyUrl || chef.calendlyLink || chef.user?.chef_profile?.calendly_link || "";
 
   const getSkillsList = () => {
     if (!chef) return [];
-    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    const availInfo = chef.availability_info || chefProfileObj.availability_info || {};
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const availInfo = availabilityInfo || {};
 
     let list =
       chef.operational_expertise ||
       chef.operational_experties ||
       chef.core_skills ||
       chef.skills ||
+      chef.operations ||
       chefProfileObj.operational_expertise ||
       chefProfileObj.operational_experties ||
       chefProfileObj.core_skills ||
@@ -293,7 +320,7 @@ ${shareUrl}
       availInfo.core_skills ||
       availInfo.skills ||
       chef.user?.skills ||
-      chef.operations ||
+      chef.user?.chef_profile?.operational_experties ||
       [];
 
     if (typeof list === "string") {
@@ -317,36 +344,69 @@ ${shareUrl}
   };
 
   const getCuisinesList = () => {
-    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    const list = chef.cuisines || chef.cuisine_specialty || chef.specialties || chefProfileObj.cuisine_specialty || chefProfileObj.specialties || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const list =
+      chef.cuisines ||
+      chef.cuisine_specialty ||
+      chef.specialties ||
+      chefProfileObj.cuisine_specialty ||
+      chefProfileObj.specialties ||
+      chefProfileObj.cuisines ||
+      chef.user?.chef_profile?.cuisine_specialty ||
+      [];
+    if (Array.isArray(list)) return list.filter(Boolean);
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim()).filter(Boolean);
     return [];
   };
 
   const getLanguagesList = () => {
-    const list = availabilityInfo.languages || chef.languages || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    const availInfo = availabilityInfo || {};
+    const list = availInfo.languages || chef.languages || chefProfileObj?.availability_info?.languages || [];
+    if (Array.isArray(list)) return list.filter(Boolean);
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim()).filter(Boolean);
     return [];
   };
 
   const getEmploymentList = () => {
-    const list = availabilityInfo.employment_preference || availabilityInfo.employment_preferences || chef.employment_preference || chef.employment_preferences || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return [list];
+    const availInfo = availabilityInfo || {};
+    const list =
+      availInfo.employment_preference ||
+      availInfo.employment_preferences ||
+      chef.employment_preference ||
+      chef.employment_preferences ||
+      [];
+    if (Array.isArray(list)) return list.filter(Boolean);
+    if (typeof list === "string" && list.trim()) return [list];
     return [];
   };
 
   const getRegionalList = () => {
-    const list = availabilityInfo.regional_experience || availabilityInfo.regionalExperience || chef.regional_experience || chef.regionalExperience || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map(x => x.trim());
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || chef.user?.chef_profile_details || {};
+    const availInfo = availabilityInfo || {};
+    const list =
+      availInfo.regional_experience ||
+      availInfo.regionalExperience ||
+      chef.regional_experience ||
+      chef.regionalExperience ||
+      chefProfileObj.regional_experience ||
+      chefProfileObj.regionalExperience ||
+      chefProfileObj.availability_info?.regional_experience ||
+      [];
+    if (Array.isArray(list)) return list.filter(Boolean);
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim()).filter(Boolean);
     return [];
   };
 
   const getAvailabilityStatus = () => {
-    return availabilityInfo.availability_status || chef.availability_status || chef.availability || "";
+    const availInfo = availabilityInfo || {};
+    return (
+      availInfo.availability_status ||
+      availInfo.status ||
+      chef.availability_status ||
+      chef.availability ||
+      chef.user?.availability_status ||
+      ""
+    );
   };
 
   const handleOpenSocialLink = (url) => {
@@ -552,6 +612,13 @@ ${shareUrl}
                   <Text style={styles.detailLabel}>{t("experienceLabel", "Experience:")} </Text>
                   <Text style={styles.detailValue}>{displayExperience || "N/A"}</Text>
                 </Text>
+
+                {Boolean(displayAge) && (
+                  <Text numberOfLines={1} style={styles.detailRowText}>
+                    <Text style={styles.detailLabel}>{t("ageLabel", "Age:")} </Text>
+                    <Text style={styles.detailValue}>{displayAge}</Text>
+                  </Text>
+                )}
                 
                 <Text numberOfLines={1} style={styles.detailRowText}>
                   <Text style={styles.detailLabel}>{t("regionalExperienceLabel", "Regional Experience:")} </Text>
