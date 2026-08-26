@@ -108,9 +108,20 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    if (route?.params?.step) {
+      return route.params.step;
+    }
+    return 1;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+
+  useEffect(() => {
+    if (route?.params?.step) {
+      setStep(route.params.step);
+    }
+  }, [route?.params?.step]);
 
   const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
   const bioInputRef = useRef(null);

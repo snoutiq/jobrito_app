@@ -162,10 +162,28 @@ export default function ChefProfileScreen({ navigation }) {
   };
 
   const getMissingFieldStep = () => {
+    // Step 1: Basic Info & Profile Photo
     if (!profile?.profile_photo_path && !profile?.profile_photo) return 1;
-    if (!profile?.bio) return 3;
-    if (!profile?.skills && !profile?.operations) return 2;
-    if (!profile?.calendly_link && !profile?.calendlyUrl) return 4;
+    if (!profile?.name && !profile?.full_name) return 1;
+    if (!profile?.city) return 1;
+    if (!profile?.experienceYears && !profile?.experience_range && !profile?.experience) return 1;
+    if (!profile?.professionalTitle && !profile?.preferred_role) return 1;
+
+    // Step 2: Professional Details (Cuisine, Skills, Location Preference)
+    if (!profile?.cuisine_specialty && !profile?.specialties && !profile?.chef_profile?.cuisine_specialty) return 2;
+    if (!profile?.skills && !profile?.operations && !profile?.chef_profile?.skills) return 2;
+    if (!profile?.locationPreference && !profile?.location_preference) return 2;
+
+    // Step 3: About & Bio
+    if (!profile?.bio && !profile?.about && !profile?.chef_profile?.bio) return 3;
+
+    // Step 4: Availability & Consultation & Calendly
+    if (!profile?.calendly_link && !profile?.calendlyUrl && !profile?.chef_profile?.calendly_link) return 4;
+
+    // Step 5: Social Media Links
+    const socials = profile?.socials || profile?.chef_profile?.socials || {};
+    if (!profile?.linkedin && !profile?.instagram && !socials.linkedin && !socials.instagram) return 5;
+
     return 1;
   };
 
@@ -174,9 +192,11 @@ export default function ChefProfileScreen({ navigation }) {
       return t("profile.allInfoAdded", "All information added successfully!");
     if (!profile?.profile_photo_path && !profile?.profile_photo)
       return t("addProfilePhoto", "Add Profile Photo");
-    if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
     if (!profile?.skills && !profile?.operations)
       return t("profile.addSkillsAction", "Add Operational Skills");
+    if (!profile?.bio) return t("profile.addBioAction", "Add Bio");
+    if (!profile?.calendly_link && !profile?.calendlyUrl)
+      return t("profile.addCalendlyAction", "Add Calendly Link");
     return t("profile.completeProfilePrompt", "Complete your profile details");
   };
 
@@ -503,40 +523,42 @@ ${shareUrl}
           </View>
         </View>
 
-        {/* Profile Completion Progress Card */}
-        <View style={styles.completionCardBox}>
-          <View style={styles.completionTopRow}>
-            <Text style={styles.completionCardTitle}>{t("profileCompletion", "Profile Completion")}</Text>
-            <Text style={styles.completionCardValue}>{`${completionPercent}% Complete`}</Text>
-          </View>
+        {/* Profile Completion Progress Card (Only shown if completion < 100%) */}
+        {completionPercent < 100 && (
+          <View style={styles.completionCardBox}>
+            <View style={styles.completionTopRow}>
+              <Text style={styles.completionCardTitle}>{t("profileCompletion", "Profile Completion")}</Text>
+              <Text style={styles.completionCardValue}>{`${completionPercent}% Complete`}</Text>
+            </View>
 
-          <View style={styles.completionTrack}>
-            <View style={[styles.completionFill, { width: `${completionPercent}%` }]} />
-          </View>
+            <View style={styles.completionTrack}>
+              <View style={[styles.completionFill, { width: `${completionPercent}%` }]} />
+            </View>
 
-          <TouchableOpacity
-            style={styles.completionActionBox}
-            onPress={() =>
-              navigation.navigate("ChefCompleteProfile", {
-                step: getMissingFieldStep(),
-              })
-            }
-            activeOpacity={0.85}
-          >
-            <View style={styles.completionActionIconCircle}>
-              <Ionicons name="cloud-upload-outline" size={normalize(18)} color="#002b5c" />
-            </View>
-            <View style={styles.completionActionTextCol}>
-              <Text style={styles.completionActionTitle}>{getMissingFieldText()}</Text>
-              <Text style={styles.completionActionSub}>
-                {t("completeProfileVisibilitySub", "A complete profile gets more visibility")}
-              </Text>
-            </View>
-            <View style={styles.completionArrowCircle}>
-              <Ionicons name="arrow-forward" size={normalize(14)} color="#ffffff" />
-            </View>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.completionActionBox}
+              onPress={() =>
+                navigation.navigate("ChefCompleteProfile", {
+                  step: getMissingFieldStep(),
+                })
+              }
+              activeOpacity={0.85}
+            >
+              <View style={styles.completionActionIconCircle}>
+                <Ionicons name="cloud-upload-outline" size={normalize(18)} color="#002b5c" />
+              </View>
+              <View style={styles.completionActionTextCol}>
+                <Text style={styles.completionActionTitle}>{getMissingFieldText()}</Text>
+                <Text style={styles.completionActionSub}>
+                  {t("completeProfileVisibilitySub", "A complete profile gets more visibility")}
+                </Text>
+              </View>
+              <View style={styles.completionArrowCircle}>
+                <Ionicons name="arrow-forward" size={normalize(14)} color="#ffffff" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Section 1: MY ACTIVITY */}
         <Text style={styles.sectionHeadingText}>{t("myActivity", "MY ACTIVITY")}</Text>
