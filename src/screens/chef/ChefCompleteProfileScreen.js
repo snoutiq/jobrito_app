@@ -2208,7 +2208,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   </React.Fragment>
                 ))}
 
-                {/* Add More */}
+                {/* Add More
                 <TouchableOpacity
                   style={styles.socialListItemRow}
                   activeOpacity={0.7}
@@ -2232,6 +2232,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
                   </View>
                 </TouchableOpacity>
+                */}
               </View>
 
               {/* Next: Review & Submit Button */}

@@ -394,6 +394,7 @@ export default function SocialMediaLinksScreen({ navigation }) {
             </View>
           ))}
 
+          {/* Add More Link UI
           <TouchableOpacity
             style={styles.addMoreDashedCard}
             activeOpacity={0.8}
@@ -415,6 +416,7 @@ export default function SocialMediaLinksScreen({ navigation }) {
             </View>
             <Ionicons name="chevron-forward" size={normalize(18)} color="#94a3b8" />
           </TouchableOpacity>
+          */}
         </View>
 
         <View style={styles.whyConnectCardBox}>
