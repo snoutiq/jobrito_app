@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ScrollView, Linking } from "react-native";
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ScrollView, Linking, PixelRatio } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -18,6 +18,8 @@ import ApplicantPreview from "./ApplicantPreview";
 import { CustomAlert } from "../../components/common/CustomAlert";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.4;
 
@@ -222,16 +224,6 @@ export default React.memo(function SwipeCard({
     applicant?.score ??
     applicant?.match?.score;
 
-  // Stable refs to prevent gesture re-creation mid-drag
-  const onSwipeCompleteRef = React.useRef(onSwipeComplete);
-  onSwipeCompleteRef.current = onSwipeComplete;
-
-  const onUndoRef = React.useRef(onUndo);
-  onUndoRef.current = onUndo;
-
-  const applicantRef = React.useRef(applicant);
-  applicantRef.current = applicant;
-
   // Pan gesture setup: horizontal image slider style (left drag = next applicant, right drag = previous applicant / undo)
   const panGesture = useMemo(
     () =>
@@ -251,8 +243,8 @@ export default React.memo(function SwipeCard({
           // 1. Swipe Left -> Go to Next Applicant
           if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
             translateX.value = withTiming(-SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
-              if (onSwipeCompleteRef.current) {
-                runOnJS(onSwipeCompleteRef.current)("left", applicantRef.current);
+              if (onSwipeComplete) {
+                runOnJS(onSwipeComplete)("left", applicant);
               }
             });
             swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
@@ -263,8 +255,8 @@ export default React.memo(function SwipeCard({
           // 2. Swipe Right -> Go to Previous Applicant (Undo)
           else if ((dragX > SWIPE_THRESHOLD || velocityX > 600) && canUndo) {
             translateX.value = withTiming(SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
-              if (onUndoRef.current) {
-                runOnJS(onUndoRef.current)();
+              if (onUndo) {
+                runOnJS(onUndo)();
               }
             });
             swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
@@ -279,7 +271,7 @@ export default React.memo(function SwipeCard({
             swipeProgress.value = withSpring(0, { damping: 22, stiffness: 200, mass: 0.7 });
           }
         }),
-    [isTopCard, swipeEnabled, canUndo]
+    [isTopCard, swipeEnabled, canUndo, applicant, onSwipeComplete, onUndo]
   );
 
   // Animated styles for clean horizontal Image Slider interaction
@@ -349,171 +341,217 @@ export default React.memo(function SwipeCard({
   };
 
   const displayStatus = applicant?.status ? applicant.status.toUpperCase() : "";
-  const displayRole = applicant?.preference || applicant?.preferred_role || applicant?.user?.preference || applicant?.user?.preferred_role || "";
-  const localStatus = applicant?.status?.toLowerCase();
-  const displayEmployer = applicant?.current_employer || applicant?.user?.current_employer || "";
+  const displayRole = applicant?.preferred_role || applicant?.preference || applicant?.role || applicant?.category || applicant?.chef_profile?.preferred_role || applicant?.user?.preferred_role || "";
+  const displayEmployer = applicant?.current_employer || applicant?.past_employer || applicant?.employer || chefProfile?.current_employer || applicant?.user?.current_employer || "";
+  const displayAge = applicant?.age ? `${applicant.age} Years` : "";
+  const displayGender = applicant?.gender || applicant?.user?.gender || chefProfile?.gender || "";
+  const displayEmploymentType = applicant?.employment_type || applicant?.employment_preference || availabilityInfo?.employment_preference || "";
+  const displayOverseasExp = applicant?.overseas_experience || applicant?.past_overseas_experience || (getRegionalList().length > 0 ? "Yes" : "");
+  const displayLocationPref = availabilityInfo?.location_preference || applicant?.location_preference || applicant?.locationPreference || applicant?.preferred_location || "";
+  const displayBusinessType = applicant?.business_type || applicant?.business_types || applicant?.category || (getCuisinesList().length > 0 ? getCuisinesList().slice(0, 3).join(", ") : "");
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, animatedCardStyle]}>
-        {localStatus && (
-          <View 
-            style={[
-              styles.statusBadge, 
-              localStatus === 'shortlisted' && styles.statusBadgeShortlisted,
-              localStatus === 'rejected' && styles.statusBadgeRejected,
-              localStatus === 'contacted' && styles.statusBadgeContacted,
-              (localStatus === 'new' || localStatus === 'pending') && styles.statusBadgeNew,
-            ]}
-          >
-            <Ionicons 
-              name={localStatus === 'shortlisted' ? 'heart' : localStatus === 'rejected' ? 'close-circle' : (localStatus === 'new' || localStatus === 'pending') ? 'sparkles' : 'call'} 
-              size={12} 
-              color="#ffffff" 
-            />
-            <Text style={styles.statusBadgeText}>
-              {localStatus === 'new' ? 'New' : localStatus === 'pending' ? 'Pending' : localStatus.charAt(0).toUpperCase() + localStatus.slice(1)}
-            </Text>
-          </View>
-        )}
-
-        {/* Match Score Badge — top-left corner */}
-        {matchScore != null && (
-          <MatchBadge score={matchScore} style={styles.matchBadge} />
-        )}
-
-        {/* Scrollable Card Body showing essential details */}
-        <View style={styles.cardScrollContent}>
-          <View style={styles.cardHeaderSpacer} />
-
-          {/* Core Profile Header Block */}
-          <View style={styles.profileHeaderCard}>
-            <View style={styles.profileHeaderRow}>
-              <View style={styles.avatarContainer}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.cardScrollContent}
+        >
+          {/* Header Card Section */}
+          <View style={styles.headerSection}>
+            <View style={styles.headerTopRow}>
+              {/* Avatar Photo with Online Indicator Dot */}
+              <View style={styles.avatarWrapper}>
                 {avatarUri ? (
-                  <Image source={{ uri: getAbsoluteProfilePhotoUrl(avatarUri) }} style={styles.avatarImage} resizeMode="cover" />
+                  <Image source={{ uri: getAbsoluteProfilePhotoUrl(avatarUri) }} style={styles.avatarImg} resizeMode="cover" />
                 ) : (
-                  <View style={styles.noImageContainer}>
-                    <Ionicons name="person-outline" size={24} color="rgba(10, 5, 4, 0.4)" />
-                    <Text style={styles.noImageText}>{t("noImage", "No Image")}</Text>
+                  <View style={styles.noAvatarBox}>
+                    <Ionicons name="person" size={32} color="#cbd5e1" />
+                  </View>
+                )}
+                <View style={styles.onlineDot} />
+              </View>
+
+              {/* Center Profile Details */}
+              <View style={styles.headerCenterInfo}>
+                <View style={styles.topMatchBadge}>
+                  <Ionicons name="star" size={11} color="#7e22ce" style={{ marginRight: 4 }} />
+                  <Text style={styles.topMatchText}>{t("topMatch", "Top Match")}</Text>
+                </View>
+
+                <Text style={styles.candidateName} numberOfLines={1}>
+                  {displayName}
+                </Text>
+
+                {displayRole ? (
+                  <Text style={styles.candidateRole} numberOfLines={1}>
+                    {displayRole}
+                  </Text>
+                ) : null}
+
+                {(displayAge || displayGender) ? (
+                  <View style={styles.metaRow}>
+                    {displayAge ? (
+                      <View style={styles.metaItem}>
+                        <Ionicons name="calendar-outline" size={13} color="#64748b" />
+                        <Text style={styles.metaText}>{displayAge}</Text>
+                      </View>
+                    ) : null}
+                    {displayGender ? (
+                      <View style={styles.metaItem}>
+                        <Ionicons name="person-outline" size={13} color="#64748b" />
+                        <Text style={styles.metaText}>{displayGender}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Right Match Circle Indicator */}
+              {matchScore != null && (
+                <View style={styles.matchCircleWrapper}>
+                  <View style={styles.matchCircle}>
+                    <Text style={styles.matchCircleNum}>{matchScore}%</Text>
+                  </View>
+                  <View style={styles.matchCircleLabelRow}>
+                    <Text style={styles.matchCircleLabel}>{t("match", "Match")}</Text>
+                    <Ionicons name="information-circle-outline" size={11} color="#64748b" style={{ marginLeft: 2 }} />
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Section Divider Line */}
+          <View style={styles.headerDivider} />
+
+          {/* Structured Data Rows List (Dynamic Real Data Only) */}
+          <View style={styles.dataRowsList}>
+            {/* 1. Experience */}
+            {displayExperience && displayExperience !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="briefcase-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("experience", "Experience")}</Text>
+                <Text style={styles.dataValueText}>{displayExperience}</Text>
+              </View>
+            ) : null}
+
+            {/* 2. Past Employer */}
+            {displayEmployer && displayEmployer !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="business-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("pastEmployer", "Past Employer")}</Text>
+                <Text style={styles.dataValueText} numberOfLines={1}>{displayEmployer}</Text>
+              </View>
+            ) : null}
+
+            {/* 3. Employment Type */}
+            {displayEmploymentType && displayEmploymentType !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="bag-handle-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("employmentType", "Employment Type")}</Text>
+                <View style={styles.purplePillBadge}>
+                  <Text style={styles.purplePillText}>{displayEmploymentType}</Text>
+                </View>
+              </View>
+            ) : null}
+
+            {/* 4. Past Overseas Experience */}
+            {displayOverseasExp && displayOverseasExp !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="airplane-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("pastOverseasExp", "Past Overseas Experience")}</Text>
+                {displayOverseasExp === "Yes" ? (
+                  <View style={styles.greenPillBadge}>
+                    <Text style={styles.greenPillText}>Yes</Text>
+                  </View>
+                ) : (
+                  <View style={styles.grayPillBadge}>
+                    <Text style={styles.grayPillText}>No</Text>
                   </View>
                 )}
               </View>
+            ) : null}
 
-              <View style={styles.profileInfo}>
-                <Text style={styles.chefName}>{displayName}</Text>
-                {displayRole ? (
-                  <Text style={styles.chefTitle}>{displayRole}</Text>
-                ) : null}
-                
-                <View style={styles.profileDetailsList}>
-                  {displayEmployer ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Employer: </Text>
-                      <Text style={styles.profileInfoValue}>{displayEmployer}</Text>
-                    </Text>
-                  ) : null}
-                  {displayCity && displayCity !== "N/A" ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Location: </Text>
-                      <Text style={styles.profileInfoValue}>{displayCity}</Text>
-                    </Text>
-                  ) : null}
-                  {displayPrefLocation && displayPrefLocation !== "N/A" ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Pref Job: </Text>
-                      <Text style={styles.profileInfoValue}>
-                        {displayPrefLocation === "Both" || displayPrefLocation === "Both (India & Overseas)"
-                          ? "India & Overseas"
-                          : displayPrefLocation}
-                      </Text>
-                    </Text>
-                  ) : null}
-                  {displayExperience && displayExperience !== "N/A" && displayExperience !== "0" && displayExperience !== "0 Years" ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Exp: </Text>
-                      <Text style={styles.profileInfoValue}>{displayExperience}</Text>
-                    </Text>
-                  ) : null}
-                  {getAvailabilityStatus() && getAvailabilityStatus() !== "N/A" ? (
-                    <Text numberOfLines={1} style={styles.detailRowText}>
-                      <Text style={styles.profileInfoLabel}>Availability: </Text>
-                      <Text style={styles.profileInfoValue}>{displayAvailability}</Text>
-                    </Text>
-                  ) : null}
+            {/* 5. Job Location Preference */}
+            {displayLocationPref && displayLocationPref !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="location-outline" size={17} color="#153e69" />
                 </View>
+                <Text style={styles.dataLabel}>{t("jobLocationPref", "Job Location Preference")}</Text>
+                <Text style={styles.dataValueText}>{displayLocationPref}</Text>
               </View>
-            </View>
-          </View>
+            ) : null}
 
-          {/* Section 1: Professional Bio */}
-          {displayBio ? (
-            <View style={styles.reviewCard}>
-              <View style={styles.reviewSecTitleRow}>
-                <Ionicons name="document-text" size={16} color="#153e69" />
-                <Text style={styles.reviewSecTitle}>{t("aboutMe", "Professional Bio")}</Text>
+            {/* 6. Business Type Interested In */}
+            {displayBusinessType && displayBusinessType !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="storefront-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("businessTypeInterestedIn", "Business Type Interested In")}</Text>
+                <Text style={styles.dataValueText} numberOfLines={2}>{displayBusinessType}</Text>
               </View>
-              <Text style={styles.reviewSecBioText}>{displayBio}</Text>
-            </View>
-          ) : null}
+            ) : null}
 
-          {/* Section 2: Cuisines */}
-          {getCuisinesList().length > 0 ? (
-            <View style={styles.reviewCard}>
-              <View style={styles.reviewSecTitleRow}>
-                <Ionicons name="restaurant" size={16} color="#153e69" />
-                <Text style={styles.reviewSecTitle}>{t("cuisineExpertise", "Cuisines")}</Text>
+            {/* 7. Job Role */}
+            {displayRole && displayRole !== "N/A" ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="people-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("jobRole", "Job Role")}</Text>
+                <Text style={styles.dataValueText}>{displayRole}</Text>
               </View>
-              <View style={styles.reviewPillContainer}>
-                {getCuisinesList().map((cuisine, idx) => (
-                  <View key={idx} style={styles.reviewPill}>
-                    <Text style={styles.reviewPillText}>{cuisine}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          ) : null}
+            ) : null}
 
-          {/* Section 3: Skills */}
-          {getSkillsList().length > 0 ? (
-            <View style={styles.reviewCard}>
-              <View style={styles.reviewSecTitleRow}>
-                <Ionicons name="flash" size={16} color="#153e69" />
-                <Text style={styles.reviewSecTitle}>{t("skills", "Core Skills")}</Text>
+            {/* Cuisines (If present) */}
+            {getCuisinesList().length > 0 && (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="restaurant-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("cuisines", "Cuisines")}</Text>
+                <Text style={styles.dataValueText} numberOfLines={2}>{getCuisinesList().join(", ")}</Text>
               </View>
-              <View style={styles.reviewPillContainer}>
-                {getSkillsList().map((skill, idx) => {
-                  const skillName = typeof skill === "object" ? skill.name : skill;
-                  const skillLevel = typeof skill === "object" ? skill.level : null;
-                  return (
-                    <View key={idx} style={styles.reviewPill}>
-                      <Text style={styles.reviewPillText}>
-                        {skillName}{skillLevel ? ` (${skillLevel}%)` : ""}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-        </View>
+            )}
 
-        {/* Footer Area Block (Availability time) */}
-        {displayCallback ? (
-          <View style={styles.cardFooter}>
-            <View style={styles.timeSection}>
-              <View style={styles.timeLeft}>
-                <Text style={styles.canInterviewLabel}>{t("canInterview", "Can interview")}</Text>
-                <Text style={styles.canInterviewValue} numberOfLines={1}>
-                  {displayCallback}
+            {/* Core Skills (If present) */}
+            {getSkillsList().length > 0 && (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="flash-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("skills", "Core Skills")}</Text>
+                <Text style={styles.dataValueText} numberOfLines={2}>
+                  {getSkillsList().map((s) => (typeof s === "object" ? s.name : s)).join(", ")}
                 </Text>
               </View>
-              <View style={styles.timeIconWrapper}>
-                <Ionicons name="time" size={16} color="rgba(10, 5, 4, 0.45)" />
+            )}
+
+            {/* Professional Bio (If present) */}
+            {displayBio ? (
+              <View style={[styles.dataRow, { flexDirection: "column", alignItems: "flex-start", borderBottomWidth: 0, gap: 4, marginTop: 4 }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Ionicons name="document-text-outline" size={17} color="#153e69" />
+                  <Text style={styles.dataLabel}>{t("aboutMe", "Professional Bio")}</Text>
+                </View>
+                <Text style={[styles.dataValueText, { textAlign: "left", maxWidth: "100%", marginTop: 4, fontWeight: "500", color: "#475569" }]}>
+                  {displayBio}
+                </Text>
               </View>
-            </View>
+            ) : null}
           </View>
-        ) : null}
+        </ScrollView>
       </Animated.View>
     </GestureDetector>
   );
@@ -523,313 +561,201 @@ const styles = StyleSheet.create({
   card: {
     position: "absolute",
     width: "100%",
-    height: "100%", // Fixed height matching container to prevent overlapping
+    height: "100%",
     backgroundColor: "#ffffff",
-    borderRadius: 26,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(10, 5, 4, 0.05)",
+    borderColor: "#f1f5f9",
     overflow: "hidden",
-    // Soft IOS shadows
-    shadowColor: "rgba(10, 5, 4, 0.1)",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    // Android Shadow
-    elevation: 3,
-  },
-  cardContent: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 4,
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderTopRightRadius: 26,
-    borderBottomLeftRadius: 18,
-    gap: 5,
-    zIndex: 10,
-  },
-  matchBadge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    borderTopLeftRadius: 26,
-    borderBottomRightRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    zIndex: 10,
-    borderWidth: 0,
-    borderRadius: 0,
-  },
-  statusBadgeShortlisted: {
-    backgroundColor: '#4CAF50',
-  },
-  statusBadgeRejected: {
-    backgroundColor: '#f57f20',
-  },
-  statusBadgeContacted: {
-    backgroundColor: '#153e69',
-  },
-  statusBadgeNew: {
-    backgroundColor: '#153e69',
-  },
-  statusBadgeText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  cardHeaderSpacer: {
-    height: 18,
-  },
-  cardScroll: {
-    maxHeight: SCREEN_HEIGHT * 0.58,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cardScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    gap: 12,
+    padding: 16,
+    paddingBottom: 24,
   },
-  profileHeaderCard: {
-    paddingBottom: 4,
-  },
-  profileHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatarContainer: {
-    width: 66,
-    height: 66,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#153e69",
-    overflow: "hidden",
-    backgroundColor: "#f2f2f3",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  noImageContainer: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#e2e8f0",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 4,
-  },
-  noImageText: {
-    fontSize: 9,
-    fontWeight: "700",
-    color: "rgba(10, 5, 4, 0.5)",
-    marginTop: 2,
-    textAlign: "center",
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  chefName: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#0a0504",
-    marginBottom: 2,
-  },
-  chefTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#153e69",
+  headerSection: {
     marginBottom: 4,
   },
-  profileDetailsList: {
-    marginTop: 2,
-    gap: 2,
-  },
-  detailRowText: {
-    fontSize: 11,
-    lineHeight: 14,
-  },
-  profileInfoLabel: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.6)",
-    fontWeight: "600",
-  },
-  profileInfoValue: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#0a0504",
-  },
-  reviewCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#f2f2f3",
-    shadowColor: "#000",
-    shadowOpacity: 0.01,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
-  reviewSecTitleRow: {
+  headerTopRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginRight: 12,
+  },
+  avatarImg: {
+    width: normalize(72),
+    height: normalize(72),
+    borderRadius: normalize(36),
+    borderWidth: 2,
+    borderColor: "#f1f5f9",
+  },
+  noAvatarBox: {
+    width: normalize(72),
+    height: normalize(72),
+    borderRadius: normalize(36),
+    backgroundColor: "#f8fafc",
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6,
   },
-  reviewSecTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#153e69",
-    marginLeft: 6,
+  onlineDot: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#22c55e",
+    borderWidth: 2,
+    borderColor: "#ffffff",
   },
-  reviewSecBioText: {
-    fontSize: 11,
-    color: "rgba(10, 5, 4, 0.7)",
-    lineHeight: 15,
-  },
-  reviewPillContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 2,
-  },
-  reviewPill: {
-    backgroundColor: "rgba(21, 62, 105, 0.05)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  reviewPillText: {
-    fontSize: 11,
-    color: "#153e69",
-    fontWeight: "600",
-  },
-  cardFooter: {
-    backgroundColor: "rgba(10, 5, 4, 0.02)",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(10, 5, 4, 0.04)",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  timeSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  timeLeft: {
+  headerCenterInfo: {
     flex: 1,
+    paddingRight: 6,
   },
-  canInterviewLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "rgba(10, 5, 4, 0.35)",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  canInterviewValue: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#0a0504",
-  },
-  timeIconWrapper: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(10, 5, 4, 0.04)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  acceptButton: {
+  topMatchBadge: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#153e69",
-    height: 52,
-    borderRadius: 26,
-    gap: 8,
-    shadowColor: "rgba(21, 62, 105, 0.2)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: "#f3e8ff",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+    marginBottom: 4,
   },
-  acceptButtonText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  likeLabelContainer: {
-    position: "absolute",
-    top: IS_SMALL_DEVICE ? 36 : 48,
-    left: 24,
-    borderWidth: 3,
-    borderColor: "#4CAF50",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    transform: [{ rotate: "-15deg" }],
-    zIndex: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-  },
-  likeLabelText: {
-    color: "#4CAF50",
-    fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-  nopeLabelContainer: {
-    position: "absolute",
-    top: IS_SMALL_DEVICE ? 36 : 48,
-    right: 24,
-    borderWidth: 3,
-    borderColor: "#f57f20",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    transform: [{ rotate: "15deg" }],
-    zIndex: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-  },
-  nopeLabelText: {
-    color: "#f57f20",
-    fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-  calendlyBtn: {
-    backgroundColor: "#f57f20",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 38,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 4,
-  },
-  calendlyBtnText: {
-    color: "#ffffff",
-    fontSize: 12,
+  topMatchText: {
+    fontSize: 11,
     fontWeight: "700",
+    color: "#7e22ce",
   },
-  socialRow: {
+  candidateName: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  candidateRole: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#4f46e5",
+    marginVertical: 2,
+  },
+  profileIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  profileIdText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginTop: 4,
+    marginTop: 6,
   },
-  socialIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  matchCircleWrapper: {
+    alignItems: "center",
+  },
+  matchCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 3.5,
+    borderColor: "#6366f1",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  matchCircleNum: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0f172a",
+  },
+  matchCircleLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+  },
+  matchCircleLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  headerDivider: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: 10,
+  },
+  dataRowsList: {
+    gap: 2,
+  },
+  dataRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f8fafc",
+  },
+  dataIconCol: {
+    width: 26,
+    alignItems: "center",
+  },
+  dataLabel: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: "#475569",
+    paddingRight: 8,
+  },
+  dataValueText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#0f172a",
+    textAlign: "right",
+    maxWidth: "50%",
+  },
+  purplePillBadge: {
+    backgroundColor: "#f3e8ff",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  purplePillText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#7e22ce",
+  },
+  greenPillBadge: {
+    backgroundColor: "#dcfce7",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  greenPillText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#15803d",
+  },
+  grayPillText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#64748b",
   },
 });

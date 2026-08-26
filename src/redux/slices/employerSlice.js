@@ -1,5 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getApplicants as getApplicantsApi, getEmployerDashboard as getEmployerDashboardApi, updateApplicantStatus as updateApplicantStatusApi, closeJob as closeJobApi } from "../../services/employerApi";
+import {
+  getApplicants as getApplicantsApi,
+  getEmployerDashboard as getEmployerDashboardApi,
+  updateApplicantStatus as updateApplicantStatusApi,
+  closeJob as closeJobApi,
+  markJobStatsSeen as markJobStatsSeenApi,
+} from "../../services/employerApi";
 
 export const fetchEmployerDashboard = createAsyncThunk(
   "employer/fetchEmployerDashboard",
@@ -44,6 +50,29 @@ export const closeEmployerJob = createAsyncThunk(
     }
   }
 );
+
+export const markJobStatsSeen = createAsyncThunk(
+  "employer/markJobStatsSeen",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const res = await markJobStatsSeenApi(jobId);
+      return { jobId, ...res };
+    } catch (error) {
+      return rejectWithValue({ jobId, error: error?.message || "Failed to mark seen" });
+    }
+  }
+);
+
+const patchJobInDashboard = (dashboardRaw, jobId, patch) => {
+  if (!dashboardRaw) return;
+  ["jobs", "created_jobs", "pending_created_jobs", "data"].forEach((key) => {
+    if (Array.isArray(dashboardRaw[key])) {
+      dashboardRaw[key] = dashboardRaw[key].map((j) =>
+        String(j.id) === String(jobId) ? { ...j, ...patch } : j
+      );
+    }
+  });
+};
 
 const initialState = {
   stats: [],
@@ -135,6 +164,31 @@ const employerSlice = createSlice({
       .addCase(closeEmployerJob.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(markJobStatsSeen.pending, (state, action) => {
+        // Optimistic update — turant dot hata do, API response ka wait mat karo
+        const jobId = action.meta.arg;
+        patchJobInDashboard(state.dashboardRaw, jobId, { has_unseen_activity: false });
+        state.submittedJobs = state.submittedJobs.map((j) =>
+          String(j.id) === String(jobId) ? { ...j, has_unseen_activity: false } : j
+        );
+      })
+      .addCase(markJobStatsSeen.fulfilled, (state, action) => {
+        const { jobId, has_unseen_activity, last_seen_by_employer_at } = action.payload || {};
+        patchJobInDashboard(state.dashboardRaw, jobId, { has_unseen_activity, last_seen_by_employer_at });
+        state.submittedJobs = state.submittedJobs.map((j) =>
+          String(j.id) === String(jobId) ? { ...j, has_unseen_activity, last_seen_by_employer_at } : j
+        );
+      })
+      .addCase(markJobStatsSeen.rejected, (state, action) => {
+        // Rollback — API fail hui toh dot wapas dikha do
+        const jobId = action.payload?.jobId;
+        if (jobId) {
+          patchJobInDashboard(state.dashboardRaw, jobId, { has_unseen_activity: true });
+          state.submittedJobs = state.submittedJobs.map((j) =>
+            String(j.id) === String(jobId) ? { ...j, has_unseen_activity: true } : j
+          );
+        }
       });
   },
 });

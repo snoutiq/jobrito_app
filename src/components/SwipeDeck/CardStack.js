@@ -124,6 +124,22 @@ export default function CardStack({
 
   return (
     <View style={styles.container}>
+      {/* Top Swipe Instruction & Counter Header */}
+      <View style={styles.topSwipeHeader}>
+        <View style={styles.swipeHintRow}>
+          <Ionicons name="arrow-back" size={13} color="#ef4444" />
+          <Text style={styles.swipeHintText}>
+            Swipe <Text style={{ color: "#ef4444", fontWeight: "700" }}>left</Text> or{" "}
+            <Text style={{ color: "#22c55e", fontWeight: "700" }}>right</Text> for next profile
+          </Text>
+          <Ionicons name="arrow-forward" size={13} color="#22c55e" />
+        </View>
+
+        <Text style={styles.topCounterText}>
+          <Text style={{ color: "#6366f1", fontWeight: "800" }}>{activeIndex + 1}</Text> / {applicants.length}
+        </Text>
+      </View>
+
       <View style={styles.stackContainer}>
         {renderCards()}
 
@@ -175,11 +191,32 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
+    paddingTop: 2,
+    paddingBottom: 8,
+  },
+  topSwipeHeader: {
+    alignItems: "center",
+    marginBottom: 2,
+    gap: 2,
+  },
+  swipeHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  swipeHintText: {
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  topCounterText: {
+    fontSize: 13,
+    color: "#94a3b8",
+    fontWeight: "600",
   },
   stackContainer: {
     width: SCREEN_WIDTH - 84, // Reduced width for slightly narrower card
-    height: SCREEN_HEIGHT * 0.58,
+    height: SCREEN_HEIGHT * 0.61,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",

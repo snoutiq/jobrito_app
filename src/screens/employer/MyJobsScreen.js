@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchEmployerDashboard,
   closeEmployerJob,
+  markJobStatsSeen,
 } from "../../redux/slices/employerSlice";
 import { fetchMyJobs } from "../../redux/slices/jobSlice";
 import { useTranslation } from "react-i18next";
@@ -31,9 +32,6 @@ const scale = SCREEN_WIDTH / 390;
 const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
-
-// Module-level — screen mount/unmount se survive karta hai (sirf app-restart pe reset)
-const seenStatsSignatures = {};
 
 const normalizeStatus = (status) => String(status || "").toLowerCase();
 
@@ -90,12 +88,6 @@ export default function MyJobsScreen({ navigation, route }) {
   const [localJobs, setLocalJobs] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedStatsJobId, setExpandedStatsJobId] = useState(null);
-
-  // Seen-stats tracking
-  const [statsDotMap, setStatsDotMap] = useState({}); // jobId -> dot dikhana hai ya nahi
-
-  const getStatsSignature = (stats) =>
-    `${stats.pending}|${stats.viewed}|${stats.contacted}|${stats.rejected}|${stats.shortlisted}`;
 
   const checkIsReferralJob = (job) => {
     if (!job) return false;
@@ -266,26 +258,7 @@ export default function MyJobsScreen({ navigation, route }) {
     return Array.from(map.values());
   }, [isEmployer, employerDashboardRaw, submittedJobs, myJobs]);
 
-  useEffect(() => {
-    if (!isEmployer) return;
 
-    setStatsDotMap(() => {
-      const next = {};
-      jobsToShow.forEach((job) => {
-        const jobId = String(job.id);
-        const signature = getStatsSignature(getJobApplicantStats(job));
-        const seenSignature = seenStatsSignatures[jobId];
-
-        if (seenSignature === undefined) {
-          // Pehli baar — sirf tab dot dikhao jab koi activity ho
-          next[jobId] = signature !== "0|0|0|0|0";
-        } else {
-          next[jobId] = seenSignature !== signature;
-        }
-      });
-      return next;
-    });
-  }, [jobsToShow, isEmployer]);
 
   const fetchAllData = React.useCallback(() => {
     dispatch(fetchEmployerDashboard());
@@ -371,8 +344,6 @@ export default function MyJobsScreen({ navigation, route }) {
   );
 
   const renderJobCard = (job) => {
-    console.log("SINGLE JOB DATA:", JSON.stringify(job, null, 2));
-    console.log("isReferral result:", checkIsReferralJob(job));
     const jobTitle = String(job.title || job.job_title || "").trim();
     const companyName = String(job.company || job.company_name || "").trim();
     const locationStr = String(job.location || job.city || job.country || "").trim();
@@ -594,13 +565,11 @@ export default function MyJobsScreen({ navigation, route }) {
                 style={[styles.statsFilterIconBtn, isStatsExpanded && styles.statsFilterIconBtnActive]}
                 onPress={(e) => {
                   e.stopPropagation();
-                  const jobId = String(job.id);
                   const willExpand = expandedStatsJobId !== job.id;
                   setExpandedStatsJobId((prev) => (prev === job.id ? null : job.id));
 
-                  if (willExpand) {
-                    seenStatsSignatures[jobId] = getStatsSignature(stats);
-                    setStatsDotMap((prev) => ({ ...prev, [jobId]: false }));
+                  if (willExpand && job.has_unseen_activity) {
+                    dispatch(markJobStatsSeen(job.id));
                   }
                 }}
                 activeOpacity={0.8}
@@ -616,7 +585,7 @@ export default function MyJobsScreen({ navigation, route }) {
                   color={isStatsExpanded ? "#ffffff" : "#153e69"}
                   style={{ marginLeft: 2 }}
                 />
-                {statsDotMap[String(job.id)] && <View style={styles.statsDot} />}
+                {Boolean(job.has_unseen_activity) && <View style={styles.statsDot} />}
               </TouchableOpacity>
             )}
 

@@ -79,3 +79,8 @@ export const markApplicationViewed = async (applicationId) => {
   }
 };
 
+export const markJobStatsSeen = async (jobId) => {
+  const response = await apiClient.post(`/jobs/${jobId}/mark-stats-seen`);
+  return response.data;
+};
+
