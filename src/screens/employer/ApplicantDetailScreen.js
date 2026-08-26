@@ -188,11 +188,11 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const availabilityInfo = chefProfile.availability_info || applicant.availability_info || {};
 
   const displayName = applicant.name || applicant.full_name || applicant.user?.name || applicant.user?.full_name || applicant.mobile_number || "";
-  const displayCity = applicant.city || applicant.user?.city || (applicant.country ? `${applicant.city || ""}, ${applicant.country}` : "");
+  const displayCity = applicant.city || applicant.job_location || applicant.user?.city || (applicant.country ? `${applicant.city || ""}, ${applicant.country}` : "");
   const displayPrefLocation = availabilityInfo.location_preference || applicant.locationPreference || applicant.location_preference || applicant.user?.location_preference || "";
   const displayExperience = applicant.experience_range || applicant.experience_years || applicant.experience || applicant.user?.experience_range || applicant.user?.experience_years || "";
-  const displayEmployer = applicant.current_company || applicant.current_employer || applicant.user?.current_employer || "";
-  const displayRole = applicant.current_role || applicant.preferred_role || chefProfile.cuisine_specialty || applicant.user?.preferred_role || "";
+  const displayEmployer = applicant.current_employer || applicant.current_company || applicant.user?.current_employer || "";
+  const displayRole = applicant.preferred_role || applicant.preference || applicant.current_role || chefProfile.cuisine_specialty || applicant.user?.preferred_role || "";
   const displayCalendly = applicant.calendly_link || chefProfile.calendly_link || applicant.user?.calendly_link || "";
   const displayBio = applicant.bio || chefProfile.bio || applicant.user?.bio || "";
   const preferredCallTime = applicant.preferred_call_time || applicant.user?.preferred_call_time || "";
@@ -200,54 +200,119 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const displayAge = applicant.age || applicant.user?.age ? `${applicant.age || applicant.user?.age} ${t("years", "Years")}` : "";
   const displayGender = applicant.gender || applicant.user?.gender || "";
   const displayProfileId = applicant.profile_id || applicant.user?.profile_id || "";
-  const displayEmpType = applicant.employment_type || applicant.job_type || applicant.user?.employment_type || "";
+  
+  const rawEmpType =
+    applicant.job_type ||
+    applicant.employment_type ||
+    (Array.isArray(applicant.employment_preference) && applicant.employment_preference.length > 0
+      ? applicant.employment_preference.join(", ")
+      : typeof applicant.employment_preference === "string"
+      ? applicant.employment_preference
+      : "") ||
+    (Array.isArray(availabilityInfo.employment_preference) && availabilityInfo.employment_preference.length > 0
+      ? availabilityInfo.employment_preference.join(", ")
+      : "") ||
+    applicant.user?.employment_type ||
+    "";
+  const displayEmpType = rawEmpType && rawEmpType !== "N/A" ? rawEmpType : "";
+
+  const displayOverseasExp =
+    applicant.overseas_work_experience ||
+    applicant.user?.overseas_work_experience ||
+    chefProfile.overseas_work_experience ||
+    "";
 
   const getSkillsList = () => {
+    const op =
+      applicant.operational_expertise ||
+      applicant.operational_experties ||
+      applicant.optational_expertices ||
+      chefProfile.operational_expertise ||
+      chefProfile.operational_experties ||
+      chefProfile.optational_expertices ||
+      applicant.user?.operational_expertise ||
+      applicant.user?.operational_experties ||
+      applicant.user?.optational_expertices;
+    if (Array.isArray(op) && op.length > 0) return op;
+    if (typeof op === "string" && op.trim()) return op.split(",").map((x) => x.trim());
+
     const list = applicant.skills || applicant.user?.skills || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map((x) => x.trim());
+    if (Array.isArray(list) && list.length > 0) {
+      return list.map((s) => (typeof s === "object" ? s.name || s.title || String(s) : s));
+    }
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim());
+
     return [];
   };
 
   const getCuisinesList = () => {
-    const list = applicant.cuisine_specialty || applicant.specialties || chefProfile.cuisine_specialty || applicant.user?.cuisine_specialty || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map((x) => x.trim());
+    const list =
+      applicant.cuisine_specialty ||
+      applicant.specialties ||
+      chefProfile.cuisine_specialty ||
+      chefProfile.specialties ||
+      applicant.user?.cuisine_specialty ||
+      applicant.user?.specialties ||
+      [];
+    if (Array.isArray(list) && list.length > 0) return list;
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim());
     return [];
   };
 
   const getRegionalList = () => {
-    const list = availabilityInfo.regional_experience || applicant.regional_experience || applicant.user?.regional_experience || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map((x) => x.trim());
+    const list =
+      availabilityInfo.regional_experience ||
+      applicant.regional_experience ||
+      chefProfile.regional_experience ||
+      applicant.user?.regional_experience ||
+      [];
+    if (Array.isArray(list) && list.length > 0) return list;
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim());
     return [];
   };
 
   const getLanguagesList = () => {
-    const list = availabilityInfo.languages || applicant.languages || applicant.user?.languages || [];
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return list.split(",").map((x) => x.trim());
+    const list =
+      availabilityInfo.languages ||
+      applicant.languages ||
+      chefProfile.languages ||
+      applicant.user?.languages ||
+      [];
+    if (Array.isArray(list) && list.length > 0) return list;
+    if (typeof list === "string" && list.trim()) return list.split(",").map((x) => x.trim());
     return [];
   };
 
+  // Determine whether this is a Chef or Talent / Job Seeker
+  const activeProfileStr = String(
+    applicant.active_profile ||
+    applicant.active_role ||
+    applicant.user_role ||
+    applicant.role ||
+    applicant.user?.active_profile ||
+    applicant.user?.active_role ||
+    ""
+  ).toLowerCase();
+
+  const isChefProfile =
+    (activeProfileStr === "chef" ||
+      Boolean(applicant.chef_profile) ||
+      Boolean(applicant.chef_profile_details) ||
+      Boolean(applicant.user?.chef_profile)) &&
+    activeProfileStr !== "job_seeker" &&
+    activeProfileStr !== "talent";
+
   const getAvailabilityStatus = () => {
-    const isChef = !!(
-      applicant.chef_profile ||
-      applicant.chef_profile_details ||
-      applicant.role?.toLowerCase() === "chef" ||
-      applicant.user?.role?.toLowerCase() === "chef"
+    // Hide Availability completely for Talent / Job Seeker side!
+    if (!isChefProfile) return "";
+
+    return (
+      availabilityInfo.availability_status ||
+      availabilityInfo.status ||
+      applicant.availability_status ||
+      applicant.user?.availability_status ||
+      ""
     );
-    const isJobSeeker =
-      !isChef ||
-      applicant.role?.toLowerCase() === "job_seeker" ||
-      applicant.role?.toLowerCase() === "talent" ||
-      applicant.user?.role?.toLowerCase() === "job_seeker" ||
-      applicant.user?.role?.toLowerCase() === "talent" ||
-      applicant.user_type === "job_seeker";
-
-    if (isJobSeeker) return "";
-
-    return availabilityInfo.availability_status || applicant.availability_status || applicant.user?.availability_status || "";
   };
 
   const rawAvailStatus = String(getAvailabilityStatus()).trim();
@@ -572,6 +637,17 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                 </View>
                 <Text style={styles.dataLabel}>{t("regionalExperience", "Regional Experience")}</Text>
                 <Text style={styles.dataValueText} numberOfLines={2}>{getRegionalList().join(", ")}</Text>
+              </View>
+            )}
+
+            {/* Overseas Experience */}
+            {Boolean(displayOverseasExp && displayOverseasExp !== "N/A") && (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="airplane-outline" size={normalize(16)} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("overseasWorkExperience", "Overseas Experience")}</Text>
+                <Text style={styles.dataValueText}>{displayOverseasExp}</Text>
               </View>
             )}
 
