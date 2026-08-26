@@ -132,17 +132,38 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   // Sync local state if the applicant from Redux changes
   useEffect(() => {
     setLocalStatus(applicant?.status);
-    if (applicant && (fetchedMatchScore === null || fetchedMatchScore === undefined) && (applicant.id || applicant.application_id)) {
-      const appId = applicant.id || applicant.application_id;
+    const initialScore = applicant?.match_score ?? applicant?.match?.score ?? applicant?.match_percentage;
+    if (initialScore != null) {
+      setFetchedMatchScore(initialScore);
+      return;
+    }
+
+    const appId = applicant?.id || applicant?.application_id || applicantId;
+    if (appId && fetchedMatchScore == null) {
+      let isMounted = true;
       getMatchScore(appId)
         .then((data) => {
-          if (data?.match_percentage != null) {
+          if (isMounted && data?.match_percentage != null) {
             setFetchedMatchScore(data.match_percentage);
           }
         })
-        .catch((error) => console.error("Failed to fetch match score:", error));
+        .catch((error) => {
+          if (
+            error?.name === "CanceledError" ||
+            error?.message === "canceled" ||
+            error?.message === "Request Cancelled" ||
+            error?.errorCode === "TIMEOUT" ||
+            error?.status === 499
+          ) {
+            return;
+          }
+          console.warn("Failed to fetch match score:", error?.message || error);
+        });
+      return () => {
+        isMounted = false;
+      };
     }
-  }, [applicant, fetchedMatchScore]);
+  }, [applicant?.id, applicant?.application_id, applicantId]);
 
   if (!applicant) {
     return (

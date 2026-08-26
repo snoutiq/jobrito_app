@@ -235,20 +235,26 @@ export default function CompleteProfileScreen({ navigation, route }) {
   // Handle back/leave confirmation alert
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      // If we are at step 6 (Success screen) or we already confirmed leaving, don't show the alert
+      // If step > 1 (Steps 2, 3, 4, 5), step back to previous step without showing leave modal!
+      if (step > 1 && step < 6) {
+        e.preventDefault();
+        setStep((prevS) => prevS - 1);
+        return;
+      }
+
+      // If we are at step 6 (Success screen), allow leaving cleanly without alert
       if (step === 6) {
         return;
       }
 
-      // Prevent default behavior of leaving the screen immediately
+      // Step === 1: Show leave alert confirmation ONLY on Step 1!
       e.preventDefault();
 
-      // Show alert confirmation
       Alert.alert(
         t("discardTitle", "Discard changes?"),
         t("discardMessage", "Are you sure you want to discard your changes and leave this page?"),
         [
-          { text: t("cancel"), style: "cancel", onPress: () => {} },
+          { text: t("cancel", "Cancel"), style: "cancel", onPress: () => {} },
           {
             text: t("discardLeave", "Leave"),
             style: "destructive",

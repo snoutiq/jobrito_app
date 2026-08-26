@@ -13,6 +13,7 @@ import {
   Image,
   Dimensions,
   PixelRatio,
+  Linking,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,10 +30,19 @@ const scale = SCREEN_WIDTH / 390;
 const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
 const PRIMARY_GREEN = "#153e69";
+const TERMS_URL = "https://jobrito.com/terms-and-conditions";
+const PRIVACY_URL = "https://jobrito.com/privacy-policy";
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const handleOpenWebUrl = (url) => {
+    if (!url) return;
+    Linking.openURL(url).catch((err) => {
+      console.warn("Could not open URL:", err);
+    });
+  };
   const { loading } = useSelector((state) => state.auth);
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
@@ -135,6 +145,8 @@ export default function LoginScreen({ navigation }) {
     item.code.includes(searchQuery)
   );
 
+  const isPhoneValid = phone.trim().length === 10;
+
   return (
     <ScreenWrapper
       style={{ backgroundColor: "#ffffff" }}
@@ -154,7 +166,8 @@ export default function LoginScreen({ navigation }) {
         <PhoneInput
           value={phone}
           onChangeText={(text) => {
-            if (text.length <= 10) setPhone(text);
+            const cleaned = text.replace(/[^0-9]/g, "");
+            if (cleaned.length <= 10) setPhone(cleaned);
           }}
           prefix={countryCode}
           flag={countryFlag}
@@ -166,8 +179,8 @@ export default function LoginScreen({ navigation }) {
         
         <TouchableOpacity
           onPress={handleRequestOtp}
-          disabled={loading}
-          style={[styles.sendOtpButton, loading && { opacity: 0.7 }]}
+          disabled={!isPhoneValid || loading}
+          style={[styles.sendOtpButton, (!isPhoneValid || loading) && { opacity: 0.45 }]}
           activeOpacity={0.8}
         >
           {loading ? (
@@ -183,9 +196,19 @@ export default function LoginScreen({ navigation }) {
 
       <Text style={styles.terms}>
         {t("login.termsPrefix", "By continuing, you agree to our")}{" "}
-        <Text style={styles.termsLink}>{t("login.termsOfService", "Terms of Service")}</Text>{" "}
+        <Text
+          style={styles.termsLink}
+          onPress={() => handleOpenWebUrl(TERMS_URL)}
+        >
+          {t("login.termsOfService", "Terms of Service")}
+        </Text>{" "}
         {t("login.termsSuffix", "and")}{" "}
-        <Text style={styles.termsLink}>{t("login.privacyPolicy", "Privacy Policy")}</Text>.
+        <Text
+          style={styles.termsLink}
+          onPress={() => handleOpenWebUrl(PRIVACY_URL)}
+        >
+          {t("login.privacyPolicy", "Privacy Policy")}
+        </Text>.
       </Text>
 
       <Modal
@@ -316,6 +339,10 @@ const styles = StyleSheet.create({
     fontSize: normalize(15),
     fontWeight: "800",
   },
+  linksContainer: {
+    alignItems: "center",
+    gap: normalize(10),
+  },
   terms: {
     color: "#64748b",
     fontSize: normalize(11.5),
@@ -327,6 +354,23 @@ const styles = StyleSheet.create({
   termsLink: {
     color: PRIMARY_GREEN,
     fontWeight: "700",
+  },
+  footerLinksRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: normalize(8),
+    marginTop: normalize(4),
+  },
+  footerLinkText: {
+    color: "#153e69",
+    fontSize: normalize(12),
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+  footerLinkDivider: {
+    color: "#94a3b8",
+    fontSize: normalize(12),
   },
   modalOverlay: {
     flex: 1,
