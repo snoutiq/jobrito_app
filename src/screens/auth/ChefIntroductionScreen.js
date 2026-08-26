@@ -135,7 +135,7 @@ export default function ChefIntroductionScreen({ navigation }) {
         </View>
 
         <View style={{ flex: 1, paddingHorizontal: normalize(8) }}>
-          <Text style={styles.premiumModuleTitle}>{t("chefIntro.premiumModuleTitle", "This is a Premium Module")}</Text>
+          <Text style={styles.premiumModuleTitle}>{t("chefIntro.premiumModuleTitle", "This is a Premium Feature")}</Text>
           <Text style={styles.premiumModuleSub}>
             {t("chefIntro.premiumModuleSub", "Access is by invitation or approval only to ensure quality and exclusivity.")}
           </Text>
