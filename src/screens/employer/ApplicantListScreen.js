@@ -145,7 +145,28 @@ export default function ApplicantListScreen({ route, navigation }) {
                 : t("allReviewed", "All reviewed")}
             </Text>
           </View>
-          <View style={{ width: 24 }} />
+          <TouchableOpacity
+            onPress={() => {
+              try {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "EmployerHome" }],
+                });
+              } catch (e) {
+                try {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "Tabs" }],
+                  });
+                } catch (err) {
+                  navigation.navigate("EmployerHome");
+                }
+              }
+            }}
+            style={styles.backButton}
+          >
+            <Ionicons name="home-outline" size={22} color="#0a0504" />
+          </TouchableOpacity>
         </View>
       </View>
 

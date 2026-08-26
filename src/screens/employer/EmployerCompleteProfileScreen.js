@@ -616,6 +616,41 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
               <Text style={styles.sectionHeaderUpper}>{t("businessLocationsUpper", "BUSINESS LOCATIONS")}</Text>
 
+
+              {/* Added Locations List Below */}
+              {additionalLocations.map((loc, idx) => {
+                const isBeingEdited = editingLocId === loc.id;
+                return (
+                  <View
+                    key={`added_loc_item_${loc.id}_${idx}`}
+                    style={[styles.locationListItem, isBeingEdited && styles.locationListItemActive]}
+                  >
+                    <View style={styles.locationPinIcon}>
+                      <Ionicons name="location" size={normalize(15)} color={PRIMARY_BLUE} />
+                    </View>
+                    <View style={styles.locationListTextWrap}>
+                      <View style={styles.locationListTitleRow}>
+                        <Text style={styles.locationListTitle}>{t("location", "Location")} #{idx + 1}</Text>
+                      </View>
+                      <Text style={styles.locationListSub}>{[loc.city, loc.state, loc.country].filter(Boolean).join(", ")}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => startEditLocation(loc)}
+                      style={styles.iconActionBtn}
+                      disabled={isBeingEdited}
+                    >
+                      <Ionicons name="pencil-outline" size={normalize(16)} color={isBeingEdited ? "#cbd5e1" : PRIMARY_BLUE} />
+                    </TouchableOpacity>
+                    {!isEditMode && (
+                      <TouchableOpacity onPress={() => removeAddonLocation(loc.id)} style={styles.iconActionBtn}>
+                        <Ionicons name="trash-outline" size={normalize(16)} color="#ef4444" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+
+
               {/* Business Location Card — doubles as "Add new" and "Edit existing" depending on editingLocId */}
               <View style={[styles.primaryLocationCard, editingLocId && styles.primaryLocationCardEditing]}>
                 <View style={styles.cardTitleRow}>
@@ -743,40 +778,6 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
                   </Text>
                 </TouchableOpacity>
               </View>
-
-              {/* Added Locations List Below */}
-              {additionalLocations.map((loc, idx) => {
-                const isBeingEdited = editingLocId === loc.id;
-                return (
-                  <View
-                    key={`added_loc_item_${loc.id}_${idx}`}
-                    style={[styles.locationListItem, isBeingEdited && styles.locationListItemActive]}
-                  >
-                    <View style={styles.locationPinIcon}>
-                      <Ionicons name="location" size={normalize(15)} color={PRIMARY_BLUE} />
-                    </View>
-                    <View style={styles.locationListTextWrap}>
-                      <View style={styles.locationListTitleRow}>
-                        <Text style={styles.locationListTitle}>{t("location", "Location")} #{idx + 1}</Text>
-                      </View>
-                      <Text style={styles.locationListSub}>{[loc.city, loc.state, loc.country].filter(Boolean).join(", ")}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => startEditLocation(loc)}
-                      style={styles.iconActionBtn}
-                      disabled={isBeingEdited}
-                    >
-                      <Ionicons name="pencil-outline" size={normalize(16)} color={isBeingEdited ? "#cbd5e1" : PRIMARY_BLUE} />
-                    </TouchableOpacity>
-                    {!isEditMode && (
-                      <TouchableOpacity onPress={() => removeAddonLocation(loc.id)} style={styles.iconActionBtn}>
-                        <Ionicons name="trash-outline" size={normalize(16)} color="#ef4444" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                );
-              })}
-
               {/* Location Tips Info Card */}
               <View style={styles.locationTipsCard}>
                 <Ionicons name="information-circle" size={normalize(20)} color={PRIMARY_BLUE} style={{ marginRight: normalize(8) }} />

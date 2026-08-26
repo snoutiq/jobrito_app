@@ -475,9 +475,7 @@ ${shareUrl}
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("chefProfile")}</Text>
         </View>
-        <TouchableOpacity onPress={handleShare} style={styles.shareHeaderButton}>
-          <Ionicons name="share-social-outline" size={20} color="#0a0504" />
-        </TouchableOpacity>
+        <View style={{ width: 32 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
