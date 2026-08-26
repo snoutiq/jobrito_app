@@ -794,7 +794,7 @@ export default function HomeScreen({ navigation }) {
                   {/* Top Right Type Badge */}
                   <View style={[styles.cardTypeBadge, isTraining && { backgroundColor: "#f3e8ff", paddingVertical: normalize(4), paddingHorizontal: normalize(8) }]}>
                     {isTraining && (
-                      <Text style={{ fontSize: normalize(8), fontWeight: "700", color: "#9333ea", marginBottom: 1, textTransform: "uppercase", letterSpacing: 0.3 }}>
+                      <Text style={{ fontSize: normalize(8), fontWeight: "700", color: "#9333ea", marginBottom: 1, letterSpacing: 0.3 }}>
                         {t("trainingDuration", "Training Duration")}
                       </Text>
                     )}
