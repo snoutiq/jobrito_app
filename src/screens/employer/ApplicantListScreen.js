@@ -23,6 +23,7 @@ export default function ApplicantListScreen({ route, navigation }) {
   const [activeFilter, setActiveFilter] = useState(initialFilterParam);
   const [activeIndex, setActiveIndex] = useState(0);
   const [matchScores, setMatchScores] = useState({});
+  const fetchingScoresRef = useRef(new Set());
 
   const filterScrollViewRef = useRef(null);
   const [tabLayouts, setTabLayouts] = useState({});
@@ -33,9 +34,9 @@ export default function ApplicantListScreen({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (activeFilter && filterScrollViewRef.current && tabLayouts[activeFilter]) {
-      const tab = tabLayouts[activeFilter];
-      const scrollX = Math.max(0, tab.x - SCREEN_WIDTH / 2 + tab.width / 2);
+    if (tabLayouts[activeFilter] && filterScrollViewRef.current) {
+      const { x, width } = tabLayouts[activeFilter];
+      const scrollX = Math.max(0, x - SCREEN_WIDTH / 2 + width / 2);
       filterScrollViewRef.current.scrollTo({ x: scrollX, animated: true });
     }
   }, [activeFilter, tabLayouts]);
@@ -59,11 +60,18 @@ export default function ApplicantListScreen({ route, navigation }) {
     }
   }, [dispatch, selectedJob, applicants.length]);
 
-  // Fetch match score for each applicant if not already fetched
+  // Fetch match score for each applicant defensively once
   useEffect(() => {
     applicants.forEach((applicant) => {
       const appId = applicant.id || applicant.application_id;
-      if (appId && matchScores[appId] === undefined) {
+      if (
+        appId &&
+        matchScores[appId] === undefined &&
+        !fetchingScoresRef.current.has(appId) &&
+        applicant.match_percentage == null &&
+        applicant.match_score == null
+      ) {
+        fetchingScoresRef.current.add(appId);
         getMatchScore(appId)
           .then((res) => {
             const score =
@@ -77,10 +85,13 @@ export default function ApplicantListScreen({ route, navigation }) {
               setMatchScores((prev) => ({ ...prev, [appId]: score }));
             }
           })
-          .catch((err) => console.error("Error fetching match score for app", appId, err));
+          .catch((err) => {
+            fetchingScoresRef.current.delete(appId);
+            console.error("Error fetching match score for app", appId, err);
+          });
       }
     });
-  }, [applicants]);
+  }, [applicants, matchScores]);
 
   // Tab counts
   const totalApplied = applicants.length;

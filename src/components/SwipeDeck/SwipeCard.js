@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ScrollView, Linking } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -8,6 +8,7 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  Easing,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -52,7 +53,7 @@ export const getAbsoluteProfilePhotoUrl = (path) => {
   return `http://178.16.138.159/backend/storage/${cleanPath}`;
 };
 
-export default function SwipeCard({
+export default React.memo(function SwipeCard({
   applicant,
   myIndex,
   activeIndex,
@@ -221,104 +222,104 @@ export default function SwipeCard({
     applicant?.score ??
     applicant?.match?.score;
 
-  // Pan gesture setup: swiping from right to left returns old card (if starting near right edge), swiping left to accept card, right swipe disabled.
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .enabled(isTopCard && swipeEnabled)
-    .onUpdate((event) => {
-      // 1. Detect if touch started on the right edge of the screen
-      if (event.startX > SCREEN_WIDTH - 85) {
-        return; // Do not move the card for right-edge undo swipe
-      }
-      
-      // 2. Only allow dragging to the left (negative X) with damped vertical movement
-      translateX.value = Math.min(0, event.translationX);
-      translateY.value = event.translationY * 0.22;
-      swipeProgress.value = Math.min(Math.max(0, -event.translationX) / SWIPE_THRESHOLD, 1);
-    })
-    .onEnd((event) => {
-      // 1. Trigger undo if dragging from right edge to left
-      if (event.startX > SCREEN_WIDTH - 85) {
-        if (event.translationX < -55 && canUndo && onUndo) {
-          runOnJS(onUndo)();
-        }
-        return;
-      }
+  // Stable refs to prevent gesture re-creation mid-drag
+  const onSwipeCompleteRef = React.useRef(onSwipeComplete);
+  onSwipeCompleteRef.current = onSwipeComplete;
 
-      const velocityX = event.velocityX;
-      const dragX = event.translationX;
+  const onUndoRef = React.useRef(onUndo);
+  onUndoRef.current = onUndo;
 
-      // 2. Swipe Left (Accept) - use fast timing for fluid exit
-      if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
-        translateX.value = withTiming(-SCREEN_WIDTH * 1.5, { duration: 220 }, () => {
-          runOnJS(onSwipeComplete)("left", applicant); // Notify CardStack
-        });
-        swipeProgress.value = withTiming(1, { duration: 220 });
-        if (Platform.OS !== 'web') {
-          runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
-        }
-      } else {
-        // Snap back to center for right drag or failed left drag
-        translateX.value = withSpring(0, { damping: 15, stiffness: 140 });
-        translateY.value = withSpring(0, { damping: 15, stiffness: 140 });
-        swipeProgress.value = withSpring(0, { damping: 15, stiffness: 140 });
-      }
-    });
+  const applicantRef = React.useRef(applicant);
+  applicantRef.current = applicant;
 
-  // Animated styles for physical card interaction
-  const animatedCardStyle = useAnimatedStyle(() => { // This is for the current card
+  // Pan gesture setup: horizontal image slider style (left drag = next applicant, right drag = previous applicant / undo)
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-10, 10])
+        .enabled(isTopCard && swipeEnabled)
+        .onUpdate((event) => {
+          // Allow full horizontal dragging in both left and right directions
+          translateX.value = event.translationX;
+          translateY.value = 0;
+          swipeProgress.value = Math.min(Math.abs(event.translationX) / SWIPE_THRESHOLD, 1);
+        })
+        .onEnd((event) => {
+          const velocityX = event.velocityX;
+          const dragX = event.translationX;
+
+          // 1. Swipe Left -> Go to Next Applicant
+          if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
+            translateX.value = withTiming(-SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
+              if (onSwipeCompleteRef.current) {
+                runOnJS(onSwipeCompleteRef.current)("left", applicantRef.current);
+              }
+            });
+            swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+            if (Platform.OS !== "web") {
+              runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
+            }
+          }
+          // 2. Swipe Right -> Go to Previous Applicant (Undo)
+          else if ((dragX > SWIPE_THRESHOLD || velocityX > 600) && canUndo) {
+            translateX.value = withTiming(SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
+              if (onUndoRef.current) {
+                runOnJS(onUndoRef.current)();
+              }
+            });
+            swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+            if (Platform.OS !== "web") {
+              runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
+            }
+          }
+          // 3. Cancel / Snap back to center smoothly
+          else {
+            translateX.value = withSpring(0, { damping: 22, stiffness: 200, mass: 0.7 });
+            translateY.value = 0;
+            swipeProgress.value = withSpring(0, { damping: 22, stiffness: 200, mass: 0.7 });
+          }
+        }),
+    [isTopCard, swipeEnabled, canUndo]
+  );
+
+  // Animated styles for clean horizontal Image Slider interaction
+  const animatedCardStyle = useAnimatedStyle(() => {
     if (isTopCard) {
-      const rotate = interpolate(
-        translateX.value,
-        [-SCREEN_WIDTH, SCREEN_WIDTH],
-        [-6, 6], // Damped rotation angle for horizontal stability
-        Extrapolate.CLAMP
-      );
-
       return {
         transform: [
           { translateX: translateX.value },
-          { translateY: translateY.value },
-          { rotate: `${rotate}deg` },
         ],
         zIndex: 10,
         opacity: 1,
       };
     }
 
-    // This is for the cards behind the top card
-    // Background card animations (Top card: 100%, Second: 96% TranslateY 14, Third: 92% TranslateY 28)
     const isSecond = myIndex === activeIndex + 1;
-    const isThird = myIndex === activeIndex + 2;
 
-    const scale = interpolate(
-      swipeProgress.value,
-      [0, 1],
-      [isSecond ? 0.96 : isThird ? 0.92 : 0.88, isSecond ? 1.0 : isThird ? 0.96 : 0.92],
-      Extrapolate.CLAMP
-    );
+    if (isSecond) {
+      const nextX = interpolate(
+        swipeProgress.value,
+        [0, 1],
+        [SCREEN_WIDTH - 84, 0], // Slides in smoothly from right off-screen like an image slider
+        Extrapolate.CLAMP
+      );
+      const opacity = interpolate(
+        swipeProgress.value,
+        [0, 0.05, 1],
+        [0, 1, 1],
+        Extrapolate.CLAMP
+      );
 
-    const translateYOffset = interpolate(
-      swipeProgress.value,
-      [0, 1],
-      [isSecond ? 14 : isThird ? 28 : 42, isSecond ? 0 : isThird ? 14 : 28],
-      Extrapolate.CLAMP
-    );
-
-    const opacity = interpolate(
-      swipeProgress.value,
-      [0, 1],
-      [isSecond ? 0.95 : isThird ? 0.80 : 0, isSecond ? 1.0 : isThird ? 0.95 : 0.80],
-      Extrapolate.CLAMP
-    );
+      return {
+        transform: [{ translateX: nextX }],
+        opacity,
+        zIndex: 5,
+      };
+    }
 
     return {
-      transform: [
-        { scale },
-        { translateY: translateYOffset },
-      ],
-      opacity,
-      zIndex: isSecond ? 5 : 1,
+      opacity: 0,
+      zIndex: 1,
     };
   });
 
@@ -516,7 +517,7 @@ export default function SwipeCard({
       </Animated.View>
     </GestureDetector>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

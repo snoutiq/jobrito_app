@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from "react-native";
-import { useSharedValue, withTiming, runOnJS } from "react-native-reanimated";
+import { useSharedValue, withTiming, runOnJS, Easing } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import SwipeCard from "./SwipeCard";
@@ -24,23 +24,50 @@ export default function CardStack({
   const currentApplicant = applicants && applicants[activeIndex] ? applicants[activeIndex] : null;
   const hasApplicants = Boolean(currentApplicant && activeIndex < applicants.length);
 
+  // Navigation conditions
+  const canUndo = activeIndex > 0;
+  const hasNext = activeIndex < applicants.length - 1;
+
+  const isUndoRef = React.useRef(false);
+
+  // Synchronize Reanimated values AFTER React updates activeIndex state
+  React.useEffect(() => {
+    if (isUndoRef.current) {
+      isUndoRef.current = false;
+      translateX.value = -SCREEN_WIDTH * 1.1;
+      translateY.value = 0;
+      swipeProgress.value = 0;
+      translateX.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.quad) });
+    } else {
+      translateX.value = 0;
+      translateY.value = 0;
+      swipeProgress.value = 0;
+    }
+  }, [activeIndex]);
+
   // Swiping simply moves to next card — NO API CALL
-  const handleSwipeComplete = (direction, swipedApplicant) => {
-    translateX.value = 0;
-    translateY.value = 0;
-    swipeProgress.value = 0;
+  const handleSwipeComplete = React.useCallback((direction, swipedApplicant) => {
     if (setActiveIndex) {
       setActiveIndex((prev) => prev + 1);
     }
-  };
+  }, [setActiveIndex]);
 
+  // Right chevron: manually skip to the next card (same as swiping left on the card)
   const triggerManualSwipe = (direction) => {
     if (!currentApplicant) return;
-    const targetX = direction === "right" ? SCREEN_WIDTH * 1.3 : -SCREEN_WIDTH * 1.3;
-    translateX.value = withTiming(targetX, { duration: 250 }, () => {
-      runOnJS(handleSwipeComplete)();
+    const targetX = -SCREEN_WIDTH * 1.1;
+    translateX.value = withTiming(targetX, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
+      runOnJS(handleSwipeComplete)(direction, currentApplicant);
     });
+    swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
   };
+
+  // Left chevron / Edge Undo: go BACK to the previous card with Image Slider animation
+  const handleUndo = React.useCallback(() => {
+    if (!canUndo || !setActiveIndex) return;
+    isUndoRef.current = true;
+    setActiveIndex((prev) => Math.max(0, prev - 1));
+  }, [canUndo, setActiveIndex]);
 
   // Empty State View when all cards are reviewed
   if (!hasApplicants || !currentApplicant) {
@@ -62,17 +89,17 @@ export default function CardStack({
 
   const isSwipeable = applicants.length > 1;
 
-  // Render original full detail stacked cards (up to 3)
+  // Render current active card and incoming next card only
   const renderCards = () => {
     const visibleCards = [];
-    const limit = Math.min(applicants.length, activeIndex + 3);
+    const limit = Math.min(applicants.length, activeIndex + 2);
 
     for (let i = limit - 1; i >= activeIndex; i--) {
       const applicant = applicants[i];
       if (!applicant) continue;
       const appId = applicant.id || applicant.application_id;
       const score = appId ? (matchScores[appId] ?? applicant.match_percentage ?? applicant.match_score) : null;
-      const applicantWithScore = { ...applicant, matchScore: score };
+      const applicantWithScore = score != null ? { ...applicant, matchScore: score } : applicant;
 
       visibleCards.push(
         <SwipeCard
@@ -85,7 +112,9 @@ export default function CardStack({
           translateY={translateY}
           onSwipeComplete={handleSwipeComplete}
           onPressDetails={onPressDetails}
-          swipeEnabled={isSwipeable}
+          swipeEnabled={isSwipeable && hasNext}
+          onUndo={handleUndo}
+          canUndo={canUndo}
         />
       );
     }
@@ -101,21 +130,27 @@ export default function CardStack({
         {/* Floating Side Navigation Buttons — Only show when there are multiple applicants */}
         {isSwipeable && (
           <>
-            <TouchableOpacity
-              style={[styles.floatingSideBtn, styles.leftSideBtn]}
-              activeOpacity={0.85}
-              onPress={() => triggerManualSwipe("left")}
-            >
-              <Ionicons name="chevron-back" size={24} color="#153e69" />
-            </TouchableOpacity>
+            {/* Left = go back to previous card. Hidden when there's nothing to go back to. */}
+            {canUndo && (
+              <TouchableOpacity
+                style={[styles.floatingSideBtn, styles.leftSideBtn]}
+                activeOpacity={0.85}
+                onPress={handleUndo}
+              >
+                <Ionicons name="chevron-back" size={24} color="#153e69" />
+              </TouchableOpacity>
+            )}
 
-            <TouchableOpacity
-              style={[styles.floatingSideBtn, styles.rightSideBtn]}
-              activeOpacity={0.85}
-              onPress={() => triggerManualSwipe("right")}
-            >
-              <Ionicons name="chevron-forward" size={24} color="#153e69" />
-            </TouchableOpacity>
+            {/* Right = skip to next card. Hidden when on the last card. */}
+            {hasNext && (
+              <TouchableOpacity
+                style={[styles.floatingSideBtn, styles.rightSideBtn]}
+                activeOpacity={0.85}
+                onPress={() => triggerManualSwipe("left")}
+              >
+                <Ionicons name="chevron-forward" size={24} color="#153e69" />
+              </TouchableOpacity>
+            )}
           </>
         )}
       </View>
