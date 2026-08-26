@@ -559,6 +559,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   };
 
   const fallbackDates = ["Mon, Aug 31", "Tue, Sep 1", "Wed, Sep 2", "Thu, Sep 3", "Fri, Sep 4"];
+  const fallbackTimes = ["10:00 AM", "11:30 AM", "02:00 PM", "04:30 PM", "06:00 PM"];
   const hasActiveFilters = Boolean(
     (searchQuery && searchQuery.trim().length > 0) ||
     (activeQuickFilter && activeQuickFilter !== "all") ||

@@ -55,8 +55,94 @@ export const getAbsoluteProfilePhotoUrl = (path) => {
   return `http://178.16.138.159/backend/storage/${cleanPath}`;
 };
 
+const CircularMatchProgress = ({ score = 92, size = 58, strokeWidth = 3.5 }) => {
+  const normalizedScore = Math.min(Math.max(Number(score) || 0, 0), 100);
+  const angle = (normalizedScore / 100) * 360;
+
+  // Dynamic progress color based on score
+  const progressColor =
+    normalizedScore >= 80 ? "#7e22ce" : normalizedScore >= 60 ? "#2563eb" : "#ea580c";
+
+  const halfSize = size / 2;
+  const rightRotation = Math.min(angle, 180);
+  const leftRotation = Math.max(0, angle - 180);
+
+  return (
+    <View style={{ width: size, height: size, justifyContent: "center", alignItems: "center" }}>
+      {/* Background Track Circle */}
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: halfSize,
+          borderWidth: strokeWidth,
+          borderColor: "#e2e8f0",
+          position: "absolute",
+        }}
+      />
+
+      {/* Right Half Progress Ring (0 to 180 deg) */}
+      {angle > 0 && (
+        <View
+          style={{
+            width: halfSize,
+            height: size,
+            position: "absolute",
+            left: halfSize,
+            overflow: "hidden",
+          }}
+        >
+          <View
+            style={{
+              width: size,
+              height: size,
+              borderRadius: halfSize,
+              borderWidth: strokeWidth,
+              borderColor: progressColor,
+              position: "absolute",
+              left: -halfSize,
+              transform: [{ rotate: `${rightRotation}deg` }],
+            }}
+          />
+        </View>
+      )}
+
+      {/* Left Half Progress Ring (180 to 360 deg) */}
+      {angle > 180 && (
+        <View
+          style={{
+            width: halfSize,
+            height: size,
+            position: "absolute",
+            left: 0,
+            overflow: "hidden",
+          }}
+        >
+          <View
+            style={{
+              width: size,
+              height: size,
+              borderRadius: halfSize,
+              borderWidth: strokeWidth,
+              borderColor: progressColor,
+              position: "absolute",
+              left: 0,
+              transform: [{ rotate: `${leftRotation}deg` }],
+            }}
+          />
+        </View>
+      )}
+
+      {/* Center Score Text */}
+      <Text style={{ fontSize: 14, fontWeight: "900", color: "#0f172a" }}>
+        {normalizedScore}%
+      </Text>
+    </View>
+  );
+};
+
 export default React.memo(function SwipeCard({
-  applicant,
+  applicant = {},
   myIndex,
   activeIndex,
   swipeProgress,
@@ -410,9 +496,7 @@ export default React.memo(function SwipeCard({
               {/* Right Match Circle Indicator */}
               {matchScore != null && (
                 <View style={styles.matchCircleWrapper}>
-                  <View style={styles.matchCircle}>
-                    <Text style={styles.matchCircleNum}>{matchScore}%</Text>
-                  </View>
+                  <CircularMatchProgress score={matchScore} size={58} strokeWidth={3.5} />
                   <View style={styles.matchCircleLabelRow}>
                     <Text style={styles.matchCircleLabel}>{t("match", "Match")}</Text>
                     <Ionicons name="information-circle-outline" size={11} color="#64748b" style={{ marginLeft: 2 }} />
@@ -511,6 +595,17 @@ export default React.memo(function SwipeCard({
                 </View>
                 <Text style={styles.dataLabel}>{t("jobRole", "Job Role")}</Text>
                 <Text style={styles.dataValueText}>{displayRole}</Text>
+              </View>
+            ) : null}
+
+            {/* 8. Preferred Call Time */}
+            {displayCallback ? (
+              <View style={styles.dataRow}>
+                <View style={styles.dataIconCol}>
+                  <Ionicons name="time-outline" size={17} color="#153e69" />
+                </View>
+                <Text style={styles.dataLabel}>{t("preferredCallTime", "Preferred Call Time")}</Text>
+                <Text style={styles.dataValueText}>{displayCallback}</Text>
               </View>
             ) : null}
 
