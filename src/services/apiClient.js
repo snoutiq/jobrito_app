@@ -135,9 +135,10 @@ loadOfflineQueue().then((saved) => {
 });
 
 /**
- * Clear all local memory caches, locks, and abort pending requests
+ * Clear all local memory caches, locks, and abort pending requests.
+ * @param {boolean} [triggerLogout=true] - If true, also dispatches Redux logout action.
  */
-export const clearClientState = () => {
+export const clearClientState = (triggerLogout = true) => {
   apiCache.clear();
   offlineQueue.length = 0;
   AsyncStorage.removeItem(OFFLINE_QUEUE_KEY).catch(() => {});
@@ -152,6 +153,19 @@ export const clearClientState = () => {
   activeRequestLocks.clear();
   delete apiClient.defaults.headers.common["Authorization"];
   Logger.info("API Client local state cleared (Logout/Session Reset).");
+
+  if (triggerLogout) {
+    try {
+      const storeModule = require("../redux/store");
+      const store = storeModule.default || storeModule;
+      if (store) {
+        const { logout } = require("../redux/slices/authSlice");
+        store.dispatch(logout());
+      }
+    } catch (storeError) {
+      Logger.warn("clearClientState: Could not dispatch logout:", storeError);
+    }
+  }
 };
 
 /**
@@ -662,7 +676,7 @@ apiClient.interceptors.response.use(
 
     // Detect manual logout completion to clear local state caches
     if (response.config.url?.endsWith("/logout")) {
-      clearClientState();
+      clearClientState(false); // user-initiated logout, Redux already dispatched by caller
     }
 
     // HTML session expire detection
@@ -686,7 +700,7 @@ apiClient.interceptors.response.use(
     cleanRequestState(originalRequest);
 
     if (originalRequest?.url?.endsWith("/logout")) {
-      clearClientState();
+      clearClientState(false); // user-initiated logout, Redux already dispatched by caller
     }
 
     // 1. Retry Logic with Exponential Backoff (Idempotent requests only)
@@ -776,7 +790,7 @@ apiClient.interceptors.response.use(
             }
 
             await clearAuthStorage();
-            clearClientState();
+            clearClientState(false); // logout dispatched below manually
 
             try {
               const storeModule = require("../redux/store");

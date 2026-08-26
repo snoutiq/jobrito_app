@@ -427,11 +427,20 @@ export default function ChefHomeScreen({ navigation }) {
               job.creator?.role ||
               "";
             const normalizedRole = rawRole.toLowerCase().replace(/[\s_]/g, "");
-            const isEmployerOrAdmin = ["employer", "admin"].includes(normalizedRole);
-            const isChefOrJobSeeker = ["chef", "jobseeker", "talent"].includes(normalizedRole);
+            const isAdmin =
+              Boolean(job.is_admin_created) ||
+              normalizedRole === "admin" ||
+              job.posted_by_role === "admin" ||
+              job.submitted_by_role === "admin" ||
+              job.creator?.role === "admin" ||
+              job.creator?.active_role === "admin";
+            const isEmployerOrAdmin = ["employer", "admin"].includes(normalizedRole) || isAdmin;
+            const isChefOrJobSeeker = ["chef", "jobseeker", "talent"].includes(normalizedRole) && !isAdmin;
             const showApply = isEmployerOrAdmin || isTraining;
 
-            const postedByLabelText = isReferral
+            const postedByLabelText = isAdmin
+              ? t("postedByAdmin", "Admin")
+              : isReferral
               ? t("postedByReferral", "Referral")
               : isTraining
               ? t("postedByAcademy", "Jobrito Academy")

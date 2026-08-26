@@ -43,6 +43,22 @@ const normalize = (size) => Math.round(scale * size);
 
 const PRIMARY_GREEN = "#047857";
 
+// ── Calendly prefix helpers ────────────────────────────────────────────────
+const CALENDLY_PREFIX = "https://calendly.com/";
+
+/** Returns the username/path portion after the prefix, trimmed. */
+const getCalendlySuffix = (link) =>
+  (link || "").replace(/\s+/g, "").startsWith(CALENDLY_PREFIX)
+    ? (link || "").replace(/\s+/g, "").slice(CALENDLY_PREFIX.length).trim()
+    : "";
+
+/** Returns the final URL to send to backend; empty string if no username yet. */
+const getFinalCalendlyLink = (link) => {
+  const suffix = getCalendlySuffix(link);
+  return suffix ? CALENDLY_PREFIX + suffix : "";
+};
+// ──────────────────────────────────────────────────────────────────────────
+
 const countriesList = [
   "India",
   "Saudi Arabia",
@@ -198,7 +214,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const availabilityOptions = ["Available Immediately", "Currently Employed"];
 
   // --- Step 4 State ---
-  const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
+  const [calendlyLink, setCalendlyLink] = useState(CALENDLY_PREFIX);
   const [isProfileInitialized, setIsProfileInitialized] = useState(false);
 
   useEffect(() => {
@@ -240,10 +256,11 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
           setSelectedCountry("Other");
         }
       }
-      if (profile.calendly_link || profile.calendlyUrl || profile.calendlyLink) {
-        setCalendlyLink(profile.calendly_link || profile.calendlyUrl || profile.calendlyLink);
+      const loadedCalendly = profile.calendly_link || profile.calendlyUrl || profile.calendlyLink;
+      if (loadedCalendly && loadedCalendly.startsWith(CALENDLY_PREFIX) && getCalendlySuffix(loadedCalendly)) {
+        setCalendlyLink(loadedCalendly);
       } else {
-        setCalendlyLink("https://calendly.com/");
+        setCalendlyLink(CALENDLY_PREFIX);
       }
       if (profile.linkedin) {
         setLinkedinLink(profile.linkedin);
@@ -482,10 +499,16 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       const content = await Clipboard.getString();
       if (content && content.trim()) {
         let cleaned = content.trim().replace(/\s+/g, "");
-        if (!/^https?:\/\//i.test(cleaned)) {
-          cleaned = "https://" + cleaned;
+        if (cleaned.startsWith(CALENDLY_PREFIX)) {
+          // full calendly URL pasted — use as-is
+          setCalendlyLink(cleaned);
+        } else if (/^https?:\/\//i.test(cleaned)) {
+          // some other domain URL — reject, reset to prefix
+          setCalendlyLink(CALENDLY_PREFIX);
+        } else {
+          // just a username pasted — prepend prefix
+          setCalendlyLink(CALENDLY_PREFIX + cleaned.replace(/^\/+/, ""));
         }
-        setCalendlyLink(cleaned);
         Alert.alert("Success", "Calendly link pasted successfully!");
       } else {
         Alert.alert("Clipboard Empty", "No content found in clipboard to paste.");
@@ -696,23 +719,8 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     }
 
     if (step === 4) {
-      if (calendlyLink && calendlyLink.trim()) {
-        let cleaned = calendlyLink.trim().replace(/\s+/g, "");
-        if (
-          cleaned === "https://calendly.com/" ||
-          cleaned === "https://calendly.com" ||
-          cleaned === "http://calendly.com/" ||
-          cleaned === "http://calendly.com" ||
-          cleaned === "calendly.com/" ||
-          cleaned === "calendly.com"
-        ) {
-          setCalendlyLink("");
-        } else {
-          if (!/^https?:\/\//i.test(cleaned)) {
-            cleaned = "https://" + cleaned;
-          }
-          setCalendlyLink(cleaned);
-        }
+      if (!getCalendlySuffix(calendlyLink)) {
+        setCalendlyLink(CALENDLY_PREFIX); // keep bare prefix; treated as empty for backend
       }
     }
 
@@ -780,14 +788,8 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       formData.append("cuisine_specialty", finalCuisines.join(", "));
       formData.append("bio", bio);
 
-      let formattedCalendly = (calendlyLink || "").trim().replace(/\s+/g, "");
-      const calendlyPath = formattedCalendly.replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim();
-      if (!calendlyPath) {
-        formattedCalendly = "";
-      } else if (!/^https?:\/\//i.test(formattedCalendly)) {
-        formattedCalendly = "https://" + formattedCalendly;
-      }
-      formData.append("calendly_link", formattedCalendly || "");
+      const formattedCalendly = getFinalCalendlyLink(calendlyLink);
+      formData.append("calendly_link", formattedCalendly);
 
       // Append social links in all common formats to ensure backend maps it correctly
       formData.append("linkedin", linkedinLink || "");
@@ -899,9 +901,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         employmentPreference,
         availability,
         bio,
-        calendlyLink,
-        calendly_link: calendlyLink,
-        calendlyUrl: calendlyLink,
+        calendlyLink: formattedCalendly,
+        calendly_link: formattedCalendly,
+        calendlyUrl: formattedCalendly,
         linkedin: linkedinLink,
         instagram: instagramLink,
         facebook: facebookLink,
@@ -955,9 +957,9 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       employmentPreference,
       availability,
       bio,
-      calendlyLink,
-      calendly_link: calendlyLink,
-      calendlyUrl: calendlyLink,
+      calendlyLink: getFinalCalendlyLink(calendlyLink),
+      calendly_link: getFinalCalendlyLink(calendlyLink),
+      calendlyUrl: getFinalCalendlyLink(calendlyLink),
       linkedin: linkedinLink,
       instagram: instagramLink,
       facebook: facebookLink,
@@ -1000,11 +1002,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     if (locationPreference) filledFields++;
     if (employmentPreference.length > 0) filledFields++;
     
-    const calendly = calendlyLink;
-    const isCalendlyValid = calendly && 
-                            calendly.trim().length > 0 && 
-                            !/^(https?:\/\/)?(www\.)?calendly\.com\/?$/i.test(calendly.trim());
-    if (isCalendlyValid) {
+    if (getCalendlySuffix(calendlyLink)) {
       filledFields++;
     }
     
@@ -1937,7 +1935,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   <View
                     style={[
                       styles.statusBadgeCapsule,
-                      (calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                      getCalendlySuffix(calendlyLink)
                         ? styles.statusBadgeCapsuleSuccess
                         : styles.statusBadgeCapsulePending,
                     ]}
@@ -1945,12 +1943,12 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     <Text
                       style={[
                         styles.statusBadgeCapsuleText,
-                        (calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                        getCalendlySuffix(calendlyLink)
                           ? styles.statusBadgeCapsuleTextSuccess
                           : styles.statusBadgeCapsuleTextPending,
                       ]}
                     >
-                      {(calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                      {getCalendlySuffix(calendlyLink)
                         ? t("linked", "Linked")
                         : t("notLinked", "Not Linked")}
                     </Text>
@@ -1967,26 +1965,17 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   <View style={[styles.fieldInputWrapper, activeInput === "calendly" && styles.fieldInputActive]}>
                     <Ionicons name="link-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
                     <TextInput
-                      value={calendlyLink || "https://calendly.com/"}
+                      value={calendlyLink}
                       onChangeText={(val) => {
                         const cleanVal = val.replace(/\s+/g, "");
-                        if (!cleanVal) {
-                          setCalendlyLink("https://calendly.com/");
+                        if (!cleanVal.startsWith(CALENDLY_PREFIX)) {
+                          // user tried to delete into the prefix — snap back
+                          setCalendlyLink(CALENDLY_PREFIX);
                           return;
                         }
-                        if (!cleanVal.startsWith("https://calendly.com/")) {
-                          if (cleanVal.startsWith("https://")) {
-                            setCalendlyLink(cleanVal);
-                          } else if (cleanVal.includes("calendly.com/")) {
-                            setCalendlyLink("https://" + cleanVal.replace(/^https?:\/\//, ""));
-                          } else {
-                            setCalendlyLink("https://calendly.com/" + cleanVal.replace(/^\/+/, ""));
-                          }
-                        } else {
-                          setCalendlyLink(cleanVal);
-                        }
+                        setCalendlyLink(cleanVal);
                       }}
-                      placeholder="https://calendly.com/yourusername"
+                      placeholder="yourusername"
                       placeholderTextColor="#94a3b8"
                       autoCapitalize="none"
                       style={styles.fieldTextInput}
@@ -2599,7 +2588,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                     </TouchableOpacity>
                   </View>
                   <Text style={[styles.cardSubtextBelowHeader, { marginTop: normalize(2), marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
-                    {calendlyLink ? "Connected" : "Not Linked"}
+                    {getCalendlySuffix(calendlyLink) ? "Connected" : "Not Linked"}
                   </Text>
                 </View>
 

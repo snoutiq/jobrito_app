@@ -361,7 +361,41 @@ export default function JobDetailsScreen({ navigation, route }) {
               <View style={styles.metaItem}>
                 <Ionicons name="person-outline" size={normalize(14)} color="#64748b" />
                 <Text style={styles.metaLabel}>{t("postedBy", "Posted by")}</Text>
-                <Text style={styles.metaValueGreen}>{t("employer", "EMPLOYER")}</Text>
+                <Text style={styles.metaValueGreen}>
+                  {(() => {
+                    const rawRole = (
+                      job?.creator?.active_role ||
+                      job?.active_role ||
+                      job?.posted_by_role ||
+                      job?.submitted_by_role ||
+                      job?.creator?.role ||
+                      ""
+                    ).toLowerCase().replace(/[\s_]/g, "");
+
+                    const isAdmin =
+                      Boolean(job?.is_admin_created) ||
+                      rawRole === "admin" ||
+                      job?.posted_by_role === "admin" ||
+                      job?.submitted_by_role === "admin" ||
+                      job?.creator?.role === "admin" ||
+                      job?.creator?.active_role === "admin";
+
+                    const isReferral =
+                      Boolean(job?.is_referral) ||
+                      job?._type === "referral_job" ||
+                      job?.category === "referral";
+
+                    const isChef = rawRole === "chef";
+
+                    return isAdmin
+                      ? t("admin", "ADMIN")
+                      : isReferral
+                      ? t("referral", "REFERRAL")
+                      : isChef
+                      ? t("chef", "CHEF")
+                      : t("employer", "EMPLOYER");
+                  })()}
+                </Text>
               </View>
             </View>
           </View>

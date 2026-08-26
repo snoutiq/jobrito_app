@@ -29,6 +29,22 @@ function normalize(size) {
   return Math.round(newSize);
 }
 
+// ── Calendly prefix helpers ────────────────────────────────────────────────
+const CALENDLY_PREFIX = "https://calendly.com/";
+
+/** Returns the username/path portion after the prefix, trimmed. */
+const getCalendlySuffix = (link) =>
+  (link || "").replace(/\s+/g, "").startsWith(CALENDLY_PREFIX)
+    ? (link || "").replace(/\s+/g, "").slice(CALENDLY_PREFIX.length).trim()
+    : "";
+
+/** Returns the final URL to send to backend; empty string if no username yet. */
+const getFinalCalendlyLink = (link) => {
+  const suffix = getCalendlySuffix(link);
+  return suffix ? CALENDLY_PREFIX + suffix : "";
+};
+// ──────────────────────────────────────────────────────────────────────────
+
 export default function CalendlyIntegrationScreen({ navigation }) {
   const { t } = useTranslation();
 
@@ -53,22 +69,20 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
 
-  const [calendlyLink, setCalendlyLink] = useState("https://calendly.com/");
+  const [calendlyLink, setCalendlyLink] = useState(CALENDLY_PREFIX);
   const [loading, setLoading] = useState(false);
   const [activeInput, setActiveInput] = useState(false);
 
   useEffect(() => {
-    if (profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink) {
-      setCalendlyLink(profile.calendly_link || profile.calendlyUrl || profile.calendlyLink);
+    const val = profile?.calendly_link || profile?.calendlyUrl || profile?.calendlyLink;
+    if (val && val.startsWith(CALENDLY_PREFIX) && getCalendlySuffix(val)) {
+      setCalendlyLink(val);
     } else {
-      setCalendlyLink("https://calendly.com/");
+      setCalendlyLink(CALENDLY_PREFIX);
     }
   }, [profile]);
 
-  const isConnected = Boolean(
-    calendlyLink &&
-    calendlyLink.trim().replace(/\s+/g, "").replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== ""
-  );
+  const isConnected = Boolean(getCalendlySuffix(calendlyLink));
 
   const handleSignupCalendly = () => {
     Linking.openURL("https://calendly.com/signup").catch((err) => {
@@ -77,26 +91,10 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   };
 
   const handleSaveLink = async () => {
-    let raw = (calendlyLink || "").trim().replace(/\s+/g, "");
-    const calendlyPath = raw.replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim();
+    const cleaned = getFinalCalendlyLink(calendlyLink);
 
-    if (!calendlyPath) {
-      CustomAlert.show(t("warning", "Notice"), t("calendly.enterLink", "Please enter your Calendly scheduling link."));
-      return;
-    }
-
-    let cleaned = "";
-    if (!/^https?:\/\//i.test(raw)) {
-      cleaned = "https://" + raw;
-    } else {
-      cleaned = raw;
-    }
-
-    if (!cleaned.toLowerCase().includes("calendly.com")) {
-      CustomAlert.show(
-        t("warning", "Notice"),
-        t("calendly.invalidLink", "The URL does not contain 'calendly.com'. Make sure it is your official Calendly scheduling link.")
-      );
+    if (!cleaned) {
+      CustomAlert.show(t("warning", "Notice"), t("calendly.enterLink", "Please enter your Calendly username."));
       return;
     }
 
@@ -199,26 +197,17 @@ export default function CalendlyIntegrationScreen({ navigation }) {
             <Ionicons name="link-outline" size={normalize(18)} color="#64748b" style={{ marginRight: normalize(8) }} />
             <TextInput
               style={styles.modernTextInput}
-              placeholder={t("calendlyPlaceholder", "https://calendly.com/your-link")}
+              placeholder="yourusername"
               placeholderTextColor="#94a3b8"
               value={calendlyLink}
               onChangeText={(val) => {
                 const cleanVal = val.replace(/\s+/g, "");
-                if (!cleanVal) {
-                  setCalendlyLink("https://calendly.com/");
+                if (!cleanVal.startsWith(CALENDLY_PREFIX)) {
+                  // user tried to delete into the prefix — snap back
+                  setCalendlyLink(CALENDLY_PREFIX);
                   return;
                 }
-                if (!cleanVal.startsWith("https://calendly.com/")) {
-                  if (cleanVal.startsWith("https://")) {
-                    setCalendlyLink(cleanVal);
-                  } else if (cleanVal.includes("calendly.com/")) {
-                    setCalendlyLink("https://" + cleanVal.replace(/^https?:\/\//, ""));
-                  } else {
-                    setCalendlyLink("https://calendly.com/" + cleanVal.replace(/^\/+/, ""));
-                  }
-                } else {
-                  setCalendlyLink(cleanVal);
-                }
+                setCalendlyLink(cleanVal);
               }}
               onFocus={() => setActiveInput(true)}
               onBlur={() => setActiveInput(false)}
@@ -226,8 +215,8 @@ export default function CalendlyIntegrationScreen({ navigation }) {
               autoCorrect={false}
               keyboardType="url"
             />
-            {calendlyLink && calendlyLink !== "https://calendly.com/" ? (
-              <TouchableOpacity onPress={() => setCalendlyLink("https://calendly.com/")} style={{ padding: normalize(4) }}>
+            {getCalendlySuffix(calendlyLink) ? (
+              <TouchableOpacity onPress={() => setCalendlyLink(CALENDLY_PREFIX)} style={{ padding: normalize(4) }}>
                 <Ionicons name="close-circle" size={normalize(18)} color="#94a3b8" />
               </TouchableOpacity>
             ) : null}
