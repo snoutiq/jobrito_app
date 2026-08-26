@@ -87,80 +87,175 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     return { uri: `http://178.16.138.159/backend${uri.startsWith("/") ? "" : "/"}${uri}` };
   };
 
-  // Helper to extract employment preferences defensively
+  const normalizeStr = (str) =>
+    String(str || "")
+      .toLowerCase()
+      .replace(/[-_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  // Defensive extractor helpers
   const getEmploymentList = (chef) => {
-    let list = [];
+    if (!chef) return [];
     const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
     const info = chef.availability_info || chefProfileObj.availability_info || {};
-    if (info && typeof info === "object" && !Array.isArray(info)) {
-      list = info.employment_preference || info.employment_preferences || [];
+
+    let list =
+      info.employment_preference ||
+      info.employment_preferences ||
+      chefProfileObj.employment_preference ||
+      chefProfileObj.employment_preferences ||
+      chef.employment_preference ||
+      chef.employment_preferences ||
+      [];
+
+    if (typeof list === "string") {
+      try {
+        if (list.trim().startsWith("[")) list = JSON.parse(list);
+        else list = list.split(",").map((x) => x.trim()).filter(Boolean);
+      } catch (e) {
+        list = [list];
+      }
     }
-    if (!list || list.length === 0) {
-      list = chef.employment_preference || chef.employment_preferences || chefProfileObj.employment_preference || [];
-    }
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return [list];
+    if (Array.isArray(list)) return list.map(String).filter(Boolean);
     return [];
   };
 
-  // Helper to extract regional experience defensively
   const getRegionalList = (chef) => {
-    let list = [];
+    if (!chef) return [];
     const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
     const info = chef.availability_info || chefProfileObj.availability_info || {};
-    if (info && typeof info === "object" && !Array.isArray(info)) {
-      list = info.regional_experience || info.regionalExperience || [];
+
+    let list =
+      info.regional_experience ||
+      info.regionalExperience ||
+      chefProfileObj.regional_experience ||
+      chefProfileObj.regionalExperience ||
+      chef.regional_experience ||
+      chef.regionalExperience ||
+      [];
+
+    if (typeof list === "string") {
+      try {
+        if (list.trim().startsWith("[")) list = JSON.parse(list);
+        else list = list.split(",").map((x) => x.trim()).filter(Boolean);
+      } catch (e) {
+        list = [list];
+      }
     }
-    if (!list || list.length === 0) {
-      list = chef.regional_experience || chef.regionalExperience || chefProfileObj.regional_experience || [];
-    }
-    if (Array.isArray(list)) return list;
-    if (typeof list === "string") return [list];
+    if (Array.isArray(list)) return list.map(String).filter(Boolean);
     return [];
   };
 
   const getSkillsList = (chef) => {
     if (!chef) return [];
     const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
-    const availInfo = chef.availability_info || chefProfileObj.availability_info || {};
+    const info = chef.availability_info || chefProfileObj.availability_info || {};
 
-    let raw =
-      chef.operational_expertise ||
-      chef.operational_experties ||
-      chef.core_skills ||
-      chef.skills ||
-      chefProfileObj.operational_expertise ||
-      chefProfileObj.operational_experties ||
-      chefProfileObj.core_skills ||
-      chefProfileObj.skills ||
-      availInfo.operational_expertise ||
-      availInfo.operational_experties ||
-      availInfo.core_skills ||
-      availInfo.skills ||
-      chef.user?.skills ||
-      chef.operations ||
-      "";
+    const rawSources = [
+      chef.operational_expertise,
+      chef.operational_experties,
+      chef.skills,
+      chef.core_skills,
+      chef.bio,
+      chefProfileObj.operational_expertise,
+      chefProfileObj.operational_experties,
+      chefProfileObj.skills,
+      chefProfileObj.core_skills,
+      chefProfileObj.bio,
+      info.operational_expertise,
+      info.operational_experties,
+      info.skills,
+      info.core_skills,
+      chef.operations,
+    ];
 
-    if (typeof raw === "string") {
-      const trimmed = raw.trim();
-      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-        try {
-          raw = JSON.parse(trimmed);
-        } catch (e) {
-          // fallback to string split
+    let combined = [];
+    rawSources.forEach((raw) => {
+      if (!raw) return;
+      if (Array.isArray(raw)) {
+        combined.push(...raw.map(String));
+      } else if (typeof raw === "string" && raw.trim()) {
+        const str = raw.trim();
+        if (str.startsWith("[") && str.endsWith("]")) {
+          try {
+            const parsed = JSON.parse(str);
+            if (Array.isArray(parsed)) combined.push(...parsed.map(String));
+          } catch (e) {
+            combined.push(...str.split(",").map((x) => x.trim()));
+          }
+        } else {
+          combined.push(...str.split(",").map((x) => x.trim()));
         }
       }
-    }
+    });
 
-    if (Array.isArray(raw)) {
-      return raw.map((x) => (typeof x === "string" ? x.trim() : String(x))).filter(Boolean);
-    }
+    return Array.from(new Set(combined.filter(Boolean)));
+  };
 
-    if (typeof raw === "string" && raw.trim()) {
-      return raw.split(",").map((x) => x.trim()).filter(Boolean);
-    }
+  const getCuisinesList = (chef) => {
+    if (!chef) return [];
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
 
-    return [];
+    const rawSources = [
+      chef.cuisine_specialty,
+      chef.specialties,
+      chef.cuisines,
+      chef.category,
+      chefProfileObj.cuisine_specialty,
+      chefProfileObj.specialties,
+      chefProfileObj.cuisines,
+      chefProfileObj.category,
+    ];
+
+    let combined = [];
+    rawSources.forEach((raw) => {
+      if (!raw) return;
+      if (Array.isArray(raw)) {
+        combined.push(...raw.map(String));
+      } else if (typeof raw === "string" && raw.trim()) {
+        const str = raw.trim();
+        if (str.startsWith("[") && str.endsWith("]")) {
+          try {
+            const parsed = JSON.parse(str);
+            if (Array.isArray(parsed)) combined.push(...parsed.map(String));
+          } catch (e) {
+            combined.push(...str.split(",").map((x) => x.trim()));
+          }
+        } else {
+          combined.push(...str.split(",").map((x) => x.trim()));
+        }
+      }
+    });
+
+    return Array.from(new Set(combined.filter(Boolean)));
+  };
+
+  const getChefExperienceYears = (chef) => {
+    if (!chef) return null;
+    const chefProfileObj = chef.chef_profile || chef.chef_profile_details || chef.user?.chef_profile || {};
+
+    const raw =
+      chef.experience_years ??
+      chef.experience_range ??
+      chef.total_experience ??
+      chef.experienceYears ??
+      chef.experience ??
+      chefProfileObj.experience_years ??
+      chefProfileObj.experience_range ??
+      chefProfileObj.total_experience ??
+      chefProfileObj.experienceYears ??
+      chefProfileObj.experience;
+
+    if (raw === null || raw === undefined || raw === "") return null;
+    if (typeof raw === "number") return raw;
+
+    const str = String(raw).toLowerCase();
+    const digits = str.match(/\d+/g);
+    if (digits && digits.length > 0) {
+      return parseInt(digits[0], 10);
+    }
+    return str;
   };
 
   // Filter Logic
@@ -177,13 +272,13 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 
     // 2. Quick filters
     const empPrefs = getEmploymentList(chef);
-    const empPrefsLower = empPrefs.map((x) => String(x).toLowerCase());
+    const empPrefsLower = empPrefs.map((x) => normalizeStr(x));
 
     if (activeQuickFilter === "freelance") {
       const isFreelancer = empPrefsLower.some((x) => x.includes("freelance") || x.includes("consultant"));
       if (!isFreelancer) return false;
     } else if (activeQuickFilter === "full_time") {
-      const isFullTimer = empPrefsLower.some((x) => x.includes("full") || x.includes("full_time"));
+      const isFullTimer = empPrefsLower.some((x) => x.includes("full") || x.includes("full time"));
       if (!isFullTimer) return false;
     } else if (activeQuickFilter === "contract") {
       const isContractor = empPrefsLower.some((x) => x.includes("contract"));
@@ -199,13 +294,25 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     // 3. Advanced filters (from ChefConnectFiltersScreen)
     if (activeFilters) {
       if (Array.isArray(activeFilters.employment) && activeFilters.employment.length > 0) {
+        const locPref = normalizeStr(
+          chef.location_preference ||
+          chef.chef_profile?.availability_info?.location_preference ||
+          chef.availability_info?.location_preference
+        );
+        const rawEmpStr = empPrefsLower.join(" ");
+
         const matches = activeFilters.employment.some((filterOpt) => {
-          const f = filterOpt.replace(/chef/gi, "").trim().toLowerCase();
+          const f = normalizeStr(filterOpt).replace(/chef/gi, "").trim();
           if (f.includes("overseas")) {
-            const locPref = String(chef.location_preference || chef.locationPreference || "").toLowerCase();
-            return locPref.includes("overseas") || locPref.includes("both") || locPref.includes("international");
+            return (
+              locPref.includes("overseas") ||
+              locPref.includes("both") ||
+              locPref.includes("international") ||
+              locPref.includes("abroad") ||
+              rawEmpStr.includes("overseas")
+            );
           }
-          return empPrefsLower.some((p) => p.includes(f) || f.includes(p));
+          return empPrefsLower.some((p) => p.includes(f) || f.includes(p)) || rawEmpStr.includes(f);
         });
         if (!matches) return false;
       }
@@ -215,52 +322,101 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
         : activeFilters.experience
         ? [activeFilters.experience]
         : [];
+
       if (expList.length > 0) {
-        const chefExp = String(
-          chef.experience_range || chef.experienceYears || chef.experience || ""
-        ).toLowerCase();
-        const matches = expList.some((f) => {
-          const filterExp = f.toLowerCase().trim();
-          return chefExp.includes(filterExp) || filterExp.includes(chefExp);
+        const chefExpVal = getChefExperienceYears(chef);
+        const rawChefExpStr = normalizeStr(
+          chef.experience_range || chef.experience_years || chef.experience || chef.chef_profile?.experience_range || ""
+        );
+
+        const matches = expList.some((filterOpt) => {
+          const optStr = normalizeStr(filterOpt);
+
+          if (typeof chefExpVal === "number") {
+            if (optStr.includes("1 3")) return chefExpVal >= 1 && chefExpVal <= 3;
+            if (optStr.includes("3 5")) return chefExpVal >= 3 && chefExpVal <= 5;
+            if (optStr.includes("5 10")) return chefExpVal >= 5 && chefExpVal <= 10;
+            if (optStr.includes("10")) return chefExpVal >= 10;
+          }
+
+          const digits = optStr.match(/\d+/g);
+          if (digits && digits.length >= 2) {
+            const min = parseInt(digits[0], 10);
+            const max = parseInt(digits[1], 10);
+            if (typeof chefExpVal === "number") return chefExpVal >= min && chefExpVal <= max;
+          } else if (digits && digits.length === 1 && optStr.includes("+")) {
+            const min = parseInt(digits[0], 10);
+            if (typeof chefExpVal === "number") return chefExpVal >= min;
+          }
+
+          const cleanFilter = optStr.replace(/years?|\+/gi, "").trim();
+          return rawChefExpStr.includes(cleanFilter) || cleanFilter.includes(rawChefExpStr);
         });
+
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.cuisines) && activeFilters.cuisines.length > 0) {
-        const chefCuisine = String(chef.cuisine_specialty || chef.specialties || chef.cuisines || chef.category || "").toLowerCase();
-        const matches = activeFilters.cuisines.some((c) => {
-          const cleanCuisine = c.replace(/chef/gi, "").trim().toLowerCase();
-          return chefCuisine.includes(cleanCuisine) || cleanCuisine.includes(chefCuisine);
+        const chefCuisineList = getCuisinesList(chef).map(normalizeStr);
+        const rawCuisineStr = chefCuisineList.join(" ");
+
+        const matches = activeFilters.cuisines.some((cOpt) => {
+          const cleanOpt = normalizeStr(cOpt).replace(/chef/gi, "").trim();
+          return (
+            chefCuisineList.some((c) => c.includes(cleanOpt) || cleanOpt.includes(c)) ||
+            rawCuisineStr.includes(cleanOpt)
+          );
         });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.operations) && activeFilters.operations.length > 0) {
-        const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
-        const rawSkillsStr = skillsList.join(" ");
-        const matches = activeFilters.operations.some((op) => {
-          const cleanOp = op.replace(/(consultant|expert|specialist|analyst|writer|creator|development)/gi, "").trim().toLowerCase();
-          return skillsList.some((s) => s.includes(cleanOp) || cleanOp.includes(s)) || rawSkillsStr.includes(cleanOp);
+        const chefSkillsList = getSkillsList(chef).map(normalizeStr);
+        const rawSkillsStr = chefSkillsList.join(" ");
+
+        const matches = activeFilters.operations.some((opOpt) => {
+          const fullOp = normalizeStr(opOpt);
+          const cleanOp = fullOp.replace(/(consultant|expert|specialist|analyst|writer|creator|development)/gi, "").trim();
+
+          return (
+            chefSkillsList.some((s) => s.includes(cleanOp) || cleanOp.includes(s) || s.includes(fullOp) || fullOp.includes(s)) ||
+            rawSkillsStr.includes(cleanOp) ||
+            rawSkillsStr.includes(fullOp)
+          );
         });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.business) && activeFilters.business.length > 0) {
-        const skillsList = getSkillsList(chef).map((s) => String(s).toLowerCase());
-        const rawSkillsStr = skillsList.join(" ");
-        const matches = activeFilters.business.some((b) => {
-          const cleanB = b.replace(/(consultant|expert|specialist|analyst|writer|creator|development|specialities)/gi, "").trim().toLowerCase();
-          return skillsList.some((s) => s.includes(cleanB) || cleanB.includes(s)) || rawSkillsStr.includes(cleanB);
+        const chefSkillsList = getSkillsList(chef).map(normalizeStr);
+        const rawSkillsStr = chefSkillsList.join(" ");
+
+        const matches = activeFilters.business.some((bOpt) => {
+          const fullB = normalizeStr(bOpt);
+          const cleanB = fullB.replace(/(chef|consultant|expert|specialist|analyst|writer|creator|development)/gi, "").trim();
+
+          return (
+            chefSkillsList.some((s) => s.includes(cleanB) || cleanB.includes(s) || s.includes(fullB) || fullB.includes(s)) ||
+            rawSkillsStr.includes(cleanB) ||
+            rawSkillsStr.includes(fullB)
+          );
         });
         if (!matches) return false;
       }
 
       if (Array.isArray(activeFilters.regional) && activeFilters.regional.length > 0) {
-        const regionalList = getRegionalList(chef).map((r) => String(r).toLowerCase());
-        const rawRegionalStr = regionalList.join(" ");
-        const matches = activeFilters.regional.some((reg) => {
-          const cleanReg = reg.replace(/experience/gi, "").trim().toLowerCase();
-          return regionalList.some((r) => r.includes(cleanReg) || cleanReg.includes(r)) || rawRegionalStr.includes(cleanReg);
+        const chefRegList = getRegionalList(chef).map(normalizeStr);
+        const rawRegStr = chefRegList.join(" ");
+
+        const matches = activeFilters.regional.some((rOpt) => {
+          const fullR = normalizeStr(rOpt);
+          const cleanR = fullR.replace(/experience/gi, "").trim();
+
+          return (
+            chefRegList.some((r) => r.includes(cleanR) || cleanR.includes(r) || r.includes(fullR) || fullR.includes(r)) ||
+            rawRegStr.includes(cleanR) ||
+            rawRegStr.includes(fullR)
+          );
         });
         if (!matches) return false;
       }
@@ -558,6 +714,28 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
             <Ionicons name="restaurant-outline" size={normalize(48)} color="#cbd5e1" style={{ marginBottom: normalize(8) }} />
             <Text style={styles.emptyTitle}>{t("noChefsFound", "No Chefs Found")}</Text>
             <Text style={styles.emptySubtitle}>{t("adjustFilters", "Try adjusting your search or filter preferences.")}</Text>
+            {hasActiveFilters && (
+              <TouchableOpacity
+                style={{
+                  marginTop: normalize(12),
+                  backgroundColor: "#eff6ff",
+                  paddingHorizontal: normalize(16),
+                  paddingVertical: normalize(8),
+                  borderRadius: normalize(8),
+                  borderWidth: 1,
+                  borderColor: "#bfdbfe",
+                }}
+                onPress={() => {
+                  setSearchQuery("");
+                  setActiveQuickFilter("all");
+                  navigation.setParams({ filters: null });
+                }}
+              >
+                <Text style={{ fontSize: normalize(12.5), fontWeight: "700", color: "#1d4ed8" }}>
+                  {t("clearAllFilters", "Clear All Filters")}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <View style={styles.chefCardsContainer}>
