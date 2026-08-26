@@ -435,7 +435,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.heroBannerTitle}>
-                {t("approvedChefProfilesCount", "{{count}} Approved Chef Profiles", { count: chefs.length })}
+                {t("approvedChefProfilesCount", "Approved Chef Profiles")}
               </Text>
               <Text style={styles.heroBannerSubtitle}>
                 {t("connectWithVerifiedCulinary", "Connect with verified culinary experts for your business.")}

@@ -1235,7 +1235,7 @@
   "noFiltersSelected": "No filters selected yet",
   "selectFiltersHint": "Tap options on the screen to refine your chef search.",
   "clearAll": "Clear All",
-  "approvedChefProfilesCount": "{{count}} Approved Chef Profiles",
+  "approvedChefProfilesCount": "Approved Chef Profiles",
   "connectWithVerifiedCulinary": "Connect with verified culinary experts for your business.",
   "searchChefPlaceholder": "Search by name, cuisine, or location",
   "notViewed": "Not Viewed",

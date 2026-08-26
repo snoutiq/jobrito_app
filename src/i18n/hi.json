@@ -1273,7 +1273,7 @@
   "noFiltersSelected": "अभी तक कोई फिल्टर नहीं चुना गया",
   "selectFiltersHint": "शेफ खोज को रिफाइन करने के लिए स्क्रीन पर विकल्पों पर टैप करें।",
   "clearAll": "सभी साफ़ करें",
-  "approvedChefProfilesCount": "{{count}} स्वीकृत शेफ प्रोफाइल",
+  "approvedChefProfilesCount": "स्वीकृत शेफ प्रोफाइल",
   "connectWithVerifiedCulinary": "अपने व्यवसाय के लिए सत्यापित पाक विशेषज्ञों से जुड़ें।",
   "searchChefPlaceholder": "नाम, व्यंजन या स्थान से खोजें",
   "notViewed": "नहीं देखा",
