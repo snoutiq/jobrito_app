@@ -603,16 +603,17 @@ export default function MyJobsScreen({ navigation, route }) {
           >
             <Ionicons name="arrow-back" size={normalize(22)} color="#0a0504" />
           </TouchableOpacity>
-          <View>
-            <Text style={styles.headerTitle}>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={[styles.headerTitle, { textAlign: "center" }]}>
               {!isEmployer ? t("myJobReferrals", "MY JOB REFERRALS") : t("myJobs", "MY JOBS")}
             </Text>
             {!isEmployer && (
-              <Text style={styles.headerSubtitle}>
+              <Text style={[styles.headerSubtitle, { textAlign: "center" }]}>
                 {t("myJobReferralsSubtitle", "Jobs you have shared with the community")}
               </Text>
             )}
           </View>
+          <View style={{ width: normalize(22) }} />
         </View>
       </View>
 

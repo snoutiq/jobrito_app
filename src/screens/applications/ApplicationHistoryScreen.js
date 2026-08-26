@@ -235,12 +235,13 @@ export default function ApplicationHistoryScreen({ navigation }) {
             <Ionicons name="arrow-back" size={normalize(22)} color="#0f2942" />
           </TouchableOpacity>
 
-          <View style={styles.headerTitleWrap}>
-            <Text style={styles.mainTitle}>{t("myApplications", "My Applications")}</Text>
-            <Text style={styles.subTitle}>
+          <View style={[styles.headerTitleWrap, { alignItems: "center" }]}>
+            <Text style={[styles.mainTitle, { textAlign: "center" }]}>{t("myApplications", "My Applications")}</Text>
+            <Text style={[styles.subTitle, { textAlign: "center" }]}>
               {t("trackJobsSubtitle", "Track jobs you have applied for")}
             </Text>
           </View>
+          <View style={{ width: normalize(22) }} />
         </View>
       </View>
 
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainTitle: {
-    fontSize: normalize(17.5),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f2942",
     letterSpacing: 0.2,

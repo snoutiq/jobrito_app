@@ -100,7 +100,9 @@ export default function TalentSettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={normalize(22)} color={colors.text || "#0f172a"} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("settingsAndSupport", "Settings & Support")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("settingsAndSupport", "Settings & Support")}</Text>
+        </View>
         <View style={{ width: normalize(38) }} />
       </View>
 
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
   },
   headerTitle: {
-    fontSize: normalize(17),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
   },

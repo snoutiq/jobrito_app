@@ -494,7 +494,9 @@ export default function PostJobScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{t("postJobTitle", "Post a Job")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("postJobTitle", "Post a Job")}</Text>
+        </View>
         <View style={{ width: normalize(32) }} />
       </View>
 

@@ -60,12 +60,13 @@ function HomeOnlyStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontSize: 17, fontWeight: "700" },
+        headerTitleStyle: { fontSize: 16, fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
         headerBackButtonDisplayMode: "minimal",
         animation: "slide_from_right",
         headerBackTitleVisible: false,
         headerBackTitle: "",
+        headerTitleAlign: "center",
       }}
     >
       <Stack.Screen
@@ -325,12 +326,13 @@ export default function MainTabs() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontSize: 17, fontWeight: "700" },
+        headerTitleStyle: { fontSize: 16, fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
         animation: "slide_from_right",
         headerBackButtonDisplayMode: "minimal",
         headerBackTitleVisible: false,
         headerBackTitle: "",
+        headerTitleAlign: "center",
       }}
     >
       <Stack.Screen

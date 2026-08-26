@@ -515,7 +515,9 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
             <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={styles.headerTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>
+          </View>
           <View style={{ width: normalize(32) }} />
         </View>
 

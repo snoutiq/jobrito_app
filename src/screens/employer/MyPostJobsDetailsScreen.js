@@ -280,12 +280,19 @@ export default function JobDetailsScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={normalize(22)} color="#0a0504" />
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>{t("jobDetails.title", "JOB DETAILS")}</Text>
-          <Text style={styles.headerSubtitle}>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+          <Text style={[styles.headerSubtitle, { textAlign: "center" }]}>
             {t("jobDetails.subtitle", "View job information and details")}
           </Text>
         </View>
+        <TouchableOpacity
+          onPress={handleShare}
+          style={styles.headerShareBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -442,12 +449,6 @@ export default function JobDetailsScreen({ navigation, route }) {
             <Text style={styles.closeJobBtnText}>{t("completed", "Completed")}</Text>
           </TouchableOpacity>
         </View>
-      ) : !isEmployer ? (
-        <View style={[styles.bottomBar, { justifyContent: "flex-end" }]}>
-          <Pressable onPress={handleShare} style={styles.chatButton}>
-            <Ionicons name="share-social-outline" size={normalize(18)} color="#153e69" />
-          </Pressable>
-        </View>
       ) : null}
 
       <CallbackModal
@@ -489,6 +490,14 @@ const styles = StyleSheet.create({
   backBtn: {
     marginRight: normalize(12),
     padding: normalize(2),
+  },
+  headerShareBtn: {
+    padding: normalize(8),
+    borderRadius: normalize(20),
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: normalize(8),
   },
   headerTitle: {
     fontSize: normalize(16),

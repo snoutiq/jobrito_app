@@ -318,10 +318,11 @@ export default function SavedJobsScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn} activeOpacity={0.8}>
             <Ionicons name="arrow-back" size={normalize(20)} color="#0f172a" />
           </TouchableOpacity>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.headerTitleText}>{t("profile.menu.savedJobs", "Saved Jobs")}</Text>
-            <Text style={styles.headerSubtitleText}>{t("savedJobsSubtitle", "Jobs you've saved for later")}</Text>
+          <View style={[styles.headerTextGroup, { alignItems: "center" }]}>
+            <Text style={[styles.headerTitleText, { textAlign: "center" }]}>{t("profile.menu.savedJobs", "Saved Jobs")}</Text>
+            <Text style={[styles.headerSubtitleText, { textAlign: "center" }]}>{t("savedJobsSubtitle", "Jobs you've saved for later")}</Text>
           </View>
+          <View style={{ width: normalize(38) }} />
         </View>
       </View>
 
@@ -360,12 +361,28 @@ export default function SavedJobsScreen({ navigation }) {
         onConfirm={async (timeSlot) => {
           if (selectedJob) {
             try {
-              await dispatch(applyJob({ jobId: selectedJob.id, preferredCallTime: timeSlot })).unwrap();
+              const isTraining =
+                selectedJob._type === "training_opportunity" ||
+                selectedJob.category === "training" ||
+                selectedJob.is_training;
+              const payload = {
+                jobId: selectedJob.id,
+                preferredCallTime: timeSlot,
+              };
+              if (isTraining) {
+                payload.is_training = 1;
+              }
+              await dispatch(applyJob(payload)).unwrap();
+
+              // Auto-unsave job if it was saved
+              const jobKey = String(selectedJob.id);
+              const targetSaveId = isTraining
+                ? (String(jobKey).startsWith("training_") ? jobKey : `training_${jobKey}`)
+                : jobKey;
               try {
-                await dispatch(toggleSaveJob(selectedJob.id)).unwrap();
+                await dispatch(toggleSaveJob(targetSaveId)).unwrap();
               } catch (e) {}
-              await dispatch(fetchSavedJobs());
-              await dispatch(fetchApplicationHistory());
+
               return true;
             } catch (err) {
               Alert.alert(t("jobDetails.applyError", "Application Error"), err || t("jobDetails.failedToApply", "Failed to apply to job"));
@@ -453,7 +470,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitleText: {
-    fontSize: normalize(18),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
   },

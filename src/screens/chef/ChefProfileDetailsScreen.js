@@ -468,13 +468,12 @@ ${shareUrl}
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("chefProfile")}</Text>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("chefProfile")}</Text>
         </View>
         <TouchableOpacity onPress={handleShare} style={styles.shareHeaderButton}>
           <Ionicons name="share-social-outline" size={20} color="#0a0504" />
@@ -791,7 +790,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: normalize(16),
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0a0504",
   },
   menuIcon: {

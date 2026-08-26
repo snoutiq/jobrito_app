@@ -166,7 +166,9 @@ export default function ProjectRequestsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Project Requests</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>Project Requests</Text>
+        </View>
         <TouchableOpacity onPress={() => fetchProjectRequests(true)} style={styles.refreshButton}>
           <Ionicons name="refresh" size={20} color="#153e69" />
         </TouchableOpacity>
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
   },

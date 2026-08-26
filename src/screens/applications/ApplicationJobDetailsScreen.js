@@ -155,9 +155,11 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f2942" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {t("myApplicationsJobDetails", "My Applications - Job Details")}
-        </Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>
+            {t("myApplicationsJobDetails", "My Applications - Job Details")}
+          </Text>
+        </View>
         <View style={{ width: normalize(22) }} />
       </View>
 

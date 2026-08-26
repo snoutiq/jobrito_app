@@ -70,7 +70,10 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("talentDetails", "Talent Details")}</Text>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("talentDetails", "Talent Details")}</Text>
+          </View>
+          <View style={{ width: 24 }} />
         </View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>{t("applicantNotFound", "Applicant details not found.")}</Text>
@@ -340,12 +343,13 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>{displayName}</Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
+        <View style={[styles.headerTextContainer, { alignItems: "center" }]}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{displayName}</Text>
+          <Text style={[styles.headerSubtitle, { textAlign: "center" }]} numberOfLines={1}>
             {selectedJob?.title || applicant.preferred_role || "Staff"} • {t("talentProfile", "Talent Profile")}
           </Text>
         </View>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

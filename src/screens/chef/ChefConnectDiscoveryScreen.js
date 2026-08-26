@@ -417,12 +417,13 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       {/* Top Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
-            <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("chefConnect", "Chef Connect")}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("chefConnect", "Chef Connect")}</Text>
         </View>
+        <View style={{ width: normalize(22) }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>

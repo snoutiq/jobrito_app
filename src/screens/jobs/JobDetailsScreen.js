@@ -175,19 +175,26 @@ export default function JobDetailsScreen({ navigation, route }) {
 
   const isApplied = useMemo(() => {
     if (!job?.id) return false;
-    return (applicationHistory || []).some(
-      (app) => String(app.job_id || app.job?.id) === String(job.id),
+    return (
+      Boolean(job.applied) ||
+      Boolean(job.is_applied) ||
+      (applicationHistory || []).some(
+        (app) => String(app.jobId || app.job_id || app.job_post_id || app.job?.id) === String(job.id),
+      )
     );
-  }, [applicationHistory, job?.id]);
+  }, [applicationHistory, job]);
 
   if (directLoading && !job) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={normalize(22)} color="#ffffff" />
+            <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("jobDetails.title", "JOB DETAILS")}</Text>
+          </View>
+          <View style={{ width: normalize(22) }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={PRIMARY_GREEN} />
@@ -285,6 +292,13 @@ export default function JobDetailsScreen({ navigation, route }) {
           <Text style={styles.backBtnText}>
             {t("backToSavedJobs", "Back to Saved Jobs")}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleShare}
+          style={styles.headerShareBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
         </TouchableOpacity>
       </View>
 
@@ -475,19 +489,20 @@ export default function JobDetailsScreen({ navigation, route }) {
         </View>
       ) : !isEmployer ? (
         <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={[styles.applyBtnPrimary, isApplied && styles.appliedBtnDisabled]}
-            disabled={isApplied}
-            activeOpacity={0.8}
-            onPress={() => setShowCallModal(true)}
-          >
-            <Ionicons name={isApplied ? "checkmark" : "send"} size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
-            <Text style={styles.applyBtnPrimaryText}>
-              {isApplied ? String(t("applied", "APPLIED")).toUpperCase() : t("applyNow", "APPLY NOW")}
-            </Text>
-          </TouchableOpacity>
+          {!isApplied && (
+            <TouchableOpacity
+              style={styles.applyBtnPrimary}
+              activeOpacity={0.8}
+              onPress={() => setShowCallModal(true)}
+            >
+              <Ionicons name="send" size={normalize(16)} color="#ffffff" style={{ marginRight: normalize(6) }} />
+              <Text style={styles.applyBtnPrimaryText}>
+                {t("applyNow", "APPLY NOW")}
+              </Text>
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity onPress={handleShare} style={styles.shareBtnOutline} activeOpacity={0.8}>
+          <TouchableOpacity onPress={handleShare} style={[styles.shareBtnOutline, isApplied && { flex: 1 }]} activeOpacity={0.8}>
             <Ionicons name="share-social-outline" size={normalize(16)} color="#1d4ed8" style={{ marginRight: normalize(6) }} />
             <Text style={styles.shareBtnOutlineText}>{t("share", "SHARE")}</Text>
           </TouchableOpacity>
@@ -500,10 +515,20 @@ export default function JobDetailsScreen({ navigation, route }) {
         onConfirm={async (timeSlot) => {
           try {
             const targetJobId = job?.id || jobId;
+            const isTraining =
+              job?._type === "training_opportunity" ||
+              job?.category === "training" ||
+              job?.is_training;
+            const payload = {
+              jobId: targetJobId,
+              preferredCallTime: timeSlot,
+            };
+            if (isTraining) {
+              payload.is_training = 1;
+            }
             await dispatch(
-              applyJob({ jobId: targetJobId, preferredCallTime: timeSlot }),
+              applyJob(payload),
             ).unwrap();
-            dispatch(fetchApplicationHistory());
 
             const isFromSaved =
               Boolean(route?.params?.isSaved) ||
@@ -512,10 +537,13 @@ export default function JobDetailsScreen({ navigation, route }) {
               (savedJobs || []).some((sj) => String(sj.id || sj.job_post_id) === String(targetJobId));
 
             if (isFromSaved && targetJobId) {
+              const jobKey = String(targetJobId);
+              const targetSaveId = isTraining
+                ? (String(jobKey).startsWith("training_") ? jobKey : `training_${jobKey}`)
+                : jobKey;
               try {
-                await dispatch(toggleSaveJob(targetJobId)).unwrap();
+                await dispatch(toggleSaveJob(targetSaveId)).unwrap();
               } catch (e) {}
-              dispatch(fetchSavedJobs());
             }
 
             return true;
@@ -542,8 +570,16 @@ const styles = StyleSheet.create({
     paddingVertical: normalize(12),
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     borderBottomWidth: 1,
     borderColor: "#e2e8f0",
+  },
+  headerShareBtn: {
+    padding: normalize(8),
+    borderRadius: normalize(20),
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   backBtnRow: {
     flexDirection: "row",
@@ -551,7 +587,7 @@ const styles = StyleSheet.create({
     gap: normalize(8),
   },
   backBtnText: {
-    fontSize: normalize(15),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
   },

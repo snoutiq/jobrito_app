@@ -150,11 +150,11 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0a0504" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("chefConnectFilters")}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0a0504" />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("chefConnectFilters")}</Text>
         </View>
         <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
           <Text style={styles.resetButtonText}>{t("reset")}</Text>
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     marginRight: normalize(8),
   },
   headerTitle: {
-    fontSize: normalize(15),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0a0504",
   },

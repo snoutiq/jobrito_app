@@ -71,7 +71,9 @@ export default function LanguageScreen({ navigation }) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </Pressable>
-        <Text style={styles.headerTitle}>{t("preferredLanguage", "PREFERRED LANGUAGE")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("preferredLanguage", "PREFERRED LANGUAGE")}</Text>
+        </View>
         <View style={{ width: 32 }} />
       </View>
 
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
     color: "#0a0504",
   },
   cleanListContainer: {

@@ -86,11 +86,11 @@ export default function ProfileViewsScreen({ navigation }) {
     <ScreenWrapper scroll={false} edges={["left", "right", "bottom"]} style={styles.container} contentStyle={{ padding: 0 }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#153e69" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profile Views</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#153e69" />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>Profile Views</Text>
         </View>
         <TouchableOpacity onPress={fetchViewsData} style={styles.refreshButton}>
           <Ionicons name="refresh" size={20} color="#153e69" />
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0a0504",
   },

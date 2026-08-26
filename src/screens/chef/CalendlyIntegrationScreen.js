@@ -123,7 +123,9 @@ export default function CalendlyIntegrationScreen({ navigation }) {
         >
           <Ionicons name="chevron-back" size={normalize(20)} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerBarTitle}>{t("myProfile", "My Profile")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerBarTitle, { textAlign: "center" }]}>{t("myProfile", "My Profile")}</Text>
+        </View>
         <View style={{ width: normalize(36) }} />
       </View>
 

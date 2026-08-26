@@ -137,14 +137,15 @@ export default function ApplicantListScreen({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#0a0504" />
           </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle} numberOfLines={1}>{jobTitle}</Text>
-            <Text style={styles.headerSubtitle}>
+          <View style={[styles.headerTitleContainer, { alignItems: "center" }]}>
+            <Text style={[styles.headerTitle, { textAlign: "center" }]} numberOfLines={1}>{jobTitle}</Text>
+            <Text style={[styles.headerSubtitle, { textAlign: "center" }]}>
               {deckLength > 0 && activeIndex < deckLength
                 ? `${t("reviewing", "Reviewing")} ${currentDisplayIndex} ${t("of", "of")} ${deckLength}`
                 : t("allReviewed", "All reviewed")}
             </Text>
           </View>
+          <View style={{ width: 24 }} />
         </View>
       </View>
 

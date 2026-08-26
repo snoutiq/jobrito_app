@@ -308,9 +308,11 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {isEmployer ? t("businessProfileTitle", "Business Profile") : t("profileTab", "Profile")}
-        </Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>
+            {isEmployer ? t("businessProfileTitle", "Business Profile") : t("profileTab", "Profile")}
+          </Text>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 

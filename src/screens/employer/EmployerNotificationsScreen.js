@@ -144,8 +144,8 @@ export default function EmployerNotificationsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.title}>{t("notifications", "Notifications")}</Text>
+        <View style={[styles.headerTitleRow, { flex: 1, justifyContent: "center" }]}>
+          <Text style={[styles.title, { textAlign: "center" }]}>{t("notifications", "Notifications")}</Text>
           {unreadCount > 0 && (
             <View style={styles.unreadBadge}>
               <Text style={styles.unreadBadgeText}>{unreadCount} new</Text>

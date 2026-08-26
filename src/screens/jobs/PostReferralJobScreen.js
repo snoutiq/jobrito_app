@@ -617,9 +617,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          {t("postReferralJobTitle", "Post a Referral Job")}
-        </Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>
+            {t("postReferralJobTitle", "Post a Referral Job")}
+          </Text>
+        </View>
         <View style={{ width: normalize(32) }} />
       </View>
 
@@ -1469,7 +1471,7 @@ const styles = StyleSheet.create({
     padding: normalize(4),
   },
   headerTitle: {
-    fontSize: normalize(18),
+    fontSize: normalize(16),
     fontWeight: "800",
     color: "#0f172a",
   },

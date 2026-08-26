@@ -76,8 +76,8 @@ export default function UpcomingConsultationsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={NEUTRAL} />
         </TouchableOpacity>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>{t("upcomingConsultations", "Upcoming Consultations")}</Text>
+        <View style={[styles.headerTitleRow, { flex: 1, justifyContent: "center" }]}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("upcomingConsultations", "Upcoming Consultations")}</Text>
           {consultations.length > 0 && (
             <View style={styles.headerCountBadge}>
               <Text style={styles.headerCountText}>{consultations.length}</Text>
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "800",
     color: NEUTRAL,
   },

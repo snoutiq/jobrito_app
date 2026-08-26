@@ -24,7 +24,9 @@ export default function HelpSupportScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("helpAndSupport", "HELP & SUPPORT")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("helpAndSupport", "HELP & SUPPORT")}</Text>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
@@ -96,8 +98,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f3",
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
     color: "#0a0504",
   },
   content: {

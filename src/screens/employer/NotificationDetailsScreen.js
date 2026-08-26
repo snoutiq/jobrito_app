@@ -229,8 +229,10 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   headerTitle: {
+    flex: 1,
+    textAlign: "center",
     fontSize: normalize(16),
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0f172a",
   },
   scrollContent: {

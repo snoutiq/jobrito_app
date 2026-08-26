@@ -1475,8 +1475,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerLogo: {
-    width: normalize(100),
-    height: normalize(100),
+    width: normalize(90),
+    height: normalize(90),
   },
   headerLeft: {
     flexDirection: "row",

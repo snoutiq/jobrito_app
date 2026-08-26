@@ -840,8 +840,8 @@ const styles = StyleSheet.create({
     padding: normalize(4),
   },
   headerBarTitle: {
-    fontSize: normalize(18),
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0f172a",
   },
   headerBellBtn: {

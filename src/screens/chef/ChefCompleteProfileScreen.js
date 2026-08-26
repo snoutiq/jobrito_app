@@ -1005,9 +1005,11 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
             <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
               <Ionicons name="arrow-back" size={24} color="#0a0504" />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, step >= 6 && { color: "#153e69" }]}>
-              Professional Profile
-            </Text>
+            <View style={{ flex: 1, alignItems: "center" }}>
+              <Text style={[styles.headerTitle, { textAlign: "center" }, step >= 6 && { color: "#153e69" }]}>
+                Professional Profile
+              </Text>
+            </View>
             <View style={{ width: 32 }} />
           </View>
         )}

@@ -449,7 +449,9 @@ export default function FaqScreen({ navigation }) {
         >
           <Ionicons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("faq.screenTitle", "Frequently Asked Questions")}</Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text style={[styles.headerTitle, { textAlign: "center" }]}>{t("faq.screenTitle", "Frequently Asked Questions")}</Text>
+        </View>
         <View style={{ width: 38 }} />
       </View>
 
@@ -571,8 +573,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: normalize(16),
+    fontWeight: "800",
     color: "#0f172a",
   },
   bannerContainer: {
