@@ -463,13 +463,15 @@ export default function ChefHomeScreen({ navigation }) {
                       </View>
                     )}
 
-                    <Text style={styles.cardJobTitle} numberOfLines={1}>
+                    <Text style={styles.cardJobTitle} numberOfLines={isTraining ? 2 : 1}>
                       {job.program_name || job.title}
                     </Text>
 
-                    <Text style={styles.cardCompanyName} numberOfLines={1}>
-                      {job.provider_name || job.company || job.employer_details || (isReferral ? t("referredByCommunity", "Referred by Community Member") : t("jobritoEmployer", "Employer"))}
-                    </Text>
+                    {!isTraining && (
+                      <Text style={styles.cardCompanyName} numberOfLines={1}>
+                        {job.provider_name || job.company || job.employer_details || (isReferral ? t("referredByCommunity", "Referred by Community Member") : t("jobritoEmployer", "Employer"))}
+                      </Text>
+                    )}
 
                     {Boolean(job.location) && (
                       <View style={styles.cardLocationRow}>
