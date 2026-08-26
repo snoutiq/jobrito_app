@@ -70,9 +70,10 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
     getProp("created_at_formatted", "posted_date", "postedOn") ||
     "15 May 2025";
 
-  const salaryVal =
-    getProp("salary", "salary_range", "offered_salary") ||
-    "Best in Industry";
+  const rawSalaryProp = String(getProp("salary", "salary_range", "offered_salary") || "").trim();
+  const salaryVal = (!rawSalaryProp || rawSalaryProp.toLowerCase().includes("stipend"))
+    ? t("bestInIndustry", "Best in Industry")
+    : rawSalaryProp;
   const salarySub = getProp("salary_sub") || "Competitive package";
 
   const locationVal =
@@ -114,6 +115,12 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
     getProp("category") === "referral";
 
   const isChef = rawRole === "chef" || (typeof rawCreator === "object" && (rawCreator?.role === "chef" || rawCreator?.active_role === "chef"));
+
+  const isTraining = Boolean(
+    getProp("is_training") ||
+    getProp("_type") === "training_opportunity" ||
+    getProp("category") === "training"
+  );
 
   const postedByRoleLabel = isAdmin
     ? t("admin", "Admin")
@@ -235,16 +242,18 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
         <View style={styles.gridContainer}>
           {/* Row 1: Salary & Location */}
           <View style={styles.gridRow}>
-            <View style={styles.gridCard}>
-              <View style={styles.gridIconCircle}>
-                <Ionicons name="cash-outline" size={normalize(18)} color="#153e69" />
+            {!isTraining && (
+              <View style={styles.gridCard}>
+                <View style={styles.gridIconCircle}>
+                  <Ionicons name="wallet-outline" size={normalize(18)} color="#153e69" />
+                </View>
+                <View style={styles.gridTextContainer}>
+                  <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
+                  <Text style={styles.gridValueBold} numberOfLines={3}>{salaryVal}</Text>
+                  {Boolean(salarySub) && <Text style={styles.gridSubText}>{salarySub}</Text>}
+                </View>
               </View>
-              <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
-                <Text style={styles.gridValueBold} numberOfLines={3}>{salaryVal}</Text>
-                {Boolean(salarySub) && <Text style={styles.gridSubText}>{salarySub}</Text>}
-              </View>
-            </View>
+            )}
 
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>

@@ -337,9 +337,12 @@ export default function JobDetailsScreen({ navigation, route }) {
         }
         return `${curr} ${v1.toLocaleString()}`;
       }
+      if (s.toLowerCase().includes("stipend")) {
+        return t("bestInIndustry", "Best in Industry");
+      }
       return s;
     }
-    return t("notMentioned", "Not Mentioned");
+    return t("bestInIndustry", "Best in Industry");
   };
 
   const salaryStr = formatSalaryDisplay();
@@ -374,6 +377,12 @@ export default function JobDetailsScreen({ navigation, route }) {
     normalizeStatus(job?.status) === "new" ||
     normalizeStatus(job?.status) === "under_review" ||
     normalizeStatus(job?.status) === "under review";
+
+  const isTraining = Boolean(
+    job?.is_training ||
+    job?._type === "training_opportunity" ||
+    job?.category === "training"
+  );
 
   const jobRequirements = Array.isArray(job?.requirements)
     ? job.requirements.filter(Boolean)
@@ -599,21 +608,23 @@ export default function JobDetailsScreen({ navigation, route }) {
 
           {/* Row 2: Salary & Experience */}
           <View style={styles.gridRow}>
-            <View style={styles.gridCard}>
-              <View style={styles.gridIconCircle}>
-                <Ionicons
-                  name="card-outline"
-                  size={normalize(18)}
-                  color="#153e69"
-                />
+            {!isTraining && (
+              <View style={styles.gridCard}>
+                <View style={styles.gridIconCircle}>
+                  <Ionicons
+                    name="wallet-outline"
+                    size={normalize(18)}
+                    color="#153e69"
+                  />
+                </View>
+                <View style={styles.gridTextContainer}>
+                  <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
+                  <Text style={styles.gridValue} numberOfLines={3}>
+                    {salaryStr}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.gridTextContainer}>
-                <Text style={styles.gridLabel}>{t("salary", "Salary")}</Text>
-                <Text style={styles.gridValue} numberOfLines={3}>
-                  {salaryStr}
-                </Text>
-              </View>
-            </View>
+            )}
 
             <View style={styles.gridCard}>
               <View style={styles.gridIconCircle}>

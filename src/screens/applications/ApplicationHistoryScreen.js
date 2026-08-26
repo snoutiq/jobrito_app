@@ -113,21 +113,21 @@ export default function ApplicationHistoryScreen({ navigation }) {
       item.job_type ||
       (jobObj.is_training ? "Training / Program" : "Full-Time");
 
-    const secondaryPillText =
+    const isTraining = Boolean(jobObj.is_training || jobObj.category === "training" || item.is_training || item.category === "training");
+
+    const rawSecText = String(
       jobObj.salary ||
       item.salary ||
       jobObj.experience_range ||
       item.experience_range ||
-      "Best in Industry";
+      ""
+    ).trim();
 
-    const isTraining = jobObj.is_training || jobObj.category === "training";
-    const secondaryPillIcon = isTraining
-      ? "cash-outline"
-      : secondaryPillText.toLowerCase().includes("role")
-      ? "people-outline"
-      : secondaryPillText.toLowerCase().includes("cafe")
-      ? "cafe-outline"
-      : "star-outline";
+    const secondaryPillText = (!rawSecText || rawSecText.toLowerCase().includes("stipend"))
+      ? t("bestInIndustry", "Best in Industry")
+      : rawSecText;
+
+    const secondaryPillIcon = "wallet-outline";
 
     const appIdStr = `#${item.id || item.application_id || "123456"}`;
 
@@ -189,10 +189,12 @@ export default function ApplicationHistoryScreen({ navigation }) {
             <Text style={styles.tagPillText}>{jobType}</Text>
           </View>
 
-          <View style={styles.tagPill}>
-            <Ionicons name={secondaryPillIcon} size={normalize(13)} color="#475569" />
-            <Text style={styles.tagPillText}>{secondaryPillText}</Text>
-          </View>
+          {!isTraining && (
+            <View style={styles.tagPill}>
+              <Ionicons name={secondaryPillIcon} size={normalize(13)} color="#475569" />
+              <Text style={styles.tagPillText}>{secondaryPillText}</Text>
+            </View>
+          )}
         </View>
 
         {/* Card Bottom Footer */}

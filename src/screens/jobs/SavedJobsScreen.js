@@ -246,10 +246,22 @@ export default function SavedJobsScreen({ navigation }) {
                 <Text style={styles.chipText}>{jobType}</Text>
               </View>
 
-              <View style={styles.chipPill}>
-                <Ionicons name="card-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(4) }} />
-                <Text style={styles.chipText}>{item.salary || t("bestInIndustry", "Best in Industry")}</Text>
-              </View>
+              {(() => {
+                const isTraining = item.is_training || item.category === "training" || item._type === "training_opportunity";
+                if (isTraining) return null;
+
+                const rawSal = String(item.salary || "").trim();
+                const displaySalary = (!rawSal || rawSal.toLowerCase().includes("stipend"))
+                  ? t("bestInIndustry", "Best in Industry")
+                  : rawSal;
+
+                return (
+                  <View style={styles.chipPill}>
+                    <Ionicons name="wallet-outline" size={normalize(12)} color="#64748b" style={{ marginRight: normalize(4) }} />
+                    <Text style={styles.chipText}>{displaySalary}</Text>
+                  </View>
+                );
+              })()}
 
               {jobOpenings > 0 && (
                 <View style={styles.chipPill}>
