@@ -1003,6 +1003,12 @@
     "premiumModuleSub": "Access is by invitation or approval only to ensure quality and exclusivity.",
     "button": "Become a Culinary Talent"
   },
+  "addCustomLink": "Add Custom Link",
+  "platformName": "Platform Name",
+  "platformNamePlaceholder": "e.g. Behance, GitHub, Pinterest",
+  "linkHandle": "Link / Handle",
+  "urlPlaceholder": "https://...",
+  "fillBothPlatformAndLink": "Please fill in both platform name and link.",
   "copyJobLink": "Copy job link",
   "jobDetails": "Job Details",
   "jobDescription": "Job Description",

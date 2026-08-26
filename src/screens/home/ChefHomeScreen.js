@@ -473,7 +473,12 @@ export default function ChefHomeScreen({ navigation }) {
                   </View>
 
                   {/* Top Right Type Badge */}
-                  <View style={[styles.cardTypeBadge, isTraining && { backgroundColor: "#f3e8ff" }]}>
+                  <View style={[styles.cardTypeBadge, isTraining && { backgroundColor: "#f3e8ff", paddingVertical: normalize(4), paddingHorizontal: normalize(8) }]}>
+                    {isTraining && (
+                      <Text style={{ fontSize: normalize(8), fontWeight: "700", color: "#9333ea", marginBottom: 1, textTransform: "uppercase", letterSpacing: 0.3 }}>
+                        {t("trainingDuration", "Training Duration")}
+                      </Text>
+                    )}
                     <Text style={[styles.cardTypeBadgeText, isTraining && { color: "#7e22ce" }]}>
                       {String(job.duration || job.job_type || job.type || (isTraining ? "Training Program" : "Full-time"))}
                     </Text>

@@ -559,6 +559,12 @@
     "premiumModuleSub": "गुणवत्ता और विशिष्टता सुनिश्चित करने के लिए पहुंच केवल निमंत्रण या अनुमोदन द्वारा है।",
     "button": "पाक कला प्रतिभा बनें"
   },
+  "addCustomLink": "कस्टम लिंक जोड़ें",
+  "platformName": "प्लेटफॉर्म का नाम",
+  "platformNamePlaceholder": "जैसे Behance, GitHub, Pinterest",
+  "linkHandle": "लिंक / हैंडल",
+  "urlPlaceholder": "https://...",
+  "fillBothPlatformAndLink": "कृपया प्लेटफॉर्म का नाम और लिंक दोनों भरें।",
   "Camera": "कैमरा",
   "Gallery": "गैलरी",
   "Cancel": "रद्द करें",

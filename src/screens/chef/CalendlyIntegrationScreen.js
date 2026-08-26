@@ -46,9 +46,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
   const isConnected = Boolean(
     calendlyLink &&
-    calendlyLink.trim().length > 21 &&
-    calendlyLink.trim() !== "https://calendly.com/" &&
-    calendlyLink.trim() !== "https://calendly.com"
+    calendlyLink.trim().replace(/\s+/g, "").replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== ""
   );
 
   const handleSignupCalendly = () => {
@@ -58,14 +56,19 @@ export default function CalendlyIntegrationScreen({ navigation }) {
   };
 
   const handleSaveLink = async () => {
-    let cleaned = calendlyLink.trim().replace(/\s+/g, "");
-    if (!cleaned || cleaned === "https://calendly.com/" || cleaned === "https://calendly.com") {
-      CustomAlert.show(t("error", "Error"), t("calendly.enterLink", "Please enter your Calendly scheduling link."));
+    let raw = (calendlyLink || "").trim().replace(/\s+/g, "");
+    const calendlyPath = raw.replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim();
+
+    if (!calendlyPath) {
+      CustomAlert.show(t("warning", "Notice"), t("calendly.enterLink", "Please enter your Calendly scheduling link."));
       return;
     }
 
-    if (!/^https?:\/\//i.test(cleaned)) {
-      cleaned = "https://" + cleaned;
+    let cleaned = "";
+    if (!/^https?:\/\//i.test(raw)) {
+      cleaned = "https://" + raw;
+    } else {
+      cleaned = raw;
     }
 
     if (!cleaned.toLowerCase().includes("calendly.com")) {
@@ -73,6 +76,7 @@ export default function CalendlyIntegrationScreen({ navigation }) {
         t("warning", "Notice"),
         t("calendly.invalidLink", "The URL does not contain 'calendly.com'. Make sure it is your official Calendly scheduling link.")
       );
+      return;
     }
 
     setLoading(true);
@@ -210,9 +214,9 @@ export default function CalendlyIntegrationScreen({ navigation }) {
 
           {/* Primary Save Button */}
           <TouchableOpacity
-            style={[styles.saveSolidBtn, loading && styles.saveSolidBtnDisabled]}
+            style={[styles.saveSolidBtn, (!isConnected || loading) && styles.saveSolidBtnDisabled]}
             onPress={handleSaveLink}
-            disabled={loading}
+            disabled={!isConnected || loading}
             activeOpacity={0.85}
           >
             {loading ? (

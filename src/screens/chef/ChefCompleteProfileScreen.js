@@ -770,19 +770,12 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
       formData.append("bio", bio);
 
       let formattedCalendly = (calendlyLink || "").trim().replace(/\s+/g, "");
-      if (
-        formattedCalendly === "https://calendly.com/" ||
-        formattedCalendly === "https://calendly.com" ||
-        formattedCalendly === "http://calendly.com/" ||
-        formattedCalendly === "http://calendly.com" ||
-        formattedCalendly === "calendly.com/" ||
-        formattedCalendly === "calendly.com"
-      ) {
+      const calendlyPath = formattedCalendly.replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim();
+      if (!calendlyPath) {
         formattedCalendly = "";
-      } else if (formattedCalendly && !/^https?:\/\//i.test(formattedCalendly)) {
+      } else if (!/^https?:\/\//i.test(formattedCalendly)) {
         formattedCalendly = "https://" + formattedCalendly;
       }
-      setCalendlyLink(formattedCalendly);
       formData.append("calendly_link", formattedCalendly || "");
 
       // Append social links in all common formats to ensure backend maps it correctly
@@ -1933,16 +1926,22 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   <View
                     style={[
                       styles.statusBadgeCapsule,
-                      calendlyLink.trim() ? styles.statusBadgeCapsuleSuccess : styles.statusBadgeCapsulePending,
+                      (calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                        ? styles.statusBadgeCapsuleSuccess
+                        : styles.statusBadgeCapsulePending,
                     ]}
                   >
                     <Text
                       style={[
                         styles.statusBadgeCapsuleText,
-                        calendlyLink.trim() ? styles.statusBadgeCapsuleTextSuccess : styles.statusBadgeCapsuleTextPending,
+                        (calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                          ? styles.statusBadgeCapsuleTextSuccess
+                          : styles.statusBadgeCapsuleTextPending,
                       ]}
                     >
-                      {calendlyLink.trim() ? t("linked", "Linked") : t("notLinked", "Not Linked")}
+                      {(calendlyLink && calendlyLink.trim().replace(/^https?:\/\/(www\.)?calendly\.com\/?/i, "").trim() !== "")
+                        ? t("linked", "Linked")
+                        : t("notLinked", "Not Linked")}
                     </Text>
                   </View>
                 </View>
@@ -1957,7 +1956,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   <View style={[styles.fieldInputWrapper, activeInput === "calendly" && styles.fieldInputActive]}>
                     <Ionicons name="link-outline" size={normalize(16)} color="#64748b" style={styles.fieldIconLeft} />
                     <TextInput
-                      value={calendlyLink}
+                      value={calendlyLink || "https://calendly.com/"}
                       onChangeText={(val) => {
                         const cleanVal = val.replace(/\s+/g, "");
                         if (!cleanVal) {
@@ -1987,28 +1986,29 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   <Text style={styles.fieldHelperText}>
                     {t("calendlySubtext", "Paste your Calendly scheduling link to enable direct booking for interviews or consultations.")}
                   </Text>
+                </View>
+              </View>
 
-                  {/* Account CTA Box inside Card */}
-                  <View style={styles.accountPromptCard}>
-                    <Ionicons name="open-outline" size={normalize(20)} color="#6366f1" style={{ marginBottom: normalize(4) }} />
-                    <Text style={styles.accountPromptTitle}>
-                      {t("dontHaveAccount", "Don't have an account?")}
+              {/* Don't have a Calendly Account Card */}
+              <View style={styles.dontHaveAccountCard}>
+                <View style={styles.dontHaveAccountTopRow}>
+                  <View style={styles.dontHaveIconCircle}>
+                    <Ionicons name="calendar-outline" size={normalize(22)} color="#4f46e5" />
+                  </View>
+                  <View style={styles.dontHaveTextCol}>
+                    <Text style={styles.dontHaveTitle}>
+                      {t("dontHaveCalendlyTitle", "Don't have a Calendly account yet?")}
                     </Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: normalize(4) }}>
-                      <TouchableOpacity onPress={() => Linking.openURL("https://calendly.com/signup")}>
-                        <Text style={styles.accountPromptLinkText}>
-                          {t("createAccount", "Create Account")}
-                        </Text>
-                      </TouchableOpacity>
-                      <Text style={styles.accountPromptTextSmall}> or </Text>
-                      <TouchableOpacity onPress={() => Linking.openURL("https://calendly.com/login")}>
-                        <Text style={styles.accountPromptLinkText}>
-                          {t("loginLink", "Login")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Text style={styles.dontHaveSub}>
+                      {t("dontHaveCalendlySub", "Create a free account on Calendly in just 2 minutes to get your scheduling link.")}
+                    </Text>
                   </View>
                 </View>
+
+                <TouchableOpacity style={styles.signUpButton} onPress={() => Linking.openURL("https://calendly.com/signup")} activeOpacity={0.85}>
+                  <Ionicons name="open-outline" size={normalize(16)} color="#4f46e5" style={{ marginRight: normalize(6) }} />
+                  <Text style={styles.signUpButtonText}>{t("signUpFreeCalendly", "Sign Up Free on Calendly")}</Text>
+                </TouchableOpacity>
               </View>
 
               {/* Card 2: Why connect? */}
@@ -2173,12 +2173,48 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
                 <View style={styles.horizontalDividerLight} />
 
+                {/* Render Custom Links */}
+                {customSocialLinks.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <TouchableOpacity
+                      style={styles.socialListItemRow}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        setEditingPlatform(item.platform);
+                        setTempLink(item.link);
+                        setCustomPlatformName(item.platform);
+                        setSocialModalVisible(true);
+                      }}
+                    >
+                      <View style={styles.socialListItemLeft}>
+                        <View style={[styles.socialSquareIconBox, { backgroundColor: "#f1f5f9" }]}>
+                          <Ionicons name="link-outline" size={normalize(18)} color="#002b5c" />
+                        </View>
+                        <View style={{ marginLeft: normalize(10) }}>
+                          <Text style={styles.socialItemTitle}>{item.platform}</Text>
+                          <Text style={styles.socialItemSub} numberOfLines={1}>{item.link}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.socialListItemRight}>
+                        <View style={[styles.socialStatusPill, item.link ? styles.socialStatusPillConnected : styles.socialStatusPillNotConnected]}>
+                          <Text style={[styles.socialStatusPillText, item.link ? styles.socialStatusPillTextConnected : styles.socialStatusPillTextNotConnected]}>
+                            {item.link ? t("connected", "Connected") : t("notConnected", "Not Connected")}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={normalize(16)} color="#94a3b8" />
+                      </View>
+                    </TouchableOpacity>
+                    <View style={styles.horizontalDividerLight} />
+                  </React.Fragment>
+                ))}
+
                 {/* Add More */}
                 <TouchableOpacity
                   style={styles.socialListItemRow}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setEditingPlatform("");
+                    setEditingPlatform("Add More");
+                    setCustomPlatformName("");
                     setTempLink("");
                     setSocialModalVisible(true);
                   }}
@@ -2597,15 +2633,20 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       </View>
                     ) : null}
                     {customSocialLinks.length > 0
-                      ? customSocialLinks.map((link, idx) => (
-                          <View key={link + idx} style={{ paddingVertical: normalize(3) }}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
-                              <Ionicons name="link-outline" size={normalize(15)} color="#64748b" />
-                              <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>{link}</Text>
+                      ? customSocialLinks.map((linkObj, idx) => {
+                          const displayStr = typeof linkObj === "string" ? linkObj : `${linkObj.platform || "Link"}: ${linkObj.link || ""}`;
+                          return (
+                            <View key={linkObj.id || `custom-${idx}`} style={{ paddingVertical: normalize(3) }}>
+                              <View style={{ flexDirection: "row", alignItems: "center", gap: normalize(6) }}>
+                                <Ionicons name="link-outline" size={normalize(15)} color="#64748b" />
+                                <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left", color: "#1e293b", fontWeight: "500" }]}>
+                                  {displayStr}
+                                </Text>
+                              </View>
+                              {idx < customSocialLinks.length - 1 && <View style={styles.horizontalDividerLight} />}
                             </View>
-                            {idx < customSocialLinks.length - 1 && <View style={styles.horizontalDividerLight} />}
-                          </View>
-                        ))
+                          );
+                        })
                       : null}
                     {!linkedinLink && !instagramLink && !facebookLink && customSocialLinks.length === 0 && (
                       <Text style={[styles.cardSubtextBelowHeader, { marginLeft: 0, textAlign: "left" }]}>No social links connected</Text>
@@ -2754,18 +2795,20 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         <View style={styles.socialModalOverlay}>
           <View style={styles.socialModalCard}>
             <Text style={styles.socialModalTitle}>
-              {editingPlatform === "Add More" ? "Add Custom Link" : `Connect ${editingPlatform}`}
+              {editingPlatform === "Add More"
+                ? t("addCustomLink", "Add Custom Link")
+                : t("connectPlatform", `Connect ${editingPlatform}`, { platform: editingPlatform })}
             </Text>
             
             {editingPlatform === "Add More" && (
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Platform Name</Text>
+                <Text style={styles.inputLabel}>{t("platformName", "Platform Name")}</Text>
                 <View style={[styles.inputWrapper, { minHeight: 46 }]}>
                   <Ionicons name="pricetag-outline" size={18} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                   <TextInput
                     value={customPlatformName}
                     onChangeText={setCustomPlatformName}
-                    placeholder="e.g. Twitter, GitHub, Website"
+                    placeholder={t("platformNamePlaceholder", "e.g. Behance, GitHub, Pinterest")}
                     placeholderTextColor="rgba(10, 5, 4, 0.4)"
                     style={styles.textInput}
                   />
@@ -2775,14 +2818,16 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
 
             <View style={[styles.inputGroup, editingPlatform === "Add More" && { marginTop: 12 }]}>
               <Text style={styles.inputLabel}>
-                {editingPlatform === "Add More" ? "Link / Handle" : `${editingPlatform} Link/Handle`}
+                {editingPlatform === "Add More"
+                  ? t("linkHandle", "Link / Handle")
+                  : t("platformLinkHandle", `${editingPlatform} Link/Handle`, { platform: editingPlatform })}
               </Text>
               <View style={[styles.inputWrapper, { minHeight: 46 }]}>
                 <Ionicons name="link-outline" size={18} color="rgba(10, 5, 4, 0.6)" style={styles.inputIconLeft} />
                 <TextInput
                   value={tempLink}
                   onChangeText={setTempLink}
-                  placeholder={editingPlatform === "Add More" ? "https://..." : `Enter your ${editingPlatform} URL`}
+                  placeholder={editingPlatform === "Add More" ? t("urlPlaceholder", "https://...") : t("enterPlatformUrl", `Enter your ${editingPlatform} URL`, { platform: editingPlatform })}
                   placeholderTextColor="rgba(10, 5, 4, 0.4)"
                   autoCapitalize="none"
                   style={styles.textInput}
@@ -2795,7 +2840,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                 style={[styles.socialModalButton, styles.socialModalCancel]}
                 onPress={() => setSocialModalVisible(false)}
               >
-                <Text style={styles.socialModalCancelText}>Cancel</Text>
+                <Text style={styles.socialModalCancelText}>{t("cancel", "Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.socialModalButton, styles.socialModalSave]}
@@ -2804,7 +2849,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   if (editingPlatform === "Add More") {
                     const plat = customPlatformName.trim();
                     if (!plat || !val) {
-                      Alert.alert("Error", "Please fill in both platform name and link.");
+                      Alert.alert(t("error", "Error"), t("fillBothPlatformAndLink", "Please fill in both platform name and link."));
                       return;
                     }
                     const newLink = {
@@ -2848,7 +2893,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                   setSocialModalVisible(false);
                 }}
               >
-                <Text style={styles.socialModalSaveText}>Save</Text>
+                <Text style={styles.socialModalSaveText}>{t("save", "Save")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -4271,6 +4316,61 @@ const styles = StyleSheet.create({
   accountPromptTextSmall: {
     fontSize: normalize(12),
     color: "#6b21a8",
+  },
+
+  // Don't Have Account Card Styles
+  dontHaveAccountCard: {
+    backgroundColor: "#f5f3ff",
+    borderWidth: 1,
+    borderColor: "#e0e7ff",
+    borderRadius: normalize(18),
+    padding: normalize(16),
+    marginTop: normalize(14),
+  },
+  dontHaveAccountTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: normalize(14),
+  },
+  dontHaveIconCircle: {
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(14),
+    backgroundColor: "#ede9fe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(14),
+  },
+  dontHaveTextCol: {
+    flex: 1,
+  },
+  dontHaveTitle: {
+    fontSize: normalize(14.5),
+    fontWeight: "800",
+    color: "#1e1b4b",
+    marginBottom: normalize(4),
+  },
+  dontHaveSub: {
+    fontSize: normalize(12),
+    fontWeight: "500",
+    color: "#475569",
+    lineHeight: normalize(17),
+  },
+  signUpButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "#c7d2fe",
+    borderRadius: normalize(12),
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(16),
+  },
+  signUpButtonText: {
+    fontSize: normalize(13.5),
+    fontWeight: "800",
+    color: "#4f46e5",
   },
 
   // Step 5 Media & Portfolio Styles
