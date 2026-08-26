@@ -60,7 +60,7 @@ function HomeOnlyStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontSize: 16, fontWeight: "800" },
+        headerTitleStyle: { fontSize: 17, fontWeight: "800" },
         contentStyle: { backgroundColor: colors.background },
         headerBackButtonDisplayMode: "minimal",
         animation: "slide_from_right",
