@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +22,25 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function ProjectRequestsScreen({ navigation }) {
   const { t } = useTranslation();
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);

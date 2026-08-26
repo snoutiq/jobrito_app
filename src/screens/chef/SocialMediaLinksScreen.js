@@ -12,10 +12,12 @@ import {
   Alert,
   Platform,
   Dimensions,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setProfileData } from "../../redux/slices/userSlice";
 import { setStoredProfile } from "../../services/storage";
@@ -34,6 +36,25 @@ const PRIMARY = "#153e69";
 
 export default function SocialMediaLinksScreen({ navigation }) {
   const { t } = useTranslation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
 

@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import colors from "../../constants/colors";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
 import { getChefDashboardStats, getChefProfileViews } from "../../services/chefApi";
@@ -19,6 +21,25 @@ const PRIMARY_GREEN = "#153e69";
 export default function ProfileViewsScreen({ navigation }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
   
   const [loading, setLoading] = useState(false);
   const [totalViews, setTotalViews] = useState(0);

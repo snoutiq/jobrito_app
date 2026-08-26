@@ -8,6 +8,7 @@ import {
   Linking,
   ActivityIndicator,
   RefreshControl,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +25,25 @@ const NEUTRAL = "#0a0504";
 
 export default function UpcomingConsultationsScreen({ navigation }) {
   const { t } = useTranslation();
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);

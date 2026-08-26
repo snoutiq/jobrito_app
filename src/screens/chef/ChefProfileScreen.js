@@ -13,6 +13,7 @@ import {
   Modal,
   Platform,
   Dimensions,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -49,6 +50,25 @@ export default function ChefProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
   const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
 
   // Appointments & Stats State
   const [appointmentCount, setAppointmentCount] = useState(0);

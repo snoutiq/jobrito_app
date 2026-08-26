@@ -15,10 +15,12 @@ import {
   Platform,
   Dimensions,
   PixelRatio,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import { bookChefAppointment, recordChefProfileView, getChefProfileDetails } from "../../services/chefApi";
@@ -32,6 +34,26 @@ const PRIMARY_GREEN = "#153e69";
 
 export default function ChefProfileDetailsScreen({ navigation, route }) {
   const { t } = useTranslation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (navigation && navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
+
   const chefParam = route?.params?.chef;
   const targetChefId = route?.params?.chefId || route?.params?.id || chefParam?.id;
 
