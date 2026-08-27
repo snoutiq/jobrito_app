@@ -20,6 +20,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.jobrito.app",
       "buildNumber": "3",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
@@ -28,7 +29,7 @@
       },
       "icon": "./src/assets/Jobrito full logo.png",
       "entitlements": {
-        "aps-environment": "development"
+        "aps-environment": "production"
       },
       "runtimeVersion": {
         "policy": "appVersion"
