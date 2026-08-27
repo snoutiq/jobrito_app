@@ -1027,7 +1027,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
                 </View>
 
                 {/* Professional Notice Box */}
-                <View style={[styles.noticeBoxOrange, { marginBottom: 0 }]}>
+                <View style={[styles.noticeBoxOrange, { marginBottom: normalize(25) }]}>
                   <Ionicons name="information-circle-outline" size={normalize(24)} color="#ea580c" style={{ marginRight: normalize(10) }} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.noticeBoxTitle}>{t("calendlyNotIntegrated", "Calendly Not Integrated")}</Text>
@@ -1454,7 +1454,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#e2e8f0",
     paddingBottom: normalize(12),
-    marginBottom: normalize(12),
+    marginBottom: normalize(10),
   },
   modalTitle: {
     fontSize: normalize(16),
@@ -1465,7 +1465,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     borderRadius: normalize(10),
     padding: normalize(10),
-    marginBottom: normalize(12),
+    marginBottom: normalize(10),
   },
   modalChefName: {
     fontSize: normalize(14),

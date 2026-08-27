@@ -1352,7 +1352,11 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
             </View>
 
             {/* Items List */}
-            <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              style={styles.modalList}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+            >
               {filteredItems.map((item, idx) => (
                 <TouchableOpacity
                   key={`${item}-${idx}`}
@@ -1652,7 +1656,11 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
             </View>
 
             {/* Items List */}
-            <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              style={styles.modalList}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+            >
               {filteredJobTitles.map((item, idx) => (
                 <TouchableOpacity
                   key={`${item}-${idx}`}
@@ -2828,7 +2836,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "80%",
-    padding: 20,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
   },
   modalHeader: {
     flexDirection: "row",

@@ -150,17 +150,19 @@ export default function ApplicationHistoryScreen({ navigation }) {
               {titleText}
             </Text>
 
-            <View style={styles.companyRow}>
-              <Text style={styles.companyNameText} numberOfLines={1}>
-                {companyText}
-              </Text>
-              <Ionicons
-                name="checkmark-circle"
-                size={normalize(14)}
-                color="#153e69"
-                style={{ marginLeft: normalize(3) }}
-              />
-            </View>
+            {!isTraining && (
+              <View style={styles.companyRow}>
+                <Text style={styles.companyNameText} numberOfLines={1}>
+                  {companyText}
+                </Text>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={normalize(14)}
+                  color="#153e69"
+                  style={{ marginLeft: normalize(3) }}
+                />
+              </View>
+            )}
 
             <View style={styles.locationRow}>
               <Ionicons name="location-outline" size={normalize(12)} color="#64748b" />

@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
   },
   stickyFooter: {
     position: "absolute",
-    bottom: 0,
+    bottom: normalize(50),
     left: 0,
     right: 0,
     flexDirection: "row",

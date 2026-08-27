@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   },
   employerActionsRow: {
     position: "absolute",
-    bottom: 0,
+    bottom: normalize(50),
     left: 0,
     right: 0,
     backgroundColor: "#ffffff",
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     position: "absolute",
-    bottom: 0,
+    bottom: normalize(50),
     left: 0,
     right: 0,
     backgroundColor: "#ffffff",

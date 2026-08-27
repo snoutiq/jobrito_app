@@ -229,10 +229,12 @@ export default function SavedJobsScreen({ navigation }) {
           <View style={styles.jobInfoColumn}>
             <Text style={styles.jobTitleText} numberOfLines={1}>{item.title}</Text>
             
-            <View style={styles.companyNameRow}>
-              <Text style={styles.jobCompanyText} numberOfLines={1}>{item.employer || "Sheriff's Kitchen"}</Text>
-              <Ionicons name="checkmark-circle" size={normalize(14)} color="#3b82f6" style={{ marginLeft: normalize(4) }} />
-            </View>
+            {!(item.is_training || item.category === "training" || item._type === "training_opportunity") && (
+              <View style={styles.companyNameRow}>
+                <Text style={styles.jobCompanyText} numberOfLines={1}>{item.employer || "Sheriff's Kitchen"}</Text>
+                <Ionicons name="checkmark-circle" size={normalize(14)} color="#3b82f6" style={{ marginLeft: normalize(4) }} />
+              </View>
+            )}
 
             <Text style={styles.jobMetaLocationText} numberOfLines={1}>
               <Ionicons name="location-outline" size={normalize(12)} color="#64748b" />{" "}

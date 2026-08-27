@@ -12,7 +12,7 @@ import {
   Dimensions,
   PixelRatio,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
@@ -29,6 +29,7 @@ const PRIMARY_NAVY = "#153e69";
 
 export default function FaqScreen({ navigation }) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [expandedIds, setExpandedIds] = useState({});
@@ -506,7 +507,13 @@ export default function FaqScreen({ navigation }) {
       </View>
 
       {/* FAQs List */}
-      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: insets.bottom + 40 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {filteredFaqs.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="help-circle-outline" size={48} color="#cbd5e1" />

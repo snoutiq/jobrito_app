@@ -216,15 +216,17 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
         <View style={styles.heroSection}>
           <View style={styles.heroLeftWrap}>
             <View style={styles.heroTitleWrap}>
-              <View style={styles.companyRow}>
-                <Text style={styles.companyNameText} numberOfLines={3}>{companyName}</Text>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={normalize(15)}
-                  color="#153e69"
-                  style={{ marginLeft: normalize(4) }}
-                />
-              </View>
+              {!isTraining && (
+                <View style={styles.companyRow}>
+                  <Text style={styles.companyNameText} numberOfLines={3}>{companyName}</Text>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={normalize(15)}
+                    color="#153e69"
+                    style={{ marginLeft: normalize(4) }}
+                  />
+                </View>
+              )}
               <Text style={styles.jobTitleText} numberOfLines={3}>{jobTitle}</Text>
             </View>
           </View>
@@ -851,7 +853,7 @@ const styles = StyleSheet.create({
   // Bottom Fixed Bar
   bottomBar: {
     position: "absolute",
-    bottom: 0,
+    bottom: normalize(45),
     left: 0,
     right: 0,
     backgroundColor: "#ffffff",

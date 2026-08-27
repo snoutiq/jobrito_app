@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: normalize(16),
     paddingTop: normalize(6),
     gap: normalize(14),
-    paddingBottom: normalize(30),
+    paddingBottom: normalize(70),
   },
 
   // Hero Card

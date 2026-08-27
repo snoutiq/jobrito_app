@@ -1266,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   fabContainerWrapper: {
     position: "absolute",
-    bottom: normalize(20),
+    bottom: normalize(50),
     right: normalize(16),
     alignItems: "flex-end",
   },
@@ -1275,7 +1275,7 @@ const styles = StyleSheet.create({
     borderRadius: normalize(10),
     paddingHorizontal: normalize(12),
     paddingVertical: normalize(8),
-    marginBottom: normalize(8),
+    marginBottom: normalize(6),
     borderWidth: 1,
     borderColor: "#e2e8f0",
     shadowColor: "#000",

@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     paddingVertical: normalize(6),
   },
   countryList: {
-    marginBottom: normalize(8),
+    marginBottom: normalize(25),
   },
   countryRow: {
     minHeight: normalize(48),
