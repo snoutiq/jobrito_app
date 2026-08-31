@@ -12,6 +12,7 @@ import {
   getStoredProfile,
   getStoredRole,
   getToken,
+  clearAuthStorage,
 } from "../services/storage";
 
 import {
@@ -19,7 +20,7 @@ import {
   setProfileData,
 } from "../redux/slices/userSlice";
 
-import { setTokenState } from "../redux/slices/authSlice";
+import { setTokenState, logout } from "../redux/slices/authSlice";
 
 export default function RootNavigator() {
   const dispatch = useDispatch();
@@ -59,7 +60,19 @@ export default function RootNavigator() {
         if (!mounted) return;
 
         if (token) {
-          dispatch(setTokenState(token));
+          if (!role && !profile) {
+            // Zombie token left in iOS Keychain after app uninstall & reinstall.
+            // Clean storage & force fresh login onboarding screen.
+            await clearAuthStorage();
+            dispatch(logout());
+          } else {
+            dispatch(setTokenState(token));
+            const userId = profile?.id || profile?.user_id || profile?.user?.id;
+            if (userId) {
+              const { checkUserExists } = require("../services/authApi");
+              checkUserExists(userId).catch(() => {});
+            }
+          }
         }
 
         if (role) {

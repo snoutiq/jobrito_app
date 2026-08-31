@@ -6,7 +6,7 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/endpoints";
-import { getToken, getRefreshToken, setToken, setRefreshToken, clearAuthStorage, getStoredLanguage } from "./storage";
+import { getToken, getRefreshToken, setToken, setRefreshToken, clearAuthStorage, getStoredLanguage, getStoredProfile } from "./storage";
 
 /**
  * Unified Response Normalizer Type
@@ -240,7 +240,9 @@ const replayOfflineQueue = async () => {
  * Auto-refresh token if expiring in less than 2 minutes
  * Mitigates race condition by subscribing parallel requests to current refresh operation.
  */
-const checkAndRefreshToken = async () => {
+let lastUserExistsCheckTime = 0;
+
+const checkAndRefreshToken = async (config = {}) => {
   if (isRefreshing) {
     return new Promise((resolve, reject) => {
       subscribeTokenRefresh((newToken, refreshErr) => {
@@ -256,6 +258,36 @@ const checkAndRefreshToken = async () => {
   try {
     const token = await getToken();
     if (!token) return;
+
+    // Check user existence periodically (every 30 seconds) on active API requests
+    const now = Date.now();
+    const reqUrl = config.url || "";
+    if (
+      now - lastUserExistsCheckTime > 30000 &&
+      !reqUrl.includes(API_ENDPOINTS.USER_EXISTS) &&
+      !reqUrl.includes(API_ENDPOINTS.LOGIN) &&
+      !reqUrl.includes(API_ENDPOINTS.VERIFY_OTP)
+    ) {
+      lastUserExistsCheckTime = now;
+      let userId = null;
+
+      try {
+        const storedProfile = await getStoredProfile();
+        userId = storedProfile?.id || storedProfile?.user_id || storedProfile?.user?.id;
+      } catch (e) {}
+
+      if (!userId && token.includes("|")) {
+        const firstPart = token.split("|")[0];
+        if (/^\d+$/.test(firstPart)) {
+          userId = firstPart;
+        }
+      }
+
+      if (userId) {
+        const { checkUserExists } = require("./authApi");
+        checkUserExists(userId).catch(() => {});
+      }
+    }
 
     // Check if the token is a JWT (JWTs have exactly 3 dot-separated parts)
     const parts = token.split(".");
@@ -627,9 +659,9 @@ apiClient.interceptors.request.use(
       }
     }
 
-    // 5. JWT Expiry Check (Proactive Refresh)
+    // 5. JWT Expiry Check (Proactive Refresh & User Existence)
     if (!config.skipAuth) {
-      await checkAndRefreshToken();
+      await checkAndRefreshToken(config);
     }
 
     // 6. Attach Token

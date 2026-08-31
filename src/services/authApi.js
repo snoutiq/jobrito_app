@@ -71,21 +71,30 @@ export const logout = async () => {
 };
 
 export const checkUserExists = async (userId) => {
-  if (!userId) return { success: false, exists: false };
+  if (!userId) return { success: false, exists: true };
   try {
     const { clearClientState } = require("./apiClient");
     const { clearAuthStorage } = require("./storage");
+    console.log(`[USER_EXISTS] Checking existence for user_id=${userId}...`);
     const response = await apiClient.get(`${API_ENDPOINTS.USER_EXISTS}?user_id=${userId}`, {
       cancelDuplicate: false,
     });
-    const data = response?.data || response;
-    if (data && data.exists === false) {
-      clearAuthStorage().catch(() => {});
+    const rawData = response?.data || response;
+    console.log("=================== USER EXISTS API RESPONSE ===================");
+    console.log(JSON.stringify(rawData, null, 2));
+    console.log("===============================================================");
+
+    const existsVal = rawData?.exists !== undefined ? rawData.exists : rawData?.data?.exists;
+
+    if (existsVal === false) {
+      console.log(`[USER_EXISTS] user_id=${userId} exists is FALSE! Triggering auto-logout...`);
+      await clearAuthStorage().catch(() => {});
       clearClientState(true);
+      return { success: true, exists: false, user_id: userId };
     }
-    return data;
+    return rawData;
   } catch (error) {
-    console.warn("Failed to check user exists:", error);
+    console.warn("[USER_EXISTS] Failed to check user exists:", error);
     return { success: false, error };
   }
 };
