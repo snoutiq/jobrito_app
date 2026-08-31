@@ -221,39 +221,32 @@ export default function MyJobsScreen({ navigation, route }) {
     return { label: s.toUpperCase(), bg: "#e8effe", color: "#1b4dff" };
   };
 
-  const jobsToShow = useMemo(() => {
-    let combined = [];
-
-    if (isEmployer) {
-      if (employerDashboardRaw) {
-        const created = employerDashboardRaw.created_jobs || [];
-        const pending = employerDashboardRaw.pending_created_jobs || [];
-        combined = [...created, ...pending];
-      }
-      if (combined.length === 0 && submittedJobs && submittedJobs.length > 0) {
-        combined = [...submittedJobs];
-      }
-      if (combined.length === 0 && myJobs && myJobs.length > 0) {
-        combined = [...myJobs];
-      }
-    } else {
-      const created = employerDashboardRaw?.created_jobs || [];
-      const pending = employerDashboardRaw?.pending_created_jobs || [];
-      combined = [...created, ...pending, ...(myJobs || []), ...(submittedJobs || [])];
+  // Source-wise separate lists — merge mat karo
+  const createdJobsList = useMemo(() => {
+    if (employerDashboardRaw?.created_jobs?.length > 0) {
+      return employerDashboardRaw.created_jobs;
     }
+    if (submittedJobs && submittedJobs.length > 0) return submittedJobs;
+    if (myJobs && myJobs.length > 0) return myJobs;
+    return [];
+  }, [employerDashboardRaw, submittedJobs, myJobs]);
 
+  const pendingJobsList = useMemo(() => {
+    return employerDashboardRaw?.pending_created_jobs || [];
+  }, [employerDashboardRaw]);
+
+  // Sirf loading-check aur search ke liye combined reference (dedup)
+  const jobsToShow = useMemo(() => {
+    const combined = [...createdJobsList, ...pendingJobsList];
     const map = new Map();
     combined.forEach((j, index) => {
       if (j) {
         const key = String(j.id || j.job_id || `job_index_${index}`);
-        if (!map.has(key)) {
-          map.set(key, j);
-        }
+        if (!map.has(key)) map.set(key, j);
       }
     });
-
     return Array.from(map.values());
-  }, [isEmployer, employerDashboardRaw, submittedJobs, myJobs]);
+  }, [createdJobsList, pendingJobsList]);
 
 
 
@@ -293,9 +286,8 @@ export default function MyJobsScreen({ navigation, route }) {
     }
   }, [dispatch, isEmployer]);
 
-  // Filter jobs by tab & search query
-  const filteredSearchJobs = useMemo(() => {
-    const list = jobsToShow || [];
+  // Reusable search matcher
+  const applySearchFilter = (list) => {
     if (!searchQuery || !searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase().trim();
     const cleanQ = q.startsWith("#") ? q.slice(1) : q;
@@ -308,7 +300,7 @@ export default function MyJobsScreen({ navigation, route }) {
       const location = String(job.location || job.city || job.country || "").toLowerCase();
       const status = String(job.status || "").toLowerCase();
       const category = String(job.category || job.business_type || "").toLowerCase();
-      
+
       return (
         title.includes(q) ||
         company.includes(q) ||
@@ -319,26 +311,30 @@ export default function MyJobsScreen({ navigation, route }) {
         category.includes(q)
       );
     });
-  }, [jobsToShow, searchQuery]);
+  };
 
-  const activeJobs = filteredSearchJobs.filter((job) => {
-    const status = normalizeStatus(job.status || "active");
-    return status === "active" || status === "approved" || status === "published" || status === "";
-  });
+  // ✅ Active: sirf created_jobs se, status approved/active wale
+  const activeJobs = useMemo(() => {
+    const filtered = applySearchFilter(createdJobsList);
+    return filtered.filter((job) => {
+      const status = normalizeStatus(job.status || "active");
+      return status === "active" || status === "approved" || status === "published" || status === "";
+    });
+  }, [createdJobsList, searchQuery]);
 
-  const pendingJobs = filteredSearchJobs.filter(
-    (job) => {
-      const status = normalizeStatus(job.status);
-      return status === "pending" || status === "new" || status === "under_review" || status === "under review";
-    }
-  );
+  // ✅ Pending: sirf pending_created_jobs se — poori list (already pending hi hoti hai)
+  const pendingJobs = useMemo(() => {
+    return applySearchFilter(pendingJobsList);
+  }, [pendingJobsList, searchQuery]);
 
-  const closedJobs = filteredSearchJobs.filter(
-    (job) => {
+  // ✅ Closed: sirf created_jobs se, status closed/completed wale
+  const closedJobs = useMemo(() => {
+    const filtered = applySearchFilter(createdJobsList);
+    return filtered.filter((job) => {
       const status = normalizeStatus(job.status);
       return status === "closed" || status === "completed";
-    }
-  );
+    });
+  }, [createdJobsList, searchQuery]);
 
   const renderJobCard = (job) => {
     const jobTitle = String(job.title || job.job_title || "").trim();
