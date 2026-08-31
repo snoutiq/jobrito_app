@@ -496,6 +496,11 @@ export const formatErrorResponse = (error) => {
         // Preserving server messages
         message = errorData.message || errorData.error || message;
 
+        // Sanitize raw backend syntax / code error strings
+        if (typeof message === "string" && (message.toLowerCase().includes("syntax error") || message.toLowerCase().includes("unexpected token"))) {
+          message = "A temporary server error occurred. Please try again later.";
+        }
+
         // Nested validation error lists (e.g. Laravel)
         if (errorData.errors) {
           const firstErrorKey = Object.keys(errorData.errors)[0];

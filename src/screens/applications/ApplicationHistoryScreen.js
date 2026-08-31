@@ -74,12 +74,13 @@ export default function ApplicationHistoryScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
+  const user = useSelector((state) => state.auth?.user || state.user?.profile);
   const { history, loading } = useSelector((state) => state.application);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    dispatch(fetchApplicationHistory());
-  }, [dispatch]);
+    dispatch(fetchApplicationHistory(user?.id));
+  }, [dispatch, user?.id]);
 
   const filteredHistory = useMemo(() => {
     const query = search.trim().toLowerCase();

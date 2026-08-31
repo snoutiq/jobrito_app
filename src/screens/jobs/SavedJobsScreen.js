@@ -115,6 +115,7 @@ export default function SavedJobsScreen({ navigation }) {
   
   const { savedJobs, feedJobs, loading } = useSelector((state) => state.job);
   const { profile } = useSelector((state) => state.user);
+  const user = useSelector((state) => state.auth?.user || profile);
   const { history: applicationHistory } = useSelector((state) => state.application);
 
   const [showCallModal, setShowCallModal] = useState(false);
@@ -124,9 +125,10 @@ export default function SavedJobsScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      dispatch(fetchSavedJobs());
-      dispatch(fetchApplicationHistory());
-    }, [dispatch])
+      const userId = user?.id || profile?.id;
+      dispatch(fetchSavedJobs(userId));
+      dispatch(fetchApplicationHistory(userId));
+    }, [dispatch, user?.id, profile?.id])
   );
 
   const handleCall = (job) => {

@@ -24,9 +24,9 @@ export const fetchFeedJobs = createAsyncThunk(
 
 export const fetchSavedJobs = createAsyncThunk(
   "job/fetchSavedJobs",
-  async (_, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      return await getSavedJobsApi();
+      return await getSavedJobsApi(userId);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch saved jobs");
     }
@@ -99,9 +99,9 @@ export const createJobPost = createAsyncThunk(
 
 export const fetchMyJobs = createAsyncThunk(
   "job/fetchMyJobs",
-  async (_, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      return await getMyJobsApi();
+      return await getMyJobsApi(userId);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch my jobs");
     }
@@ -123,6 +123,8 @@ const initialState = {
   feedJobs: [],
   savedJobs: [],
   myJobs: [],
+  pendingJobs: [],
+  myJobsRaw: null,
   jobDetails: null,
   communityJobResult: null,
   loading: false,
@@ -165,7 +167,7 @@ const jobSlice = createSlice({
       })
       .addCase(fetchSavedJobs.fulfilled, (state, action) => {
         state.loading = false;
-        state.savedJobs = action.payload?.jobs || [];
+        state.savedJobs = action.payload?.saved_jobs || [];
         state.success = true;
       })
       .addCase(fetchSavedJobs.rejected, (state, action) => {
@@ -199,44 +201,12 @@ const jobSlice = createSlice({
         state.error = null;
         state.success = false;
       })
-      // .addCase(fetchMyJobs.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.myJobs = action.payload?.created_jobs || action.payload || []; // Changed from .jobs to .created_jobs
-      //   state.success = true;
-      // })
       .addCase(fetchMyJobs.fulfilled, (state, action) => {
         state.loading = false;
         const payload = action.payload || {};
-        const createdJobs = Array.isArray(payload.created_jobs)
-          ? payload.created_jobs
-          : Array.isArray(payload.jobs)
-          ? payload.jobs
-          : Array.isArray(payload.data)
-          ? payload.data
-          : Array.isArray(payload)
-          ? payload
-          : [];
-        const pendingJobs = Array.isArray(payload.pending_created_jobs)
-          ? payload.pending_created_jobs
-          : [];
-
-        const merged = [
-          ...createdJobs,
-          ...pendingJobs.map((job) => ({
-            ...job,
-            status: job.status || "pending",
-          })),
-        ];
-
-        const seen = new Set();
-        state.myJobs = merged.filter((job) => {
-          if (!job || !job.id) return false;
-          const id = String(job.id);
-          if (seen.has(id)) return false;
-          seen.add(id);
-          return true;
-        });
-
+        state.myJobsRaw = payload;
+        state.myJobs = Array.isArray(payload.created_jobs) ? payload.created_jobs : [];
+        state.pendingJobs = Array.isArray(payload.pending_created_jobs) ? payload.pending_created_jobs : [];
         state.success = true;
       })
       .addCase(fetchMyJobs.rejected, (state, action) => {

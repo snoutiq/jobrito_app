@@ -221,19 +221,28 @@ export default function MyJobsScreen({ navigation, route }) {
     return { label: s.toUpperCase(), bg: "#e8effe", color: "#1b4dff" };
   };
 
-  // Source-wise separate lists — merge mat karo
+  const myJobsRaw = useSelector((state) => state.job.myJobsRaw);
+
+  // Source-wise separate lists — check array length instead of truthiness (as [] is truthy in JS)
   const createdJobsList = useMemo(() => {
-    if (employerDashboardRaw?.created_jobs?.length > 0) {
+    if (Array.isArray(employerDashboardRaw?.created_jobs) && employerDashboardRaw.created_jobs.length > 0) {
       return employerDashboardRaw.created_jobs;
     }
-    if (submittedJobs && submittedJobs.length > 0) return submittedJobs;
-    if (myJobs && myJobs.length > 0) return myJobs;
-    return [];
-  }, [employerDashboardRaw, submittedJobs, myJobs]);
+    if (Array.isArray(myJobsRaw?.created_jobs) && myJobsRaw.created_jobs.length > 0) {
+      return myJobsRaw.created_jobs;
+    }
+    return employerDashboardRaw?.created_jobs || myJobsRaw?.created_jobs || [];
+  }, [employerDashboardRaw, myJobsRaw]);
 
   const pendingJobsList = useMemo(() => {
-    return employerDashboardRaw?.pending_created_jobs || [];
-  }, [employerDashboardRaw]);
+    if (Array.isArray(employerDashboardRaw?.pending_created_jobs) && employerDashboardRaw.pending_created_jobs.length > 0) {
+      return employerDashboardRaw.pending_created_jobs;
+    }
+    if (Array.isArray(myJobsRaw?.pending_created_jobs) && myJobsRaw.pending_created_jobs.length > 0) {
+      return myJobsRaw.pending_created_jobs;
+    }
+    return employerDashboardRaw?.pending_created_jobs || myJobsRaw?.pending_created_jobs || [];
+  }, [employerDashboardRaw, myJobsRaw]);
 
   // Sirf loading-check aur search ke liye combined reference (dedup)
   const jobsToShow = useMemo(() => {
@@ -248,12 +257,11 @@ export default function MyJobsScreen({ navigation, route }) {
     return Array.from(map.values());
   }, [createdJobsList, pendingJobsList]);
 
-
-
   const fetchAllData = React.useCallback(() => {
-    dispatch(fetchEmployerDashboard());
-    dispatch(fetchMyJobs());
-  }, [dispatch]);
+    const userId = user?.id;
+    dispatch(fetchEmployerDashboard(userId));
+    dispatch(fetchMyJobs(userId));
+  }, [dispatch, user?.id]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -274,17 +282,18 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
+    const userId = user?.id;
     try {
       if (isEmployer) {
-        await dispatch(fetchEmployerDashboard()).unwrap().catch(() => {});
+        await dispatch(fetchEmployerDashboard(userId)).unwrap().catch(() => {});
       }
-      await dispatch(fetchMyJobs()).unwrap().catch(() => {});
+      await dispatch(fetchMyJobs(userId)).unwrap().catch(() => {});
     } catch (e) {
       console.error("Failed to refresh jobs list:", e);
     } finally {
       setRefreshing(false);
     }
-  }, [dispatch, isEmployer]);
+  }, [dispatch, isEmployer, user?.id]);
 
   // Reusable search matcher
   const applySearchFilter = (list) => {

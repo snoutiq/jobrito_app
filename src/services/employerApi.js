@@ -1,11 +1,13 @@
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/endpoints";
+import { getStoredProfile } from "./storage";
 
 const normalizeDashboardResponse = (payload = {}) => {
   const metrics = payload.metrics || {};
   const jobs = payload.jobs || [];
 
   return {
+    ...payload,
     success: payload.success ?? true,
     metrics,
     stats: [
@@ -16,13 +18,25 @@ const normalizeDashboardResponse = (payload = {}) => {
       { label: "Active Jobs", value: metrics.active_jobs_count ?? 0 },
       { label: "Pending Jobs", value: metrics.pending_jobs_count ?? 0 },
     ],
-    submittedJobs: jobs,
+    created_jobs: payload.created_jobs || [],
+    pending_created_jobs: payload.pending_created_jobs || [],
+    submittedJobs: payload.created_jobs || jobs,
     jobs,
   };
 };
 
-export const getEmployerDashboard = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_DASHBOARD);
+export const getEmployerDashboard = async (userId) => {
+  let params = {};
+  if (userId) {
+    params.user_id = userId;
+  } else {
+    try {
+      const profile = await getStoredProfile();
+      const id = profile?.id || profile?.user_id;
+      if (id) params.user_id = id;
+    } catch (e) {}
+  }
+  const response = await apiClient.get(API_ENDPOINTS.EMPLOYER_DASHBOARD, { params });
   return normalizeDashboardResponse(response.data);
 };
 

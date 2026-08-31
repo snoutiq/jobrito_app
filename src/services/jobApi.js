@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/endpoints";
+import { getStoredProfile } from "./storage";
 
 export const getFeedJobs = async (filter) => {
   const response = await apiClient.get(API_ENDPOINTS.FEED, { params: { filter } });
@@ -34,12 +35,19 @@ export const toggleSaveJob = async (jobId) => {
   return response.data;
 };
 
-export const getSavedJobs = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.PROFILE_SAVED);
-  const rawJobs =
-    response.data?.saved_jobs ||
-    response.data?.jobs ||
-    (Array.isArray(response.data) ? response.data : []);
+export const getSavedJobs = async (userId) => {
+  let params = {};
+  if (userId) {
+    params.user_id = userId;
+  } else {
+    try {
+      const profile = await getStoredProfile();
+      const id = profile?.id || profile?.user_id;
+      if (id) params.user_id = id;
+    } catch (e) {}
+  }
+  const response = await apiClient.get(API_ENDPOINTS.PROFILE_SAVED, { params });
+  const rawJobs = response.data?.saved_jobs || [];
 
   const normalized = rawJobs.map((item) => {
     const isTraining = !!item.is_training;
@@ -64,7 +72,7 @@ export const getSavedJobs = async () => {
       saved: item.saved ?? item.is_saved ?? true,
     };
   });
-  return { success: true, jobs: normalized };
+  return { success: true, saved_jobs: normalized };
 };
 
 export const storeJob = async (jobData) => {
@@ -77,8 +85,18 @@ export const createJob = async (jobData) => {
   return response.data;
 };
 
-export const getMyJobs = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.MY_JOBS);
+export const getMyJobs = async (userId) => {
+  let params = {};
+  if (userId) {
+    params.user_id = userId;
+  } else {
+    try {
+      const profile = await getStoredProfile();
+      const id = profile?.id || profile?.user_id;
+      if (id) params.user_id = id;
+    } catch (e) {}
+  }
+  const response = await apiClient.get(API_ENDPOINTS.MY_JOBS, { params });
   return response.data;
 };
 

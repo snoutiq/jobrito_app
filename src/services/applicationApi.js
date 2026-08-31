@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/endpoints";
+import { getStoredProfile } from "./storage";
 
 export const applyJob = async (jobId, payload) => {
   // The API expects snake_case keys. The component sends camelCase.
@@ -12,14 +13,25 @@ export const applyJob = async (jobId, payload) => {
   return response.data;
 };
 
-export const getApplicationHistory = async (email) => {
-  const response = await apiClient.get(API_ENDPOINTS.PROFILE_APPLICATIONS, {
-    params: { email },
-  });
-  const rawApps =
-    response.data?.applications ||
-    response.data?.data ||
-    (Array.isArray(response.data) ? response.data : []);
+export const getApplicationHistory = async (userArg) => {
+  let params = {};
+  if (typeof userArg === "object" && userArg !== null) {
+    if (userArg.user_id || userArg.id) params.user_id = userArg.user_id || userArg.id;
+    if (userArg.email) params.email = userArg.email;
+  } else if (typeof userArg === "number" || (typeof userArg === "string" && /^\d+$/.test(userArg))) {
+    params.user_id = userArg;
+  } else if (typeof userArg === "string" && userArg.includes("@")) {
+    params.email = userArg;
+  } else {
+    try {
+      const profile = await getStoredProfile();
+      if (profile?.id || profile?.user_id) params.user_id = profile?.id || profile?.user_id;
+      if (profile?.email) params.email = profile?.email;
+    } catch (e) {}
+  }
+
+  const response = await apiClient.get(API_ENDPOINTS.PROFILE_APPLICATIONS, { params });
+  const rawApps = response.data?.applications || [];
 
   const normalized = rawApps.map((item) => {
     const isTraining = !!item.is_training;
