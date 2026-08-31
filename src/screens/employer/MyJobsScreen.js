@@ -215,6 +215,9 @@ export default function MyJobsScreen({ navigation, route }) {
     if (s === "pending" || s === "new" || s === "under_review" || s === "under review") {
       return { label: t("new", "NEW").toUpperCase(), bg: "#feefc3", color: "#b06000" };
     }
+    if (s === "reject" || s === "rejected") {
+      return { label: t("rejected", "REJECTED").toUpperCase(), bg: "#fce8e6", color: "#dc2626" };
+    }
     if (s === "closed" || s === "completed") {
       return { label: t("completed", "COMPLETED").toUpperCase(), bg: "#f1f3f4", color: "#5f6368" };
     }
@@ -336,14 +339,15 @@ export default function MyJobsScreen({ navigation, route }) {
     return applySearchFilter(pendingJobsList);
   }, [pendingJobsList, searchQuery]);
 
-  // ✅ Closed: sirf created_jobs se, status closed/completed wale
+  // ✅ Closed/Completed: sirf created_jobs se, status closed/completed/rejected/reject wale
   const closedJobs = useMemo(() => {
     const filtered = applySearchFilter(createdJobsList);
     return filtered.filter((job) => {
       const status = normalizeStatus(job.status);
-      return status === "closed" || status === "completed";
+      return status === "closed" || status === "completed" || status === "rejected" || status === "reject";
     });
   }, [createdJobsList, searchQuery]);
+  
 
   const renderJobCard = (job) => {
     const jobTitle = String(job.title || job.job_title || "").trim();
