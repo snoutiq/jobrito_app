@@ -228,8 +228,7 @@ export default function MyJobsScreen({ navigation, route }) {
       if (employerDashboardRaw) {
         const created = employerDashboardRaw.created_jobs || [];
         const pending = employerDashboardRaw.pending_created_jobs || [];
-        const extraJobs = employerDashboardRaw.jobs || employerDashboardRaw.data || [];
-        combined = [...created, ...pending, ...extraJobs];
+        combined = [...created, ...pending];
       }
       if (combined.length === 0 && submittedJobs && submittedJobs.length > 0) {
         combined = [...submittedJobs];
@@ -238,13 +237,9 @@ export default function MyJobsScreen({ navigation, route }) {
         combined = [...myJobs];
       }
     } else {
-      combined = [...(myJobs || []), ...(submittedJobs || [])];
-      if (employerDashboardRaw) {
-        const created = employerDashboardRaw.created_jobs || [];
-        const pending = employerDashboardRaw.pending_created_jobs || [];
-        const extraJobs = employerDashboardRaw.jobs || employerDashboardRaw.data || [];
-        combined = [...combined, ...created, ...pending, ...extraJobs];
-      }
+      const created = employerDashboardRaw?.created_jobs || [];
+      const pending = employerDashboardRaw?.pending_created_jobs || [];
+      combined = [...created, ...pending, ...(myJobs || []), ...(submittedJobs || [])];
     }
 
     const map = new Map();
