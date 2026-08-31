@@ -156,6 +156,11 @@ export const clearClientState = (triggerLogout = true) => {
 
   if (triggerLogout) {
     try {
+      clearAuthStorage().catch(() => {});
+    } catch (e) {
+      // Ignore storage clear error
+    }
+    try {
       const storeModule = require("../redux/store");
       const store = storeModule.default || storeModule;
       if (store) {
@@ -282,7 +287,11 @@ const silentTokenRefresh = async () => {
 
   try {
     const refreshToken = await getRefreshToken();
-    if (!refreshToken) throw new Error("No refresh token stored.");
+    if (!refreshToken) {
+      const err = new Error("No refresh token stored.");
+      err.isSessionMissing = true;
+      throw err;
+    }
 
     const res = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`, {
       refresh_token: refreshToken,
@@ -300,12 +309,36 @@ const silentTokenRefresh = async () => {
       onRefreshed(newToken);
       Logger.info("Proactive token refresh completed successfully.");
     } else {
-      throw new Error("Proactive refresh response did not return a valid token.");
+      const err = new Error("Proactive refresh response did not return a valid token.");
+      err.isSessionMissing = true;
+      throw err;
     }
   } catch (err) {
     const formattedErr = formatErrorResponse(err);
     onRefreshFailed(formattedErr);
     Logger.error("Proactive silent token refresh failed:", err);
+
+    const isNoRefreshToken = err?.isSessionMissing === true;
+    const status = err.response?.status || err.status;
+    const isNetworkOrServerError =
+      !isNoRefreshToken &&
+      (!err.response || status >= 500 || status === 408 || err.code === "ECONNABORTED");
+
+    if (!isNetworkOrServerError) {
+      Logger.error("Session invalid during proactive refresh. Logging out.");
+      await clearAuthStorage();
+      clearClientState(false);
+      try {
+        const storeModule = require("../redux/store");
+        const store = storeModule.default || storeModule;
+        if (store) {
+          const { logout } = require("../redux/slices/authSlice");
+          store.dispatch(logout());
+        }
+      } catch (storeError) {
+        Logger.warn("Could not dispatch logout:", storeError);
+      }
+    }
   } finally {
     isRefreshing = false;
   }
@@ -685,6 +718,7 @@ apiClient.interceptors.response.use(
       contentType.includes("text/html") ||
       (typeof response.data === "string" && response.data.trim().startsWith("<!DOCTYPE"))
     ) {
+      clearClientState(true);
       return Promise.reject({
         success: false,
         status: 401,
@@ -716,13 +750,24 @@ apiClient.interceptors.response.use(
 
     // 2. Token Refresh & Replay Queue
     const status = error.response?.status || error.status;
-    if (status === 401 && originalRequest && !originalRequest._retry) {
-      if (
-        originalRequest.url?.includes(API_ENDPOINTS.REFRESH_TOKEN) ||
-        originalRequest.url?.includes(API_ENDPOINTS.LOGIN) ||
-        originalRequest.url?.includes(API_ENDPOINTS.VERIFY_OTP)
-      ) {
-        return Promise.reject(formatErrorResponse(error));
+    if (status === 401) {
+      if (originalRequest) {
+        if (originalRequest.url?.includes(API_ENDPOINTS.REFRESH_TOKEN)) {
+          clearClientState(true);
+          return Promise.reject(formatErrorResponse(error));
+        }
+
+        if (
+          originalRequest.url?.includes(API_ENDPOINTS.LOGIN) ||
+          originalRequest.url?.includes(API_ENDPOINTS.VERIFY_OTP)
+        ) {
+          return Promise.reject(formatErrorResponse(error));
+        }
+
+        if (originalRequest._retry) {
+          clearClientState(true);
+          return Promise.reject(formatErrorResponse(error));
+        }
       }
 
       if (isRefreshing) {
@@ -744,7 +789,11 @@ apiClient.interceptors.response.use(
       return new Promise(async (resolve, reject) => {
         try {
           const refreshToken = await getRefreshToken();
-          if (!refreshToken) throw new Error("No refresh token available");
+          if (!refreshToken) {
+            const err = new Error("No refresh token available");
+            err.isSessionMissing = true;
+            throw err;
+          }
 
           const refreshRes = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`, {
             refresh_token: refreshToken,
@@ -753,7 +802,11 @@ apiClient.interceptors.response.use(
           const newToken = refreshRes.data?.token || refreshRes.data?.accessToken;
           const newRefreshToken = refreshRes.data?.refresh_token || refreshRes.data?.refreshToken;
 
-          if (!newToken) throw new Error("Token refresh did not yield new token.");
+          if (!newToken) {
+            const err = new Error("Token refresh did not yield new token.");
+            err.isSessionMissing = true;
+            throw err;
+          }
 
           await setToken(newToken);
           if (newRefreshToken) {
@@ -770,7 +823,7 @@ apiClient.interceptors.response.use(
           onRefreshFailed(formattedErr);
 
           const status = refreshErr.response?.status || refreshErr.status;
-          const isNoRefreshToken = refreshErr.message === "No refresh token available";
+          const isNoRefreshToken = refreshErr?.isSessionMissing === true || refreshErr.message === "No refresh token available";
           const isNetworkOrServerError = !isNoRefreshToken && (!refreshErr.response || status >= 500 || status === 408 || refreshErr.code === "ECONNABORTED");
 
           if (isNetworkOrServerError) {

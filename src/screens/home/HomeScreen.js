@@ -236,18 +236,18 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     let active = true;
-    const unsubscribe = navigation.addListener("focus", async () => {
+
+    const loadInitialData = async () => {
       try {
         await dispatch(fetchProfile()).unwrap();
       } catch (err) {
-        console.warn("Failed to fetch profile in background:", err);
+        console.warn("Failed to fetch profile:", err);
       } finally {
         if (active) {
           setIsInitialProfileLoadComplete(true);
         }
       }
 
-      // Fetch notifications count
       try {
         const res = await getEmployerNotifications("talent");
         const list = res?.notifications || res?.data || (Array.isArray(res) ? res : []);
@@ -256,9 +256,16 @@ export default function HomeScreen({ navigation }) {
           dispatch(setUnreadNotificationsCount(unread));
         }
       } catch (err) {
-        console.warn("Failed to fetch notifications on focus:", err);
+        console.warn("Failed to fetch notifications:", err);
       }
+    };
+
+    loadInitialData();
+
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadInitialData();
     });
+
     return () => {
       active = false;
       unsubscribe();

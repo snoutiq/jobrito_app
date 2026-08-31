@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   REFRESH_TOKEN: "/auth/refresh",
   LOGOUT: "/logout",
   AUTH_BASIC_PROFILE: "/auth/basic-profile",
+  USER_EXISTS: "/user/exists",
 
   // Profile
   PROFILE: "/profile",

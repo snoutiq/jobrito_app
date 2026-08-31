@@ -69,3 +69,23 @@ export const logout = async () => {
   const response = await apiClient.post(API_ENDPOINTS.LOGOUT);
   return response.data;
 };
+
+export const checkUserExists = async (userId) => {
+  if (!userId) return { success: false, exists: false };
+  try {
+    const { clearClientState } = require("./apiClient");
+    const { clearAuthStorage } = require("./storage");
+    const response = await apiClient.get(`${API_ENDPOINTS.USER_EXISTS}?user_id=${userId}`, {
+      cancelDuplicate: false,
+    });
+    const data = response?.data || response;
+    if (data && data.exists === false) {
+      clearAuthStorage().catch(() => {});
+      clearClientState(true);
+    }
+    return data;
+  } catch (error) {
+    console.warn("Failed to check user exists:", error);
+    return { success: false, error };
+  }
+};

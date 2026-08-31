@@ -137,15 +137,20 @@ export const normalizeProfile = (u) => {
 
 export const getProfile = async () => {
   const response = await apiClient.get(API_ENDPOINTS.PROFILE, { cancelDuplicate: false });
-  console.log("====================================");
-  console.log("=== GET PROFILE API (http://178.16.138.159/backend/api/profile) RAW RESPONSE DATA ===");
-  console.log(JSON.stringify(response?.data, null, 2));
-  console.log("====================================");
   if (response.data) {
     const profile = normalizeProfile(response.data);
-    console.log("=== NORMALIZED PROFILE DATA ===");
-    console.log(JSON.stringify(profile, null, 2));
-    console.log("====================================");
+    const userId = profile?.id || response.data?.user?.id || response.data?.id;
+    if (userId) {
+      try {
+        const { checkUserExists } = require("./authApi");
+        const existCheck = await checkUserExists(userId);
+        if (existCheck && existCheck.exists === false) {
+          return { success: false, profile: null, userExists: false };
+        }
+      } catch (err) {
+        console.warn("Failed user existence check in getProfile:", err);
+      }
+    }
     return { success: true, profile };
   }
   return response.data;
