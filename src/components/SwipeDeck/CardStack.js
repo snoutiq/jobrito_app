@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, Dimensions, TouchableOpacity,PixelRatio } from "react-native";
 import { useSharedValue, withTiming, runOnJS, Easing } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,9 @@ import SwipeCard from "./SwipeCard";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
 const IS_LARGE_DEVICE = SCREEN_HEIGHT > 840;
+const scale = SCREEN_WIDTH / 390;
+const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
+
 
 const STACK_HEIGHT = IS_SMALL_DEVICE
   ? SCREEN_HEIGHT * 0.55
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     paddingHorizontal: 24,
-    marginBottom: 10,
+    marginBottom: normalize(50),
   },
   viewBtn: {
     flexDirection: "row",

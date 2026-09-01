@@ -2666,7 +2666,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
                       {t("privacyPriorityTitle", "Your privacy is our priority")}
                     </Text>
                     <Text style={[styles.cardSubtextBelowHeader, { color: "#4338ca", marginTop: normalize(2), marginLeft: 0, marginBottom: 0, textAlign: "left" }]}>
-                      {t("privacyPrioritySub", "Your information will only be shared with verified employers and businesses on JobRito.")}
+                      {t("privacyPrioritySub", "Your information will only be shared with verified employers and businesses on Jobrito.")}
                     </Text>
                   </View>
                 </View>

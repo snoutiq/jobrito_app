@@ -64,14 +64,10 @@ export const markJobStatsSeen = createAsyncThunk(
 );
 
 const patchJobInDashboard = (dashboardRaw, jobId, patch) => {
-  if (!dashboardRaw) return;
-  ["jobs", "created_jobs", "pending_created_jobs", "data"].forEach((key) => {
-    if (Array.isArray(dashboardRaw[key])) {
-      dashboardRaw[key] = dashboardRaw[key].map((j) =>
-        String(j.id) === String(jobId) ? { ...j, ...patch } : j
-      );
-    }
-  });
+  if (!dashboardRaw || !Array.isArray(dashboardRaw.jobs)) return;
+  dashboardRaw.jobs = dashboardRaw.jobs.map((j) =>
+    String(j.id) === String(jobId) ? { ...j, ...patch } : j
+  );
 };
 
 const initialState = {
@@ -106,12 +102,7 @@ const employerSlice = createSlice({
         state.dashboardRaw = action.payload;
         state.stats = action.payload?.stats || [];
         state.metrics = action.payload?.metrics || {};
-        state.submittedJobs =
-          action.payload?.created_jobs ||
-          action.payload?.submittedJobs ||
-          action.payload?.jobs ||
-          action.payload?.data ||
-          [];
+        state.submittedJobs = action.payload?.jobs || [];
         state.success = true;
       })
       .addCase(fetchEmployerDashboard.rejected, (state, action) => {

@@ -109,54 +109,15 @@ export default function MyJobsScreen({ navigation, route }) {
   };
 
   const getJobApplicantStats = (job) => {
-    const applicants = Array.isArray(job?.applicants)
-      ? job.applicants
-      : Array.isArray(job?.applications)
-      ? job.applications
-      : [];
-
-    const statsObj = job?.stats || {};
-
-    const viewed =
-      statsObj.viewed ??
-      job?.viewed_count ??
-      job?.viewed ??
-      applicants.filter((a) => String(a?.status).toLowerCase() === "viewed").length;
-
-    const shortlisted =
-      statsObj.shortlisted ??
-      job?.shortlisted_count ??
-      job?.shortlisted ??
-      job?.shortlist_count ??
-      applicants.filter((a) => String(a?.status).toLowerCase() === "shortlisted").length;
-
-    const contacted =
-      statsObj.contacted ??
-      job?.contacted_count ??
-      job?.contacted ??
-      applicants.filter((a) => String(a?.status).toLowerCase() === "contacted").length;
-
-    const rejected =
-      statsObj.rejected ??
-      job?.rejected_count ??
-      job?.rejected ??
-      applicants.filter((a) => String(a?.status).toLowerCase() === "rejected").length;
-
-    const pending =
-      statsObj.new ??
-      job?.pending_count ??
-      job?.new_count ??
-      job?.under_review_count ??
-      applicants.filter((a) => ["new", "pending", "under_review", "under review"].includes(String(a?.status).toLowerCase())).length;
-
-    const total =
-      statsObj.total ??
-      job?.total_applicants ??
-      job?.applicants_count ??
-      job?.applicant_count ??
-      applicants.length;
-
-    return { viewed, shortlisted, contacted, rejected, pending, total };
+    const stats = job?.stats || {};
+    return {
+      viewed: stats.viewed ?? 0,
+      shortlisted: stats.shortlisted ?? 0,
+      contacted: stats.contacted ?? 0,
+      rejected: stats.rejected ?? 0,
+      pending: stats.new ?? 0,
+      total: stats.total ?? 0,
+    };
   };
 
   const checkPostLimitAndNavigate = async () => {
@@ -226,26 +187,25 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const myJobsRaw = useSelector((state) => state.job.myJobsRaw);
 
-  // Source-wise separate lists — check array length instead of truthiness (as [] is truthy in JS)
+  // Employer ke liye employer_dashboard.jobs hi source hai (applicants isi mein hoti hai)
+  const employerJobsList = useMemo(() => {
+    return Array.isArray(employerDashboardRaw?.jobs) ? employerDashboardRaw.jobs : [];
+  }, [employerDashboardRaw]);
+
   const createdJobsList = useMemo(() => {
-    if (Array.isArray(employerDashboardRaw?.created_jobs) && employerDashboardRaw.created_jobs.length > 0) {
-      return employerDashboardRaw.created_jobs;
-    }
-    if (Array.isArray(myJobsRaw?.created_jobs) && myJobsRaw.created_jobs.length > 0) {
-      return myJobsRaw.created_jobs;
-    }
-    return employerDashboardRaw?.created_jobs || myJobsRaw?.created_jobs || [];
-  }, [employerDashboardRaw, myJobsRaw]);
+    if (isEmployer) return employerJobsList;
+    return Array.isArray(myJobsRaw?.created_jobs) ? myJobsRaw.created_jobs : [];
+  }, [isEmployer, employerJobsList, myJobsRaw]);
 
   const pendingJobsList = useMemo(() => {
-    if (Array.isArray(employerDashboardRaw?.pending_created_jobs) && employerDashboardRaw.pending_created_jobs.length > 0) {
-      return employerDashboardRaw.pending_created_jobs;
+    if (isEmployer) {
+      return employerJobsList.filter((job) => {
+        const s = normalizeStatus(job.status);
+        return s === "pending" || s === "new" || s === "under_review" || s === "under review";
+      });
     }
-    if (Array.isArray(myJobsRaw?.pending_created_jobs) && myJobsRaw.pending_created_jobs.length > 0) {
-      return myJobsRaw.pending_created_jobs;
-    }
-    return employerDashboardRaw?.pending_created_jobs || myJobsRaw?.pending_created_jobs || [];
-  }, [employerDashboardRaw, myJobsRaw]);
+    return Array.isArray(myJobsRaw?.pending_created_jobs) ? myJobsRaw.pending_created_jobs : [];
+  }, [isEmployer, employerJobsList, myJobsRaw]);
 
   // Sirf loading-check aur search ke liye combined reference (dedup)
   const jobsToShow = useMemo(() => {
@@ -262,9 +222,11 @@ export default function MyJobsScreen({ navigation, route }) {
 
   const fetchAllData = React.useCallback(() => {
     const userId = user?.id;
-    dispatch(fetchEmployerDashboard(userId));
+    if (isEmployer) {
+      dispatch(fetchEmployerDashboard(userId));
+    }
     dispatch(fetchMyJobs(userId));
-  }, [dispatch, user?.id]);
+  }, [dispatch, isEmployer, user?.id]);
 
   useFocusEffect(
     React.useCallback(() => {
