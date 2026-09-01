@@ -1169,7 +1169,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
           </View>
           <View style={styles.overseasCardTextCol}>
             <Text style={styles.overseasQuestionTitle}>
-              {t("previousOverseasExpTitle", "Do you have any previous overseas work experience?")}
+              {t("previousOverseasExpTitle", "Do you have any previous overseas work experience?")} <Text style={{ color: "#ef4444" }}>*</Text>
             </Text>
             <Text style={styles.overseasQuestionSub}>
               {t("previousOverseasExpSub", "This helps us connect you with the right international opportunities.")}
@@ -1315,6 +1315,13 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
       <TouchableOpacity
         style={styles.continueSolidBtn}
         onPress={() => {
+          if (!hasOverseasExp) {
+            Alert.alert(
+              t("requiredField", "Required Field"),
+              t("pleaseSelectOverseasExp", "Please select whether you have previous overseas work experience.")
+            );
+            return;
+          }
           if (locationPreference !== "Both" && locationPreference !== "Global" && (!toTrimmedString(city) || city.startsWith("Select"))) {
             const placeType = locationPreference === "India" ? "state" : "region";
             Alert.alert(t("requiredField", "Required Field"), t("pleaseSelectWorkLocation", `Please select a ${placeType} for your work location preference.`));
