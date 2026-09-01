@@ -492,9 +492,9 @@ export default function ApplicantDetailScreen({ route, navigation }) {
         </TouchableOpacity>
         <View style={[styles.headerTextContainer, { alignItems: "center" }]}>
           <Text style={[styles.headerTitle, { textAlign: "center" }]} numberOfLines={1}>{displayName}</Text>
-          {Boolean(selectedJob?.title || displayRole) && (
+          {Boolean(displayRole) && (
             <Text style={[styles.headerSubtitle, { textAlign: "center" }]} numberOfLines={1}>
-              {selectedJob?.title || displayRole}
+              {displayRole}
             </Text>
           )}
         </View>

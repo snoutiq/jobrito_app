@@ -31,7 +31,7 @@ export default function PrivacySecurityScreen({ navigation }) {
   };
 
   const handleOpenTerms = () => {
-    Linking.openURL("https://jobrito.com/terms").catch(() => null);
+    Linking.openURL("https://jobrito.com/terms-and-conditions").catch(() => null);
   };
 
   const handleConfirmDelete = async () => {
