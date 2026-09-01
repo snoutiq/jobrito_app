@@ -11,7 +11,6 @@ const IS_LARGE_DEVICE = SCREEN_HEIGHT > 840;
 const scale = SCREEN_WIDTH / 390;
 const normalize = (size) => Math.round(PixelRatio.roundToNearestPixel(size * scale));
 
-
 const STACK_HEIGHT = IS_SMALL_DEVICE
   ? SCREEN_HEIGHT * 0.55
   : IS_LARGE_DEVICE
