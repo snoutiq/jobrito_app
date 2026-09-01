@@ -160,7 +160,8 @@ export default function EmployerHomeScreen({ navigation }) {
 
   const logoSource = getLogoSource();
 
-  const totalApplicants = metrics?.total_applicants ?? metrics?.new ?? 0;
+  const newApplicantsCount = metrics?.new ?? 0;
+  const totalApplicants = metrics?.total_applicants ?? 0;
   const viewedCount = metrics?.viewed ?? metrics?.viewed_count ?? 0;
   const shortlistedCount = metrics?.shortlisted ?? 0;
   const rejectedCount = metrics?.rejected ?? 0;
@@ -269,7 +270,7 @@ export default function EmployerHomeScreen({ navigation }) {
                 <Ionicons name="person-add-outline" size={normalize(18)} color="#5b46f6" />
               </View>
               <Text style={[styles.statNumberText, { color: "#4338ca" }]}>
-                {totalApplicants}
+                {newApplicantsCount}
               </Text>
               <Text style={styles.statLine1}>{t("new", "New")}</Text>
               <Text style={styles.statLine2}>{t("applicants", "Applicant")}</Text>

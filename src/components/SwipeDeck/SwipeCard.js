@@ -425,10 +425,33 @@ export default React.memo(function SwipeCard({
   const displayEmployer = applicant?.current_employer || applicant?.past_employer || applicant?.employer || chefProfile?.current_employer || applicant?.user?.current_employer || "";
   const displayAge = applicant?.age ? `${applicant.age} Years` : "";
   const displayGender = applicant?.gender || applicant?.user?.gender || chefProfile?.gender || "";
-  const displayEmploymentType = applicant?.employment_type || applicant?.employment_preference || availabilityInfo?.employment_preference || "";
-  const displayOverseasExp = applicant?.overseas_experience || applicant?.past_overseas_experience || (getRegionalList().length > 0 ? "Yes" : "");
+  const getEmploymentTypeString = () => {
+    const raw =
+      applicant?.job_type ||
+      applicant?.employment_type ||
+      (Array.isArray(applicant?.employment_preference) && applicant.employment_preference.length > 0
+        ? applicant.employment_preference.join(", ")
+        : typeof applicant?.employment_preference === "string"
+        ? applicant.employment_preference
+        : "") ||
+      (Array.isArray(availabilityInfo?.employment_preference) && availabilityInfo.employment_preference.length > 0
+        ? availabilityInfo.employment_preference.join(", ")
+        : typeof availabilityInfo?.employment_preference === "string"
+        ? availabilityInfo.employment_preference
+        : "") ||
+      (Array.isArray(chefProfile?.employment_preference) && chefProfile.employment_preference.length > 0
+        ? chefProfile.employment_preference.join(", ")
+        : typeof chefProfile?.employment_preference === "string"
+        ? chefProfile.employment_preference
+        : "") ||
+      applicant?.user?.employment_type ||
+      "";
+    return typeof raw === "string" && raw.trim() && raw.trim() !== "N/A" ? raw.trim() : "";
+  };
+  const displayEmploymentType = getEmploymentTypeString();
+  const displayOverseasExp = applicant?.overseas_experience || applicant?.past_overseas_experience || applicant?.overseas_work_experience || (getRegionalList().length > 0 ? "Yes" : "");
   const displayLocationPref = availabilityInfo?.location_preference || applicant?.location_preference || applicant?.locationPreference || applicant?.preferred_location || "";
-  const displayBusinessType = applicant?.business_type || applicant?.business_types || applicant?.category || (getCuisinesList().length > 0 ? getCuisinesList().slice(0, 3).join(", ") : "");
+  const displayBusinessType = applicant?.business_type || applicant?.business_types || (getCuisinesList().length > 0 ? getCuisinesList().slice(0, 3).join(", ") : "");
 
   return (
     <GestureDetector gesture={panGesture}>
@@ -454,10 +477,10 @@ export default React.memo(function SwipeCard({
 
               {/* Center Profile Details */}
               <View style={styles.headerCenterInfo}>
-                <View style={styles.topMatchBadge}>
+                {/* <View style={styles.topMatchBadge}>
                   <Ionicons name="star" size={11} color="#7e22ce" style={{ marginRight: 4 }} />
                   <Text style={styles.topMatchText}>{t("topMatch", "Top Match")}</Text>
-                </View>
+                </View> */}
 
                 <Text style={styles.candidateName} numberOfLines={1}>
                   {displayName}
@@ -528,7 +551,7 @@ export default React.memo(function SwipeCard({
             ) : null}
 
             {/* 3. Employment Type */}
-            {displayEmploymentType && displayEmploymentType !== "N/A" ? (
+            {Boolean(displayEmploymentType) ? (
               <View style={styles.dataRow}>
                 <View style={styles.dataIconCol}>
                   <Ionicons name="bag-handle-outline" size={17} color="#153e69" />

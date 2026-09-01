@@ -1418,7 +1418,19 @@ const categoryJobTitles = {
   "Catering & Banquet": [
     "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
     "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
-  ]
+  ],
+  "Cloud Kitchen": [
+    "Cloud Kitchen Manager", "Kitchen Operations Lead", "Delivery Packing Staff",
+    "Order Preparation Staff", "Multi-Brand Cook", "Quality Control Staff",
+    "Cloud Kitchen Chef", "Line Cook", "Packing & Dispatch Staff",
+    "Delivery Coordinator", "Kitchen Helper", "Inventory Staff"
+  ],
+  "Hotel / Resort": [
+    "Executive Chef", "Sous Chef", "Front Office Executive", "Housekeeping Supervisor",
+    "Housekeeping Staff", "Bell Boy", "Concierge", "Banquet Manager",
+    "F&B Manager", "F&B Executive", "Room Service Staff", "Guest Relations Executive",
+    "Duty Manager", "Bartender", "Steward", "Kitchen Steward"
+  ],
 };
 
 const businessTypeCategories = [
