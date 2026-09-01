@@ -287,7 +287,15 @@ export default function JobDetailsScreen({ navigation, route }) {
 
   const title = String(job?.title || job?.job_title || job?.name || "").trim();
   const company = String(
-    job?.company || job?.company_name || job?.business_name || "",
+    job?.posted_by?.company ||
+    job?.posted_by?.full_name ||
+    job?.posted_by?.name ||
+    job?.job_posted_by ||
+    job?.company ||
+    job?.employer ||
+    job?.company_name ||
+    job?.business_name ||
+    "",
   ).trim();
   const location =
     String(job?.location || job?.city || job?.country || "").trim() ||
@@ -526,6 +534,7 @@ export default function JobDetailsScreen({ navigation, route }) {
                 <Text style={styles.metaValueGreen}>
                   {(() => {
                     const rawRole = (
+                      job?.posted_by?.role ||
                       job?.creator?.active_role ||
                       job?.active_role ||
                       job?.posted_by_role ||
@@ -544,6 +553,10 @@ export default function JobDetailsScreen({ navigation, route }) {
                       job?.creator?.role === "admin" ||
                       job?.creator?.active_role === "admin";
 
+                    const isTrainingProvider =
+                      rawRole === "trainingprovider" ||
+                      rawRole === "training_provider";
+
                     const isReferral =
                       Boolean(job?.is_referral) ||
                       job?._type === "referral_job" ||
@@ -553,11 +566,13 @@ export default function JobDetailsScreen({ navigation, route }) {
 
                     return isAdmin
                       ? t("admin", "ADMIN")
-                      : isReferral
-                        ? t("referral", "REFERRAL")
-                        : isChef
-                          ? t("chef", "CHEF")
-                          : t("employer", "EMPLOYER");
+                      : isTrainingProvider
+                        ? t("trainingProvider", "TRAINING PROVIDER")
+                        : isReferral
+                          ? t("referral", "REFERRAL")
+                          : isChef
+                            ? t("chef", "CHEF")
+                            : t("employer", "EMPLOYER");
                   })()}
                 </Text>
               </View>

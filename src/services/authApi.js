@@ -74,7 +74,19 @@ export const checkUserExists = async (userId) => {
   if (!userId) return { success: false, exists: true };
   try {
     const { clearClientState } = require("./apiClient");
-    const { clearAuthStorage } = require("./storage");
+    const { clearAuthStorage, getStoredProfile } = require("./storage");
+
+    let currentProfileId = null;
+    try {
+      const stored = await getStoredProfile();
+      currentProfileId = stored?.id || stored?.user_id || stored?.user?.id;
+    } catch (e) {}
+
+    if (currentProfileId && String(currentProfileId) !== String(userId)) {
+      console.warn(`[USER_EXISTS] Mismatched userId check (${userId} vs stored ${currentProfileId}). Skipping check/logout.`);
+      return { success: false, skipped: true };
+    }
+
     console.log(`[USER_EXISTS] Checking existence for user_id=${userId}...`);
     const response = await apiClient.get(`${API_ENDPOINTS.USER_EXISTS}?user_id=${userId}`, {
       cancelDuplicate: false,

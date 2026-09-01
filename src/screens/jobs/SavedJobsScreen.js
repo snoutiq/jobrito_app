@@ -171,20 +171,28 @@ export default function SavedJobsScreen({ navigation }) {
 
   const handleOpenDetails = (item) => {
     const feedJob = feedJobs.find((j) => String(j.id) === String(item.id));
-    const fullJob = feedJob || {
+    const fullJob = {
+      ...(feedJob || {}),
       ...item,
-      company: item.employer,
-      description: "Join our team to grow your career in the hospitality industry. We are looking for dedicated professionals.",
-      requirements: [
-        "Relevant experience in the required field.",
-        "Good teamwork and communication skills.",
-        "Willingness to work flexible hours."
-      ],
-      benefits: [
-        "Competitive Pay & Allowances",
-        "Complimentary Staff Meals",
-        "Professional Training & Development"
-      ],
+      posted_by: item.posted_by || feedJob?.posted_by || null,
+      company:
+        item.posted_by?.company ||
+        item.posted_by?.full_name ||
+        item.job_posted_by ||
+        item.employer ||
+        item.company,
+      description:
+        item.description ||
+        feedJob?.description ||
+        "",
+      requirements:
+        item.requirements ||
+        feedJob?.requirements || "",
+      benefits:
+        item.benefits ||
+        feedJob?.benefits || [
+          "",
+        ],
     };
     navigation.navigate("JobDetails", { jobId: item.id, job: fullJob, isSaved: true });
   };
@@ -205,6 +213,7 @@ export default function SavedJobsScreen({ navigation }) {
 
     const isReferral = item.category === "referral" || item.is_referral;
     const effectiveRoleSource =
+      item.posted_by?.role ||
       item.submitted_by_role ||
       item.posted_by_role ||
       item.active_role ||
@@ -221,6 +230,14 @@ export default function SavedJobsScreen({ navigation }) {
     const statusText = app ? getDisplayStatusText(app.status, t) : null;
     const statusColors = app ? getStatusBadgeColors(app.status) : null;
 
+    const companyDisplayName =
+      item.posted_by?.company ||
+      item.posted_by?.full_name ||
+      item.job_posted_by ||
+      item.employer ||
+      item.company ||
+      "";
+
     return (
       <Pressable
         onPress={() => handleOpenDetails(item)}
@@ -231,12 +248,12 @@ export default function SavedJobsScreen({ navigation }) {
           <View style={styles.jobInfoColumn}>
             <Text style={styles.jobTitleText} numberOfLines={1}>{item.title}</Text>
             
-            {!(item.is_training || item.category === "training" || item._type === "training_opportunity") && (
-              <View style={styles.companyNameRow}>
-                <Text style={styles.jobCompanyText} numberOfLines={1}>{item.employer || "Sheriff's Kitchen"}</Text>
+            <View style={styles.companyNameRow}>
+              <Text style={styles.jobCompanyText} numberOfLines={1}>{companyDisplayName}</Text>
+              {!(item.is_training || item.category === "training" || item._type === "training_opportunity") && (
                 <Ionicons name="checkmark-circle" size={normalize(14)} color="#3b82f6" style={{ marginLeft: normalize(4) }} />
-              </View>
-            )}
+              )}
+            </View>
 
             <Text style={styles.jobMetaLocationText} numberOfLines={1}>
               <Ionicons name="location-outline" size={normalize(12)} color="#64748b" />{" "}

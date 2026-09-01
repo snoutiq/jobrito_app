@@ -276,16 +276,16 @@ const checkAndRefreshToken = async (config = {}) => {
         userId = storedProfile?.id || storedProfile?.user_id || storedProfile?.user?.id;
       } catch (e) {}
 
-      if (!userId && token.includes("|")) {
-        const firstPart = token.split("|")[0];
-        if (/^\d+$/.test(firstPart)) {
-          userId = firstPart;
-        }
-      }
-
       if (userId) {
         const { checkUserExists } = require("./authApi");
-        checkUserExists(userId).catch(() => {});
+        checkUserExists(userId).catch((err) => {
+          console.error(
+            "🔴 [AUTO-LOGOUT DEBUG - Reason 2] Periodic /user/exists check failed for userId:",
+            userId,
+            "Error:",
+            err?.message || err
+          );
+        });
       }
     }
 
@@ -357,6 +357,14 @@ const silentTokenRefresh = async () => {
       (!err.response || status >= 500 || status === 408 || err.code === "ECONNABORTED");
 
     if (!isNetworkOrServerError) {
+      console.error(
+        "🔴 [AUTO-LOGOUT DEBUG - Reason 3] Proactive silent token refresh failed. Performing auto-logout.",
+        {
+          status,
+          message: err?.message,
+          isNoRefreshToken,
+        }
+      );
       Logger.error("Session invalid during proactive refresh. Logging out.");
       await clearAuthStorage();
       clearClientState(false);
@@ -755,6 +763,15 @@ apiClient.interceptors.response.use(
       contentType.includes("text/html") ||
       (typeof response.data === "string" && response.data.trim().startsWith("<!DOCTYPE"))
     ) {
+      console.error(
+        "🔴 [AUTO-LOGOUT DEBUG - Reason 1] Server returned HTML page (500/Nginx/Laravel Error) instead of JSON for URL:",
+        response.config?.url,
+        {
+          contentType,
+          status: response.status,
+          snippet: typeof response.data === "string" ? response.data.substring(0, 200) : response.data,
+        }
+      );
       clearClientState(true);
       return Promise.reject({
         success: false,
@@ -788,8 +805,10 @@ apiClient.interceptors.response.use(
     // 2. Token Refresh & Replay Queue
     const status = error.response?.status || error.status;
     if (status === 401) {
+      console.warn("⚠️ [401 UNAUTHORIZED DETECTED] Request returned 401:", originalRequest?.url);
       if (originalRequest) {
         if (originalRequest.url?.includes(API_ENDPOINTS.REFRESH_TOKEN)) {
+          console.error("🔴 [AUTO-LOGOUT DEBUG - Reason 3] /auth/refresh returned 401. Refresh token expired or invalid.");
           clearClientState(true);
           return Promise.reject(formatErrorResponse(error));
         }
@@ -802,6 +821,7 @@ apiClient.interceptors.response.use(
         }
 
         if (originalRequest._retry) {
+          console.error("🔴 [AUTO-LOGOUT DEBUG - Reason 4] 401 Unauthorized after token retry for URL:", originalRequest?.url);
           clearClientState(true);
           return Promise.reject(formatErrorResponse(error));
         }
@@ -866,6 +886,10 @@ apiClient.interceptors.response.use(
           if (isNetworkOrServerError) {
             Logger.warn("Token refresh failed due to network or server error. Skipping auto-logout.", refreshErr);
           } else {
+            console.error("🔴 [AUTO-LOGOUT DEBUG - Reason 3/4] Token refresh failed or session invalidated for request:", originalRequest?.url, {
+              status,
+              error: formattedErr?.message,
+            });
             Logger.error("Refresh token expired or invalid. Performing auto-logout.");
 
             // Telemetry

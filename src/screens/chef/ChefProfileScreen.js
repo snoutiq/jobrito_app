@@ -49,7 +49,11 @@ export default function ChefProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
-  const [loading, setLoading] = useState(true);
+  const applicationHistory = useSelector((state) => state.application?.history);
+  const reduxSavedJobs = useSelector((state) => state.job?.savedJobs);
+  const reduxMyJobs = useSelector((state) => state.job?.myJobs);
+
+  const [loading, setLoading] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -79,10 +83,35 @@ export default function ChefProfileScreen({ navigation }) {
     upcoming_consultations: 0,
     active_project_requests: 0,
   });
-  const [applicationsCount, setApplicationsCount] = useState(0);
-  const [savedJobsCount, setSavedJobsCount] = useState(0);
-  const [postedJobsCount, setPostedJobsCount] = useState(0);
+  const [applicationsCount, setApplicationsCount] = useState(
+    Array.isArray(applicationHistory) ? applicationHistory.length : 0
+  );
+  const [savedJobsCount, setSavedJobsCount] = useState(
+    Array.isArray(reduxSavedJobs) ? reduxSavedJobs.length : 0
+  );
+  const [postedJobsCount, setPostedJobsCount] = useState(
+    Array.isArray(reduxMyJobs) ? reduxMyJobs.length : 0
+  );
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Keep counts synced with Redux store instantly
+  useEffect(() => {
+    if (Array.isArray(applicationHistory)) {
+      setApplicationsCount(applicationHistory.length);
+    }
+  }, [applicationHistory]);
+
+  useEffect(() => {
+    if (Array.isArray(reduxSavedJobs)) {
+      setSavedJobsCount(reduxSavedJobs.length);
+    }
+  }, [reduxSavedJobs]);
+
+  useEffect(() => {
+    if (Array.isArray(reduxMyJobs)) {
+      setPostedJobsCount(reduxMyJobs.length);
+    }
+  }, [reduxMyJobs]);
 
   const displayName =
     profile?.name || profile?.full_name || "Kevin";
@@ -208,8 +237,8 @@ export default function ChefProfileScreen({ navigation }) {
       let isMounted = true;
       const fetchDashboardData = async () => {
         try {
-          await dispatch(fetchProfile()).unwrap();
           const [
+            profileRes,
             statsRes,
             appsRes,
             savedRes,
@@ -217,6 +246,7 @@ export default function ChefProfileScreen({ navigation }) {
             viewsRes,
             myJobsRes,
           ] = await Promise.all([
+            dispatch(fetchProfile()).unwrap().catch(() => null),
             getChefDashboardStats().catch(() => null),
             getApplicationHistory().catch(() => null),
             getSavedJobs().catch(() => null),
@@ -257,8 +287,11 @@ export default function ChefProfileScreen({ navigation }) {
           if (appsRes?.success && appsRes.applications) {
             setApplicationsCount(appsRes.applications.length);
           }
-          if (savedRes?.success && savedRes.jobs) {
-            setSavedJobsCount(savedRes.jobs.length);
+          if (savedRes?.success) {
+            const savedList = savedRes.saved_jobs || savedRes.jobs || [];
+            if (Array.isArray(savedList)) {
+              setSavedJobsCount(savedList.length);
+            }
           }
           if (appointmentsRes) {
             const list =
