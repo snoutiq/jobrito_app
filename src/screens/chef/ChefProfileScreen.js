@@ -157,37 +157,15 @@ export default function ChefProfileScreen({ navigation }) {
     availability === "Available immediately";
 
   const getProfileCompletionPercentage = () => {
-    if (!profile) return 80;
+    if (!profile) return 0;
 
     const apiPct =
       profile.completeness ??
       profile.profile_completeness ??
-      profile.completionPercentage;
-    if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
-      return Math.round(Number(apiPct));
-    }
+      profile.completionPercentage ??
+      profile.completion_percentage;
 
-    let totalFields = 10;
-    let filledFields = 0;
-
-    if (profile?.full_name || profile?.name) filledFields++;
-    if (profile?.profile_photo_path || profile?.profile_photo) filledFields++;
-    if (profile?.professionalTitle || profile?.preferred_role) filledFields++;
-    if (profile?.city) filledFields++;
-    if (
-      profile?.experienceYears ||
-      profile?.experience_range ||
-      profile?.experience
-    )
-      filledFields++;
-    if (profile?.bio) filledFields++;
-    if (profile?.skills || profile?.operations) filledFields++;
-    if (profile?.calendly_link || profile?.calendlyUrl) filledFields++;
-    if (profile?.linkedin || profile?.instagram) filledFields++;
-    if (profile?.locationPreference || profile?.location_preference) filledFields++;
-
-    const calculated = Math.round((filledFields / totalFields) * 100);
-    return calculated > 0 ? calculated : 80;
+    return apiPct != null ? Math.round(Number(apiPct)) : 0;
   };
 
   const getMissingFieldStep = () => {

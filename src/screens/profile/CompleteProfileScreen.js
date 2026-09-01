@@ -110,11 +110,22 @@ export default function CompleteProfileScreen({ navigation, route }) {
     return 1;
   });
 
+  const scrollViewRef = React.useRef(null);
+
   useEffect(() => {
     if (route?.params?.step) {
       setStep(route.params.step);
     }
   }, [route?.params?.step]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, 10);
+    return () => clearTimeout(timer);
+  }, [step]);
 
   // Profile Form States
   const [photo, setPhoto] = useState(null);
@@ -428,9 +439,13 @@ export default function CompleteProfileScreen({ navigation, route }) {
               </Text>
             </View>
 
-            <TouchableOpacity onPress={handleSkip} style={styles.skipBtnTouch} activeOpacity={0.7}>
-              <Text style={styles.skipBtnText}>{t("skip", "Skip")}</Text>
-            </TouchableOpacity>
+            {step < 5 ? (
+              <TouchableOpacity onPress={handleSkip} style={styles.skipBtnTouch} activeOpacity={0.7}>
+                <Text style={styles.skipBtnText}>{t("skip", "Skip")}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: normalize(40) }} />
+            )}
           </View>
 
           {/* Numbered Step Circle Progress Line */}
@@ -489,7 +504,7 @@ export default function CompleteProfileScreen({ navigation, route }) {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         {step === 1 && (
           <PhotoStep
             next={next}

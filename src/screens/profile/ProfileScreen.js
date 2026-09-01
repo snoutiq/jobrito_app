@@ -54,20 +54,7 @@ export default function ProfileScreen({ navigation }) {
       profile.profile_completeness ??
       profile.completionPercentage ??
       profile.completion_percentage;
-    if (apiPct !== undefined && apiPct !== null && apiPct > 0) {
-      return Math.round(Number(apiPct));
-    }
-    let fields = 0;
-    let filled = 0;
-    fields++;
-    if ((profile.name && profile.name !== "Guest User" && profile.name.trim()) || (profile.full_name && profile.full_name.trim())) filled++;
-    fields++;
-    if (profile.profile_photo_path || profile.profile_photo) filled++;
-    fields++;
-    if (profile.city && profile.city.trim()) filled++;
-    fields++;
-    if (profile.current_employer && profile.current_employer.trim()) filled++;
-    return fields > 0 ? Math.round((filled / fields) * 100) : 0;
+    return apiPct != null ? Math.round(Number(apiPct)) : 0;
   };
 
   const completion = getDynamicCompletion();

@@ -478,9 +478,12 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
     };
     saveCurrentStep();
 
-    if (scrollViewRef?.current) {
-      scrollViewRef.current.scrollTo({ y: 0, animated: true });
-    }
+    const timer = setTimeout(() => {
+      if (scrollViewRef?.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, 10);
+    return () => clearTimeout(timer);
   }, [step]);
 
   const handleCreateCalendlyAccount = () => {

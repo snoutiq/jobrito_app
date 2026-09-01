@@ -64,6 +64,15 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
   const isEditMode = route?.params?.isEditMode ?? false;
   const [step, setStep] = useState(1);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollViewRef?.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, 10);
+    return () => clearTimeout(timer);
+  }, [step]);
+
   // Initial logo URI
   const getInitialLogoUri = () => {
     const uri = profile?.company_logo || profile?.companyLogo || profile?.profile_photo_path;
