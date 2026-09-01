@@ -95,12 +95,12 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
     getProp("job_type", "type", "employment_type") ||
     "Full Time";
 
-  const rawCreator = getProp("created_by_name", "created_by_user", "created_by", "creator", "posted_by", "postedby", "posted_by_user", "company");
-  const creatorName = typeof rawCreator === "string" ? rawCreator : (rawCreator?.name || rawCreator?.full_name || rawCreator?.username || companyName || "Employer");
+  const rawCreator = getProp("posted_by", "postedby", "posted_by_user", "created_by_user", "created_by", "creator");
+  const creatorName = typeof rawCreator === "string" ? rawCreator : (rawCreator?.company || rawCreator?.full_name || rawCreator?.name || rawCreator?.username || companyName || "Employer");
 
   const rawRole = String(
-    getProp("posted_by_role", "submitted_by_role", "active_role", "user_role", "role") ||
-    (typeof rawCreator === "object" ? (rawCreator?.active_role || rawCreator?.role) : "") ||
+    (typeof rawCreator === "object" ? (rawCreator?.active_role || rawCreator?.active_profile || rawCreator?.role || rawCreator?.user_role) : "") ||
+    getProp("active_role", "posted_by_role", "submitted_by_role", "user_role", "role") ||
     ""
   ).toLowerCase().replace(/[\s_]/g, "");
 
@@ -108,6 +108,10 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
     Boolean(getProp("is_admin_created")) ||
     rawRole === "admin" ||
     (typeof rawCreator === "object" && (rawCreator?.role === "admin" || rawCreator?.active_role === "admin"));
+
+  const isTrainingProvider =
+    rawRole === "trainingprovider" ||
+    rawRole === "training_provider";
 
   const isReferral =
     Boolean(getProp("is_referral")) ||
@@ -124,6 +128,8 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
 
   const postedByRoleLabel = isAdmin
     ? t("admin", "Admin")
+    : isTrainingProvider
+    ? t("trainingProvider", "Training Provider")
     : isReferral
     ? t("referral", "Referral")
     : isChef
