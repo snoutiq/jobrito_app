@@ -24,13 +24,7 @@ const IS_SMALL_DEVICE = SCREEN_HEIGHT < 750;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.4;
 
 // High quality hospitality worker avatars
-const AVATARS = [
-  "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=180&auto=format&fit=crop&q=80", // Male Chef
-  "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=180&auto=format&fit=crop&q=80", // Female Chef
-  "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=180&auto=format&fit=crop&q=80", // Chef
-  "https://images.unsplash.com/photo-1595273670150-db0a3e368167?w=180&auto=format&fit=crop&q=80", // Male Waiter
-  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=180&auto=format&fit=crop&q=80", // Female Waitress
-];
+const AVATARS = [""];
 
 export const getAvatarUrl = (id) => {
   const index = Math.abs(parseInt(id) || 0) % AVATARS.length;

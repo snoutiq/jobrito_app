@@ -383,10 +383,15 @@ export default function ApplicantDetailScreen({ route, navigation }) {
   const matchScore = fetchedMatchScore;
 
   // Real profile photo URL mapping
-  const avatarUri = applicant.profile_photo_path || applicant.profile_photo;
-  const avatarSource = avatarUri
-    ? { uri: getAbsoluteProfilePhotoUrl(avatarUri) }
-    : { uri: getAvatarUrl(applicant.id || applicant.applicant_id) };
+  const avatarUri =
+    applicant.profile_photo_path ||
+    applicant.profile_photo ||
+    applicant.photo_url ||
+    applicant.avatar ||
+    applicant.user?.profile_photo_path ||
+    applicant.user?.profile_photo;
+
+  const photoUrl = avatarUri ? getAbsoluteProfilePhotoUrl(avatarUri) : null;
 
   const handleCall = () => {
     const phoneNumber = applicant.mobile_number;
@@ -502,7 +507,13 @@ export default function ApplicantDetailScreen({ route, navigation }) {
           <View style={styles.heroHeaderRow}>
             {/* Avatar Column */}
             <View style={styles.avatarWrapper}>
-              <Image source={avatarSource} style={styles.avatarImage} resizeMode="cover" />
+              {photoUrl ? (
+                <Image source={{ uri: photoUrl }} style={styles.avatarImage} resizeMode="cover" />
+              ) : (
+                <View style={styles.noAvatarCircle}>
+                  <Ionicons name="person" size={normalize(32)} color="#cbd5e1" />
+                </View>
+              )}
               <View style={styles.onlineDot} />
             </View>
 
@@ -856,6 +867,16 @@ const styles = StyleSheet.create({
     height: normalize(68),
     borderRadius: normalize(34),
     backgroundColor: "#f8fafc",
+  },
+  noAvatarCircle: {
+    width: normalize(68),
+    height: normalize(68),
+    borderRadius: normalize(34),
+    backgroundColor: "#f1f5f9",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
   },
   onlineDot: {
     position: "absolute",

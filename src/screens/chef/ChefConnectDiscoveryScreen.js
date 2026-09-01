@@ -36,11 +36,8 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        if (navigation && navigation.canGoBack()) {
-          navigation.goBack();
-          return true;
-        }
-        return false;
+        navigation.navigate("EmployerHome");
+        return true;
       };
 
       const subscription = BackHandler.addEventListener(
@@ -595,7 +592,7 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       {/* Top Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => navigation.navigate("EmployerHome")} style={styles.backButton} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center" }}>

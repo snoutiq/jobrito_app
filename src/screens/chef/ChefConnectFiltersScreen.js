@@ -26,11 +26,8 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        if (navigation && navigation.canGoBack()) {
-          navigation.goBack();
-          return true;
-        }
-        return false;
+        navigation.navigate("ChefConnectDiscovery");
+        return true;
       };
 
       const subscription = BackHandler.addEventListener(
@@ -175,7 +172,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.navigate("ChefConnectDiscovery")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0a0504" />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center" }}>
@@ -292,7 +289,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
         <View style={styles.divider} />
 
         {/* Business & Brand Development Section */}
-        <View style={styles.filterSection}>
+        {/* <View style={styles.filterSection}>
           {renderSectionHeader(t("businessBrandDev"), selectedBusiness.length, "business")}
           {expandedSection === "business" && (
             <View style={styles.pillsContainer}>
@@ -313,7 +310,7 @@ export default function ChefConnectFiltersScreen({ navigation, route }) {
               })}
             </View>
           )}
-        </View>
+        </View> */}
 
         <View style={styles.divider} />
 
