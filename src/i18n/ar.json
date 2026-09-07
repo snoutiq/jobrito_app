@@ -339,6 +339,7 @@
     "salaryRange": "نطاق الراتب",
     "salaryPlaceholder": "أدخل نطاق الراتب",
     "openPositions": "الوظائف الشاغرة",
+    "salaryMaxLessThanMin": "يجب أن يكون الحد الأقصى للراتب أكبر من أو يساوي الحد الأدنى للراتب.",
     "experienceRequired": "الخبرة المطلوبة",
     "jobDescription": "الوصف الوظيفي",
     "jobDescriptionPlaceholder": "حدد المسؤوليات الرئيسية والمهارات المطلوبة لهذا الدور...",

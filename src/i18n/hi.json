@@ -647,6 +647,7 @@
     "openPositions": "रिक्त पद",
     "invalidOpenPositions": "कृपया रिक्त पदों की सही संख्या दर्ज करें (कम से कम 1)।",
     "invalidPositionsTitle": "अमान्य रिक्त पद",
+    "salaryMaxLessThanMin": "अधिकतम वेतन न्यूनतम वेतन से अधिक या बराबर होना चाहिए।",
     "experienceRequired": "अनुभव आवश्यक",
     "jobDescription": "नौकरी का विवरण",
     "jobDescriptionPlaceholder": "इस भूमिका के लिए मुख्य जिम्मेदारियों और आवश्यक कौशलों की रूपरेखा तैयार करें...",

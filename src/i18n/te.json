@@ -369,6 +369,7 @@
     "salaryRange": "జీతం పరిధి",
     "salaryPlaceholder": "జీతం పరిధిని నమోదు చేయండి",
     "openPositions": "ఓపెన్ పొజిషన్లు",
+    "salaryMaxLessThanMin": "గరిష్ట జీతం కనిష్ట జీతం కంటే ఎక్కువగా లేదా సమానంగా ఉండాలి.",
     "experienceRequired": "అనుభవం అవసరం",
     "jobDescription": "ఉద్యోగ వివరణ",
     "jobDescriptionPlaceholder": "ఈ పాత్ర కోసం ప్రధాన బాధ్యతలు మరియు అవసరమైన నైపుణ్యాలను వివరించండి...",

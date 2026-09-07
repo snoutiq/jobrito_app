@@ -375,6 +375,10 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
     }
   };
 
+  const initialBusinessName = profile?.business_name || profile?.businessName || profile?.company;
+  const isBusinessNameNull = !initialBusinessName || !String(initialBusinessName).trim();
+  const showHeaderBackButton = !(step === 1 && isBusinessNameNull);
+
   // Handle Android hardware back press to go back step-by-step
   useEffect(() => {
     const onBackPress = () => {
@@ -382,12 +386,15 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
         setStep((prev) => prev - 1);
         return true; // Intercept and handle back press
       }
+      if (isBusinessNameNull) {
+        return true; // Prevent going back on step 1 if business name is missing
+      }
       return false; // Fallback to default navigation behavior on step 1
     };
 
     const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () => subscription.remove();
-  }, [step]);
+  }, [step, isBusinessNameNull]);
 
   const prevStep = () => {
     if (step > 1) {
@@ -520,9 +527,13 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
       >
         {/* Top Bar Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={prevStep} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
-          </TouchableOpacity>
+          {showHeaderBackButton ? (
+            <TouchableOpacity onPress={prevStep} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={normalize(22)} color="#0f172a" />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: normalize(32) }} />
+          )}
 
           <View style={{ flex: 1, alignItems: "center" }}>
             <Text style={styles.headerTitle}>{t("completeBusinessProfileTitle", "Complete Your Business Profile")}</Text>

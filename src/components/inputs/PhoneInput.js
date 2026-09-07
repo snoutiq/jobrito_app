@@ -9,6 +9,7 @@ export default function PhoneInput({
   prefix = "+91",
   flag = "\u{1F1EE}\u{1F1F3}",
   onPrefixPress,
+  maxLength = 10,
 }) {
   return (
     <View style={styles.container}>
@@ -35,7 +36,7 @@ export default function PhoneInput({
         autoCorrect={false}
         spellCheck={false}
         returnKeyType="done"
-        maxLength={10}
+        maxLength={maxLength}
       />
     </View>
   );

@@ -338,6 +338,7 @@
     "salaryRange": "वेतन श्रेणी",
     "salaryPlaceholder": "वेतन श्रेणी प्रविष्ट करा",
     "openPositions": "रिक्त पदे",
+    "salaryMaxLessThanMin": "कमाल वेतन किमान वेतनापेक्षा जास्त किंवा समान असावे.",
     "experienceRequired": "अनुभव आवश्यक",
     "jobDescription": "नोकरीचे वर्णन",
     "jobDescriptionPlaceholder": "या भूमिकेसाठी मुख्य जबाबदार्या आणि आवश्यक कौशल्ये स्पष्ट करा...",

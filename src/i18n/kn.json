@@ -369,6 +369,7 @@
     "salaryRange": "ಸಂಬಳ ಶ್ರೇಣಿ",
     "salaryPlaceholder": "ವೇತನ ಶ್ರೇಣಿಯನ್ನು ನಮೂದಿಸಿ",
     "openPositions": "ತೆರೆದ ಸ್ಥಾನಗಳು",
+    "salaryMaxLessThanMin": "ಗರಿಷ್ಠ ವೇತನವು ಕನಿಷ್ಠ ವೇತನಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿರಬೇಕು ಅಥವಾ ಸಮನಾಗಿರಬೇಕು.",
     "experienceRequired": "ಅನುಭವದ ಅಗತ್ಯವಿದೆ",
     "jobDescription": "ಉದ್ಯೋಗ ವಿವರಣೆ",
     "jobDescriptionPlaceholder": "ಈ ಪಾತ್ರಕ್ಕಾಗಿ ಮುಖ್ಯ ಜವಾಬ್ದಾರಿಗಳು ಮತ್ತು ಅಗತ್ಯವಿರುವ ಕೌಶಲ್ಯಗಳನ್ನು ವಿವರಿಸಿ...",

@@ -180,11 +180,23 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [showDialCodeModal, setShowDialCodeModal] = useState(false);
   const dialCodeOptions = ["🇮🇳 +91", "🇸🇦 +966"];
 
+  const [savedPhones, setSavedPhones] = useState({});
+  const targetPhoneDigits = (phoneDialCode.includes("+966") || category === "KSA" || category === "Saudi Arabia") ? 9 : 10;
+
+  const changeCountryOrDialCode = (newCat, newCode) => {
+    setSavedPhones((prev) => {
+      const updated = { ...prev, [phoneDialCode]: phoneNumber };
+      setPhoneNumber(updated[newCode] || "");
+      return updated;
+    });
+    if (newCat) setCategory(newCat);
+    if (newCode) setPhoneDialCode(newCode);
+  };
+
   useEffect(() => {
-    if (category === "KSA" || category === "Saudi Arabia") {
-      setPhoneDialCode("🇸🇦 +966");
-    } else {
-      setPhoneDialCode("🇮🇳 +91");
+    const expectedCode = (category === "KSA" || category === "Saudi Arabia") ? "🇸🇦 +966" : "🇮🇳 +91";
+    if (expectedCode !== phoneDialCode) {
+      changeCountryOrDialCode(null, expectedCode);
     }
   }, [category]);
   const [emailAddress, setEmailAddress] = useState("");
@@ -194,6 +206,19 @@ export default function PostReferralJobScreen({ navigation, route }) {
   // Optional Fields
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  const [salaryError, setSalaryError] = useState("");
+
+  const validateSalary = (minVal, maxVal) => {
+    const min = parseFloat(minVal);
+    const max = parseFloat(maxVal);
+    if (minVal && maxVal && !isNaN(min) && !isNaN(max) && max < min) {
+      const msg = t("postJob.salaryMaxLessThanMin", "Maximum salary must be greater than or equal to minimum salary.");
+      setSalaryError(msg);
+      return false;
+    }
+    setSalaryError("");
+    return true;
+  };
   const [salaryCurrency, setSalaryCurrency] = useState("INR");
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [location, setLocation] = useState("");
@@ -362,10 +387,24 @@ export default function PostReferralJobScreen({ navigation, route }) {
       Alert.alert(t("error"), t("postJob.phoneRequired", "Please enter a Phone Number."));
       return;
     }
+    if (phoneNumber.trim().length !== targetPhoneDigits) {
+      Alert.alert(
+        t("error"),
+        t("postJob.invalidPhoneLength", `Please enter a valid ${targetPhoneDigits}-digit phone number.`)
+      );
+      return;
+    }
     setStep(2);
   };
 
   const handleNextStep2 = () => {
+    if (!validateSalary(salaryMin, salaryMax)) {
+      Alert.alert(
+        t("error"),
+        t("postJob.salaryMaxLessThanMin", "Maximum salary must be greater than or equal to minimum salary."),
+      );
+      return;
+    }
     if (!title.trim()) {
       Alert.alert(
         t("error"),
@@ -472,11 +511,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
       contact_person: contactPerson,
     };
 
-    if (category === "KSA" || category === "Dubai") {
-      jobData.country = country.trim();
+    if (category !== "India" || country.trim()) {
+      jobData.country = country.trim() || (category === "KSA" ? "Saudi Arabia" : category === "Dubai" ? "UAE" : country);
       jobData.visa_assistance = visaAssistance;
       jobData.accommodation_available = accommodationAvailable;
-      jobData.contract_duration = contractDuration.trim() || null;
+      if (contractDuration) jobData.contract_duration = contractDuration.trim();
     }
 
     const payload = Object.keys(jobData).reduce((acc, key) => {
@@ -539,6 +578,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
     setDescription("");
     setSalaryMin("");
     setSalaryMax("");
+    setSalaryError("");
     setSalaryCurrency("INR");
     setLocation("");
     setJobType("Full-time");
@@ -714,7 +754,8 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         onSelect={(val) => {
                           const newCat = val === "Saudi Arabia" ? "KSA" : val;
                           if (category !== newCat) {
-                            setCategory(newCat);
+                            const newCode = newCat === "KSA" ? "🇸🇦 +966" : "🇮🇳 +91";
+                            changeCountryOrDialCode(newCat, newCode);
                             setSelectedState("");
                             setSelectedCity("");
                           }
@@ -839,7 +880,12 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         title={t("selectCountryCode", "Select Code")}
                         options={dialCodeOptions}
                         selectedValue={phoneDialCode}
-                        onSelect={(val) => setPhoneDialCode(val)}
+                        onSelect={(val) => {
+                          if (val !== phoneDialCode) {
+                            const newCat = val.includes("+966") ? "KSA" : "India";
+                            changeCountryOrDialCode(newCat, val);
+                          }
+                        }}
                       />
                     </View>
 
@@ -852,12 +898,18 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     >
                       <TextInput
                         value={phoneNumber}
-                        onChangeText={setPhoneNumber}
+                        onChangeText={(val) => {
+                          const cleaned = val.replace(/[^0-9]/g, "");
+                          if (cleaned.length <= targetPhoneDigits) {
+                            setPhoneNumber(cleaned);
+                            setSavedPhones((prev) => ({ ...prev, [phoneDialCode]: cleaned }));
+                          }
+                        }}
                         placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="phone-pad"
-                        maxLength={15}
+                        maxLength={targetPhoneDigits}
                         onFocus={(e) => handleInputFocus(e, "phone")}
                         onBlur={() => setActiveField(null)}
                       />
@@ -1011,11 +1063,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         styles.inputWrapper,
                         activeField === "salaryMin" &&
                           styles.inputWrapperActive,
+                        Boolean(salaryError) && { borderColor: "#ef4444" },
                       ]}
                     >
                       <TextInput
                         value={salaryMin}
-                        onChangeText={setSalaryMin}
+                        onChangeText={(val) => {
+                          setSalaryMin(val);
+                          validateSalary(val, salaryMax);
+                        }}
                         placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
@@ -1033,11 +1089,15 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         styles.inputWrapper,
                         activeField === "salaryMax" &&
                           styles.inputWrapperActive,
+                        Boolean(salaryError) && { borderColor: "#ef4444" },
                       ]}
                     >
                       <TextInput
                         value={salaryMax}
-                        onChangeText={setSalaryMax}
+                        onChangeText={(val) => {
+                          setSalaryMax(val);
+                          validateSalary(salaryMin, val);
+                        }}
                         placeholder=""
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
@@ -1048,6 +1108,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
                     </View>
                   </View>
                 </View>
+                {Boolean(salaryError) && (
+                  <Text style={{ color: "#ef4444", fontSize: normalize(12), marginTop: normalize(4), fontWeight: "500" }}>
+                    {salaryError}
+                  </Text>
+                )}
 
                 {/* Open Positions Section */}
                 <View style={styles.inputGroup}>

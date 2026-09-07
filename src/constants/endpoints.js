@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
   MY_JOBS: "/my-jobs",
   JOBS_STORE: "/admin/jobs/save",
   JOBS_COMMUNITY: "/jobs/community",
+  JOBS_REFERRALS: "/jobs/referrals",
   PROFILE_SAVED: "/jobs/saved",
   PROFILE_APPLICATIONS: "/applications/history",
 

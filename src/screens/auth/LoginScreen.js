@@ -52,14 +52,14 @@ export default function LoginScreen({ navigation }) {
   const role = useSelector((state) => state.user.activeRole);
 
   const countries = [
-    { name: "India", code: "+91", flag: "\u{1F1EE}\u{1F1F3}" },
-    { name: "United States", code: "+1", flag: "\u{1F1FA}\u{1F1F8}" },
-    { name: "United Kingdom", code: "+44", flag: "\u{1F1EC}\u{1F1E7}" },
-    { name: "United Arab Emirates", code: "+971", flag: "\u{1F1E6}\u{1F1EA}" },
-    { name: "Saudi Arabia", code: "+966", flag: "\u{1F1F8}\u{1F1E6}" },
-    { name: "Canada", code: "+1", flag: "\u{1F1E8}\u{1F1E6}" },
-    { name: "Australia", code: "+61", flag: "\u{1F1E6}\u{1F1FA}" },
-    { name: "Singapore", code: "+65", flag: "\u{1F1F8}\u{1F1EC}" }
+    { name: "India", code: "+91", flag: "\u{1F1EE}\u{1F1F3}", digits: 10 },
+    { name: "United States", code: "+1", flag: "\u{1F1FA}\u{1F1F8}", digits: 10 },
+    { name: "United Kingdom", code: "+44", flag: "\u{1F1EC}\u{1F1E7}", digits: 10 },
+    { name: "United Arab Emirates", code: "+971", flag: "\u{1F1E6}\u{1F1EA}", digits: 9 },
+    { name: "Saudi Arabia", code: "+966", flag: "\u{1F1F8}\u{1F1E6}", digits: 9 },
+    { name: "Canada", code: "+1", flag: "\u{1F1E8}\u{1F1E6}", digits: 10 },
+    { name: "Australia", code: "+61", flag: "\u{1F1E6}\u{1F1FA}", digits: 9 },
+    { name: "Singapore", code: "+65", flag: "\u{1F1F8}\u{1F1EC}", digits: 8 }
   ];
 
   const handleRequestOtp = async () => {
@@ -145,7 +145,9 @@ export default function LoginScreen({ navigation }) {
     item.code.includes(searchQuery)
   );
 
-  const isPhoneValid = phone.trim().length === 10;
+  const selectedCountry = countries.find(item => item.code === countryCode && item.flag === countryFlag) || countries[0];
+  const targetDigits = selectedCountry?.digits || 10;
+  const isPhoneValid = phone.trim().length === targetDigits;
 
   return (
     <ScreenWrapper
@@ -167,7 +169,7 @@ export default function LoginScreen({ navigation }) {
           value={phone}
           onChangeText={(text) => {
             const cleaned = text.replace(/[^0-9]/g, "");
-            if (cleaned.length <= 10) setPhone(cleaned);
+            if (cleaned.length <= targetDigits) setPhone(cleaned);
           }}
           prefix={countryCode}
           flag={countryFlag}
@@ -175,6 +177,7 @@ export default function LoginScreen({ navigation }) {
             setSearchQuery("");
             setShowCountryModal(true);
           }}
+          maxLength={targetDigits}
         />
         
         <TouchableOpacity
@@ -251,6 +254,9 @@ export default function LoginScreen({ navigation }) {
                     onPress={() => {
                       setCountryCode(item.code);
                       setCountryFlag(item.flag);
+                      if (phone.length > item.digits) {
+                        setPhone(phone.slice(0, item.digits));
+                      }
                       setShowCountryModal(false);
                     }}
                     style={[

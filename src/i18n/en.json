@@ -602,6 +602,7 @@
     "openPositions": "Open Positions",
     "invalidOpenPositions": "Please enter a valid number of open positions (at least 1).",
     "invalidPositionsTitle": "Invalid Open Positions",
+    "salaryMaxLessThanMin": "Maximum salary must be greater than or equal to minimum salary.",
     "experienceRequired": "Experience Required",
     "jobDescription": "Job Description",
     "jobDescriptionPlaceholder": "Outline the main responsibilities and required skills for this role...",

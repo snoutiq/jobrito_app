@@ -115,6 +115,19 @@ export default function PostJobScreen({ navigation, route }) {
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  const [salaryError, setSalaryError] = useState("");
+
+  const validateSalary = (minVal, maxVal) => {
+    const min = parseFloat(minVal);
+    const max = parseFloat(maxVal);
+    if (minVal && maxVal && !isNaN(min) && !isNaN(max) && max < min) {
+      const msg = t("postJob.salaryMaxLessThanMin", "Maximum salary must be greater than or equal to minimum salary.");
+      setSalaryError(msg);
+      return false;
+    }
+    setSalaryError("");
+    return true;
+  };
   
   const [experience, setExperience] = useState("Mid Level (3-5 Years)");
   const [showExperienceModal, setShowExperienceModal] = useState(false);
@@ -340,6 +353,13 @@ export default function PostJobScreen({ navigation, route }) {
 
   // Step 2 Validation
   const handleStep2Next = () => {
+    if (!validateSalary(salaryMin, salaryMax)) {
+      Alert.alert(
+        t("error", "Error"),
+        t("postJob.salaryMaxLessThanMin", "Maximum salary must be greater than or equal to minimum salary.")
+      );
+      return;
+    }
     if (!jobType) {
       Alert.alert(t("error", "Error"), t("pleaseSelectJobType", "Please select employment type."));
       return;
@@ -373,15 +393,37 @@ export default function PostJobScreen({ navigation, route }) {
       ? `${salaryCurrency} ${salaryMin}+`
       : "";
 
+    const contactPerson = profile?.name || profile?.full_name || profile?.contact_person || profile?.employer_profile?.contact_person || "";
+    const contactPhone = profile?.phone || profile?.mobile || profile?.employer_profile?.phone || "";
+    const contactEmail = profile?.email || profile?.employer_profile?.email || "";
+    const contactInfo = contactPhone && contactEmail
+      ? `Phone: ${contactPhone} | Email: ${contactEmail}`
+      : contactPhone
+      ? `Phone: ${contactPhone}`
+      : contactEmail
+      ? `Email: ${contactEmail}`
+      : "";
+
+    let locCategory = "india";
+    const locLower = cleanLoc.toLowerCase();
+    if (locLower.includes("saudi") || locLower.includes("ksa") || locLower.includes("riyadh") || locLower.includes("jeddah")) {
+      locCategory = "ksa";
+    } else if (locLower.includes("dubai") || locLower.includes("uae") || locLower.includes("abudhabi")) {
+      locCategory = "overseas";
+    }
+
     const finalRole = jobRole === "Other" ? (customRole.trim() || "Other") : jobRole;
 
     const jobData = {
-      title: finalRole || "Hospitality Staff",
+      title: finalRole || "",
       job_role: finalRole,
+      category: locCategory,
       industry_segment: businessType,
       company: profile?.business_name || profile?.businessName || profile?.company || "My Company",
+      contact_person: contactPerson || null,
+      contact_info: contactInfo || null,
       location: cleanLoc,
-      salary: combinedSalary,
+      salary: combinedSalary || null,
       salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
       salary_max: salaryMax ? parseFloat(salaryMax) || salaryMax : null,
       salary_currency: salaryCurrency,
@@ -389,7 +431,13 @@ export default function PostJobScreen({ navigation, route }) {
       job_type: jobType,
       open_positions: parseInt(openPositions, 10) || 1,
       description: jobDescription,
+      is_referral: false,
+      submitted_by_role: "employer",
     };
+
+    if (locCategory === "ksa" || locCategory === "overseas") {
+      jobData.country = locLower.includes("saudi") || locLower.includes("ksa") || locLower.includes("riyadh") || locLower.includes("jeddah") ? "Saudi Arabia" : "UAE";
+    }
 
     try {
       const result = await dispatch(storeEmployerJob(jobData));
@@ -428,6 +476,7 @@ export default function PostJobScreen({ navigation, route }) {
     setSalaryCurrency("SAR");
     setSalaryMin("");
     setSalaryMax("");
+    setSalaryError("");
     setExperience("Mid Level (3-5 Years)");
     setOpenPositions("1");
     setJobType("Full-Time");
@@ -659,11 +708,14 @@ export default function PostJobScreen({ navigation, route }) {
                       style={styles.currencyTriggerStyle}
                     />
                   </View>
-                  <View style={[styles.salaryInputBox, activeField === "salaryMin" && styles.inputWrapperActive]}>
+                  <View style={[styles.salaryInputBox, activeField === "salaryMin" && styles.inputWrapperActive, Boolean(salaryError) && { borderColor: "#ef4444" }]}>
                     <Text style={styles.salaryInputSmallLabel}>{t("min", "Min")}</Text>
                     <TextInput
                       value={salaryMin}
-                      onChangeText={setSalaryMin}
+                      onChangeText={(val) => {
+                        setSalaryMin(val);
+                        validateSalary(val, salaryMax);
+                      }}
                       placeholder="50000"
                       placeholderTextColor="#94a3b8"
                       keyboardType="numeric"
@@ -673,11 +725,14 @@ export default function PostJobScreen({ navigation, route }) {
                     />
                   </View>
                   <Text style={styles.salaryDash}>-</Text>
-                  <View style={[styles.salaryInputBox, activeField === "salaryMax" && styles.inputWrapperActive]}>
+                  <View style={[styles.salaryInputBox, activeField === "salaryMax" && styles.inputWrapperActive, Boolean(salaryError) && { borderColor: "#ef4444" }]}>
                     <Text style={styles.salaryInputSmallLabel}>{t("max", "Max")}</Text>
                     <TextInput
                       value={salaryMax}
-                      onChangeText={setSalaryMax}
+                      onChangeText={(val) => {
+                        setSalaryMax(val);
+                        validateSalary(salaryMin, val);
+                      }}
                       placeholder="80000"
                       placeholderTextColor="#94a3b8"
                       keyboardType="numeric"
@@ -687,6 +742,11 @@ export default function PostJobScreen({ navigation, route }) {
                     />
                   </View>
                 </View>
+                {Boolean(salaryError) && (
+                  <Text style={{ color: "#ef4444", fontSize: normalize(12), marginTop: normalize(4), fontWeight: "500" }}>
+                    {salaryError}
+                  </Text>
+                )}
                 <ModalPicker
                   visible={showCurrencyModal}
                   onClose={() => setShowCurrencyModal(false)}

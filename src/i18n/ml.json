@@ -369,6 +369,7 @@
     "salaryRange": "ശമ്പള ശ്രേണി",
     "salaryPlaceholder": "ശമ്പള പരിധി നൽകുക",
     "openPositions": "തുറന്ന സ്ഥാനങ്ങൾ",
+    "salaryMaxLessThanMin": "പരമാവധി ശമ്പളം കുറഞ്ഞ ശമ്പളത്തേക്കാൾ കൂടുതലോ തുല്യമോ ആയിരിക്കണം.",
     "experienceRequired": "പരിചയം ആവശ്യമാണ്",
     "jobDescription": "ജോലി വിവരണം",
     "jobDescriptionPlaceholder": "ഈ റോളിന് ആവശ്യമായ പ്രധാന ഉത്തരവാദിത്തങ്ങളും കഴിവുകളും രൂപപ്പെടുത്തുക...",
