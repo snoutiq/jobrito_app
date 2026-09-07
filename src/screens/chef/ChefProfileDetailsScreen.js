@@ -145,9 +145,12 @@ ${shareUrl}
 
   React.useEffect(() => {
     if (chef?.id && !isOwnProfile) {
-      recordChefProfileView(chef.id).catch(() => null);
+      const isAlreadyViewed = chef.viewed || chef.is_viewed;
+      if (!isAlreadyViewed) {
+        recordChefProfileView(chef.id).catch(() => null);
+      }
     }
-  }, [chef?.id, isOwnProfile]);
+  }, [chef?.id, isOwnProfile, chef?.viewed, chef?.is_viewed]);
 
   if (loadingChef) {
     return (

@@ -1032,9 +1032,13 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
         {/* Header */}
         {step < 7 && (
           <View style={styles.header}>
-            <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
-              <Ionicons name="arrow-back" size={24} color="#0a0504" />
-            </TouchableOpacity>
+            {!(step === 1 && (!fullName || !fullName.trim())) ? (
+              <TouchableOpacity onPress={prev} style={styles.headerIconBtn}>
+                <Ionicons name="arrow-back" size={24} color="#0a0504" />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 32 }} />
+            )}
             <View style={{ flex: 1, alignItems: "center" }}>
               <Text style={[styles.headerTitle, { textAlign: "center" }, step >= 6 && { color: "#153e69" }]}>
                 Professional Profile

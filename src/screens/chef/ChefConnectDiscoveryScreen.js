@@ -68,8 +68,11 @@ export default function ChefConnectDiscoveryScreen({ navigation, route }) {
 
   const handleViewFullProfile = (chef) => {
     if (chef?.id) {
-      recordChefProfileView(chef.id).catch(() => null);
-      setViewedChefsMap((prev) => ({ ...prev, [chef.id]: true }));
+      const isAlreadyViewed = chef.viewed || chef.is_viewed || viewedChefsMap[chef.id];
+      if (!isAlreadyViewed) {
+        recordChefProfileView(chef.id).catch(() => null);
+        setViewedChefsMap((prev) => ({ ...prev, [chef.id]: true }));
+      }
     }
     navigation.navigate("ChefProfileDetails", { chef });
   };

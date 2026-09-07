@@ -72,11 +72,18 @@ export const updateChefAvailability = async (availabilityStatus) => {
   return response.data;
 };
 
+const recordedViewChefIds = new Set();
+
 export const recordChefProfileView = async (chefId) => {
   if (!chefId) return { success: false, message: "Chef ID is required" };
-  console.log(`[Chef API] Recording profile view for Chef ID: ${chefId}`);
+  const numericId = Number(chefId);
+  if (recordedViewChefIds.has(numericId)) {
+    return { success: true, skipped: true };
+  }
+  recordedViewChefIds.add(numericId);
+  console.log(`[Chef API] Recording profile view for Chef ID: ${numericId}`);
   const response = await apiClient.post(API_ENDPOINTS.CHEF_VIEW_PROFILE, {
-    chef_id: Number(chefId),
+    chef_id: numericId,
   });
   return response.data;
 };
