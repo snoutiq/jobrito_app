@@ -37,7 +37,9 @@ export default function StatusBadge({ status }) {
       case "hired":
         return t("status.hired", "Hired");
       case "rejected":
-        return t("status.rejected", "Rejected");
+      case "reject":
+      case "declined":
+        return t("status.notAMatch", "Not A Match");
       case "pending":
         return t("status.pending", "Pending");
       case "approved":

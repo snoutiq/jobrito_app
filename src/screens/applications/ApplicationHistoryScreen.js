@@ -46,7 +46,7 @@ const getDisplayStatusText = (statusStr, t) => {
     return t("status.underReview", "UNDER REVIEW");
   }
   if (s === "REJECT" || s === "REJECTED" || s === "DECLINED") {
-    return t("status.rejected", "REJECTED");
+    return t("status.notAMatch", "NOT A MATCH");
   }
   if (s === "SHORTLISTED") return t("status.shortlisted", "SHORTLISTED");
   if (s === "CONTACTED") return t("status.contacted", "CONTACTED");

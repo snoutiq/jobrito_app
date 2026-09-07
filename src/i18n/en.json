@@ -670,6 +670,7 @@
   "shortlisted": "Shortlisted",
   "selected": "Selected",
   "rejected": "Rejected",
+  "notAMatch": "Not A Match",
   "declined": "Declined",
   "contacted": "Contacted",
   "connected": "Connected",

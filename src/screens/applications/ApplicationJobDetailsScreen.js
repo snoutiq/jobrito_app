@@ -474,7 +474,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
                     : styles.stepperLabelDefault,
                 ]}
               >
-                {isRejected ? t("rejected", "Rejected") : t("status.contacted", "Contacted")}
+                {isRejected ? t("notAMatch", "Not A Match") : t("status.contacted", "Contacted")}
               </Text>
               <Text style={styles.stepperDate}>-</Text>
             </View>
