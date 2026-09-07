@@ -571,7 +571,6 @@ export default function ApplicantDetailScreen({ route, navigation }) {
                 <CircularMatchProgress score={matchScore} size={normalize(56)} strokeWidth={3.5} />
                 <View style={styles.matchCircleLabelRow}>
                   <Text style={styles.matchCircleLabel}>{t("match", "Match")}</Text>
-                  <Ionicons name="information-circle-outline" size={normalize(11)} color="#64748b" style={{ marginLeft: 2 }} />
                 </View>
               </View>
             )}

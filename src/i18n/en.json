@@ -1352,5 +1352,10 @@
     "q37": "Where can I find these opportunities?",
     "a37": "You can access them through the Training & Overseas filter/section in Jobrito."
   },
-  "applications": "Applications"
+  "applications": "Applications",
+  "noRecordsToDisplay": "No records to display",
+  "noRecordsFound": "No records to display",
+  "backToMyJobs": "Back to my jobs",
+  "allCaughtUp": "No records to display",
+  "backToJobs": "Back to my jobs"
 }

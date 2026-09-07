@@ -516,7 +516,6 @@ export default React.memo(function SwipeCard({
                   <CircularMatchProgress score={matchScore} size={58} strokeWidth={3.5} />
                   <View style={styles.matchCircleLabelRow}>
                     <Text style={styles.matchCircleLabel}>{t("match", "Match")}</Text>
-                    <Ionicons name="information-circle-outline" size={11} color="#64748b" style={{ marginLeft: 2 }} />
                   </View>
                 </View>
               )}

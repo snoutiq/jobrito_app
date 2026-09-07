@@ -88,12 +88,12 @@ export default function CardStack({
         <View style={styles.emptyIconCircle}>
           <Ionicons name="sparkles" size={48} color="#153e69" />
         </View>
-        <Text style={styles.emptyTitle}>{t("allCaughtUp", "All Caught Up!")}</Text>
-        <Text style={styles.emptySubtitle}>
+        <Text style={styles.emptyTitle}>{t("noRecordsToDisplay", "No records to display")}</Text>
+        {/* <Text style={styles.emptySubtitle}>
           {t("allApplicantsReviewed", "You've reviewed all applicants in this category.")}
-        </Text>
+        </Text> */}
         <TouchableOpacity style={styles.emptyStateButton} onPress={onBackToJobs}>
-          <Text style={styles.emptyStateButtonText}>{t("backToJobs", "Back to Jobs")}</Text>
+          <Text style={styles.emptyStateButtonText}>{t("backToMyJobs", "Back to my jobs")}</Text>
         </TouchableOpacity>
       </View>
     );
