@@ -1409,20 +1409,21 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
 
 const categoryJobTitles = {
   "Kitchen Production": [
-    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker", 
-    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker", 
-    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff", 
-    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew", 
-    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff", 
-    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff", 
-    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis", 
-    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward", 
-    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff", 
-    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook", 
-    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member", 
-    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker", 
-    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker", 
-    "Tea Maker", "Utility Worker", "Vegetable Cutter", "Wok Cook"
+    "Executive Chef", "Head Chef", "Sous Chef", "Chef de Partie", "Commis Chef", "Pastry Chef", 
+    "Bakery Chef", "Pizza Chef", "Grill Chef", "Indian Chef", "Arabic Chef", "Chinese Chef", 
+    "Tandoor Chef", "Kitchen Helper", "Kitchen Steward", "Dishwasher", "Butcher", "Sandwich Maker", 
+    "Juice Maker", "Restaurant Manager", "Assistant Restaurant Manager", "Café Manager", 
+    "Outlet Manager", "Floor Supervisor", "Captain", "Steward", "Senior Steward", "Host", 
+    "Hostess", "Cashier", "Food Runner", "Busser", "Order Taker", "Drive-Thru Staff", "Barista", 
+    "Bartender", "Mixologist", "Bar Supervisor", "Bar Manager", "Beverage Manager", "Hotel Manager", 
+    "Front Office Manager", "Receptionist", "Guest Relations Executive", "Bell Boy", "Concierge", 
+    "Reservation Agent", "Night Auditor", "Housekeeping Supervisor", "Housekeeping Staff", 
+    "Laundry Attendant", "Room Attendant", "Operations Manager", "Area Manager", "General Manager", 
+    "HR Executive", "Recruitment Coordinator", "Accountant", "Purchase Manager", "Store Keeper", 
+    "Inventory Controller", "Admin Executive", "Delivery Driver", "Bike Rider", "Dispatch Executive", 
+    "Warehouse Assistant", "Logistics Coordinator", "Catering Manager", "Banquet Supervisor", 
+    "Event Coordinator", "Banquet Staff", "Cleaner", "Maintenance Technician", "Electrician", 
+    "Plumber", "AC Technician", "Security Guard", "Other"
   ],
   "Restaurant Operations": [
     "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
@@ -1515,7 +1516,8 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
     }
   }, [preferredRole]);
 
-  const jobTitlesList = selectedCategory ? (categoryJobTitles[selectedCategory] || []) : [];
+  const rawJobTitles = selectedCategory ? (categoryJobTitles[selectedCategory] || []) : [];
+  const jobTitlesList = [...rawJobTitles].sort((a, b) => a.localeCompare(b));
   const filteredJobTitles = jobTitlesList.filter((title) =>
     title.toLowerCase().includes(jobTitleSearch.toLowerCase())
   );
