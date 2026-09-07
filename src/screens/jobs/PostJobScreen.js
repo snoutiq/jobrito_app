@@ -37,7 +37,7 @@ export default function PostJobScreen({ navigation, route }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.user.profile);
 
-  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+  const { scrollViewRef, handleInputFocus: scrollInputFocus, keyboardHeight, isKeyboardVisible } = useKeyboardAwareScroll({ extraOffset: 80 });
 
   const handleInputFocus = (e, fieldName) => {
     if (fieldName) setActiveField(fieldName);
@@ -556,7 +556,10 @@ export default function PostJobScreen({ navigation, route }) {
       >
         <ScrollView
           ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: isKeyboardVisible ? (keyboardHeight > 0 ? keyboardHeight + 100 : 320) : normalize(80) },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -1424,20 +1427,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: normalize(6),
+    gap: normalize(8),
   },
   reviewListLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 1,
   },
   reviewListLabel: {
     fontSize: normalize(12),
     color: "#475569",
     fontWeight: "500",
+    flexShrink: 1,
   },
   reviewListValue: {
     fontSize: normalize(12),
     fontWeight: "700",
     color: "#0f172a",
+    textAlign: "right",
+    flexShrink: 1,
+    marginLeft: normalize(8),
   },
   reviewDescHeaderRow: {
     flexDirection: "row",

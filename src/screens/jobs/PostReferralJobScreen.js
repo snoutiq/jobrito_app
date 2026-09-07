@@ -50,7 +50,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
     (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
 
-  const { scrollViewRef, handleInputFocus: scrollInputFocus } = useKeyboardAwareScroll({ extraOffset: 30 });
+  const { scrollViewRef, handleInputFocus: scrollInputFocus, keyboardHeight, isKeyboardVisible } = useKeyboardAwareScroll({ extraOffset: 80 });
 
   const handleInputFocus = (e, fieldName) => {
     if (fieldName) setActiveField(fieldName);
@@ -672,7 +672,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
       >
         <ScrollView
           ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: isKeyboardVisible ? (keyboardHeight > 0 ? keyboardHeight + 100 : 320) : normalize(80) },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -727,10 +730,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                   <Text style={styles.inputLabel}>
                     {t("postJob.location", "Location")}<Text style={styles.required}> *</Text>
                   </Text>
-
-                  <View style={{ flexDirection: "row", gap: 6 }}>
+                  <View style={{ flexDirection: "column", gap: 10 }}>
                     {/* Country Dropdown */}
-                    <View style={{ flex: 1 }}>
+                    <View style={{ width: "100%" }}>
                       <Text style={styles.inputLabel}>
                         {t("selectCountry", "Country")}<Text style={styles.required}> *</Text>
                       </Text>
@@ -763,75 +765,78 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       />
                     </View>
 
-                    {/* State Dropdown */}
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.inputLabel}>
-                        {t("selectState", "State")}<Text style={styles.required}> *</Text>
-                      </Text>
-                      <ModalPickerTrigger
-                        onPress={() => setShowStateModal(true)}
-                        label={selectedState}
-                        placeholder={t("selectState", "State")}
-                        isOpen={showStateModal}
-                        style={styles.inputWrapper}
-                      />
-                      <ModalPicker
-                        visible={showStateModal}
-                        onClose={() => setShowStateModal(false)}
-                        title={t("selectState", "Select State")}
-                        options={
-                          countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"]
-                            ? Object.keys(countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"])
-                            : []
-                        }
-                        selectedValue={selectedState}
-                        onSelect={(val) => {
-                          setSelectedState(val);
-                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
-                          if (selectedCity && cMap[val] && !cMap[val].includes(selectedCity)) {
-                            setSelectedCity("");
+                    {/* State & City Dropdowns in 1 row */}
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      {/* State Dropdown */}
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.inputLabel}>
+                          {t("selectState", "State")}<Text style={styles.required}> *</Text>
+                        </Text>
+                        <ModalPickerTrigger
+                          onPress={() => setShowStateModal(true)}
+                          label={selectedState}
+                          placeholder={t("selectState", "State")}
+                          isOpen={showStateModal}
+                          style={styles.inputWrapper}
+                        />
+                        <ModalPicker
+                          visible={showStateModal}
+                          onClose={() => setShowStateModal(false)}
+                          title={t("selectState", "Select State")}
+                          options={
+                            countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"]
+                              ? Object.keys(countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"])
+                              : []
                           }
-                        }}
-                        searchable={true}
-                        searchPlaceholder={t("searchState", "Search State...")}
-                      />
-                    </View>
+                          selectedValue={selectedState}
+                          onSelect={(val) => {
+                            setSelectedState(val);
+                            const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                            if (selectedCity && cMap[val] && !cMap[val].includes(selectedCity)) {
+                              setSelectedCity("");
+                            }
+                          }}
+                          searchable={true}
+                          searchPlaceholder={t("searchState", "Search State...")}
+                        />
+                      </View>
 
-                    {/* City Dropdown */}
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.inputLabel}>
-                        {t("selectCity", "City")}<Text style={styles.required}> *</Text>
-                      </Text>
-                      <ModalPickerTrigger
-                        onPress={() => setShowCityModal(true)}
-                        label={selectedCity}
-                        placeholder={t("selectCity", "City")}
-                        isOpen={showCityModal}
-                        style={styles.inputWrapper}
-                      />
-                      <ModalPicker
-                        visible={showCityModal}
-                        onClose={() => setShowCityModal(false)}
-                        title={t("selectCity", "Select City")}
-                        options={(() => {
-                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
-                          if (selectedState && cMap[selectedState]) {
-                            return cMap[selectedState];
-                          }
-                          return Array.from(new Set(Object.values(cMap).flat()));
-                        })()}
-                        selectedValue={selectedCity}
-                        onSelect={(val) => {
-                          setSelectedCity(val);
-                          const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
-                          if (!selectedState) {
-                            const foundState = Object.keys(cMap).find((st) => cMap[st].includes(val));
-                            if (foundState) setSelectedState(foundState);
-                          }
-                        }}
-                        searchable={true}
-                        searchPlaceholder={t("searchCity", "Search City...")}
-                      />
+                      {/* City Dropdown */}
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.inputLabel}>
+                          {t("selectCity", "City")}<Text style={styles.required}> *</Text>
+                        </Text>
+                        <ModalPickerTrigger
+                          onPress={() => setShowCityModal(true)}
+                          label={selectedCity}
+                          placeholder={t("selectCity", "City")}
+                          isOpen={showCityModal}
+                          style={styles.inputWrapper}
+                        />
+                        <ModalPicker
+                          visible={showCityModal}
+                          onClose={() => setShowCityModal(false)}
+                          title={t("selectCity", "Select City")}
+                          options={(() => {
+                            const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                            if (selectedState && cMap[selectedState]) {
+                              return cMap[selectedState];
+                            }
+                            return Array.from(new Set(Object.values(cMap).flat()));
+                          })()}
+                          selectedValue={selectedCity}
+                          onSelect={(val) => {
+                            setSelectedCity(val);
+                            const cMap = countryData[category === "KSA" || category === "Saudi Arabia" ? "Saudi Arabia" : "India"] || {};
+                            if (!selectedState) {
+                              const foundState = Object.keys(cMap).find((st) => cMap[st].includes(val));
+                              if (foundState) setSelectedState(foundState);
+                            }
+                          }}
+                          searchable={true}
+                          searchPlaceholder={t("searchCity", "Search City...")}
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1072,7 +1077,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                           setSalaryMin(val);
                           validateSalary(val, salaryMax);
                         }}
-                        placeholder=""
+                        placeholder={t("min", "Min")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
@@ -1098,7 +1103,7 @@ export default function PostReferralJobScreen({ navigation, route }) {
                           setSalaryMax(val);
                           validateSalary(salaryMin, val);
                         }}
-                        placeholder=""
+                        placeholder={t("max", "Max")}
                         placeholderTextColor="rgba(10, 5, 4, 0.4)"
                         style={styles.textInput}
                         keyboardType="numeric"
@@ -1868,20 +1873,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: normalize(6),
+    gap: normalize(8),
   },
   reviewListLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 1,
   },
   reviewListLabel: {
     fontSize: normalize(12),
     color: "#475569",
     fontWeight: "500",
+    flexShrink: 1,
   },
   reviewListValue: {
     fontSize: normalize(12),
     fontWeight: "700",
     color: "#0f172a",
+    textAlign: "right",
+    flexShrink: 1,
+    marginLeft: normalize(8),
   },
   reviewDescHeaderRow: {
     flexDirection: "row",

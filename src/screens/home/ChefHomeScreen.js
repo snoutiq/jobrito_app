@@ -736,8 +736,8 @@ export default function ChefHomeScreen({ navigation }) {
                         <Ionicons name="location" size={normalize(12)} color="#1d4ed8" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={2}>
+                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
+                        <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
                       </View>
@@ -748,8 +748,8 @@ export default function ChefHomeScreen({ navigation }) {
                         <Ionicons name="briefcase" size={normalize(12)} color="#15803d" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
-                        <Text style={styles.modalGridValue} numberOfLines={2}>
+                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
+                        <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
                       </View>
@@ -801,8 +801,8 @@ export default function ChefHomeScreen({ navigation }) {
                               <Ionicons name="card" size={normalize(12)} color="#b45309" />
                             </View>
                             <View style={{ flex: 1 }}>
-                              <Text style={styles.modalGridLabel}>{t("salary", "Salary / Pay")}</Text>
-                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                              <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{t("salary", "Salary / Pay")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                                 {salVal}
                               </Text>
                             </View>
@@ -814,8 +814,8 @@ export default function ChefHomeScreen({ navigation }) {
                               <Ionicons name="ribbon" size={normalize(12)} color="#c2410c" />
                             </View>
                             <View style={{ flex: 1 }}>
-                              <Text style={styles.modalGridLabel}>{t("experience", "Experience")}</Text>
-                              <Text style={styles.modalGridValue} numberOfLines={2}>
+                              <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{t("experience", "Experience")}</Text>
+                              <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                                 {expVal}
                               </Text>
                             </View>
@@ -1822,31 +1822,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingHorizontal: normalize(10),
+    paddingHorizontal: normalize(6),
     paddingVertical: normalize(8),
     borderRadius: normalize(10),
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    gap: normalize(8),
+    gap: normalize(5),
   },
   gridIconCircle: {
-    width: normalize(26),
-    height: normalize(26),
-    borderRadius: normalize(13),
+    width: normalize(24),
+    height: normalize(24),
+    borderRadius: normalize(12),
     alignItems: "center",
     justifyContent: "center",
   },
   modalGridLabel: {
-    fontSize: normalize(12.5),
+    fontSize: normalize(10.5),
     fontWeight: "700",
     color: "#64748b",
     marginBottom: 2,
   },
   modalGridValue: {
-    fontSize: normalize(12),
+    fontSize: normalize(11.5),
     fontWeight: "800",
     color: "#0f172a",
-    lineHeight: normalize(16),
+    lineHeight: normalize(15),
   },
   modalSectionCard: {
     backgroundColor: "#ffffff",
@@ -2017,31 +2017,31 @@ shadowColor: "#000",
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingHorizontal: normalize(10),
+    paddingHorizontal: normalize(6),
     paddingVertical: normalize(8),
     borderRadius: normalize(10),
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    gap: normalize(8),
+    gap: normalize(5),
   },
   gridIconCircle: {
-    width: normalize(26),
-    height: normalize(26),
-    borderRadius: normalize(13),
+    width: normalize(24),
+    height: normalize(24),
+    borderRadius: normalize(12),
     alignItems: "center",
     justifyContent: "center",
   },
   modalGridLabel: {
-    fontSize: normalize(12.5),
+    fontSize: normalize(10.5),
     fontWeight: "700",
     color: "#64748b",
     marginBottom: 2,
   },
   modalGridValue: {
-    fontSize: normalize(12),
+    fontSize: normalize(11.5),
     fontWeight: "800",
     color: "#0f172a",
-    lineHeight: normalize(16),
+    lineHeight: normalize(15),
   },
   modalSectionCard: {
     backgroundColor: "#ffffff",
