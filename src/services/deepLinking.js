@@ -120,12 +120,13 @@ const executeNavigation = (path, params = {}) => {
   }
 
   // 5. Post Job / Post Referral Job
+  // NOTE: Screen names in MainTabs.js are "Post Job" and "Post Referral Job" (with spaces)
   if (normalizedPath === "post-job") {
-    navigationRef.navigate("PostJob");
+    navigationRef.navigate("Post Job");
     return;
   }
   if (normalizedPath === "post-referral-job") {
-    navigationRef.navigate("PostReferralJob");
+    navigationRef.navigate("Post Referral Job");
     return;
   }
 
@@ -139,13 +140,13 @@ const executeNavigation = (path, params = {}) => {
     return;
   }
 
-  // 7. Calendly Integration
+  // 7. Calendly Integration → CalendlyIntegrationScreen
   if (normalizedPath === "calendly") {
     navigationRef.navigate("CalendlyIntegration");
     return;
   }
 
-  // 8. Social Media Links
+  // 8. Social Media Links → SocialMediaLinksScreen
   if (normalizedPath === "social-links") {
     navigationRef.navigate("SocialMediaLinks");
     return;
@@ -161,9 +162,9 @@ const executeNavigation = (path, params = {}) => {
     }
   }
 
-  // 10. Notifications Page
+  // 10. Notifications Page → NotificationDetails screen
   if (normalizedPath === "notifications") {
-    navigationRef.navigate("EmployerNotifications");
+    navigationRef.navigate("NotificationDetails");
     return;
   }
 
