@@ -208,7 +208,7 @@ export default function ChefCompleteProfileScreen({ navigation, route }) {
   const [showAvailDropdown, setShowAvailDropdown] = useState(false);
   const [bio, setBio] = useState("");
 
-  const regionalOptions = ["Saudi Arabia", "UAE", "GCC", "International", "India"];
+  const regionalOptions = ["India", "Saudi", "Global"];
   const locationPrefOptions = ["India", "Overseas", "Both (India & Overseas)"];
   const employmentOptions = ["Full Time", "Contract", "Freelance", "Project Based", "Consultant"];
   const availabilityOptions = ["Available Immediately", "Currently Employed"];
