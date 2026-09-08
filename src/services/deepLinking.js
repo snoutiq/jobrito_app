@@ -162,9 +162,9 @@ const executeNavigation = (path, params = {}) => {
     }
   }
 
-  // 10. Notifications Page → NotificationDetails screen
+  // 10. Notifications Page → EmployerNotifications screen (EmployerNotificationsScreen.js)
   if (normalizedPath === "notifications") {
-    navigationRef.navigate("NotificationDetails");
+    navigationRef.navigate("EmployerNotifications");
     return;
   }
 
