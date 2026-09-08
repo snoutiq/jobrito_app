@@ -321,26 +321,48 @@ export default React.memo(function SwipeCard({
           const velocityX = event.velocityX;
           const dragX = event.translationX;
 
-          // 1. Swipe Left -> Go to Next Applicant
+          // 1. Swipe Left → Go to Next Applicant
           if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
-            translateX.value = withTiming(-SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
-              if (onSwipeComplete) {
-                runOnJS(onSwipeComplete)("left", applicant);
+            // Sync exit + entry duration so they finish together (no white gap).
+            // If card already travelled 60% of exit distance, only 40% of 300ms remains.
+            const totalExitDist = SCREEN_WIDTH * 1.1;
+            const alreadyTravelled = Math.min(Math.abs(dragX), totalExitDist);
+            const fraction = alreadyTravelled / totalExitDist;           // 0..1
+            const duration = Math.round(300 * (1 - fraction * 0.85));    // min ~45ms, max 300ms
+            const safeDuration = Math.max(120, Math.min(300, duration));
+
+            translateX.value = withTiming(
+              -SCREEN_WIDTH * 1.1,
+              { duration: safeDuration, easing: Easing.out(Easing.quad) },
+              () => {
+                if (onSwipeComplete) {
+                  runOnJS(onSwipeComplete)("left", applicant);
+                }
               }
-            });
-            swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+            );
+            // Entry animation uses SAME duration → exit & entry stay in sync
+            swipeProgress.value = withTiming(1, { duration: safeDuration, easing: Easing.out(Easing.quad) });
             if (Platform.OS !== "web") {
               runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
             }
           }
-          // 2. Swipe Right -> Go to Previous Applicant (Undo)
+          // 2. Swipe Right → Go to Previous Applicant (Undo)
           else if ((dragX > SWIPE_THRESHOLD || velocityX > 600) && canUndo) {
-            translateX.value = withTiming(SCREEN_WIDTH * 1.1, { duration: 300, easing: Easing.out(Easing.quad) }, () => {
-              if (onUndo) {
-                runOnJS(onUndo)();
+            const totalExitDist = SCREEN_WIDTH * 1.1;
+            const alreadyTravelled = Math.min(Math.abs(dragX), totalExitDist);
+            const fraction = alreadyTravelled / totalExitDist;
+            const safeDuration = Math.max(120, Math.min(300, Math.round(300 * (1 - fraction * 0.85))));
+
+            translateX.value = withTiming(
+              SCREEN_WIDTH * 1.1,
+              { duration: safeDuration, easing: Easing.out(Easing.quad) },
+              () => {
+                if (onUndo) {
+                  runOnJS(onUndo)();
+                }
               }
-            });
-            swipeProgress.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+            );
+            swipeProgress.value = withTiming(1, { duration: safeDuration, easing: Easing.out(Easing.quad) });
             if (Platform.OS !== "web") {
               runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
             }
