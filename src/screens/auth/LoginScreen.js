@@ -71,10 +71,13 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
+    const extension = countryCode ? countryCode.replace(/\D/g, "") : "91";
+
     const result = await dispatch(
       requestOtp({
         phone: phone.trim(),
         role,
+        extension,
       }),
     );
 
@@ -114,6 +117,7 @@ export default function LoginScreen({ navigation }) {
 
       navigation.navigate("Otp", {
         phone: phone.trim(),
+        extension,
       });
       return;
     }

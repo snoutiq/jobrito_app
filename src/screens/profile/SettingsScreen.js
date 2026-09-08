@@ -21,6 +21,7 @@ import colors from "../../constants/colors";
 import { fetchProfile, resetUser } from "../../redux/slices/userSlice";
 import { logout } from "../../redux/slices/authSlice";
 import { clearAuthStorage } from "../../services/storage";
+import { formatDisplayPhoneNumber } from "../../utils/phoneUtils";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
@@ -164,12 +165,11 @@ export default function SettingsScreen({ navigation }) {
     profile?.mobile_number ||
     profile?.phone ||
     profile?.contact_number ||
+    profile?.user?.mobile_number ||
+    profile?.employer_profile?.business_mobile ||
+    profile?.talent_profile?.mobile_number ||
     "";
-  const mobileNumber = rawMobile
-    ? rawMobile.startsWith("+")
-      ? rawMobile
-      : `+91 ${rawMobile}`
-    : "-";
+  const mobileNumber = formatDisplayPhoneNumber(rawMobile);
   const email = profile?.email || profile?.contactEmail || "";
   const location = profile?.location || profile?.business_location || profile?.city || "";
   const rawLocation =

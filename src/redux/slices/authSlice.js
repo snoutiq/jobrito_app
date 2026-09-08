@@ -12,9 +12,9 @@ const resolveOnboardingFlag = (payload) =>
 
 export const requestOtp = createAsyncThunk(
   "auth/requestOtp",
-  async ({ phone, role }, { rejectWithValue }) => {
+  async ({ phone, role, extension }, { rejectWithValue }) => {
     try {
-      const result = await requestOtpApi(phone, role);
+      const result = await requestOtpApi(phone, role, extension);
       if (!result?.success) {
         return rejectWithValue(result?.message || "Failed to request OTP");
       }
@@ -32,9 +32,9 @@ export const requestOtp = createAsyncThunk(
 
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
-  async ({ phone, otp, role, language, fcmToken }, { rejectWithValue }) => {
+  async ({ phone, otp, role, language, fcmToken, extension }, { rejectWithValue }) => {
     try {
-      const result = await verifyOtpApi(phone, otp, role, language, fcmToken);
+      const result = await verifyOtpApi(phone, otp, role, language, fcmToken, extension);
       if (!result?.success) {
         return rejectWithValue(result?.message || "OTP verification failed");
       }

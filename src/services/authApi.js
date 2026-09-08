@@ -5,11 +5,13 @@ import { API_ENDPOINTS } from "../constants/endpoints";
 import { setStoredProfile, setStoredRole, setToken } from "./storage";
 import { ROLES, ROLE_API_MAP } from "../constants/roles";
 
-export const requestOtp = async (phone, role) => {
+export const requestOtp = async (phone, role, extension) => {
+  const cleanExtension = String(extension || "91").replace(/\D/g, "") || "91";
   const response = await apiClient.post(
     API_ENDPOINTS.LOGIN,
     {
       mobile_number: phone,
+      extension: cleanExtension,
       login_role: ROLE_API_MAP[role],
     },
     {
@@ -30,11 +32,13 @@ export const requestOtp = async (phone, role) => {
   };
 };
 
-export const verifyOtp = async (phone, otp, role, language, fcmToken) => {
+export const verifyOtp = async (phone, otp, role, language, fcmToken, extension) => {
+  const cleanExtension = String(extension || "91").replace(/\D/g, "") || "91";
   const response = await apiClient.post(
     API_ENDPOINTS.VERIFY_OTP,
     {
       mobile_number: phone,
+      extension: cleanExtension,
       login_role: ROLE_API_MAP[role],
       otp,
       selected_language: language,

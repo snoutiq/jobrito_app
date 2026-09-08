@@ -28,6 +28,7 @@ import { saveEmployerOnboarding } from "../../services/employerApi";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 import countryStateCityData from "../../data/countryStateCityData.json";
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+import { parseCountryAndNumber, formatDisplayPhoneNumber } from "../../utils/phoneUtils";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
@@ -850,21 +851,26 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
               {/* Mobile Number (Disabled with Lock Icon) */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("mobileNumber", "Mobile Number")}<Text style={styles.required}>*</Text></Text>
-                <View style={styles.mobileInputRow}>
-                  <View style={styles.countryCodeBox}>
-                    <Text style={styles.countryCodeText}>+91</Text>
-                  </View>
-                  <View style={[styles.lockedMobileWrapper, { flex: 1 }]}>
-                    <TextInput
-                      value={contactPhone}
-                      editable={false}
-                      placeholder="XXXXX XXXXX"
-                      placeholderTextColor="rgba(10, 5, 4, 0.4)"
-                      style={styles.disabledInputText}
-                    />
-                    <Ionicons name="lock-closed" size={normalize(16)} color="#94a3b8" />
-                  </View>
-                </View>
+                {(() => {
+                  const parsed = parseCountryAndNumber(contactPhone);
+                  return (
+                    <View style={styles.mobileInputRow}>
+                      <View style={styles.countryCodeBox}>
+                        <Text style={styles.countryCodeText}>+{parsed.countryCode}</Text>
+                      </View>
+                      <View style={[styles.lockedMobileWrapper, { flex: 1 }]}>
+                        <TextInput
+                          value={parsed.nationalNumber || contactPhone}
+                          editable={false}
+                          placeholder="XXXXX XXXXX"
+                          placeholderTextColor="rgba(10, 5, 4, 0.4)"
+                          style={styles.disabledInputText}
+                        />
+                        <Ionicons name="lock-closed" size={normalize(16)} color="#94a3b8" />
+                      </View>
+                    </View>
+                  );
+                })()}
                 <View style={styles.verifiedRow}>
                   <Ionicons name="checkmark-sharp" size={normalize(16)} color="#16a34a" />
                   <Text style={styles.verifiedText}>{t("verified", "Verified")}</Text>
@@ -966,7 +972,7 @@ export default function EmployerCompleteProfileScreen({ navigation, route }) {
 
                 <View style={styles.summaryInfoRow}>
                   <Text style={styles.summaryInfoLabel}>{t("mobileNumber", "Mobile Number")}</Text>
-                  <Text style={styles.summaryInfoValue}>+91 {contactPhone || "-"}</Text>
+                  <Text style={styles.summaryInfoValue}>{formatDisplayPhoneNumber(contactPhone)}</Text>
                 </View>
 
                 {!!(contactEmail && contactEmail.trim()) && (

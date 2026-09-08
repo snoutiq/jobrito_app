@@ -10,6 +10,7 @@ import OtpInput from "../../components/inputs/OtpInput";
 import colors from "../../constants/colors";
 import { verifyOtp, requestOtp } from "../../redux/slices/authSlice";
 import { setStoredProfile, setStoredRole, setEmployerOnboardingCompleted, setChefOnboardingCompleted } from "../../services/storage";
+import { parseCountryAndNumber } from "../../utils/phoneUtils";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
@@ -25,6 +26,7 @@ export default function OtpScreen({ navigation, route }) {
   const [countdown, setCountdown] = useState(0);
   const [fcmToken, setFcmToken] = useState("");
   const phone = route?.params?.phone || storedPhone;
+  const extension = route?.params?.extension || "91";
   const role = useSelector((state) => state.auth.role);
 
   useEffect(() => {
@@ -66,35 +68,17 @@ export default function OtpScreen({ navigation, route }) {
 
   const maskPhone = (phoneStr) => {
     if (!phoneStr) return "";
-    const cleaned = phoneStr.trim();
+    const cleaned = String(phoneStr).trim();
     if (cleaned.length <= 4) return cleaned;
 
-    let country = "";
-    let local = cleaned;
-    if (cleaned.startsWith("+")) {
-      if (cleaned.startsWith("+971")) {
-        country = "+971";
-        local = cleaned.substring(4);
-      } else if (cleaned.startsWith("+91")) {
-        country = "+91";
-        local = cleaned.substring(3);
-      } else if (cleaned.startsWith("+44")) {
-        country = "+44";
-        local = cleaned.substring(3);
-      } else if (cleaned.startsWith("+1")) {
-        country = "+1";
-        local = cleaned.substring(2);
-      } else {
-        country = cleaned.substring(0, 3);
-        local = cleaned.substring(3);
-      }
-    }
+    const parsed = parseCountryAndNumber(cleaned, extension);
+    const country = `+${parsed.countryCode}`;
+    const local = parsed.nationalNumber || cleaned;
 
-    const localTrimmed = local.trim();
-    if (localTrimmed.length <= 4) {
-      return `${country} *** *** ${localTrimmed}`;
+    if (local.length <= 4) {
+      return `${country} *** *** ${local}`;
     }
-    const lastFour = localTrimmed.substring(localTrimmed.length - 4);
+    const lastFour = local.substring(local.length - 4);
     return `${country} *** *** ${lastFour}`;
   };
 
@@ -111,7 +95,7 @@ export default function OtpScreen({ navigation, route }) {
       return;
     }
 
-    const result = await dispatch(verifyOtp({ phone, otp: otpToVerify.trim(), role, language: i18n.language, fcmToken }));
+    const result = await dispatch(verifyOtp({ phone, otp: otpToVerify.trim(), role, language: i18n.language, fcmToken, extension }));
     console.log("Verify OTP API Full Response:", JSON.stringify(result, null, 2));
     if (verifyOtp.fulfilled.match(result)) {
       console.log("TOKEN IN PAYLOAD:", result.payload?.token);
@@ -153,6 +137,7 @@ export default function OtpScreen({ navigation, route }) {
       requestOtp({
         phone: phone.trim(),
         role,
+        extension,
       })
     );
 
