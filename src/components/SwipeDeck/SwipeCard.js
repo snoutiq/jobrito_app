@@ -147,6 +147,7 @@ export default React.memo(function SwipeCard({
   swipeEnabled = true,
   onUndo,
   canUndo = false,
+  hasNext = true,
 }) {
   const { t } = useTranslation();
   const isTopCard = myIndex === activeIndex;
@@ -312,19 +313,31 @@ export default React.memo(function SwipeCard({
         .failOffsetY([-15, 15])         // fail (give control to ScrollView) if vertical > 15px
         .enabled(isTopCard && swipeEnabled)
         .onUpdate((event) => {
-          // Allow full horizontal dragging in both left and right directions
-          translateX.value = event.translationX;
+          const tx = event.translationX;
+          // When on first card (canUndo = false) and dragging right -> rubber-band resistance
+          if (tx > 0 && !canUndo) {
+            translateX.value = tx * 0.15;
+            swipeProgress.value = 0;
+          }
+          // When on last card (hasNext = false) and dragging left -> rubber-band resistance
+          else if (tx < 0 && !hasNext) {
+            translateX.value = tx * 0.15;
+            swipeProgress.value = 0;
+          }
+          // Normal drag
+          else {
+            translateX.value = tx;
+            swipeProgress.value = Math.min(Math.abs(tx) / SWIPE_THRESHOLD, 1);
+          }
           translateY.value = 0;
-          swipeProgress.value = Math.min(Math.abs(event.translationX) / SWIPE_THRESHOLD, 1);
         })
         .onEnd((event) => {
           const velocityX = event.velocityX;
           const dragX = event.translationX;
 
-          // 1. Swipe Left → Go to Next Applicant
-          if (dragX < -SWIPE_THRESHOLD || velocityX < -600) {
+          // 1. Swipe Left → Go to Next Applicant (only if hasNext)
+          if ((dragX < -SWIPE_THRESHOLD || velocityX < -600) && hasNext) {
             // Sync exit + entry duration so they finish together (no white gap).
-            // If card already travelled 60% of exit distance, only 40% of 300ms remains.
             const totalExitDist = SCREEN_WIDTH * 1.1;
             const alreadyTravelled = Math.min(Math.abs(dragX), totalExitDist);
             const fraction = alreadyTravelled / totalExitDist;           // 0..1
@@ -346,7 +359,7 @@ export default React.memo(function SwipeCard({
               runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
             }
           }
-          // 2. Swipe Right → Go to Previous Applicant (Undo)
+          // 2. Swipe Right → Go to Previous Applicant (Undo) (only if canUndo)
           else if ((dragX > SWIPE_THRESHOLD || velocityX > 600) && canUndo) {
             const totalExitDist = SCREEN_WIDTH * 1.1;
             const alreadyTravelled = Math.min(Math.abs(dragX), totalExitDist);
@@ -374,7 +387,7 @@ export default React.memo(function SwipeCard({
             swipeProgress.value = withSpring(0, { damping: 22, stiffness: 200, mass: 0.7 });
           }
         }),
-    [isTopCard, swipeEnabled, canUndo, applicant, onSwipeComplete, onUndo]
+    [isTopCard, swipeEnabled, canUndo, hasNext, applicant, onSwipeComplete, onUndo]
   );
 
   // Animated styles for clean horizontal Image Slider interaction
@@ -416,23 +429,6 @@ export default React.memo(function SwipeCard({
       opacity: 0,
       zIndex: 1,
     };
-  });
-
-  // Animated styles for the swipe hint overlay
-  const animatedHintStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD], [1, 0, 1], Extrapolate.CLAMP);
-    return { opacity };
-  });
-
-  // Tinder Swipe Overlay Styles
-  const likeLabelStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD / 2], [0, 1], Extrapolate.CLAMP);
-    return { opacity };
-  });
-
-  const nopeLabelStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [-SWIPE_THRESHOLD / 2, 0], [1, 0], Extrapolate.CLAMP);
-    return { opacity };
   });
   
   const handleQuickReject = () => {
@@ -686,29 +682,6 @@ export default React.memo(function SwipeCard({
             ) : null}
           </View>
         </ScrollView>
-
-        {/* ── Swipe Direction Overlays (Tinder-style) ────────────────── */}
-        {/* RIGHT swipe → NEXT card (green overlay, top-left corner) */}
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.swipeOverlay, styles.swipeOverlayRight, likeLabelStyle]}
-        >
-          <View style={styles.swipeBadgeNext}>
-            <Ionicons name="arrow-forward" size={22} color="#16a34a" />
-            <Text style={styles.swipeBadgeNextText}>NEXT</Text>
-          </View>
-        </Animated.View>
-
-        {/* LEFT swipe → go BACK / previous card (red overlay, top-right corner) */}
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.swipeOverlay, styles.swipeOverlayLeft, nopeLabelStyle]}
-        >
-          <View style={styles.swipeBadgeBack}>
-            <Ionicons name="arrow-back" size={22} color="#dc2626" />
-            <Text style={styles.swipeBadgeBackText}>BACK</Text>
-          </View>
-        </Animated.View>
       </Animated.View>
     </GestureDetector>
   );
@@ -731,52 +704,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
-  // ── Swipe Overlay Styles ──────────────────────────────────
-  swipeOverlay: {
-    position: "absolute",
-    top: 20,
-    zIndex: 20,
-  },
-  swipeOverlayRight: {
-    left: 16,
-  },
-  swipeOverlayLeft: {
-    right: 16,
-  },
-  swipeBadgeNext: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 2.5,
-    borderColor: "#16a34a",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "rgba(22, 163, 74, 0.08)",
-  },
-  swipeBadgeNextText: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#16a34a",
-    letterSpacing: 1.5,
-  },
-  swipeBadgeBack: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 2.5,
-    borderColor: "#dc2626",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "rgba(220, 38, 38, 0.08)",
-  },
-  swipeBadgeBackText: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#dc2626",
-    letterSpacing: 1.5,
-  },
+
 
   cardScrollContent: {
     padding: 16,

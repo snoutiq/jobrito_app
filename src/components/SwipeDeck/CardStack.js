@@ -127,6 +127,7 @@ export default function CardStack({
           swipeEnabled={isSwipeable}
           onUndo={handleUndo}
           canUndo={canUndo}
+          hasNext={hasNext}
         />
       );
     }
