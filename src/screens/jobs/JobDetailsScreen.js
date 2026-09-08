@@ -612,7 +612,7 @@ export default function JobDetailsScreen({ navigation, route }) {
                     return isAdmin
                       ? t("admin", "ADMIN")
                       : isTrainingProvider
-                        ? t("trainingProvider", "TRAINING PROVIDER")
+                        ? t("trainingProvider", "ADMIN")
                         : isReferral
                           ? t("referral", "REFERRAL")
                           : isChef

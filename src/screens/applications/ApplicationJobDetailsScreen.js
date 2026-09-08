@@ -129,7 +129,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
   const postedByRoleLabel = isAdmin
     ? t("admin", "Admin")
     : isTrainingProvider
-    ? t("trainingProvider", "Training Provider")
+    ? t("trainingProvider", "ADMIN")
     : isReferral
     ? t("referral", "Referral")
     : isChef
