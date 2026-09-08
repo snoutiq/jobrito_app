@@ -26,6 +26,7 @@ import {
 } from "../../redux/slices/applicationSlice";
 import {
   fetchJobDetails,
+  fetchMyJobs,
   toggleSaveJob,
   fetchSavedJobs,
 } from "../../redux/slices/jobSlice";
@@ -127,10 +128,21 @@ export default function JobDetailsScreen({ navigation, route }) {
   const activeRole = useSelector(
     (state) => state.auth.user?.active_role ?? state.user?.activeRole,
   );
+  // Grab current user ID from every possible Redux path
+  const currentUserId = useSelector((state) => {
+    return (
+      state.auth.user?.id ||
+      state.auth.user?.user_id ||
+      state.user?.profile?.id ||
+      state.user?.profile?.user_id ||
+      state.user?.id ||
+      null
+    );
+  });
   const isEmployer =
     activeRole?.toLowerCase().replace(" ", "").replace("_", "") === "employer";
 
-  const { feedJobs, myJobs, savedJobs, jobDetails } = useSelector(
+  const { feedJobs, myJobs, pendingJobs, savedJobs, jobDetails } = useSelector(
     (state) => state.job,
   );
   const { submittedJobs } = useSelector((state) => state.employer);
@@ -147,6 +159,11 @@ export default function JobDetailsScreen({ navigation, route }) {
 
   useEffect(() => {
     dispatch(fetchApplicationHistory());
+    // Ensure myJobs/pendingJobs are loaded — needed when screen is opened directly
+    // from a notification (no prior navigation that would load these lists).
+    if (!myJobs?.length && !pendingJobs?.length) {
+      dispatch(fetchMyJobs());
+    }
     if (jobId) {
       dispatch(fetchJobDetails(jobId));
       if (!passedJob || !passedJob.description) {
@@ -257,6 +274,34 @@ export default function JobDetailsScreen({ navigation, route }) {
       )
     );
   }, [applicationHistory, job]);
+
+  // Hide Apply button if the current user is the one who posted this job.
+  // Layer 1 (most reliable): check if this jobId exists in user's own posted/pending jobs lists.
+  // Layer 2 (fallback): compare posted_by.id / creator.id with currentUserId.
+  const isJobPostedByCurrentUser = useMemo(() => {
+    if (!job) return false;
+    const targetId = String(job?.id || jobId || "");
+    if (!targetId) return false;
+
+    // Layer 1 — if this job is in the user's myJobs or pendingJobs lists,
+    // the current user definitely posted it (these lists only contain jobs created by this user).
+    const allMyJobs = [...(myJobs || []), ...(pendingJobs || []), ...(submittedJobs || [])];
+    const foundInMyJobs = allMyJobs.some((j) => String(j?.id) === targetId);
+    if (foundInMyJobs) return true;
+
+    // Layer 2 — compare poster IDs if currentUserId is available
+    if (currentUserId) {
+      const posterId =
+        job?.posted_by?.id ||
+        job?.creator?.id ||
+        job?.submitted_by_id ||
+        job?.employer_id ||
+        job?.user_id;
+      if (posterId && String(posterId) === String(currentUserId)) return true;
+    }
+
+    return false;
+  }, [currentUserId, job, jobId, myJobs, pendingJobs, submittedJobs]);
 
   if (directLoading && !job) {
     return (
@@ -757,7 +802,7 @@ export default function JobDetailsScreen({ navigation, route }) {
             </Text>
           </TouchableOpacity>
         </View>
-      ) : !isEmployer ? (
+      ) : !isEmployer && !isJobPostedByCurrentUser ? (
         <View style={styles.bottomBar}>
           {!isApplied ? (
             <TouchableOpacity
