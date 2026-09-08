@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ScrollView, Linking, PixelRatio } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, Linking, PixelRatio } from "react-native";
+import { Gesture, GestureDetector, ScrollView } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   interpolate,
@@ -308,7 +308,8 @@ export default React.memo(function SwipeCard({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .activeOffsetX([-10, 10])
+        .activeOffsetX([-8, 8])        // activate after 8px horizontal move
+        .failOffsetY([-15, 15])         // fail (give control to ScrollView) if vertical > 15px
         .enabled(isTopCard && swipeEnabled)
         .onUpdate((event) => {
           // Allow full horizontal dragging in both left and right directions
@@ -663,10 +664,34 @@ export default React.memo(function SwipeCard({
             ) : null}
           </View>
         </ScrollView>
+
+        {/* ── Swipe Direction Overlays (Tinder-style) ────────────────── */}
+        {/* RIGHT swipe → NEXT card (green overlay, top-left corner) */}
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.swipeOverlay, styles.swipeOverlayRight, likeLabelStyle]}
+        >
+          <View style={styles.swipeBadgeNext}>
+            <Ionicons name="arrow-forward" size={22} color="#16a34a" />
+            <Text style={styles.swipeBadgeNextText}>NEXT</Text>
+          </View>
+        </Animated.View>
+
+        {/* LEFT swipe → go BACK / previous card (red overlay, top-right corner) */}
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.swipeOverlay, styles.swipeOverlayLeft, nopeLabelStyle]}
+        >
+          <View style={styles.swipeBadgeBack}>
+            <Ionicons name="arrow-back" size={22} color="#dc2626" />
+            <Text style={styles.swipeBadgeBackText}>BACK</Text>
+          </View>
+        </Animated.View>
       </Animated.View>
     </GestureDetector>
   );
 });
+
 
 const styles = StyleSheet.create({
   card: {
@@ -684,6 +709,53 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
+  // ── Swipe Overlay Styles ──────────────────────────────────
+  swipeOverlay: {
+    position: "absolute",
+    top: 20,
+    zIndex: 20,
+  },
+  swipeOverlayRight: {
+    left: 16,
+  },
+  swipeOverlayLeft: {
+    right: 16,
+  },
+  swipeBadgeNext: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 2.5,
+    borderColor: "#16a34a",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(22, 163, 74, 0.08)",
+  },
+  swipeBadgeNextText: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#16a34a",
+    letterSpacing: 1.5,
+  },
+  swipeBadgeBack: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 2.5,
+    borderColor: "#dc2626",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(220, 38, 38, 0.08)",
+  },
+  swipeBadgeBackText: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#dc2626",
+    letterSpacing: 1.5,
+  },
+
   cardScrollContent: {
     padding: 16,
     paddingBottom: 24,

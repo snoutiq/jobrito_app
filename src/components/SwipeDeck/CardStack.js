@@ -124,7 +124,7 @@ export default function CardStack({
           translateY={translateY}
           onSwipeComplete={handleSwipeComplete}
           onPressDetails={onPressDetails}
-          swipeEnabled={isSwipeable && hasNext}
+          swipeEnabled={isSwipeable}
           onUndo={handleUndo}
           canUndo={canUndo}
         />
