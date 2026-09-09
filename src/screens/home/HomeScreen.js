@@ -47,38 +47,24 @@ import { getProfileCompletionPercent } from "../../utils/profileCompletion";
 const PRIMARY_GREEN = "#153e69";
 
 const categoryJobTitles = {
-  "Kitchen Production": [
-    "Bakery Commis", "Batch Cooking Staff", "BBQ Commis", "Buffet Setup Staff", "Burger Maker", 
-    "Butcher", "Catering Helper", "CDP (Chef de Partie)", "Central Kitchen Staff", "Chaat Maker", 
-    "Chapati Maker", "Chicken Cutter", "Chinese Commis", "Chopping Staff", "Cleaning Staff", 
-    "Coffee Maker", "Commis I", "Commis II", "Commis III", "Continental Commis", "Counter Crew", 
-    "Curry Maker", "Cutting Staff", "Demi Chef de Partie", "Dishwasher", "Dispatch Staff", 
-    "Dosa Maker", "Fast Food Crew", "Fish Cleaner", "Food Packing Staff", "Food Preparation Staff", 
-    "Frozen Food Preparation Staff", "Fry Cook", "General Helper", "Grill Maker", "Indian Commis", 
-    "Inventory Helper", "Juice Maker", "Kitchen Assistant", "Kitchen Helper", "Kitchen Steward", 
-    "Line Cook", "Meat Cutter", "Naan Maker", "Order Packing Staff", "Packing Staff", 
-    "Parcel Packing Staff", "Parotta Maker", "Pastry Commis", "Pizza Maker", "Prep Cook", 
-    "Preparation Staff", "Production Helper", "Production Staff", "QSR Crew Member", 
-    "Ready-to-Eat Production Staff", "Roti Maker", "Salad Maker", "Sandwich Maker", 
-    "Service Crew", "Shawarma Maker", "Store Helper", "Tandoor Commis", "Tandoor Roti Maker", 
-    "Tea Maker", "Utility Worker", "Vegetable Cutter", "Wok Cook"
-  ],
   "Restaurant Operations": [
     "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
     "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward", 
-    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker"
+    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker", "Executive Chef",
+    "Head Chef", "Sous Chef", "Chef de Partie", "Commis Chef", "Pastry Chef", "Bakery Chef",
+    "Pizza Chef", "Grill Chef", "Indian Chef", "Arabic Chef", "Chinese Chef", "Tandoor Chef",
+    "Continental Chef", "Line Cook", "Prep Cook", "Kitchen Helper", "Kitchen Steward",
+    "Dishwasher", "Butcher", "Bartender", "Bar Supervisor", "Sommelier"
   ],
   "Café & Beverage": [
     "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker", 
-    "Juice Maker", "Smoothie Specialist", "Beverage Specialist"
+    "Juice Maker", "Smoothie Specialist", "Beverage Specialist", "Sandwich Maker",
+    "Bakery Staff", "Café Steward", "Counter Staff"
   ],
   "QSR & Fast Food": [
     "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff", 
-    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew"
-  ],
-  "Catering & Banquet": [
-    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
-    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
+    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew",
+    "Burger Maker", "Pizza Maker", "Shawarma Maker", "Order Taker", "Cashier"
   ],
   "Cloud Kitchen": [
     "Cloud Kitchen Manager", "Kitchen Operations Lead", "Delivery Packing Staff",
@@ -87,10 +73,32 @@ const categoryJobTitles = {
     "Delivery Coordinator", "Kitchen Helper", "Inventory Staff"
   ],
   "Hotel / Resort": [
-    "Executive Chef", "Sous Chef", "Front Office Executive", "Housekeeping Supervisor",
-    "Housekeeping Staff", "Bell Boy", "Concierge", "Banquet Manager",
-    "F&B Manager", "F&B Executive", "Room Service Staff", "Guest Relations Executive",
-    "Duty Manager", "Bartender", "Steward", "Kitchen Steward"
+    "Executive Chef", "Sous Chef", "Front Office Manager", "Front Office Executive", 
+    "Receptionist", "Guest Relations Executive", "Housekeeping Supervisor", "Housekeeping Staff", 
+    "Room Attendant", "Laundry Attendant", "Bell Boy", "Concierge", "Reservation Agent", 
+    "Night Auditor", "Hotel Manager", "Duty Manager", "Banquet Manager", "F&B Manager", 
+    "F&B Executive", "Room Service Staff", "Bartender", "Steward", "Kitchen Steward"
+  ],
+  "Catering & Banquet": [
+    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
+    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward", "Banquet Staff"
+  ],
+  "Kitchen Production": [
+    "Executive Chef", "Head Chef", "Sous Chef", "Chef de Partie", "Commis Chef", "Pastry Chef", 
+    "Bakery Chef", "Pizza Chef", "Grill Chef", "Indian Chef", "Arabic Chef", "Chinese Chef", 
+    "Tandoor Chef", "Kitchen Helper", "Kitchen Steward", "Dishwasher", "Butcher", "Sandwich Maker", 
+    "Juice Maker", "Restaurant Manager", "Assistant Restaurant Manager", "Café Manager", 
+    "Outlet Manager", "Floor Supervisor", "Captain", "Steward", "Senior Steward", "Host", 
+    "Hostess", "Cashier", "Food Runner", "Busser", "Order Taker", "Drive-Thru Staff", "Barista", 
+    "Bartender", "Mixologist", "Bar Supervisor", "Bar Manager", "Beverage Manager", "Hotel Manager", 
+    "Front Office Manager", "Receptionist", "Guest Relations Executive", "Bell Boy", "Concierge", 
+    "Reservation Agent", "Night Auditor", "Housekeeping Supervisor", "Housekeeping Staff", 
+    "Laundry Attendant", "Room Attendant", "Operations Manager", "Area Manager", "General Manager", 
+    "HR Executive", "Recruitment Coordinator", "Accountant", "Purchase Manager", "Store Keeper", 
+    "Inventory Controller", "Admin Executive", "Delivery Driver", "Bike Rider", "Dispatch Executive", 
+    "Warehouse Assistant", "Logistics Coordinator", "Catering Manager", "Banquet Supervisor", 
+    "Event Coordinator", "Banquet Staff", "Cleaner", "Maintenance Technician", "Electrician", 
+    "Plumber", "AC Technician", "Security Guard", "Other"
   ],
 };
 
@@ -466,14 +474,27 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     if (!preferredRole) {
-      setSelectedCategory("Kitchen Production");
       return;
     }
-
-    const initialCat = Object.keys(categoryJobTitles).find((cat) =>
-      categoryJobTitles[cat].includes(preferredRole)
-    ) || "Kitchen Production";
-    setSelectedCategory(initialCat);
+    if (selectedCategory && categoryJobTitles[selectedCategory]?.includes(preferredRole)) {
+      return;
+    }
+    const specificCategories = [
+      "QSR & Fast Food",
+      "Restaurant Operations",
+      "Café & Beverage",
+      "Cloud Kitchen",
+      "Hotel / Resort",
+      "Catering & Banquet",
+    ];
+    const initialCat = specificCategories.find((cat) =>
+      categoryJobTitles[cat]?.includes(preferredRole)
+    );
+    if (initialCat) {
+      setSelectedCategory(initialCat);
+    } else if (categoryJobTitles["Kitchen Production"]?.includes(preferredRole)) {
+      setSelectedCategory("Kitchen Production");
+    }
   }, [preferredRole]);
 
   useEffect(() => {

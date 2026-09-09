@@ -1408,6 +1408,42 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
 }
 
 const categoryJobTitles = {
+  "Restaurant Operations": [
+    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
+    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward", 
+    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker", "Executive Chef",
+    "Head Chef", "Sous Chef", "Chef de Partie", "Commis Chef", "Pastry Chef", "Bakery Chef",
+    "Pizza Chef", "Grill Chef", "Indian Chef", "Arabic Chef", "Chinese Chef", "Tandoor Chef",
+    "Continental Chef", "Line Cook", "Prep Cook", "Kitchen Helper", "Kitchen Steward",
+    "Dishwasher", "Butcher", "Bartender", "Bar Supervisor", "Sommelier"
+  ],
+  "Café & Beverage": [
+    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker", 
+    "Juice Maker", "Smoothie Specialist", "Beverage Specialist", "Sandwich Maker",
+    "Bakery Staff", "Café Steward", "Counter Staff"
+  ],
+  "QSR & Fast Food": [
+    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff", 
+    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew",
+    "Burger Maker", "Pizza Maker", "Shawarma Maker", "Order Taker", "Cashier"
+  ],
+  "Cloud Kitchen": [
+    "Cloud Kitchen Manager", "Kitchen Operations Lead", "Delivery Packing Staff",
+    "Order Preparation Staff", "Multi-Brand Cook", "Quality Control Staff",
+    "Cloud Kitchen Chef", "Line Cook", "Packing & Dispatch Staff",
+    "Delivery Coordinator", "Kitchen Helper", "Inventory Staff"
+  ],
+  "Hotel / Resort": [
+    "Executive Chef", "Sous Chef", "Front Office Manager", "Front Office Executive", 
+    "Receptionist", "Guest Relations Executive", "Housekeeping Supervisor", "Housekeeping Staff", 
+    "Room Attendant", "Laundry Attendant", "Bell Boy", "Concierge", "Reservation Agent", 
+    "Night Auditor", "Hotel Manager", "Duty Manager", "Banquet Manager", "F&B Manager", 
+    "F&B Executive", "Room Service Staff", "Bartender", "Steward", "Kitchen Steward"
+  ],
+  "Catering & Banquet": [
+    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
+    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward", "Banquet Staff"
+  ],
   "Kitchen Production": [
     "Executive Chef", "Head Chef", "Sous Chef", "Chef de Partie", "Commis Chef", "Pastry Chef", 
     "Bakery Chef", "Pizza Chef", "Grill Chef", "Indian Chef", "Arabic Chef", "Chinese Chef", 
@@ -1425,39 +1461,10 @@ const categoryJobTitles = {
     "Event Coordinator", "Banquet Staff", "Cleaner", "Maintenance Technician", "Electrician", 
     "Plumber", "AC Technician", "Security Guard", "Other"
   ],
-  "Restaurant Operations": [
-    "Restaurant Manager", "Assistant Restaurant Manager", "Outlet Manager", "Floor Supervisor", 
-    "Restaurant Supervisor", "Captain", "Senior Captain", "Steward", "Senior Steward", 
-    "Cashier", "Host", "Hostess", "Food Runner", "Busser", "Order Taker"
-  ],
-  "Café & Beverage": [
-    "Café Manager", "Barista", "Senior Barista", "Coffee Master", "Tea Maker", 
-    "Juice Maker", "Smoothie Specialist", "Beverage Specialist"
-  ],
-  "QSR & Fast Food": [
-    "QSR Manager", "Shift Manager", "Counter Staff", "Crew Member", "Drive Thru Staff", 
-    "Packing Staff", "Food Preparation Staff", "Fryer Operator", "Production Crew"
-  ],
-  "Catering & Banquet": [
-    "Catering Manager", "Banquet Supervisor", "Banquet Captain", "Event Catering Coordinator", 
-    "Outdoor Catering Staff", "Buffet Setup Staff", "Service Crew", "Banquet Steward"
-  ],
-  "Cloud Kitchen": [
-    "Cloud Kitchen Manager", "Kitchen Operations Lead", "Delivery Packing Staff",
-    "Order Preparation Staff", "Multi-Brand Cook", "Quality Control Staff",
-    "Cloud Kitchen Chef", "Line Cook", "Packing & Dispatch Staff",
-    "Delivery Coordinator", "Kitchen Helper", "Inventory Staff"
-  ],
-  "Hotel / Resort": [
-    "Executive Chef", "Sous Chef", "Front Office Executive", "Housekeeping Supervisor",
-    "Housekeeping Staff", "Bell Boy", "Concierge", "Banquet Manager",
-    "F&B Manager", "F&B Executive", "Room Service Staff", "Guest Relations Executive",
-    "Duty Manager", "Bartender", "Steward", "Kitchen Steward"
-  ],
 };
 
 const businessTypeCategories = [
-  {
+{
     id: "QSR & Fast Food",
     title: "QSR (Quick Service Restaurant)",
     subTitle: "Fast food, counter service, takeaways",
@@ -1508,11 +1515,24 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
 
   useEffect(() => {
     if (!preferredRole) return;
-    const initialCat = Object.keys(categoryJobTitles).find((cat) =>
-      categoryJobTitles[cat].includes(preferredRole)
+    if (selectedCategory && categoryJobTitles[selectedCategory]?.includes(preferredRole)) {
+      return;
+    }
+    const specificCategories = [
+      "Restaurant Operations",
+      "Café & Beverage",
+      "QSR & Fast Food",
+      "Cloud Kitchen",
+      "Hotel / Resort",
+      "Catering & Banquet",
+    ];
+    const initialCat = specificCategories.find((cat) =>
+      categoryJobTitles[cat]?.includes(preferredRole)
     );
     if (initialCat) {
       setSelectedCategory(initialCat);
+    } else if (categoryJobTitles["Kitchen Production"]?.includes(preferredRole)) {
+      setSelectedCategory("Kitchen Production");
     }
   }, [preferredRole]);
 
