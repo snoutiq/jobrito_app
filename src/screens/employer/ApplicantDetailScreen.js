@@ -529,7 +529,7 @@ export default function ApplicantDetailScreen({ route, navigation }) {
               <Text style={styles.candidateName} numberOfLines={1}>{displayName}</Text>
 
               {Boolean(displayRole) && (
-                <Text style={styles.candidateRole} numberOfLines={1}>{displayRole}</Text>
+                <Text style={styles.candidateRole} numberOfLines={2}>{displayRole}</Text>
               )}
 
               {Boolean(displayProfileId) && (

@@ -506,7 +506,7 @@ export default React.memo(function SwipeCard({
                 </Text>
 
                 {displayRole ? (
-                  <Text style={styles.candidateRole} numberOfLines={1}>
+                  <Text style={styles.candidateRole} numberOfLines={2}>
                     {displayRole}
                   </Text>
                 ) : null}

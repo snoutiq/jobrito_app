@@ -455,6 +455,8 @@ export default function JobDetailsScreen({ navigation, route }) {
           .filter(Boolean)
       : [];
 
+  const isSavedRoute = Boolean(route?.params?.isSaved) || route?.params?.from === "saved";
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Clean White Header matching design */}
@@ -473,7 +475,9 @@ export default function JobDetailsScreen({ navigation, route }) {
 
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={styles.headerTitleText} numberOfLines={1}>
-            {t("backToSavedJobs", "Back to Saved Jobs")}
+            {isSavedRoute
+              ? t("backToSavedJobs", "Back to Saved Jobs")
+              : (route?.params?.headerTitle || t("jobDetails.title", "Job Details"))}
           </Text>
         </View>
 
@@ -494,26 +498,28 @@ export default function JobDetailsScreen({ navigation, route }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Saved Job Top Blue Notice Banner */}
-        <View style={styles.savedNoticeBanner}>
-          <View style={styles.savedNoticeIconWrap}>
-            <Ionicons name="bookmark" size={normalize(20)} color="#ffffff" />
+        {/* Saved Job Top Blue Notice Banner (Only for saved jobs) */}
+        {isSavedRoute && (
+          <View style={styles.savedNoticeBanner}>
+            <View style={styles.savedNoticeIconWrap}>
+              <Ionicons name="bookmark" size={normalize(20)} color="#ffffff" />
+            </View>
+            <View style={styles.savedNoticeTextWrap}>
+              <Text style={styles.savedNoticeTitle}>
+                {t("savedNoticeTitle", "This job has been saved by you.")}
+              </Text>
+              <Text style={styles.savedNoticeSub}>
+                {t("savedNoticeSub1", "If you're still interested, tap Apply.")}
+              </Text>
+              <Text style={styles.savedNoticeSub}>
+                {t(
+                  "savedNoticeSub2",
+                  "You can also share this opportunity with others.",
+                )}
+              </Text>
+            </View>
           </View>
-          <View style={styles.savedNoticeTextWrap}>
-            <Text style={styles.savedNoticeTitle}>
-              {t("savedNoticeTitle", "This job has been saved by you.")}
-            </Text>
-            <Text style={styles.savedNoticeSub}>
-              {t("savedNoticeSub1", "If you're still interested, tap Apply.")}
-            </Text>
-            <Text style={styles.savedNoticeSub}>
-              {t(
-                "savedNoticeSub2",
-                "You can also share this opportunity with others.",
-              )}
-            </Text>
-          </View>
-        </View>
+        )}
 
         {/* Hero Card */}
         <View style={styles.heroCard}>

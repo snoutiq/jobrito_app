@@ -85,12 +85,18 @@ export default function NotificationDetailsScreen({ route, navigation }) {
     }
   })();
 
-  const metadata = notification.metadata || {};
-  const hasJobId = !!(metadata.job_id || notification.job_id);
-  const hasApplicationId = !!(metadata.application_id || notification.application_id);
+  let metadata = notification.metadata || {};
+  if (typeof metadata === "string") {
+    try {
+      metadata = JSON.parse(metadata);
+    } catch (e) {}
+  }
+  const jobId = metadata?.job_id || notification?.job_id || metadata?.jobId || notification?.target_id || metadata?.target_id;
+  const applicationId = metadata?.application_id || notification?.application_id || metadata?.applicationId;
+  const hasJobId = !!jobId;
+  const hasApplicationId = !!applicationId;
 
   const handleActionPress = () => {
-    const jobId = metadata.job_id || notification.job_id || notification.target_id;
     const isEmp = String(activeRole || "").toLowerCase() === "employer";
 
     const jobObj = {
@@ -116,7 +122,6 @@ export default function NotificationDetailsScreen({ route, navigation }) {
 
   const handleViewApplicantPress = () => {
     const applicantId = metadata.applicant_id || metadata.applicantId || notification.applicant_id;
-    const applicationId = metadata.application_id || notification.application_id;
     
     navigation.navigate("ApplicantDetail", {
       applicantId: applicantId,
@@ -174,23 +179,65 @@ export default function NotificationDetailsScreen({ route, navigation }) {
               <Text style={styles.metaSectionTitle}>{t("associatedDetails", "Associated Details")}</Text>
               <View style={styles.metaGrid}>
                 {hasJobId && (
-                  <View style={styles.metaItem}>
-                    <Ionicons name="briefcase-outline" size={16} color="rgba(10, 5, 4, 0.4)" />
-                    <Text style={styles.metaItemText} numberOfLines={1}>
-                      Job ID: #{metadata.job_id || notification.job_id}
-                    </Text>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.metaItemClickable}
+                    activeOpacity={0.7}
+                    onPress={handleActionPress}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+                      <Ionicons name="briefcase-outline" size={16} color="#153e69" />
+                      <Text style={styles.metaItemText} numberOfLines={1}>
+                        Job ID: #{jobId}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#153e69" />
+                  </TouchableOpacity>
                 )}
                 {hasApplicationId && (
-                  <View style={styles.metaItem}>
-                    <Ionicons name="document-text-outline" size={16} color="rgba(10, 5, 4, 0.4)" />
-                    <Text style={styles.metaItemText} numberOfLines={1}>
-                      Application ID: #{metadata.application_id || notification.application_id}
-                    </Text>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.metaItemClickable}
+                    activeOpacity={0.7}
+                    onPress={handleViewApplicantPress}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+                      <Ionicons name="document-text-outline" size={16} color="#153e69" />
+                      <Text style={styles.metaItemText} numberOfLines={1}>
+                        Application ID: #{applicationId}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#153e69" />
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
+          )}
+
+          {/* Direct Action Button */}
+          {hasJobId && (
+            <TouchableOpacity
+              style={styles.primaryActionButton}
+              activeOpacity={0.8}
+              onPress={handleActionPress}
+            >
+              <Ionicons name="briefcase-outline" size={18} color="#ffffff" />
+              <Text style={styles.primaryActionBtnText}>
+                {t("viewJobDetails", "View Job Details")}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+            </TouchableOpacity>
+          )}
+          {!hasJobId && hasApplicationId && (
+            <TouchableOpacity
+              style={styles.primaryActionButton}
+              activeOpacity={0.8}
+              onPress={handleViewApplicantPress}
+            >
+              <Ionicons name="person-outline" size={18} color="#ffffff" />
+              <Text style={styles.primaryActionBtnText}>
+                {t("viewApplicationDetails", "View Application Details")}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+            </TouchableOpacity>
           )}
         </View>
       </ScrollView>
@@ -328,10 +375,43 @@ const styles = StyleSheet.create({
     borderRadius: normalize(8),
     gap: normalize(6),
   },
+  metaItemClickable: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f1f5f9",
+    paddingVertical: normalize(10),
+    paddingHorizontal: normalize(12),
+    borderRadius: normalize(10),
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
   metaItemText: {
-    fontSize: normalize(11.5),
-    color: "rgba(15, 23, 42, 0.65)",
-    fontWeight: "600",
+    fontSize: normalize(12),
+    color: "#153e69",
+    fontWeight: "700",
+  },
+  primaryActionButton: {
+    marginTop: normalize(20),
+    backgroundColor: "#153e69",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: normalize(13),
+    paddingHorizontal: normalize(16),
+    borderRadius: normalize(12),
+    gap: normalize(8),
+    shadowColor: "#153e69",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  primaryActionBtnText: {
+    color: "#ffffff",
+    fontSize: normalize(14),
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   emptyContainer: {
     flex: 1,
