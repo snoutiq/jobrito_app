@@ -61,7 +61,15 @@
   "contractWork": "कंत्राटी काम",
   "freelanceProjects": "फ्रीलान्स प्रकल्प",
   "overseas": "परदेशात",
-  "both": "दोन्ही",
+  "both": "दोन्ही (भारत आणि परदेश)",
+  "global": "दोन्ही (भारत आणि परदेश)",
+  "globalDesc": "देशांतर्गत आणि आंतरराष्ट्रीय दोन्ही संधी शोधा",
+  "selectCountryPlaceholder": "देश निवडा",
+  "selectRegionPlaceholder": "देश निवडा",
+  "selectCountryTitle": "देश निवडा",
+  "selectRegionTitle": "देश निवडा",
+  "selectStatePlaceholder": "राज्य निवडा",
+  "selectStateTitle": "राज्य निवडा",
   "returnToCommunityFeed": "कम्युनिटी फीडवर परत जा",
   "completeProfile": {
     "photo": {

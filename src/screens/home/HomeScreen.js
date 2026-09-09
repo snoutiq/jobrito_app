@@ -806,8 +806,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.cardMainContent}>
                     {isPinned && (
                       <View style={styles.pinnedTagRow}>
-                        <Ionicons name="pin" size={normalize(12)} color="#f57f20" style={{ marginRight: 3 }} />
-                        <Text style={styles.pinnedTagText}>Pinned</Text>
+                        <Text style={styles.pinnedTagText}>PINNED</Text>
                       </View>
                     )}
 

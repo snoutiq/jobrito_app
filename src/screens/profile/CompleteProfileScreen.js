@@ -1142,7 +1142,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
     },
     {
       id: "Both",
-      title: t("global", "Global"),
+      title: t("global", "Both (India & Overseas)"),
       desc: t("globalDesc", "Explore domestic & international opportunities"),
       icon: "earth-outline",
     },
@@ -1281,13 +1281,13 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
                 {isSelected && opt.id === "Overseas" && (
                   <TouchableOpacity
                     style={styles.locationSubDropdownBtn}
-                    onPress={() => openSearchModal("region")}
+                    onPress={() => openSearchModal("country")}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.locationSubDropdownText}>
                       {city && locationPreference === "Overseas"
                         ? city
-                        : t("selectRegionPlaceholder", "Select Region")}
+                        : t("selectCountryPlaceholder", "Select Country")}
                     </Text>
                     <Ionicons name="chevron-down" size={normalize(18)} color="#64748b" />
                   </TouchableOpacity>
@@ -1323,7 +1323,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
             return;
           }
           if (locationPreference !== "Both" && locationPreference !== "Global" && (!toTrimmedString(city) || city.startsWith("Select"))) {
-            const placeType = locationPreference === "India" ? "state" : "region";
+            const placeType = locationPreference === "India" ? "state" : "country";
             Alert.alert(t("requiredField", "Required Field"), t("pleaseSelectWorkLocation", `Please select a ${placeType} for your work location preference.`));
             return;
           }
@@ -1354,7 +1354,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
               <Text style={styles.modalTitle}>
                 {modalType === "state"
                   ? t("selectStateTitle", "Select State")
-                  : t("selectRegionTitle", "Select Region")}
+                  : t("selectCountryTitle", "Select Country")}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
@@ -1512,6 +1512,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [jobTitleModalVisible, setJobTitleModalVisible] = useState(false);
   const [jobTitleSearch, setJobTitleSearch] = useState("");
+  const [isBrowsingOthers, setIsBrowsingOthers] = useState(false);
 
   useEffect(() => {
     if (!preferredRole) return;
@@ -1536,11 +1537,39 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
     }
   }, [preferredRole]);
 
-  const rawJobTitles = selectedCategory ? (categoryJobTitles[selectedCategory] || []) : [];
-  const jobTitlesList = [...rawJobTitles].sort((a, b) => a.localeCompare(b));
-  const filteredJobTitles = jobTitlesList.filter((title) =>
+  // Determine active category roles list
+  const isDirectOthersCategory = selectedCategory === "Kitchen Production";
+  const shouldShowOthersList = isBrowsingOthers || isDirectOthersCategory;
+
+  const currentCategoryRoles = selectedCategory
+    ? (categoryJobTitles[selectedCategory] || [])
+    : [];
+
+  const baseList = shouldShowOthersList
+    ? (categoryJobTitles["Kitchen Production"] || []).filter((r) => r.toLowerCase() !== "other")
+    : currentCategoryRoles.filter((r) => r.toLowerCase() !== "other");
+
+  const sortedRolesList = [...baseList].sort((a, b) => a.localeCompare(b));
+  const filteredJobTitles = sortedRolesList.filter((title) =>
     title.toLowerCase().includes(jobTitleSearch.toLowerCase())
   );
+
+  const selectedCategoryTitle =
+    businessTypeCategories.find((b) => b.id === selectedCategory)?.title ||
+    selectedCategory ||
+    "Category";
+
+  const handleOpenModal = () => {
+    setJobTitleSearch("");
+    setIsBrowsingOthers(false);
+    setJobTitleModalVisible(true);
+  };
+
+  const handleSelectRole = (role) => {
+    setPreferredRole(role);
+    setJobTitleModalVisible(false);
+    setIsBrowsingOthers(false);
+  };
 
   return (
     <View style={styles.modernStepContent}>
@@ -1612,10 +1641,7 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
                     </Text>
                     <TouchableOpacity
                       style={styles.inlineRoleDropdownTriggerBtn}
-                      onPress={() => {
-                        setJobTitleSearch("");
-                        setJobTitleModalVisible(true);
-                      }}
+                      onPress={handleOpenModal}
                       activeOpacity={0.8}
                     >
                       <Text
@@ -1688,13 +1714,44 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
         visible={jobTitleModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setJobTitleModalVisible(false)}
+        onRequestClose={() => {
+          if (isBrowsingOthers && !isDirectOthersCategory) {
+            setIsBrowsingOthers(false);
+          } else {
+            setJobTitleModalVisible(false);
+          }
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            {/* Modal Top Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select {selectedCategory} Role</Text>
-              <TouchableOpacity onPress={() => setJobTitleModalVisible(false)}>
+              {isBrowsingOthers && !isDirectOthersCategory ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsBrowsingOthers(false);
+                    setJobTitleSearch("");
+                  }}
+                  style={styles.modalBackBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="arrow-back" size={20} color="#153e69" />
+                  <Text style={styles.modalBackBtnText}>{t("back", "Back")}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ width: 30 }} />
+              )}
+
+              <Text style={styles.modalTitle} numberOfLines={1}>
+                {shouldShowOthersList
+                  ? t("other", "Other")
+                  : `${selectedCategoryTitle} Roles`}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => setJobTitleModalVisible(false)}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="close-circle" size={28} color="rgba(10, 5, 4, 0.4)" />
               </TouchableOpacity>
             </View>
@@ -1703,12 +1760,21 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
             <View style={styles.searchBar}>
               <Ionicons name="search" size={20} color="rgba(10, 5, 4, 0.4)" style={styles.searchIcon} />
               <TextInput
-                placeholder={t("searchRolesPlaceholder", "Search job roles...")}
+                placeholder={
+                  shouldShowOthersList
+                    ? t("searchAllRolesPlaceholder", "Search other roles...")
+                    : t("searchCategoryRolesPlaceholder", "Search roles in this category...")
+                }
                 placeholderTextColor="rgba(10, 5, 4, 0.4)"
                 value={jobTitleSearch}
                 onChangeText={setJobTitleSearch}
                 style={styles.searchInputField}
               />
+              {Boolean(jobTitleSearch) && (
+                <TouchableOpacity onPress={() => setJobTitleSearch("")}>
+                  <Ionicons name="close" size={18} color="rgba(10, 5, 4, 0.4)" />
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Items List */}
@@ -1716,15 +1782,15 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
               style={styles.modalList}
               contentContainerStyle={{ paddingBottom: 40 }}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
+              {/* Roles List */}
               {filteredJobTitles.map((item, idx) => (
                 <TouchableOpacity
                   key={`${item}-${idx}`}
                   style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
-                  onPress={() => {
-                    setPreferredRole(item);
-                    setJobTitleModalVisible(false);
-                  }}
+                  onPress={() => handleSelectRole(item)}
+                  activeOpacity={0.7}
                 >
                   <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
                     {item}
@@ -1734,8 +1800,45 @@ function CategoryStep({ onSubmit, onSkip, t, preferredRole, setPreferredRole, sk
                   )}
                 </TouchableOpacity>
               ))}
+
+              {/* In Category Mode: Show simple 'Other' list item at the end of the list */}
+              {!shouldShowOthersList && (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setIsBrowsingOthers(true);
+                    setJobTitleSearch("");
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalItemText}>
+                    {t("other", "Other")}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color="#64748b" />
+                </TouchableOpacity>
+              )}
+
+              {/* No search results fallback */}
               {filteredJobTitles.length === 0 && (
-                <Text style={styles.noResultsText}>No matching job titles found.</Text>
+                <View style={{ alignItems: "center", paddingVertical: normalize(16) }}>
+                  <Text style={styles.noResultsText}>
+                    {t("noMatchingRolesFound", "No matching roles found.")}
+                  </Text>
+                  {!shouldShowOthersList && (
+                    <TouchableOpacity
+                      style={styles.searchOthersBtn}
+                      onPress={() => {
+                        setIsBrowsingOthers(true);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="search" size={normalize(15)} color="#ffffff" style={{ marginRight: 6 }} />
+                      <Text style={styles.searchOthersBtnText}>
+                        {t("searchOtherRoles", "Search in Other")}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             </ScrollView>
           </View>
@@ -3108,5 +3211,98 @@ const styles = StyleSheet.create({
   tagChipTextActive: {
     color: PRIMARY,
     fontWeight: "600",
+  },
+  otherOptionSpecialCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff7ed",
+    borderWidth: 1.5,
+    borderColor: "#fdba74",
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginTop: normalize(12),
+    marginBottom: normalize(8),
+    gap: normalize(10),
+  },
+  otherOptionSpecialIconCircle: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: "rgba(245, 127, 32, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  otherOptionSpecialTitle: {
+    fontSize: normalize(13.5),
+    fontWeight: "700",
+    color: "#c2410c",
+  },
+  otherOptionSpecialSub: {
+    fontSize: normalize(11),
+    color: "#7c2d12",
+    marginTop: 2,
+    fontWeight: "500",
+  },
+  customRoleCard: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: normalize(12),
+    padding: normalize(12),
+    marginBottom: normalize(14),
+  },
+  customRoleInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: normalize(8),
+    marginTop: normalize(8),
+  },
+  customRoleInput: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#94a3b8",
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(8),
+    fontSize: normalize(13),
+    color: "#0f172a",
+  },
+  customRoleSubmitBtn: {
+    backgroundColor: "#153e69",
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(9),
+    borderRadius: normalize(8),
+  },
+  customRoleSubmitBtnText: {
+    color: "#ffffff",
+    fontSize: normalize(12.5),
+    fontWeight: "700",
+  },
+  searchOthersBtn: {
+    marginTop: normalize(12),
+    backgroundColor: "#153e69",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(10),
+    borderRadius: normalize(10),
+  },
+  searchOthersBtnText: {
+    color: "#ffffff",
+    fontSize: normalize(13),
+    fontWeight: "700",
+  },
+  modalBackBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: normalize(4),
+    paddingRight: normalize(8),
+  },
+  modalBackBtnText: {
+    fontSize: normalize(13),
+    fontWeight: "700",
+    color: "#153e69",
   },
 });

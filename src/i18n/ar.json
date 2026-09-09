@@ -62,7 +62,15 @@
   "contractWork": "عمل تعاقدي",
   "freelanceProjects": "عمل حر",
   "overseas": "خارج البلاد",
-  "both": "كلاهما",
+  "both": "كلاهما (الهند وخارجها)",
+  "global": "كلاهما (الهند وخارجها)",
+  "globalDesc": "استكشف الفرص المحلية والدولية",
+  "selectCountryPlaceholder": "اختر الدولة",
+  "selectRegionPlaceholder": "اختر الدولة",
+  "selectCountryTitle": "اختر الدولة",
+  "selectRegionTitle": "اختر الدولة",
+  "selectStatePlaceholder": "اختر الولاية",
+  "selectStateTitle": "اختر الولاية",
   "returnToCommunityFeed": "العودة إلى تغذية المجتمع",
   "completeProfile": {
     "photo": {
