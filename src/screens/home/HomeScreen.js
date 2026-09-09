@@ -1135,23 +1135,32 @@ export default function HomeScreen({ navigation }) {
 
             <View style={{ maxHeight: 220, flexShrink: 1 }}>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 10 }}>
-                {((categoryJobTitles[selectedCategory] || []).filter((item) =>
-                  item.toLowerCase().includes(jobTitleSearch.toLowerCase())
-                )).map((item, idx) => (
-                  <TouchableOpacity
-                    key={`${item}-${idx}`}
-                    style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
-                    onPress={() => {
-                      setPreferredRole(item);
-                      setJobTitleModalVisible(false);
-                    }}
-                  >
-                    <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
-                      {item}
-                    </Text>
-                    {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
-                  </TouchableOpacity>
-                ))}
+                {[...(categoryJobTitles[selectedCategory] || [])]
+                  .sort((a, b) => {
+                    const isOtherA = a.toLowerCase().startsWith("other");
+                    const isOtherB = b.toLowerCase().startsWith("other");
+                    if (isOtherA && !isOtherB) return 1;
+                    if (!isOtherA && isOtherB) return -1;
+                    return a.localeCompare(b, undefined, { sensitivity: "base" });
+                  })
+                  .filter((item) =>
+                    item.toLowerCase().includes(jobTitleSearch.toLowerCase())
+                  )
+                  .map((item, idx) => (
+                    <TouchableOpacity
+                      key={`${item}-${idx}`}
+                      style={[styles.modalItem, preferredRole === item && styles.modalItemActive]}
+                      onPress={() => {
+                        setPreferredRole(item);
+                        setJobTitleModalVisible(false);
+                      }}
+                    >
+                      <Text style={[styles.modalItemText, preferredRole === item && styles.modalItemTextActive]}>
+                        {item}
+                      </Text>
+                      {preferredRole === item && <Ionicons name="checkmark" size={18} color="#153e69" />}
+                    </TouchableOpacity>
+                  ))}
                 {((categoryJobTitles[selectedCategory] || []).filter((item) =>
                   item.toLowerCase().includes(jobTitleSearch.toLowerCase())
                 )).length === 0 && (

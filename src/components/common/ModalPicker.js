@@ -48,16 +48,31 @@ export default function ModalPicker({
 
   const getLabel = useCallback((opt) => (renderOption ? renderOption(opt) : opt), [renderOption]);
 
+  const sortedOptions = useMemo(() => {
+    if (!Array.isArray(options)) return [];
+    // If items are strings or have labels, sort alphabetically (case-insensitive)
+    // Keep 'Other' / 'Others' at the bottom if present
+    return [...options].sort((a, b) => {
+      const labelA = String(getLabel(a)).trim();
+      const labelB = String(getLabel(b)).trim();
+      const isOtherA = labelA.toLowerCase().startsWith("other");
+      const isOtherB = labelB.toLowerCase().startsWith("other");
+      if (isOtherA && !isOtherB) return 1;
+      if (!isOtherA && isOtherB) return -1;
+      return labelA.localeCompare(labelB, undefined, { sensitivity: "base" });
+    });
+  }, [options, getLabel]);
+
   const filteredOptions = useMemo(() => {
     if (searchable && searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
-      return options.filter((opt) => {
+      return sortedOptions.filter((opt) => {
         const labelStr = String(getLabel(opt)).toLowerCase();
         return labelStr.includes(q);
       });
     }
-    return options;
-  }, [options, searchQuery, searchable, getLabel]);
+    return sortedOptions;
+  }, [sortedOptions, searchQuery, searchable, getLabel]);
 
   const renderItem = useCallback(
     ({ item }) => {

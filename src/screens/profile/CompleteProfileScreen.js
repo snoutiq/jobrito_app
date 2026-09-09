@@ -1122,7 +1122,7 @@ function LocationStep({ next, t, locationPreference, setLocationPreference, city
     setModalVisible(true);
   };
 
-  const listItems = modalType === "state" ? statesOfIndia : overseasRegions;
+  const listItems = (modalType === "state" ? statesOfIndia : overseasRegions).slice().sort((a, b) => a.localeCompare(b));
   const filteredItems = listItems.filter((item) =>
     item.toLowerCase().includes(searchText.toLowerCase())
   );
