@@ -24,6 +24,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { setEmployerOnboardingCompleted, setStoredProfile } from "../../services/storage";
 import ModalPicker, { ModalPickerTrigger } from "../../components/common/ModalPicker";
 import useKeyboardAwareScroll from "../../hooks/useKeyboardAwareScroll";
+import { parseCountryAndNumber } from "../../utils/phoneUtils";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = SCREEN_WIDTH / 390;
@@ -394,15 +395,28 @@ export default function PostJobScreen({ navigation, route }) {
       : "";
 
     const contactPerson = profile?.name || profile?.full_name || profile?.contact_person || profile?.employer_profile?.contact_person || "";
-    const contactPhone = profile?.phone || profile?.mobile || profile?.employer_profile?.phone || "";
+    const rawContactPhone =
+      profile?.business_mobile ||
+      profile?.mobile_number ||
+      profile?.phone ||
+      profile?.mobile ||
+      profile?.contactPhone ||
+      profile?.employer_profile?.business_mobile ||
+      profile?.employer_profile?.phone ||
+      profile?.user?.mobile_number ||
+      "";
+    const parsedPhone = parseCountryAndNumber(rawContactPhone);
+    const extension = parsedPhone.countryCode || "91";
+    const nationalPhone = parsedPhone.nationalNumber || (rawContactPhone ? String(rawContactPhone).replace(/\D/g, "") : "");
+    const formattedContactPhone = nationalPhone ? `+${extension} ${nationalPhone}` : "";
     const contactEmail = profile?.email || profile?.employer_profile?.email || "";
-    const contactInfo = contactPhone && contactEmail
-      ? `Phone: ${contactPhone} | Email: ${contactEmail}`
-      : contactPhone
-      ? `Phone: ${contactPhone}`
+    const contactInfo = formattedContactPhone && contactEmail
+      ? `Phone: ${formattedContactPhone} | Email: ${contactEmail}`
+      : formattedContactPhone
+      ? `Phone: ${formattedContactPhone}`
       : contactEmail
       ? `Email: ${contactEmail}`
-      : "";
+      : `Phone: +91 `;
 
     let locCategory = "india";
     const locLower = cleanLoc.toLowerCase();
@@ -421,7 +435,10 @@ export default function PostJobScreen({ navigation, route }) {
       industry_segment: businessType,
       company: profile?.business_name || profile?.businessName || profile?.company || "My Company",
       contact_person: contactPerson || null,
-      contact_info: contactInfo || null,
+      contact_info: contactInfo,
+      extension: extension,
+      phone_extension: extension,
+      phone: nationalPhone || null,
       location: cleanLoc,
       salary: combinedSalary || null,
       salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,

@@ -18,7 +18,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
-import { setUnreadNotificationsCount } from "../../redux/slices/userSlice";
+import { fetchProfile, setUnreadNotificationsCount } from "../../redux/slices/userSlice";
 import { getDailyPostLimit } from "../../services/jobApi";
 import { getEmployerNotifications } from "../../services/notificationApi";
 
@@ -75,6 +75,7 @@ export default function EmployerHomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchEmployerDashboard());
+      dispatch(fetchProfile());
       getEmployerNotifications("employer")
         .then((res) => {
           const list =
@@ -101,9 +102,18 @@ export default function EmployerHomeScreen({ navigation }) {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const res = dispatch(fetchEmployerDashboard());
-      if (res.unwrap) await res.unwrap();
-      else if (res.then) await res;
+      await Promise.allSettled([
+        dispatch(fetchEmployerDashboard()),
+        dispatch(fetchProfile()),
+        getEmployerNotifications("employer")
+          .then((res) => {
+            const list =
+              res?.notifications || res?.data || (Array.isArray(res) ? res : []);
+            const unread = list.filter((n) => !n.is_read).length;
+            dispatch(setUnreadNotificationsCount(unread));
+          })
+          .catch(() => null),
+      ]);
     } catch (e) {
       console.warn(e);
     } finally {

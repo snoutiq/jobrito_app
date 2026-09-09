@@ -29,6 +29,13 @@ import ModalPicker, {
 } from "../../components/common/ModalPicker";
 import indianStatesCities from "../../data/indianStatesCities.json";
 import countryData from "../../data/countryStateCityData.json";
+import {
+  parseCountryAndNumber,
+  stripCountryPrefix,
+  DIAL_CODE_LABELS,
+  getDialOptionByCode,
+  getTargetDigitsForDialCode,
+} from "../../utils/phoneUtils";
 
 const stateOptions = Object.keys(indianStatesCities);
 const allCitiesList = Array.from(new Set(Object.values(indianStatesCities).flat()));
@@ -178,10 +185,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneDialCode, setPhoneDialCode] = useState("🇮🇳 +91");
   const [showDialCodeModal, setShowDialCodeModal] = useState(false);
-  const dialCodeOptions = ["🇮🇳 +91", "🇸🇦 +966"];
+  const dialCodeOptions = DIAL_CODE_LABELS;
 
   const [savedPhones, setSavedPhones] = useState({});
-  const targetPhoneDigits = (phoneDialCode.includes("+966") || category === "KSA" || category === "Saudi Arabia") ? 9 : 10;
+  const targetPhoneDigits = getTargetDigitsForDialCode(phoneDialCode);
 
   const changeCountryOrDialCode = (newCat, newCode) => {
     setSavedPhones((prev) => {
@@ -194,9 +201,14 @@ export default function PostReferralJobScreen({ navigation, route }) {
   };
 
   useEffect(() => {
-    const expectedCode = (category === "KSA" || category === "Saudi Arabia") ? "🇸🇦 +966" : "🇮🇳 +91";
-    if (expectedCode !== phoneDialCode) {
-      changeCountryOrDialCode(null, expectedCode);
+    if (category === "KSA" || category === "Saudi Arabia") {
+      if (!phoneDialCode.includes("+966")) {
+        changeCountryOrDialCode(null, "🇸🇦 +966");
+      }
+    } else if (category === "Dubai" || category === "UAE") {
+      if (!phoneDialCode.includes("+971")) {
+        changeCountryOrDialCode(null, "🇦🇪 +971");
+      }
     }
   }, [category]);
   const [emailAddress, setEmailAddress] = useState("");
@@ -326,19 +338,30 @@ export default function PostReferralJobScreen({ navigation, route }) {
   useEffect(() => {
     if (profile) {
       if (!company) {
-        setCompany(profile.businessName || profile.company || "");
+        setCompany(profile.businessName || profile.company || profile.business_name || "");
       }
       if (!contactInfo) {
-        setContactInfo(profile.email || profile.phone || "");
+        setContactInfo(profile.email || profile.phone || profile.mobile_number || "");
       }
       if (!phoneNumber) {
-        setPhoneNumber(profile.phone || "");
+        const rawPhone = profile.phone || profile.mobile_number || profile.mobile || profile.business_mobile || "";
+        if (rawPhone) {
+          const parsed = parseCountryAndNumber(rawPhone);
+          setPhoneNumber(parsed.nationalNumber);
+          const dialOption = getDialOptionByCode(parsed.countryCode);
+          setPhoneDialCode(dialOption);
+          if (parsed.countryCode === "966") {
+            setCategory("KSA");
+          } else if (parsed.countryCode === "971") {
+            setCategory("Dubai");
+          }
+        }
       }
       if (!emailAddress) {
         setEmailAddress(profile.email || "");
       }
       if (!contactPerson) {
-        setContactPerson(profile.name || profile.full_name || "");
+        setContactPerson(profile.name || profile.full_name || profile.contact_person_name || "");
       }
     }
   }, [profile]);
@@ -473,9 +496,11 @@ export default function PostReferralJobScreen({ navigation, route }) {
           .filter(Boolean)
       : null;
 
+    const dialCodeClean = phoneDialCode.replace(/[^0-9+]/g, "").trim() || "+91";
+    const fullPhone = `${dialCodeClean} ${phoneNumber.trim()}`;
     const combinedContact = emailAddress.trim()
-      ? `Phone: ${phoneNumber.trim()} | Email: ${emailAddress.trim()}`
-      : `Phone: ${phoneNumber.trim()}`;
+      ? `Phone: ${fullPhone} | Email: ${emailAddress.trim()}`
+      : `Phone: ${fullPhone}`;
 
     const combinedSalary =
       salaryMin && salaryMax
@@ -488,11 +513,16 @@ export default function PostReferralJobScreen({ navigation, route }) {
       ? `${selectedCity}, ${selectedState}`
       : selectedState || selectedCity || location.trim() || "";
 
+    const extDigits = dialCodeClean.replace(/\D/g, "") || "91";
+
     const jobData = {
       title,
       category: category.toLowerCase(),
       company,
       contact_info: combinedContact,
+      extension: extDigits,
+      phone_extension: extDigits,
+      phone: phoneNumber.trim() || null,
       description,
       salary: combinedSalary || null,
       salary_min: salaryMin ? parseFloat(salaryMin) || salaryMin : null,
@@ -887,7 +917,10 @@ export default function PostReferralJobScreen({ navigation, route }) {
                         selectedValue={phoneDialCode}
                         onSelect={(val) => {
                           if (val !== phoneDialCode) {
-                            const newCat = val.includes("+966") ? "KSA" : "India";
+                            let newCat = null;
+                            if (val.includes("+966")) newCat = "KSA";
+                            else if (val.includes("+971")) newCat = "Dubai";
+                            else if (val.includes("+91")) newCat = "India";
                             changeCountryOrDialCode(newCat, val);
                           }
                         }}
@@ -904,8 +937,9 @@ export default function PostReferralJobScreen({ navigation, route }) {
                       <TextInput
                         value={phoneNumber}
                         onChangeText={(val) => {
-                          const cleaned = val.replace(/[^0-9]/g, "");
-                          if (cleaned.length <= targetPhoneDigits) {
+                          const cleaned = stripCountryPrefix(val, phoneDialCode);
+                          const maxDigits = getTargetDigitsForDialCode(phoneDialCode);
+                          if (cleaned.length <= maxDigits) {
                             setPhoneNumber(cleaned);
                             setSavedPhones((prev) => ({ ...prev, [phoneDialCode]: cleaned }));
                           }

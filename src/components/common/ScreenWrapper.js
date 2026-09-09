@@ -11,6 +11,7 @@ export default function ScreenWrapper({
   edges = ["top", "left", "right", "bottom"],
   centerContent = false,
   showBottomShadow = false,
+  refreshControl,
 }) {
   return (
     <SafeAreaView edges={edges} style={[styles.safeArea, style]}>
@@ -30,6 +31,7 @@ export default function ScreenWrapper({
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             contentInsetAdjustmentBehavior="automatic"
+            refreshControl={refreshControl}
           >
             {children}
           </ScrollView>

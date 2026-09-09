@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { Pressable, StyleSheet, Text, View, RefreshControl } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import ScreenWrapper from "../../components/common/ScreenWrapper";
@@ -7,19 +7,48 @@ import DashboardStatCard from "../../components/cards/DashboardStatCard";
 import StatusBadge from "../../components/common/StatusBadge";
 import colors from "../../constants/colors";
 import { fetchEmployerDashboard } from "../../redux/slices/employerSlice";
+import { fetchProfile } from "../../redux/slices/userSlice";
 import AppButton from "../../components/buttons/AppButton";
 
 export default function EmployerDashboardScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { stats, submittedJobs } = useSelector((state) => state.employer);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    dispatch(fetchEmployerDashboard());
+  const loadData = useCallback(async () => {
+    await Promise.allSettled([
+      dispatch(fetchEmployerDashboard()),
+      dispatch(fetchProfile()),
+    ]);
   }, [dispatch]);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadData();
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadData]);
+
   return (
-    <ScreenWrapper>
+    <ScreenWrapper
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#6366f1"]}
+          tintColor="#6366f1"
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>{t("employerDashboardTitle", "Employer Dashboard")}</Text>
         <Text style={styles.subtitle}>{t("employerDashboardSubtitle", "Review job submissions and applicant progress.")}</Text>
