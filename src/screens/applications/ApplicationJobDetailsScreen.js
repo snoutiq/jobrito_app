@@ -335,12 +335,13 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Application Status Stepper Timeline */}
+        {/* Application Status Stepper Timeline (Commented out for now, preserved for future use) */}
+        {/*
         <View style={styles.sectionWrap}>
           <Text style={styles.sectionHeading}>{t("applicationStatus", "Application Status")}</Text>
 
           <View style={styles.timelineStepperContainer}>
-            {/* Step 1: Applied */}
+            // Step 1: Applied
             <View style={styles.stepperItem}>
               <View style={[styles.stepperNode, styles.stepperNodeActive]}>
                 <Ionicons name="checkmark" size={normalize(14)} color="#16a34a" />
@@ -351,10 +352,10 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               <Text style={styles.stepperDate}>{appliedDateStr}</Text>
             </View>
 
-            {/* Connecting Line 1 */}
+            // Connecting Line 1
             <View style={isViewedActive ? styles.lineSolidGreen : styles.lineSolidGray} />
 
-            {/* Step 2: Viewed */}
+            // Step 2: Viewed
             <View style={styles.stepperItem}>
               <View
                 style={[
@@ -383,7 +384,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               <Text style={styles.stepperDate}>{viewedDateStr}</Text>
             </View>
 
-            {/* Connecting Line 2 */}
+            // Connecting Line 2
             <View
               style={
                 isShortlisted || isContacted
@@ -392,7 +393,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               }
             />
 
-            {/* Step 3: In Review / Shortlisted */}
+            // Step 3: In Review / Shortlisted
             <View style={styles.stepperItem}>
               <View
                 style={[
@@ -437,7 +438,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               <Text style={styles.stepperDate}>-</Text>
             </View>
 
-            {/* Connecting Line 3 */}
+            // Connecting Line 3
             <View
               style={
                 isContacted
@@ -446,7 +447,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
               }
             />
 
-            {/* Step 4: Contacted / Rejected */}
+            // Step 4: Contacted / Rejected
             <View style={styles.stepperItem}>
               <View
                 style={[
@@ -480,8 +481,9 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
             </View>
           </View>
         </View>
+            */}
 
-        {/* What's Next? Notice Box */}
+        {/* // What's Next? Notice Box */}
         <View style={styles.whatsNextCard}>
           <View style={styles.whatsNextIconCircle}>
             <Ionicons name="information-circle-outline" size={normalize(24)} color="#153e69" />
@@ -493,6 +495,7 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
             </Text>
           </View>
         </View>
+    
       </ScrollView>
 
       {/* Bottom Fixed Action Bar */}
@@ -835,7 +838,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#dbeafe",
     gap: normalize(10),
-    marginTop: normalize(4),
+    marginTop: normalize(10),
   },
   whatsNextIconCircle: {
     marginTop: normalize(1),
