@@ -1359,5 +1359,16 @@
   "noRecordsFound": "No records to display",
   "backToMyJobs": "Back to my jobs",
   "allCaughtUp": "No records to display",
-  "backToJobs": "Back to my jobs"
+  "backToJobs": "Back to my jobs",
+  "trainingLocation": "Training Location",
+  "programDuration": "Program Duration",
+  "trainingProvider": "Training Provider",
+  "trainingProviderSub": "Organization conducting this training",
+  "skillsCoveredSub": "Key skills you will learn",
+  "keyBenefits": "Key Benefits",
+  "keyBenefitsSub": "What you will gain from this training",
+  "placementSupport": "Placement Support",
+  "placementSupportSub": "Job or internship opportunities after training",
+  "trainingCurriculumTitle": "Training Curriculum / Provider Details",
+  "trainingCurriculumSub": "Course content and additional information"
 }

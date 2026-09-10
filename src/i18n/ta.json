@@ -878,5 +878,16 @@
   "noRecordsFound": "காண்பிக்க பதிவுகள் எதுவும் இல்லை",
   "backToMyJobs": "எனது வேலைகளுக்குத் திரும்பு",
   "allCaughtUp": "காண்பிக்க பதிவுகள் எதுவும் இல்லை",
-  "backToJobs": "எனது வேலைகளுக்குத் திரும்பு"
+  "backToJobs": "எனது வேலைகளுக்குத் திரும்பு",
+  "trainingLocation": "பயிற்சி இடம்",
+  "programDuration": "நிகழ்ச்சி காலம்",
+  "trainingProvider": "பயிற்சி வழங்குநர்",
+  "trainingProviderSub": "இந்த பயிற்சியை நடத்தும் நிறுவனம்",
+  "skillsCoveredSub": "நீங்கள் கற்றுக்கொள்ளும் முக்கிய திறன்கள்",
+  "keyBenefits": "முக்கிய நன்மைகள்",
+  "keyBenefitsSub": "இந்த பயிற்சியிலிருந்து நீங்கள் பெறுவது",
+  "placementSupport": "வேலைவாய்ப்பு உதவி",
+  "placementSupportSub": "பயிற்சிக்குப் பிறகு வேலை அல்லது பயிற்சி வாய்ப்புகள்",
+  "trainingCurriculumTitle": "பயிற்சி பாடத்திட்டம் / வழங்குநர் விவரங்கள்",
+  "trainingCurriculumSub": "பாடநெறி உள்ளடக்கம் மற்றும் கூடுதல் தகவல்"
 }

@@ -1294,7 +1294,7 @@ export default function HomeScreen({ navigation }) {
                         <Ionicons name="location" size={normalize(12)} color="#1d4ed8" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("deploymentLocation", "Deployment Location") : t("location", "Location")}</Text>
+                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingLocation", "Training Location") : t("location", "Location")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                           {selectedDetailsJob?.location || t("notSpecified", "Not Specified")}
                         </Text>
@@ -1306,7 +1306,7 @@ export default function HomeScreen({ navigation }) {
                         <Ionicons name="briefcase" size={normalize(12)} color="#15803d" />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("trainingDuration", "Training Duration") : t("jobType", "Job Type / Duration")}</Text>
+                        <Text style={styles.modalGridLabel} numberOfLines={1} adjustsFontSizeToFit={true}>{(selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training") ? t("programDuration", "Program Duration") : t("jobType", "Job Type / Duration")}</Text>
                         <Text style={styles.modalGridValue} numberOfLines={2} adjustsFontSizeToFit={true} minimumFontScale={0.8}>
                           {selectedDetailsJob?.duration || selectedDetailsJob?.job_type || selectedDetailsJob?.type || t("fullTime", "Full-time")}
                         </Text>
@@ -1388,14 +1388,19 @@ export default function HomeScreen({ navigation }) {
               {/* ── TRAINING-SPECIFIC STRUCTURED SECTIONS ─────────────────── */}
               {selectedDetailsJob?._type === "training_opportunity" || selectedDetailsJob?.category === "training" ? (
                 <>
-                  {/* Employer / Organizing Body */}
+                  {/* Employer / Organizing Body -> Training Provider */}
                   {Boolean(selectedDetailsJob?.employer_details) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="business-outline" size={normalize(16)} color="#153e69" style={{ marginRight: 6 }} />
-                        <Text style={styles.modalSectionTitle}>{t("employerDetails", "Organizing Body")}</Text>
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }]}>
+                          <Ionicons name="business-outline" size={normalize(20)} color="#153e69" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.modalSectionTitle}>{t("trainingProvider", "Training Provider")}</Text>
+                          <Text style={styles.modalSectionSubtitle}>{t("trainingProviderSub", "Organization conducting this training")}</Text>
+                          <Text style={styles.modalSectionBody}>{selectedDetailsJob.employer_details}</Text>
+                        </View>
                       </View>
-                      <Text style={styles.modalSectionBody}>{selectedDetailsJob.employer_details}</Text>
                     </View>
                   )}
 
@@ -1403,63 +1408,83 @@ export default function HomeScreen({ navigation }) {
                   {Boolean(selectedDetailsJob?.skills_covered) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="checkmark-circle-outline" size={normalize(16)} color="#7e22ce" style={{ marginRight: 6 }} />
-                        <Text style={styles.modalSectionTitle}>{t("skillsCovered", "Skills Covered")}</Text>
-                      </View>
-                      <View style={{ marginTop: normalize(4) }}>
-                        {String(selectedDetailsJob.skills_covered).split(/[\n,]/).map((skill, idx) =>
-                          skill.trim() ? (
-                            <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: normalize(4) }}>
-                              <Ionicons name="ellipse" size={normalize(6)} color="#7e22ce" style={{ marginTop: normalize(5), marginRight: normalize(6) }} />
-                              <Text style={[styles.modalSectionBody, { flex: 1, marginBottom: 0 }]}>{skill.trim()}</Text>
-                            </View>
-                          ) : null
-                        )}
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#faf5ff", borderColor: "#e9d5ff" }]}>
+                          <Ionicons name="checkmark-circle-outline" size={normalize(20)} color="#7e22ce" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.modalSectionTitle}>{t("skillsCovered", "Skills Covered")}</Text>
+                          <Text style={styles.modalSectionSubtitle}>{t("skillsCoveredSub", "Key skills you will learn")}</Text>
+                          <View style={{ marginTop: normalize(4) }}>
+                            {String(selectedDetailsJob.skills_covered).split(/[\n,]/).map((skill, idx) =>
+                              skill.trim() ? (
+                                <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: normalize(4) }}>
+                                  <Ionicons name="ellipse" size={normalize(6)} color="#7e22ce" style={{ marginTop: normalize(5), marginRight: normalize(6) }} />
+                                  <Text style={[styles.modalSectionBody, { flex: 1, marginBottom: 0 }]}>{skill.trim()}</Text>
+                                </View>
+                              ) : null
+                            )}
+                          </View>
+                        </View>
                       </View>
                     </View>
                   )}
 
-                  {/* Training Benefits */}
+                  {/* Training Benefits -> Key Benefits */}
                   {Boolean(selectedDetailsJob?.benefits) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="gift-outline" size={normalize(16)} color="#16a34a" style={{ marginRight: 6 }} />
-                        <Text style={styles.modalSectionTitle}>{t("trainingBenefits", "Training Benefits")}</Text>
-                      </View>
-                      <View style={{ marginTop: normalize(4) }}>
-                        {String(selectedDetailsJob.benefits).split(/[\n,]/).map((b, idx) =>
-                          b.trim() ? (
-                            <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: normalize(4) }}>
-                              <Ionicons name="ellipse" size={normalize(6)} color="#16a34a" style={{ marginTop: normalize(5), marginRight: normalize(6) }} />
-                              <Text style={[styles.modalSectionBody, { flex: 1, marginBottom: 0 }]}>{b.trim()}</Text>
-                            </View>
-                          ) : null
-                        )}
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" }]}>
+                          <Ionicons name="gift-outline" size={normalize(20)} color="#16a34a" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.modalSectionTitle}>{t("keyBenefits", "Key Benefits")}</Text>
+                          <Text style={styles.modalSectionSubtitle}>{t("keyBenefitsSub", "What you will gain from this training")}</Text>
+                          <View style={{ marginTop: normalize(4) }}>
+                            {String(selectedDetailsJob.benefits).split(/[\n,]/).map((b, idx) =>
+                              b.trim() ? (
+                                <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: normalize(4) }}>
+                                  <Ionicons name="ellipse" size={normalize(6)} color="#16a34a" style={{ marginTop: normalize(5), marginRight: normalize(6) }} />
+                                  <Text style={[styles.modalSectionBody, { flex: 1, marginBottom: 0 }]}>{b.trim()}</Text>
+                                </View>
+                              ) : null
+                            )}
+                          </View>
+                        </View>
                       </View>
                     </View>
                   )}
 
-                  {/* Placement Opportunities */}
+                  {/* Placement Opportunities -> Placement Support */}
                   {Boolean(selectedDetailsJob?.placement_opportunities) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="trophy-outline" size={normalize(16)} color="#b45309" style={{ marginRight: 6 }} />
-                        <Text style={styles.modalSectionTitle}>{t("placementOpportunities", "Placement Opportunities")}</Text>
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#fffbeb", borderColor: "#fde68a" }]}>
+                          <Ionicons name="trophy-outline" size={normalize(20)} color="#b45309" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.modalSectionTitle}>{t("placementSupport", "Placement Support")}</Text>
+                          <Text style={styles.modalSectionSubtitle}>{t("placementSupportSub", "Job or internship opportunities after training")}</Text>
+                          <Text style={styles.modalSectionBody}>{selectedDetailsJob.placement_opportunities}</Text>
+                        </View>
                       </View>
-                      <Text style={styles.modalSectionBody}>{selectedDetailsJob.placement_opportunities}</Text>
                     </View>
                   )}
 
-                  {/* Curriculum / Provider (at bottom) */}
+                  {/* Curriculum / Provider (at bottom) -> Training Curriculum / Provider Details */}
                   {Boolean(selectedDetailsJob?.provider_name || selectedDetailsJob?.description) && (
                     <View style={[styles.modalSectionCard, { borderLeftWidth: 3, borderLeftColor: "#153e69" }]}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="journal-outline" size={normalize(16)} color="#153e69" style={{ marginRight: 6 }} />
-                        <Text style={styles.modalSectionTitle}>{t("curriculumProvider", "Curriculum / Provider")}</Text>
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#f1f5f9", borderColor: "#cbd5e1" }]}>
+                          <Ionicons name="journal-outline" size={normalize(20)} color="#153e69" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.modalSectionTitle}>{t("trainingCurriculumTitle", "Training Curriculum / Provider Details")}</Text>
+                          <Text style={styles.modalSectionSubtitle}>{t("trainingCurriculumSub", "Course content and additional information")}</Text>
+                          <Text style={styles.modalSectionBody}>
+                            {selectedDetailsJob?.description || selectedDetailsJob?.provider_name}
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={styles.modalSectionBody}>
-                        {selectedDetailsJob?.description || selectedDetailsJob?.provider_name}
-                      </Text>
                     </View>
                   )}
                 </>
@@ -1470,7 +1495,9 @@ export default function HomeScreen({ navigation }) {
                   {Boolean(selectedDetailsJob?.skills_covered) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="checkmark-circle-outline" size={normalize(16)} color="#7e22ce" style={{ marginRight: 6 }} />
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#faf5ff", borderColor: "#e9d5ff" }]}>
+                          <Ionicons name="checkmark-circle-outline" size={normalize(20)} color="#7e22ce" />
+                        </View>
                         <Text style={styles.modalSectionTitle}>{t("skillsCovered", "Skills Covered")}</Text>
                       </View>
                       <View style={styles.skillsTagContainer}>
@@ -1487,7 +1514,9 @@ export default function HomeScreen({ navigation }) {
                   {Boolean(selectedDetailsJob?.benefits) && (
                     <View style={styles.modalSectionCard}>
                       <View style={styles.modalSectionHeaderRow}>
-                        <Ionicons name="gift-outline" size={normalize(16)} color="#16a34a" style={{ marginRight: 6 }} />
+                        <View style={[styles.modalSectionIconBox, { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" }]}>
+                          <Ionicons name="gift-outline" size={normalize(20)} color="#16a34a" />
+                        </View>
                         <Text style={styles.modalSectionTitle}>{t("benefits", "Benefits & Perks")}</Text>
                       </View>
                       <Text style={styles.modalSectionBody}>{selectedDetailsJob.benefits}</Text>
@@ -1497,7 +1526,9 @@ export default function HomeScreen({ navigation }) {
                   {/* Description */}
                   <View style={[styles.modalSectionCard, { borderLeftWidth: 3, borderLeftColor: "#153e69" }]}>
                     <View style={styles.modalSectionHeaderRow}>
-                      <Ionicons name="document-text-outline" size={normalize(16)} color="#153e69" style={{ marginRight: 6 }} />
+                      <View style={[styles.modalSectionIconBox, { backgroundColor: "#f1f5f9", borderColor: "#cbd5e1" }]}>
+                        <Ionicons name="document-text-outline" size={normalize(20)} color="#153e69" />
+                      </View>
                       <Text style={styles.modalSectionTitle}>{t("description", "Description")}</Text>
                     </View>
                     <Text style={styles.modalSectionBody}>
@@ -2638,16 +2669,41 @@ poweredRibbonText: {
     borderWidth: 1,
     borderColor: "#e2e8f0",
     marginBottom: normalize(10),
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  modalSectionIconBox: {
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(10),
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: normalize(10),
+    borderWidth: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   modalSectionHeaderRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: normalize(6),
   },
   modalSectionTitle: {
     fontSize: normalize(13),
     fontWeight: "800",
     color: "#0f172a",
+  },
+  modalSectionSubtitle: {
+    fontSize: normalize(11),
+    fontWeight: "500",
+    color: "#64748b",
+    marginTop: normalize(2),
   },
   modalSectionBody: {
     fontSize: normalize(13),

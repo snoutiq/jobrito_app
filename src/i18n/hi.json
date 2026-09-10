@@ -1397,5 +1397,16 @@
   "noRecordsFound": "प्रदर्शित करने के लिए कोई रिकॉर्ड नहीं",
   "backToMyJobs": "मेरी नौकरियों पर वापस जाएं",
   "allCaughtUp": "प्रदर्शित करने के लिए कोई रिकॉर्ड नहीं",
-  "backToJobs": "मेरी नौकरियों पर वापस जाएं"
+  "backToJobs": "मेरी नौकरियों पर वापस जाएं",
+  "trainingLocation": "प्रशिक्षण स्थान",
+  "programDuration": "कार्यक्रम की अवधि",
+  "trainingProvider": "प्रशिक्षण प्रदाता",
+  "trainingProviderSub": "इस प्रशिक्षण का आयोजन करने वाली संस्था",
+  "skillsCoveredSub": "मुख्य कौशल जो आप सीखेंगे",
+  "keyBenefits": "मुख्य लाभ",
+  "keyBenefitsSub": "इस प्रशिक्षण से आपको क्या हासिल होगा",
+  "placementSupport": "प्लेसमेंट सहायता",
+  "placementSupportSub": "प्रशिक्षण के बाद नौकरी या इंटर्नशिप के अवसर",
+  "trainingCurriculumTitle": "प्रशिक्षण पाठ्यक्रम / प्रदाता विवरण",
+  "trainingCurriculumSub": "पाठ्यक्रम सामग्री और अतिरिक्त जानकारी"
 }

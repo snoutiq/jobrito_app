@@ -1001,5 +1001,16 @@
   "noRecordsFound": "لا توجد سجلات لعرضها",
   "backToMyJobs": "العودة إلى وظائفي",
   "allCaughtUp": "لا توجد سجلات لعرضها",
-  "backToJobs": "العودة إلى وظائفي"
+  "backToJobs": "العودة إلى وظائفي",
+  "trainingLocation": "موقع التدريب",
+  "programDuration": "مدة البرنامج",
+  "trainingProvider": "مقدم التدريب",
+  "trainingProviderSub": "الجهة المنظمة لهذا التدريب",
+  "skillsCoveredSub": "المهارات الأساسية التي ستتعلمها",
+  "keyBenefits": "المزايا الرئيسية",
+  "keyBenefitsSub": "ما ستكتسبه من هذا التدريب",
+  "placementSupport": "دعم التوظيف",
+  "placementSupportSub": "فرص عمل أو تدريب بعد انتهاء البرنامج",
+  "trainingCurriculumTitle": "المنهج التدريبي / تفاصيل المزود",
+  "trainingCurriculumSub": "محتوى الدورة ومعلومات إضافية"
 }

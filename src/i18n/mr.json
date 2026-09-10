@@ -866,5 +866,16 @@
   "noRecordsFound": "प्रदर्शित करण्यासाठी कोणतेही रेकॉर्ड नाहीत",
   "backToMyJobs": "माझ्या नोकऱ्यांवर परत जा",
   "allCaughtUp": "प्रदर्शित करण्यासाठी कोणतेही रेकॉर्ड नाहीत",
-  "backToJobs": "माझ्या नोकऱ्यांवर परत जा"
+  "backToJobs": "माझ्या नोकऱ्यांवर परत जा",
+  "trainingLocation": "प्रशिक्षण स्थान",
+  "programDuration": "कार्यक्रमाचा कालावधी",
+  "trainingProvider": "प्रशिक्षण प्रदाता",
+  "trainingProviderSub": "हे प्रशिक्षण आयोजित करणारी संस्था",
+  "skillsCoveredSub": "तुम्ही शिकणारी मुख्य कौशल्ये",
+  "keyBenefits": "मुख्य फायदे",
+  "keyBenefitsSub": "या प्रशिक्षणातून तुम्हाला काय मिळेल",
+  "placementSupport": "प्लेसमेंट सहाय्य",
+  "placementSupportSub": "प्रशिक्षणानंतर नोकरी किंवा इंटर्नशिपच्या संधी",
+  "trainingCurriculumTitle": "प्रशिक्षण अभ्यासक्रम / प्रदाता तपशील",
+  "trainingCurriculumSub": "अभ्यासक्रम सामग्री आणि अतिरिक्त माहिती"
 }

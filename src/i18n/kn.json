@@ -874,5 +874,16 @@
   "noRecordsFound": "ಪ್ರದರ್ಶಿಸಲು ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ",
   "backToMyJobs": "ನನ್ನ ಉದ್ಯೋಗಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
   "allCaughtUp": "ಪ್ರದರ್ಶಿಸಲು ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ",
-  "backToJobs": "ನನ್ನ ಉದ್ಯೋಗಗಳಿಗೆ ಹಿಂತಿರುಗಿ"
+  "backToJobs": "ನನ್ನ ಉದ್ಯೋಗಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+  "trainingLocation": "ತರಬೇತಿ ಸ್ಥಳ",
+  "programDuration": "ಕಾರ್ಯಕ್ರಮದ ಅವಧಿ",
+  "trainingProvider": "ತರಬೇತಿ ನೀಡುಗರು",
+  "trainingProviderSub": "ಈ ತರಬೇತಿಯನ್ನು ನಡೆಸುವ ಸಂಸ್ಥೆ",
+  "skillsCoveredSub": "ನೀವು ಕಲಿಯುವ ಪ್ರಮುಖ ಕೌಶಲ್ಯಗಳು",
+  "keyBenefits": "ಪ್ರಮುಖ ಪ್ರಯೋಜನಗಳು",
+  "keyBenefitsSub": "ಈ ತರಬೇತಿಯಿಂದ ನೀವು ಪಡೆಯುವ ಪ್ರಯೋಜನಗಳು",
+  "placementSupport": "ಪ್ಲೇಸ್‌ಮೆಂಟ್ ಬೆಂಬಲ",
+  "placementSupportSub": "ತರಬೇತಿಯ ನಂತರ ಉದ್ಯೋಗ ಅಥವಾ ಇಂಟರ್ನ್‌ಶಿಪ್ ಅವಕಾಶಗಳು",
+  "trainingCurriculumTitle": "ತರಬೇತಿ ಪಠ್ಯಕ್ರಮ / ನೀಡುಗರ ವಿವರಗಳು",
+  "trainingCurriculumSub": "ಕೋರ್ಸ್ ವಿಷಯ ಮತ್ತು ಹೆಚ್ಚಿನ ಮಾಹಿತಿ"
 }

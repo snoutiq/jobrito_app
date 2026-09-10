@@ -875,5 +875,16 @@
   "noRecordsFound": "ప్రదర్శించడానికి ఎలాంటి రికార్డులు లేవు",
   "backToMyJobs": "నా ఉద్యోగాలకు తిరిగి వెళ్ళండి",
   "allCaughtUp": "ప్రదర్శించడానికి ఎలాంటి రికార్డులు లేవు",
-  "backToJobs": "నా ఉద్యోగాలకు తిరిగి వెళ్ళండి"
+  "backToJobs": "నా ఉద్యోగాలకు తిరిగి వెళ్ళండి",
+  "trainingLocation": "శిక్షణ ప్రదేశం",
+  "programDuration": "కార్యక్రమ కాలపరిమితి",
+  "trainingProvider": "శిక్షణ ప్రదాత",
+  "trainingProviderSub": "ఈ శిక్షణను నిర్వహిస్తున్న సంస్థ",
+  "skillsCoveredSub": "మీరు నేర్చుకునే కీలక నైపుణ్యాలు",
+  "keyBenefits": "ప్రధాన ప్రయోజనాలు",
+  "keyBenefitsSub": "ఈ శిక్షణ నుండి మీరు పొందే ప్రయోజనాలు",
+  "placementSupport": "ఉద్యోగ నియామక సహాయం",
+  "placementSupportSub": "శిక్షణ తర్వాత ఉద్యోగం లేదా ఇంటర్న్‌షిప్ అవకాశాలు",
+  "trainingCurriculumTitle": "శిక్షణ పాఠ్యప్రణాళిక / ప్రదాత వివరాలు",
+  "trainingCurriculumSub": "కోర్సు సమాచారం మరియు అదనపు వివరాలు"
 }
