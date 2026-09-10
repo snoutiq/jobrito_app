@@ -217,6 +217,47 @@ export default function JobDetailsScreen({ navigation, route }) {
     jobId,
   ]);
 
+  const app = useMemo(() => {
+    const targetId = String(jobId || job?.id || "");
+    return (applicationHistory || []).find(
+      (a) => String(a.jobId || a.job_id || a.id) === targetId,
+    );
+  }, [applicationHistory, jobId, job?.id]);
+
+  const rawJobStatus = String(
+    job?.job_status ||
+    job?.jobStatus ||
+    passedJob?.job_status ||
+    passedJob?.jobStatus ||
+    directJob?.job_status ||
+    jobDetails?.job_status ||
+    ""
+  ).toLowerCase().trim();
+
+  const rawAppStatus = String(
+    app?.status ||
+    app?.application_status ||
+    job?.application_status ||
+    job?.status ||
+    ""
+  ).toLowerCase().trim();
+
+  const isJobRejected =
+    rawJobStatus === "rejected" ||
+    rawJobStatus === "reject" ||
+    rawJobStatus === "inactive" ||
+    rawJobStatus === "closed";
+
+  const isAppRejected =
+    rawAppStatus === "rejected" ||
+    rawAppStatus === "reject" ||
+    rawAppStatus === "declined";
+
+  const showShareBtn =
+    (rawJobStatus === "active" || (!rawJobStatus && !isAppRejected)) &&
+    !isAppRejected &&
+    !isJobRejected;
+
   const handleShare = async () => {
     try {
       const id = jobId || job?.id;
@@ -481,17 +522,21 @@ export default function JobDetailsScreen({ navigation, route }) {
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleShare}
-          style={styles.headerShareBtn}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name="share-social-outline"
-            size={normalize(20)}
-            color="#153e69"
-          />
-        </TouchableOpacity>
+        {showShareBtn ? (
+          <TouchableOpacity
+            onPress={handleShare}
+            style={styles.headerShareBtn}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="share-social-outline"
+              size={normalize(20)}
+              color="#153e69"
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: normalize(32) }} />
+        )}
       </View>
 
       <ScrollView
@@ -511,12 +556,14 @@ export default function JobDetailsScreen({ navigation, route }) {
               <Text style={styles.savedNoticeSub}>
                 {t("savedNoticeSub1", "If you're still interested, tap Apply.")}
               </Text>
-              <Text style={styles.savedNoticeSub}>
-                {t(
-                  "savedNoticeSub2",
-                  "You can also share this opportunity with others.",
-                )}
-              </Text>
+              {showShareBtn && (
+                <Text style={styles.savedNoticeSub}>
+                  {t(
+                    "savedNoticeSub2",
+                    "You can also share this opportunity with others.",
+                  )}
+                </Text>
+              )}
             </View>
           </View>
         )}

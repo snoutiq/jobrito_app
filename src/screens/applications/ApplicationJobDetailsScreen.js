@@ -165,9 +165,27 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
 
   const isShortlisted = currentStatus === "shortlisted";
   const isContacted = currentStatus === "contacted";
-  const isRejected = currentStatus === "rejected";
+  const isRejected =
+    currentStatus === "rejected" ||
+    currentStatus === "reject" ||
+    currentStatus === "declined";
   const isHired = currentStatus === "hired" || currentStatus === "accepted";
   const hasActionStatus = isShortlisted || isContacted || isRejected || isHired;
+
+  const rawJobStatus = String(
+    getProp("job_status", "jobStatus") || ""
+  ).toLowerCase().trim();
+
+  const isJobRejected =
+    rawJobStatus === "rejected" ||
+    rawJobStatus === "reject" ||
+    rawJobStatus === "inactive" ||
+    rawJobStatus === "closed";
+
+  const showShareBtn =
+    (rawJobStatus === "active" || (!rawJobStatus && !isRejected)) &&
+    !isRejected &&
+    !isJobRejected;
 
   const viewedDateStr = isViewedActive
     ? (getProp("viewed_at_formatted") || formatCreatedDate(rawViewedAt) || "-")
@@ -201,9 +219,13 @@ export default function ApplicationJobDetailsScreen({ navigation, route }) {
           </Text>
         </View>
 
-        <TouchableOpacity onPress={handleShare} style={styles.headerShareBtn} activeOpacity={0.7}>
-          <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
-        </TouchableOpacity>
+        {showShareBtn ? (
+          <TouchableOpacity onPress={handleShare} style={styles.headerShareBtn} activeOpacity={0.7}>
+            <Ionicons name="share-social-outline" size={normalize(20)} color="#153e69" />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: normalize(32) }} />
+        )}
       </View>
 
       <ScrollView
