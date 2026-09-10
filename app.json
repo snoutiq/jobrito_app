@@ -25,6 +25,9 @@
         "CFBundleDisplayName": "jobrito",
         "CFBundleName": "jobrito",
         "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Jobrito requires camera access to allow you to take and upload a profile picture and business verification documents.",
+        "NSPhotoLibraryUsageDescription": "Jobrito requires photo library access to allow you to select and upload your profile photo and business logos.",
+        "NSPhotoLibraryAddUsageDescription": "Jobrito requires permission to save photos to your library.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
@@ -63,6 +66,13 @@
           "android": {
             "usesCleartextTraffic": true
           }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Jobrito requires access to your photos to allow you to upload profile pictures and business logos.",
+          "cameraPermission": "Jobrito requires camera access to take profile photos directly from the app."
         }
       ],
       [
